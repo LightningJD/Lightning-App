@@ -1,6 +1,6 @@
 import { useUser } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
-import { syncUserToSupabase, getUserByClerkId } from '../lib/database';
+import { syncUserToSupabase, getUserByClerkId, getTestimonyByUserId } from '../lib/database';
 
 /**
  * Custom hook to sync Clerk user data with Lightning app profile
@@ -8,6 +8,7 @@ import { syncUserToSupabase, getUserByClerkId } from '../lib/database';
 export const useUserProfile = () => {
   const { user, isLoaded, isSignedIn } = useUser();
   const [supabaseUser, setSupabaseUser] = useState(null);
+  const [testimony, setTestimony] = useState(null);
 
   // Sync user to Supabase when they sign in
   useEffect(() => {
@@ -16,6 +17,12 @@ export const useUserProfile = () => {
         // Sync Clerk user to Supabase
         const dbUser = await syncUserToSupabase(user);
         setSupabaseUser(dbUser);
+
+        // Load testimony if user has one
+        if (dbUser && dbUser.id) {
+          const userTestimony = await getTestimonyByUserId(dbUser.id);
+          setTestimony(userTestimony);
+        }
       }
     };
 
@@ -48,18 +55,27 @@ export const useUserProfile = () => {
     avatar: user.publicMetadata?.customAvatar || getDefaultAvatar(),
     avatarImage: user.imageUrl, // Keep Clerk's image URL for future use
     email: user.primaryEmailAddress?.emailAddress,
-    bio: user.publicMetadata?.bio || 'Welcome to Lightning! Share your testimony to inspire others.',
-    hasTestimony: user.publicMetadata?.hasTestimony || false,
-    testimony: user.publicMetadata?.testimony || null,
-    testimonyLesson: user.publicMetadata?.testimonyLesson || null,
+    bio: supabaseUser?.bio || user.publicMetadata?.bio || 'Welcome to Lightning! Share your testimony to inspire others.',
+    hasTestimony: testimony ? true : (supabaseUser?.has_testimony || false),
+    testimony: testimony?.content || null,
+    testimonyLesson: testimony?.lesson || null,
     location: user.publicMetadata?.location || null,
-    music: user.publicMetadata?.music || {
+    music: testimony ? {
+      trackName: testimony.music_track_name || "Amazing Grace",
+      artist: testimony.music_artist || "Various Artists",
+      spotifyUrl: testimony.music_spotify_url || "https://open.spotify.com/track/1AWQoqb9bSvzTjaLralEka",
+      audioUrl: testimony.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    } : {
       trackName: "Amazing Grace",
       artist: "Various Artists",
       spotifyUrl: "https://open.spotify.com/track/1AWQoqb9bSvzTjaLralEka",
       audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
     },
-    story: user.publicMetadata?.story || {
+    story: testimony ? {
+      title: testimony.title || "My Testimony",
+      content: testimony.content,
+      lesson: testimony.lesson
+    } : {
       title: "My Testimony",
       content: null,
       lesson: null
