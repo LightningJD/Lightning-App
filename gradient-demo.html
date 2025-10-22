@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightning Gradient Options - Pick Your Favorite</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f8fafc;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1e293b;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 40px;
+      font-size: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+
+    .gradient-preview {
+      height: 200px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lightning-icon {
+      width: 24px;
+      height: 24px;
+      color: #fbbf24;
+      fill: #fbbf24;
+      filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.3));
+    }
+
+    .app-title {
+      font-weight: 700;
+      color: white;
+      font-size: 20px;
+      text-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    .card-description {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .pros {
+      background: #f0fdf4;
+      border-left: 3px solid #22c55e;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #166534;
+      margin-bottom: 8px;
+    }
+
+    .cons {
+      background: #fef2f2;
+      border-left: 3px solid #ef4444;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #991b1b;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #3b82f6;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+
+    .badge.current {
+      background: #64748b;
+    }
+
+    .badge.recommended {
+      background: #22c55e;
+    }
+
+    /* Gradient Options */
+    .gradient-current {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .gradient-softer {
+      background: linear-gradient(135deg, #667eea 0%, #4facfe 50%, #00d4ff 100%);
+    }
+
+    .gradient-warmth {
+      background: linear-gradient(135deg, #5f72ff 0%, #4facfe 40%, #6dd5ed 100%);
+    }
+
+    .gradient-premium {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .gradient-sunrise {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    .gradient-ocean {
+      background: linear-gradient(135deg, #2e3192 0%, #1bffff 100%);
+    }
+
+    .gradient-heaven {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    }
+
+    .gradient-royal {
+      background: linear-gradient(135deg, #4481eb 0%, #04befe 100%);
+    }
+
+    .gradient-faith {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    }
+
+    .gradient-peace {
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+    }
+
+    .gradient-hope {
+      background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    }
+
+    .gradient-light {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    }
+
+    .instructions {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .instructions h2 {
+      color: #1e293b;
+      margin-bottom: 12px;
+      font-size: 20px;
+    }
+
+    .instructions p {
+      color: #64748b;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ Lightning App - Gradient Options</h1>
+    <p class="subtitle">Click through each option to see how they look. Pick your favorite!</p>
+
+    <div class="grid">
+      <!-- Current -->
+      <div class="card">
+        <div class="gradient-preview gradient-current">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Current Design</div>
+          <div class="card-description">Your existing gradient - bright, energetic cyan-blue transition</div>
+          <div class="pros">✓ Bright and energetic<br>✓ Tech-forward feel</div>
+          <div class="cons">✗ Very similar color stops<br>✗ Could be more dynamic</div>
+          <span class="badge current">CURRENT</span>
+        </div>
+      </div>
+
+      <!-- Softer Multi-Stop -->
+      <div class="card">
+        <div class="gradient-preview gradient-softer">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Softer Indigo-Blue</div>
+          <div class="card-description">Adds subtle indigo for depth and more color variation</div>
+          <div class="pros">✓ More dynamic color range<br>✓ Modern and sophisticated<br>✓ Better visual interest</div>
+          <div class="cons">✗ Slightly cooler tone</div>
+          <span class="badge recommended">RECOMMENDED</span>
+        </div>
+      </div>
+
+      <!-- Warmth -->
+      <div class="card">
+        <div class="gradient-preview gradient-warmth">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Deeper Blue Warmth</div>
+          <div class="card-description">Richer blue start with lighter cyan finish for hope theme</div>
+          <div class="pros">✓ Warm and inviting<br>✓ Faith/hope symbolism<br>✓ Great contrast</div>
+          <div class="cons">✗ May feel less energetic</div>
+        </div>
+      </div>
+
+      <!-- Premium Purple -->
+      <div class="card">
+        <div class="gradient-preview gradient-premium">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Premium Purple</div>
+          <div class="card-description">Indigo to purple - luxury and spirituality</div>
+          <div class="pros">✓ Premium feel<br>✓ Spiritual purple tones<br>✓ Very modern</div>
+          <div class="cons">✗ No blue (brand change)<br>✗ May feel less energetic</div>
+        </div>
+      </div>
+
+      <!-- Royal Blue -->
+      <div class="card">
+        <div class="gradient-preview gradient-royal">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Royal Blue</div>
+          <div class="card-description">Deep royal blue to bright cyan - clean and trustworthy</div>
+          <div class="pros">✓ Professional<br>✓ Trustworthy feel<br>✓ High contrast</div>
+          <div class="cons">✗ May feel corporate</div>
+        </div>
+      </div>
+
+      <!-- Faith Purple-Blue -->
+      <div class="card">
+        <div class="gradient-preview gradient-faith">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Faith Purple-Blue</div>
+          <div class="card-description">Deep purple to vibrant blue - spiritual and bold</div>
+          <div class="pros">✓ Bold and confident<br>✓ Spiritual purple<br>✓ High energy</div>
+          <div class="cons">✗ Very bold (may overwhelm)</div>
+        </div>
+      </div>
+
+      <!-- Ocean Deep -->
+      <div class="card">
+        <div class="gradient-preview gradient-ocean">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Ocean Deep</div>
+          <div class="card-description">Navy to neon cyan - dramatic and impactful</div>
+          <div class="pros">✓ Very dramatic<br>✓ Strong identity<br>✓ Unique</div>
+          <div class="cons">✗ Very bold<br>✗ May reduce readability</div>
+        </div>
+      </div>
+
+      <!-- Peaceful Heaven -->
+      <div class="card">
+        <div class="gradient-preview gradient-heaven">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Heavenly Peace</div>
+          <div class="card-description">Soft teal to pink - gentle and peaceful</div>
+          <div class="pros">✓ Very peaceful<br>✓ Gentle and welcoming<br>✓ Unique palette</div>
+          <div class="cons">✗ May feel too soft<br>✗ Less energetic</div>
+        </div>
+      </div>
+
+      <!-- Peace Pastel -->
+      <div class="card">
+        <div class="gradient-preview gradient-peace">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Peace Pastel</div>
+          <div class="card-description">Soft lavender to light blue - calming and serene</div>
+          <div class="pros">✓ Very calming<br>✓ Peaceful vibe<br>✓ Approachable</div>
+          <div class="cons">✗ Low contrast<br>✗ May lack energy</div>
+        </div>
+      </div>
+
+      <!-- Hope Green-Blue -->
+      <div class="card">
+        <div class="gradient-preview gradient-hope">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Hope Green-Blue</div>
+          <div class="card-description">Fresh mint to sky blue - growth and renewal</div>
+          <div class="pros">✓ Fresh and uplifting<br>✓ Growth symbolism<br>✓ Positive energy</div>
+          <div class="cons">✗ May feel less spiritual<br>✗ Different from brand</div>
+        </div>
+      </div>
+
+      <!-- Sunrise Warm -->
+      <div class="card">
+        <div class="gradient-preview gradient-sunrise">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Sunrise Warmth</div>
+          <div class="card-description">Pink to yellow - warm and joyful</div>
+          <div class="pros">✓ Very warm and joyful<br>✓ Energetic<br>✓ Memorable</div>
+          <div class="cons">✗ No blue (brand shift)<br>✗ May feel too playful</div>
+        </div>
+      </div>
+
+      <!-- Light Warmth -->
+      <div class="card">
+        <div class="gradient-preview gradient-light">
+          <div class="header-content">
+            <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+            </svg>
+            <span class="app-title">Lightning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">Light & Love</div>
+          <div class="card-description">Warm cream to coral - gentle and loving</div>
+          <div class="pros">✓ Warm and loving<br>✓ Very inviting<br>✓ Gentle</div>
+          <div class="cons">✗ Low energy<br>✗ May lack impact<br>✗ No blue</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="instructions">
+      <h2>How to Choose</h2>
+      <p>
+        Look at each gradient and imagine seeing it every time you open the app.
+        Which one makes you feel the most connected to Lightning's mission of faith, community, and testimony?
+        <br><br>
+        <strong>Once you decide, just tell me the name (e.g., "Softer Indigo-Blue") and I'll apply it!</strong>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

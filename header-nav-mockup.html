@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Header & Navigation Mockup - 12 Seamless Options</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: white;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: rgba(255,255,255,0.7);
+      font-size: 16px;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 32px;
+    }
+
+    .mockup-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .mockup-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 8px;
+    }
+
+    .mockup-description {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    /* Phone Container */
+    .phone {
+      width: 100%;
+      max-width: 375px;
+      height: 600px;
+      margin: 0 auto;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .phone-content {
+      width: 100%;
+      height: 100%;
+      overflow-y: scroll;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .phone-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Animated gradient background */
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+      background-size: 200% 200%;
+      animation: gradientMove 15s ease infinite;
+    }
+
+    @keyframes gradientMove {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Content sections */
+    .content-section {
+      padding: 16px;
+      color: #1e293b;
+    }
+
+    .content-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-center;
+      font-size: 32px;
+    }
+
+    .profile-info h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .profile-info p {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* Option 1: Fully Transparent (No visible header/nav) */
+    .option-1 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: transparent;
+      z-index: 50;
+    }
+
+    .option-1 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: transparent;
+    }
+
+    /* Option 2: Subtle Glassmorphism Fade */
+    .option-2 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      z-index: 50;
+    }
+
+    .option-2 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+    }
+
+    /* Option 3: Gradient Edge Fade */
+    .option-3 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, transparent 100%);
+      backdrop-filter: blur(10px);
+      z-index: 50;
+    }
+
+    .option-3 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: linear-gradient(to top, rgba(255,255,255,0.15) 0%, transparent 100%);
+      backdrop-filter: blur(10px);
+    }
+
+    /* Option 4: Borderless Float */
+    .option-4 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      z-index: 50;
+    }
+
+    .option-4 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+    }
+
+    /* Option 5: Soft Blur Only */
+    .option-5 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: transparent;
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      z-index: 50;
+    }
+
+    .option-5 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: transparent;
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+    }
+
+    /* Option 6: Frosted Glass Minimal */
+    .option-6 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      z-index: 50;
+    }
+
+    .option-6 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+    }
+
+    /* Option 7: Shadow Depth (Current Style) */
+    .option-7 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+      z-index: 50;
+    }
+
+    .option-7 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(15px);
+      border-top: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Option 8: Ultra Light Tint */
+    .option-8 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      z-index: 50;
+    }
+
+    .option-8 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+    }
+
+    /* Option 9: Chromatic Blur */
+    .option-9 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: rgba(102, 126, 234, 0.08);
+      backdrop-filter: blur(18px) saturate(150%);
+      z-index: 50;
+    }
+
+    .option-9 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: rgba(102, 126, 234, 0.08);
+      backdrop-filter: blur(18px) saturate(150%);
+    }
+
+    /* Option 10: Vignette Fade */
+    .option-10 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: radial-gradient(ellipse at top, rgba(255,255,255,0.15) 0%, transparent 70%);
+      backdrop-filter: blur(15px);
+      z-index: 50;
+    }
+
+    .option-10 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: radial-gradient(ellipse at bottom, rgba(255,255,255,0.15) 0%, transparent 70%);
+      backdrop-filter: blur(15px);
+    }
+
+    /* Option 11: Double Layer Glass */
+    .option-11 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      z-index: 50;
+    }
+
+    .option-11 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    /* Option 12: Atmospheric Haze */
+    .option-12 .header {
+      position: sticky;
+      top: 0;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(30px) brightness(1.05);
+      -webkit-backdrop-filter: blur(30px) brightness(1.05);
+      z-index: 50;
+    }
+
+    .option-12 .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-around;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(30px) brightness(1.05);
+      -webkit-backdrop-filter: blur(30px) brightness(1.05);
+    }
+
+    /* Header content */
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .header-icons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+    }
+
+    /* Nav items */
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active {
+      color: white;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 Header & Navigation Flow Options</h1>
+    <p class="subtitle">
+      Choose a seamless design where the header and nav blend naturally with the page.<br>
+      Each option reduces the visual separation for a more cohesive experience.
+    </p>
+
+    <div class="grid">
+      <!-- Option 1 -->
+      <div class="mockup-card">
+        <div class="mockup-header">1. Fully Transparent</div>
+        <div class="mockup-description">
+          Completely invisible header/nav. Maximum seamlessness, minimal visual separation.
+        </div>
+        <div class="phone gradient-bg option-1">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 2 -->
+      <div class="mockup-card">
+        <div class="mockup-header">2. Subtle Glassmorphism Fade</div>
+        <div class="mockup-description">
+          Very light frosted glass effect. Barely visible but adds a hint of separation.
+        </div>
+        <div class="phone gradient-bg option-2">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 3 -->
+      <div class="mockup-card">
+        <div class="mockup-header">3. Gradient Edge Fade</div>
+        <div class="mockup-description">
+          Gradient that fades from visible to transparent. Smooth natural transition.
+        </div>
+        <div class="phone gradient-bg option-3">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 4 -->
+      <div class="mockup-card">
+        <div class="mockup-header">4. Borderless Float</div>
+        <div class="mockup-description">
+          Ultra-minimal glass with heavy blur. No borders, just floating blur layers.
+        </div>
+        <div class="phone gradient-bg option-4">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 5 -->
+      <div class="mockup-card">
+        <div class="mockup-header">5. Soft Blur Only</div>
+        <div class="mockup-description">
+          Pure blur effect with no tint. Background shows through completely blurred.
+        </div>
+        <div class="phone gradient-bg option-5">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 6 -->
+      <div class="mockup-card">
+        <div class="mockup-header">6. Frosted Glass Minimal</div>
+        <div class="mockup-description">
+          Light frosted glass with enhanced saturation. Slightly more visible but still seamless.
+        </div>
+        <div class="phone gradient-bg option-6">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 7 -->
+      <div class="mockup-card">
+        <div class="mockup-header">7. Shadow Depth (Current)</div>
+        <div class="mockup-description">
+          Your current style. More visible with borders and shadows for clear separation.
+        </div>
+        <div class="phone gradient-bg option-7">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 8 -->
+      <div class="mockup-card">
+        <div class="mockup-header">8. Ultra Light Tint</div>
+        <div class="mockup-description">
+          Extremely subtle white tint. Almost invisible but provides slight UI definition.
+        </div>
+        <div class="phone gradient-bg option-8">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 9 -->
+      <div class="mockup-card">
+        <div class="mockup-header">9. Chromatic Blur</div>
+        <div class="mockup-description">
+          Tinted with your app's primary color. Adds subtle brand color while maintaining flow.
+        </div>
+        <div class="phone gradient-bg option-9">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 10 -->
+      <div class="mockup-card">
+        <div class="mockup-header">10. Vignette Fade</div>
+        <div class="mockup-description">
+          Radial gradient fade from center. Creates a natural spotlight effect on content.
+        </div>
+        <div class="phone gradient-bg option-10">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 11 -->
+      <div class="mockup-card">
+        <div class="mockup-header">11. Double Layer Glass</div>
+        <div class="mockup-description">
+          Two-layer glass effect with subtle highlights. Sophisticated depth without harsh lines.
+        </div>
+        <div class="phone gradient-bg option-11">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 12 -->
+      <div class="mockup-card">
+        <div class="mockup-header">12. Atmospheric Haze</div>
+        <div class="mockup-description">
+          Heavy blur with brightness boost. Creates a dreamy, atmospheric feel.
+        </div>
+        <div class="phone gradient-bg option-12">
+          <div class="phone-content">
+            <div class="header">
+              <div class="header-content">
+                <div class="logo">⚡️ Lightning</div>
+                <div class="header-icons">
+                  <button class="icon-btn">⚙️</button>
+                </div>
+              </div>
+            </div>
+            <div class="content-section">
+              <div class="profile-header">
+                <div class="avatar">👤</div>
+                <div class="profile-info">
+                  <h2>John Doe</h2>
+                  <p>@johndoe</p>
+                </div>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">My Story</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  This is my testimony and journey...
+                </p>
+              </div>
+              <div class="content-card">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Lesson</h3>
+                <p style="font-size: 13px; color: #64748b;">
+                  Key takeaway from my experience...
+                </p>
+              </div>
+            </div>
+            <div class="nav">
+              <button class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <span>Profile</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">💬</div>
+                <span>Messages</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">👥</div>
+                <span>Groups</span>
+              </button>
+              <button class="nav-item">
+                <div class="nav-icon">📍</div>
+                <span>Connect</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

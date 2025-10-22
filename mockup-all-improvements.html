@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning App - 15+ Design Improvements</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.95);
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 32px;
+            margin: 60px 0 30px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .mockup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .phone-frame {
+            background: white;
+            border-radius: 40px;
+            padding: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .phone-frame:hover {
+            transform: translateY(-10px);
+        }
+
+        .phone-screen {
+            background: #030303;
+            border-radius: 26px;
+            overflow: hidden;
+            height: 700px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .phone-screen.light {
+            background: #F9FAFB;
+        }
+
+        /* Headers */
+        .header {
+            background: #1A1A1B;
+            border-bottom: 1px solid #343536;
+            padding: 50px 20px 20px;
+            position: relative;
+        }
+
+        .header.light {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-bottom: none;
+        }
+
+        .header.glass {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #D7DADC;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .logo.light {
+            color: white;
+        }
+
+        /* Cards */
+        .card {
+            background: #1A1A1B;
+            border: 1px solid #343536;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px;
+        }
+
+        .card.elevated {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .card.light {
+            background: white;
+            border-color: #E5E7EB;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        /* User Cards */
+        .user-card {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            background: #1A1A1B;
+            border: 1px solid #343536;
+            border-radius: 12px;
+            margin: 0 16px 12px;
+            transition: all 0.2s ease;
+        }
+
+        .user-card:hover {
+            transform: translateX(4px);
+            box-shadow: -4px 0 0 #5865f2;
+        }
+
+        .user-card.light {
+            background: white;
+            border-color: #E5E7EB;
+        }
+
+        .user-card.light:hover {
+            box-shadow: -4px 0 0 #3B82F6, 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .avatar.large {
+            width: 64px;
+            height: 64px;
+            font-size: 32px;
+        }
+
+        .status-dot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 14px;
+            height: 14px;
+            background: #10B981;
+            border: 3px solid #030303;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .status-dot.light {
+            border-color: white;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5865f2, #4752c4);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 300;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(88, 101, 242, 0.4);
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 36px rgba(88, 101, 242, 0.6);
+        }
+
+        .fab.light {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #1A1A1B 25%, #272729 50%, #1A1A1B 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .skeleton.light {
+            background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
+            background-size: 200% 100%;
+        }
+
+        /* Messages */
+        .message-bubble {
+            background: transparent;
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 75%;
+            transition: background 0.15s;
+        }
+
+        .message-bubble:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .message-bubble.light:hover {
+            background: rgba(0,0,0,0.03);
+        }
+
+        /* Search Bar */
+        .search-bar {
+            position: relative;
+            margin: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            background: #1A1A1B;
+            border: 1px solid #343536;
+            border-radius: 24px;
+            color: #D7DADC;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #5865f2;
+            box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
+        }
+
+        .search-input.light {
+            background: white;
+            border-color: #E5E7EB;
+            color: #111827;
+        }
+
+        .search-input.light:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #818384;
+            pointer-events: none;
+        }
+
+        /* Filter Chips */
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 16px;
+            overflow-x: auto;
+        }
+
+        .chip {
+            padding: 6px 16px;
+            background: transparent;
+            border: 1px solid #343536;
+            border-radius: 20px;
+            color: #D7DADC;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            background: rgba(88, 101, 242, 0.1);
+            border-color: #5865f2;
+        }
+
+        .chip.active {
+            background: #5865f2;
+            border-color: #5865f2;
+            color: white;
+        }
+
+        .chip.light {
+            border-color: #E5E7EB;
+            color: #374151;
+        }
+
+        .chip.light:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3B82F6;
+        }
+
+        .chip.light.active {
+            background: #3B82F6;
+            border-color: #3B82F6;
+            color: white;
+        }
+
+        /* Bottom Sheet */
+        .bottom-sheet {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1A1A1B;
+            border-radius: 24px 24px 0 0;
+            padding: 20px;
+            max-height: 400px;
+            transform: translateY(0);
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.3);
+        }
+
+        .bottom-sheet.light {
+            background: white;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: #343536;
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .sheet-handle.light {
+            background: #D1D5DB;
+        }
+
+        /* Navigation */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1A1A1B;
+            border-top: 1px solid #343536;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 12px;
+            border-radius: 0 0 26px 26px;
+        }
+
+        .bottom-nav.light {
+            background: white;
+            border-top-color: #E5E7EB;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .nav-item.active {
+            background: rgba(88, 101, 242, 0.15);
+            color: #D7DADC;
+        }
+
+        .nav-item.light.active {
+            background: #EBF5FF;
+            color: #3B82F6;
+        }
+
+        .nav-item:not(.active) {
+            color: #818384;
+        }
+
+        .badge {
+            position: absolute;
+            top: 2px;
+            right: 8px;
+            background: #5865f2;
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .badge.light {
+            background: #EF4444;
+        }
+
+        /* Swipe Indicator */
+        .swipe-actions {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 8px;
+            padding: 0 16px;
+        }
+
+        .swipe-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .swipe-btn.pin {
+            background: #5865f2;
+        }
+
+        .swipe-btn.delete {
+            background: #EF4444;
+        }
+
+        /* Label */
+        .mockup-label {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .feature-tag {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            background: rgba(16, 185, 129, 0.95);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            z-index: 20;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            color: #818384;
+        }
+
+        .empty-state.light {
+            color: #6B7280;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #D7DADC;
+        }
+
+        .empty-title.light {
+            color: #111827;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #5865f2;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cta-button:hover {
+            background: #4752c4;
+            transform: translateY(-2px);
+        }
+
+        .cta-button.light {
+            background: #3B82F6;
+        }
+
+        .cta-button.light:hover {
+            background: #2563EB;
+        }
+
+        /* Sticky Header */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background: #1A1A1B;
+            border-bottom: 1px solid #343536;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: #D7DADC;
+            z-index: 10;
+        }
+
+        .sticky-header.light {
+            background: white;
+            border-bottom-color: #E5E7EB;
+            color: #111827;
+        }
+
+        /* Input with suggestions */
+        .input-suggestions {
+            position: absolute;
+            bottom: 60px;
+            left: 16px;
+            right: 16px;
+            background: #1A1A1B;
+            border: 1px solid #343536;
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
+
+        .suggestion {
+            padding: 6px 12px;
+            background: #272729;
+            border-radius: 6px;
+            color: #D7DADC;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .suggestion:hover {
+            background: #343536;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            top: 70px;
+            right: 80px;
+            background: #272729;
+            color: #D7DADC;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            max-width: 200px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 30;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -8px;
+            transform: translateY(-50%);
+            border: 8px solid transparent;
+            border-left-color: #272729;
+        }
+
+        .info-banner {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px;
+            color: #D7DADC;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-banner.light {
+            background: #EBF5FF;
+            border-color: #BFDBFE;
+            color: #1E40AF;
+        }
+
+        .scroll-indicator {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Lightning App Design Improvements</h1>
+        <p class="subtitle">15+ Visual Examples for Modern, Sleek UI/UX</p>
+
+        <!-- Improvement 1: Card Shadows & Elevation -->
+        <div class="section-title">1. Card Shadows & Elevation System</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Lightning</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="card light" style="box-shadow: none;">
+                                <div style="display: flex; gap: 12px;">
+                                    <div class="avatar">👤</div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #111827; margin-bottom: 4px;">Sarah Mitchell</div>
+                                        <div style="font-size: 13px; color: #6B7280;">@sarah_m</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card light" style="box-shadow: none; margin-top: 16px;">
+                                <div style="display: flex; gap: 12px;">
+                                    <div class="avatar">🧑</div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #111827; margin-bottom: 4px;">John Rivers</div>
+                                        <div style="font-size: 13px; color: #6B7280;">@john_r</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Flat (No Depth)</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Lightning</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="card light elevated">
+                                <div style="display: flex; gap: 12px;">
+                                    <div class="avatar">👤</div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #111827; margin-bottom: 4px;">Sarah Mitchell</div>
+                                        <div style="font-size: 13px; color: #6B7280;">@sarah_m</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card light elevated" style="margin-top: 16px;">
+                                <div style="display: flex; gap: 12px;">
+                                    <div class="avatar">🧑</div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #111827; margin-bottom: 4px;">John Rivers</div>
+                                        <div style="font-size: 13px; color: #6B7280;">@john_r</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Elevated (Better Depth)</div>
+            </div>
+        </div>
+
+        <!-- Improvement 2: Animated Status Indicators -->
+        <div class="section-title">2. Animated Online Status</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Messages</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="user-card">
+                                <div class="avatar">👤</div>
+                                <div style="flex: 1;">
+                                    <div style="color: #D7DADC; font-weight: 600; margin-bottom: 4px;">Sarah Mitchell</div>
+                                    <div style="color: #818384; font-size: 13px;">That's amazing!</div>
+                                </div>
+                            </div>
+                            <div class="user-card">
+                                <div class="avatar">🧑</div>
+                                <div style="flex: 1;">
+                                    <div style="color: #D7DADC; font-weight: 600; margin-bottom: 4px;">John Rivers</div>
+                                    <div style="color: #818384; font-size: 13px;">See you Sunday!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Static Status</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Messages</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="user-card">
+                                <div class="avatar">
+                                    👤
+                                    <div class="status-dot"></div>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="color: #D7DADC; font-weight: 600; margin-bottom: 4px;">Sarah Mitchell</div>
+                                    <div style="color: #818384; font-size: 13px;">That's amazing!</div>
+                                </div>
+                            </div>
+                            <div class="user-card">
+                                <div class="avatar">🧑</div>
+                                <div style="flex: 1;">
+                                    <div style="color: #D7DADC; font-weight: 600; margin-bottom: 4px;">John Rivers</div>
+                                    <div style="color: #818384; font-size: 13px;">See you Sunday!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Pulsing Indicator</div>
+            </div>
+        </div>
+
+        <!-- Improvement 3: Skeleton Loading -->
+        <div class="section-title">3. Skeleton Loading States</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Groups</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="text-align: center; padding: 80px 40px; color: #818384;">
+                                <div style="font-size: 14px;">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Generic Loading</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Groups</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="card">
+                                <div style="display: flex; gap: 12px;">
+                                    <div class="skeleton" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+                                    <div style="flex: 1;">
+                                        <div class="skeleton" style="width: 60%; height: 16px; margin-bottom: 8px;"></div>
+                                        <div class="skeleton" style="width: 40%; height: 12px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div style="display: flex; gap: 12px;">
+                                    <div class="skeleton" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+                                    <div style="flex: 1;">
+                                        <div class="skeleton" style="width: 60%; height: 16px; margin-bottom: 8px;"></div>
+                                        <div class="skeleton" style="width: 40%; height: 12px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Shimmer Effect</div>
+            </div>
+        </div>
+
+        <!-- Improvement 4: FAB Button -->
+        <div class="section-title">4. Floating Action Button (FAB)</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Profile</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="card light elevated">
+                                <div style="text-align: center; padding: 20px;">
+                                    <div class="avatar large">👤</div>
+                                    <div style="margin-top: 16px; font-weight: 700; font-size: 20px; color: #111827;">Sarah Mitchell</div>
+                                    <div style="color: #6B7280; margin-top: 4px;">@sarah_m</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bottom-nav light">
+                            <div class="nav-item active light">
+                                <div>👤</div>
+                                <div style="font-size: 10px;">Profile</div>
+                            </div>
+                            <div class="nav-item">
+                                <div>💬</div>
+                                <div style="font-size: 10px;">Messages</div>
+                            </div>
+                            <div class="nav-item">
+                                <div>👥</div>
+                                <div style="font-size: 10px;">Groups</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ No Quick Action</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Profile</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="card light elevated">
+                                <div style="text-align: center; padding: 20px;">
+                                    <div class="avatar large">👤</div>
+                                    <div style="margin-top: 16px; font-weight: 700; font-size: 20px; color: #111827;">Sarah Mitchell</div>
+                                    <div style="color: #6B7280; margin-top: 4px;">@sarah_m</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="fab light">+</button>
+                        <div class="bottom-nav light">
+                            <div class="nav-item active light">
+                                <div>👤</div>
+                                <div style="font-size: 10px;">Profile</div>
+                            </div>
+                            <div class="nav-item">
+                                <div>💬</div>
+                                <div style="font-size: 10px;">Messages</div>
+                            </div>
+                            <div class="nav-item">
+                                <div>👥</div>
+                                <div style="font-size: 10px;">Groups</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Quick Add Testimony</div>
+            </div>
+        </div>
+
+        <!-- Improvement 5: Search with Filters -->
+        <div class="section-title">5. Search Bar with Filter Chips</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Discover Groups</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="search-bar">
+                                <div class="search-icon">🔍</div>
+                                <input class="search-input" placeholder="Search groups..." />
+                            </div>
+                            <div class="card">
+                                <div style="display: flex; gap: 12px;">
+                                    <div style="font-size: 32px;">✨</div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #D7DADC;">Prayer Warriors</div>
+                                        <div style="font-size: 13px; color: #818384; margin-top: 4px;">234 members</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Basic Search</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Discover Groups</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="search-bar">
+                                <div class="search-icon">🔍</div>
+                                <input class="search-input" placeholder="Search groups..." />
+                            </div>
+                            <div class="filter-chips">
+                                <div class="chip active">All</div>
+                                <div class="chip">Prayer</div>
+                                <div class="chip">Bible Study</div>
+                                <div class="chip">Youth</div>
+                                <div class="chip">Women</div>
+                            </div>
+                            <div class="card">
+                                <div style="display: flex; gap: 12px;">
+                                    <div style="font-size: 32px;">✨</div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #D7DADC;">Prayer Warriors</div>
+                                        <div style="font-size: 13px; color: #818384; margin-top: 4px;">234 members · Prayer</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Filtered Search</div>
+            </div>
+        </div>
+
+        <!-- Improvement 6: Bottom Sheet Modals -->
+        <div class="section-title">6. Bottom Sheet Instead of Full Screen</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Share Profile</div>
+                            </div>
+                        </div>
+                        <div class="content-area" style="padding: 40px 20px;">
+                            <div style="margin-bottom: 20px;">
+                                <div style="font-weight: 600; color: #111827; margin-bottom: 12px; font-size: 18px;">Share Profile</div>
+                                <div style="background: white; border: 1px solid #E5E7EB; border-radius: 12px; padding: 16px; margin-bottom: 12px; cursor: pointer;">
+                                    📱 QR Code
+                                </div>
+                                <div style="background: white; border: 1px solid #E5E7EB; border-radius: 12px; padding: 16px; margin-bottom: 12px; cursor: pointer;">
+                                    📋 Copy Link
+                                </div>
+                                <div style="background: white; border: 1px solid #E5E7EB; border-radius: 12px; padding: 16px; cursor: pointer;">
+                                    ✉️ Email
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Full Screen Modal</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Profile</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="card light elevated">
+                                <div style="text-align: center; padding: 20px;">
+                                    <div class="avatar large">👤</div>
+                                    <div style="margin-top: 16px; font-weight: 700; font-size: 20px; color: #111827;">Sarah Mitchell</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bottom-sheet light">
+                            <div class="sheet-handle light"></div>
+                            <div style="font-weight: 600; color: #111827; margin-bottom: 16px; font-size: 16px;">Share Profile</div>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <div style="padding: 12px; background: #F3F4F6; border-radius: 8px; cursor: pointer;">📱 QR Code</div>
+                                <div style="padding: 12px; background: #F3F4F6; border-radius: 8px; cursor: pointer;">📋 Copy Link</div>
+                                <div style="padding: 12px; background: #F3F4F6; border-radius: 8px; cursor: pointer;">✉️ Email</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Bottom Sheet</div>
+            </div>
+        </div>
+
+        <!-- Improvement 7: Sticky Headers -->
+        <div class="section-title">7. Sticky Section Headers</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Connect</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="padding: 16px; font-weight: 600; color: #6B7280; font-size: 14px;">Nearby (3)</div>
+                            <div class="user-card light">
+                                <div class="avatar">👤</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #111827;">Sarah · 1.2 mi</div>
+                                    <div style="font-size: 13px; color: #6B7280;">Church · 2 mutual</div>
+                                </div>
+                            </div>
+                            <div class="user-card light">
+                                <div class="avatar">🧑</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #111827;">John · 2.3 mi</div>
+                                    <div style="font-size: 13px; color: #6B7280;">Bible Study</div>
+                                </div>
+                            </div>
+                            <div style="padding: 16px; font-weight: 600; color: #6B7280; font-size: 14px;">Recommended (12)</div>
+                            <div class="user-card light">
+                                <div class="avatar">👩</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #111827;">Emily Grace</div>
+                                    <div style="font-size: 13px; color: #6B7280;">5 mutual friends</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Regular Headers</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Connect</div>
+                            </div>
+                        </div>
+                        <div class="content-area" style="position: relative;">
+                            <div class="sticky-header light">Nearby (3)</div>
+                            <div class="user-card light">
+                                <div class="avatar">👤</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #111827;">Sarah · 1.2 mi</div>
+                                    <div style="font-size: 13px; color: #6B7280;">Church · 2 mutual</div>
+                                </div>
+                            </div>
+                            <div class="user-card light">
+                                <div class="avatar">🧑</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #111827;">John · 2.3 mi</div>
+                                    <div style="font-size: 13px; color: #6B7280;">Bible Study</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Sticky Headers</div>
+            </div>
+        </div>
+
+        <!-- Improvement 8: Empty States -->
+        <div class="section-title">8. Illustrative Empty States</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Messages</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="text-align: center; padding: 80px 40px; color: #6B7280;">
+                                <div style="font-size: 14px;">No conversations yet</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Plain Text</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Messages</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="empty-state light">
+                                <div class="empty-icon">💬</div>
+                                <div class="empty-title light">No conversations yet</div>
+                                <div class="empty-text">Connect with others to start messaging!</div>
+                                <div class="cta-button light">Find People</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Actionable CTA</div>
+            </div>
+        </div>
+
+        <!-- Improvement 9: Swipe Actions -->
+        <div class="section-title">9. Swipe Actions on Cards</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Messages</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="user-card">
+                                <div class="avatar">
+                                    👤
+                                    <div class="status-dot"></div>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="color: #D7DADC; font-weight: 600; margin-bottom: 4px;">Sarah Mitchell</div>
+                                    <div style="color: #818384; font-size: 13px;">That's amazing! 🙏</div>
+                                </div>
+                                <div style="color: #818384; font-size: 11px;">2m</div>
+                            </div>
+                            <div class="info-banner">
+                                Tap to view · No quick actions
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ No Quick Actions</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Messages</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="user-card" style="position: relative; padding-right: 120px;">
+                                <div class="avatar">
+                                    👤
+                                    <div class="status-dot"></div>
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="color: #D7DADC; font-weight: 600; margin-bottom: 4px;">Sarah Mitchell</div>
+                                    <div style="color: #818384; font-size: 13px;">That's amazing! 🙏</div>
+                                </div>
+                                <div class="swipe-actions">
+                                    <div class="swipe-btn pin">📌</div>
+                                    <div class="swipe-btn delete">🗑️</div>
+                                </div>
+                            </div>
+                            <div class="info-banner">
+                                ← Swipe left to reveal Pin & Delete
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Swipe to Reveal</div>
+            </div>
+        </div>
+
+        <!-- Improvement 10: Hover Effects -->
+        <div class="section-title">10. Card Hover Effects</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Connect</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="user-card light" style="transform: none; box-shadow: none;">
+                                <div class="avatar">👤</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #111827;">Sarah Mitchell</div>
+                                    <div style="font-size: 13px; color: #6B7280;">1.2 mi · Church</div>
+                                </div>
+                            </div>
+                            <div class="info-banner light">
+                                No visual feedback on hover
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Static Cards</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Connect</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="user-card light" style="transform: translateX(4px); box-shadow: -4px 0 0 #3B82F6, 0 4px 12px rgba(0,0,0,0.1);">
+                                <div class="avatar">👤</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #111827;">Sarah Mitchell</div>
+                                    <div style="font-size: 13px; color: #6B7280;">1.2 mi · Church</div>
+                                </div>
+                            </div>
+                            <div class="info-banner light">
+                                Slides & shows accent border on hover
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Interactive Feedback</div>
+            </div>
+        </div>
+
+        <!-- Improvement 11: Notification Badges -->
+        <div class="section-title">11. Smart Notification Badges</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Lightning</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="padding: 40px 20px; text-align: center; color: #818384;">
+                                No notification indicators in nav
+                            </div>
+                        </div>
+                        <div class="bottom-nav">
+                            <div class="nav-item">
+                                <div>👤</div>
+                                <div style="font-size: 10px;">Profile</div>
+                            </div>
+                            <div class="nav-item">
+                                <div>💬</div>
+                                <div style="font-size: 10px;">Messages</div>
+                            </div>
+                            <div class="nav-item active">
+                                <div>👥</div>
+                                <div style="font-size: 10px;">Groups</div>
+                            </div>
+                            <div class="nav-item">
+                                <div>📍</div>
+                                <div style="font-size: 10px;">Connect</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ No Indicators</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Lightning</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="padding: 40px 20px; text-align: center; color: #818384;">
+                                Clear notification counts per tab
+                            </div>
+                        </div>
+                        <div class="bottom-nav">
+                            <div class="nav-item">
+                                <div>👤</div>
+                                <div style="font-size: 10px;">Profile</div>
+                            </div>
+                            <div class="nav-item" style="position: relative;">
+                                <div class="badge">3</div>
+                                <div>💬</div>
+                                <div style="font-size: 10px;">Messages</div>
+                            </div>
+                            <div class="nav-item active" style="position: relative;">
+                                <div class="badge">5</div>
+                                <div>👥</div>
+                                <div style="font-size: 10px;">Groups</div>
+                            </div>
+                            <div class="nav-item">
+                                <div>📍</div>
+                                <div style="font-size: 10px;">Connect</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Badge Counts</div>
+            </div>
+        </div>
+
+        <!-- Improvement 12: Glassmorphism -->
+        <div class="section-title">12. Glassmorphism Header</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Lightning</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="card light elevated">
+                                <div style="padding: 20px; text-align: center;">
+                                    <div>Solid gradient header</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Solid Header</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header glass">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Lightning</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div class="card light elevated">
+                                <div style="padding: 20px; text-align: center;">
+                                    <div style="color: #111827;">Frosted glass effect with blur</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Blur Effect</div>
+            </div>
+        </div>
+
+        <!-- Improvement 13: Smart Input -->
+        <div class="section-title">13. Smart Input Suggestions</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Prayer Warriors</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="padding: 20px; color: #818384; text-align: center;">
+                                Just a regular text input with no suggestions
+                            </div>
+                        </div>
+                        <div style="position: absolute; bottom: 60px; left: 16px; right: 16px; background: #1A1A1B; border: 1px solid #343536; border-radius: 24px; padding: 12px 16px;">
+                            <input style="background: transparent; border: none; color: #D7DADC; width: 100%; outline: none;" placeholder="Type message..." />
+                        </div>
+                        <div class="bottom-nav">
+                            <div class="nav-item">👤</div>
+                            <div class="nav-item">💬</div>
+                            <div class="nav-item active">👥</div>
+                            <div class="nav-item">📍</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Basic Input</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Prayer Warriors</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="padding: 20px; color: #818384; text-align: center;">
+                                Smart suggestions for @mentions and :emojis
+                            </div>
+                        </div>
+                        <div class="input-suggestions">
+                            <div class="suggestion">🙏 pray</div>
+                            <div class="suggestion">🙏 prayer</div>
+                            <div class="suggestion">@Sarah</div>
+                            <div class="suggestion">@John</div>
+                        </div>
+                        <div style="position: absolute; bottom: 60px; left: 16px; right: 16px; background: #1A1A1B; border: 1px solid #343536; border-radius: 24px; padding: 12px 16px;">
+                            <input style="background: transparent; border: none; color: #D7DADC; width: 100%; outline: none;" placeholder="Type message..." value="I agree, we should pr|" />
+                        </div>
+                        <div class="bottom-nav">
+                            <div class="nav-item">👤</div>
+                            <div class="nav-item">💬</div>
+                            <div class="nav-item active">👥</div>
+                            <div class="nav-item">📍</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Auto-Suggestions</div>
+            </div>
+        </div>
+
+        <!-- Improvement 14: Contextual Tooltips -->
+        <div class="section-title">14. First-Time User Tooltips</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Groups</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="padding: 40px 20px;">
+                                <div style="text-align: center; color: #818384;">
+                                    No guidance for new users
+                                </div>
+                                <div style="margin-top: 20px; padding: 20px; background: #1A1A1B; border: 1px solid #343536; border-radius: 12px; text-align: center; color: #818384;">
+                                    No groups yet
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ No Onboarding</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header">
+                            <div class="header-content">
+                                <div class="logo">⚡ Groups</div>
+                                <div style="position: relative;">
+                                    <div style="width: 32px; height: 32px; background: #5865f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; cursor: pointer;">+</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tooltip">
+                            Create your first group here! Connect with others who share your faith journey.
+                        </div>
+                        <div class="content-area">
+                            <div style="padding: 40px 20px;">
+                                <div style="margin-top: 20px; padding: 20px; background: #1A1A1B; border: 1px solid #343536; border-radius: 12px; text-align: center; color: #818384;">
+                                    No groups yet
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Helpful Tooltips</div>
+            </div>
+        </div>
+
+        <!-- Improvement 15: Pull to Refresh -->
+        <div class="section-title">15. Custom Pull-to-Refresh Animation</div>
+        <div class="mockup-grid">
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">BEFORE</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Messages</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="padding: 40px 20px; text-align: center; color: #6B7280;">
+                                Generic loading spinner when refreshing
+                            </div>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <div style="width: 40px; height: 40px; border: 4px solid #E5E7EB; border-top-color: #3B82F6; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">❌ Generic Spinner</div>
+            </div>
+
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen light">
+                        <span class="feature-tag">AFTER</span>
+                        <div class="header light">
+                            <div class="header-content">
+                                <div class="logo light">⚡ Messages</div>
+                            </div>
+                        </div>
+                        <div class="content-area">
+                            <div style="padding: 40px 20px; text-align: center; color: #6B7280;">
+                                Branded lightning bolt animation
+                            </div>
+                            <div style="text-align: center; margin-top: 20px;">
+                                <div style="font-size: 48px; animation: spin 0.8s linear infinite;">⚡</div>
+                                <div style="color: #3B82F6; font-weight: 600; margin-top: 12px; font-size: 14px;">Refreshing...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">✅ Branded Animation</div>
+            </div>
+        </div>
+
+        <div class="scroll-indicator">
+            ↓ Scroll down for implementation guide ↓
+        </div>
+
+        <!-- Implementation Guide -->
+        <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 24px; padding: 40px; margin: 60px 0; color: white;">
+            <h2 style="font-size: 32px; margin-bottom: 24px; text-align: center;">📋 Implementation Priority</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 40px;">
+                <div style="background: rgba(16, 185, 129, 0.2); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 24px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px;">🚀 Quick Wins</h3>
+                    <ul style="list-style: none; padding: 0; line-height: 2;">
+                        <li>✅ Card shadows (#1)</li>
+                        <li>✅ Animated status (#2)</li>
+                        <li>✅ FAB button (#4)</li>
+                        <li>✅ Empty states (#8)</li>
+                        <li>✅ Notification badges (#11)</li>
+                    </ul>
+                </div>
+
+                <div style="background: rgba(59, 130, 246, 0.2); border: 2px solid rgba(59, 130, 246, 0.4); border-radius: 16px; padding: 24px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px;">⚡ Medium Priority</h3>
+                    <ul style="list-style: none; padding: 0; line-height: 2;">
+                        <li>🔹 Skeleton loading (#3)</li>
+                        <li>🔹 Search filters (#5)</li>
+                        <li>🔹 Bottom sheets (#6)</li>
+                        <li>🔹 Sticky headers (#7)</li>
+                        <li>🔹 Hover effects (#10)</li>
+                    </ul>
+                </div>
+
+                <div style="background: rgba(251, 146, 60, 0.2); border: 2px solid rgba(251, 146, 60, 0.4); border-radius: 16px; padding: 24px;">
+                    <h3 style="font-size: 20px; margin-bottom: 16px;">💎 Polish</h3>
+                    <ul style="list-style: none; padding: 0; line-height: 2;">
+                        <li>⭐ Swipe actions (#9)</li>
+                        <li>⭐ Glassmorphism (#12)</li>
+                        <li>⭐ Smart input (#13)</li>
+                        <li>⭐ Tooltips (#14)</li>
+                        <li>⭐ Pull-to-refresh (#15)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; text-align: center; font-size: 18px; line-height: 2;">
+                <p><strong>Would you like me to implement any of these?</strong></p>
+                <p>I can start with the Quick Wins and work through them systematically!</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html>

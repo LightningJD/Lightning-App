@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning App - Profile Tab Mockups</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 50px;
+        }
+
+        .mockup-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .phone-frame {
+            background: white;
+            border-radius: 40px;
+            padding: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .phone-screen {
+            background: #F9FAFB;
+            border-radius: 28px;
+            overflow: hidden;
+            height: 650px;
+            position: relative;
+        }
+
+        .phone-screen.dark {
+            background: #030303;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 50px 20px 20px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .header.glass {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .header.dark {
+            background: #1A1A1B;
+            border-bottom: 1px solid #343536;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+        }
+
+        .logo.dark {
+            color: #D7DADC;
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .menu-icon.dark {
+            color: #D7DADC;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin: -40px 16px 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            position: relative;
+            z-index: 10;
+        }
+
+        .profile-card.dark {
+            background: #1A1A1B;
+            border: 1px solid #343536;
+        }
+
+        .profile-header {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            flex-shrink: 0;
+            border: 4px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .avatar.dark {
+            border-color: #030303;
+        }
+
+        .profile-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .profile-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .profile-name.dark {
+            color: #D7DADC;
+        }
+
+        .profile-username {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 12px;
+        }
+
+        .profile-username.dark {
+            color: #818384;
+        }
+
+        .profile-bio {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.5;
+        }
+
+        .profile-bio.dark {
+            color: #D7DADC;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #3B82F6;
+            color: white;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #2563EB;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary.dark {
+            background: #3d3e3f;
+            color: #D7DADC;
+            box-shadow: none;
+        }
+
+        .btn-primary.dark:hover {
+            background: #4a4b4c;
+        }
+
+        .btn-secondary {
+            background: #F3F4F6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #E5E7EB;
+        }
+
+        .btn-secondary.dark {
+            background: #1A1A1B;
+            color: #D7DADC;
+        }
+
+        .btn-secondary.dark:hover {
+            background: #272729;
+        }
+
+        /* Music Player */
+        .music-player {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 0 16px 16px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .music-player.dark {
+            background: #1A1A1B;
+            border-color: #343536;
+        }
+
+        .music-info {
+            margin-bottom: 12px;
+        }
+
+        .music-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 2px;
+        }
+
+        .music-title.dark {
+            color: #D7DADC;
+        }
+
+        .music-artist {
+            font-size: 11px;
+            color: #6B7280;
+        }
+
+        .music-artist.dark {
+            color: #818384;
+        }
+
+        .music-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .play-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #10B981;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #E5E7EB;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar.dark {
+            background: #343536;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10B981, #059669);
+            width: 45%;
+            border-radius: 3px;
+        }
+
+        .time {
+            font-size: 10px;
+            color: #6B7280;
+            white-space: nowrap;
+        }
+
+        .time.dark {
+            color: #818384;
+        }
+
+        /* Story Card */
+        .story-card {
+            background: linear-gradient(135deg, #EBF4FF 0%, #E8EEFF 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 0 16px 16px;
+            border: 2px solid #DBEAFE;
+        }
+
+        .story-card.dark {
+            background: #1A1A1B;
+            border-color: #343536;
+        }
+
+        .story-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 12px;
+        }
+
+        .story-title.dark {
+            color: #D7DADC;
+        }
+
+        .story-content {
+            font-size: 13px;
+            color: #374151;
+            line-height: 1.6;
+        }
+
+        .story-content.dark {
+            color: #D7DADC;
+        }
+
+        /* FAB Button */
+        .fab {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.6);
+        }
+
+        .fab.dark {
+            background: linear-gradient(135deg, #3d3e3f, #4a4b4c);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            border-radius: 0 0 28px 28px;
+        }
+
+        .bottom-nav.dark {
+            background: #1A1A1B;
+            border-top-color: #343536;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .nav-item.active {
+            background: #EBF5FF;
+            color: #3B82F6;
+        }
+
+        .nav-item.active.dark {
+            background: #343536;
+            color: #D7DADC;
+        }
+
+        .nav-item:not(.active) {
+            color: #6B7280;
+        }
+
+        .nav-item:not(.active).dark {
+            color: #818384;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .mockup-label {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .feature-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 20;
+        }
+
+        .feature-tag.new {
+            background: rgba(16, 185, 129, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Lightning App - Profile Tab Mockups</h1>
+        <p class="subtitle">Visual Design Improvements with Modern UI/UX</p>
+
+        <div class="mockup-grid">
+            <!-- Current Design - Light Mode -->
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <div class="header">
+                            <div class="header-top">
+                                <div class="logo">
+                                    <span>⚡</span>
+                                    <span>Lightning</span>
+                                </div>
+                                <div class="menu-icon">☰</div>
+                            </div>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="profile-header">
+                                <div class="avatar">👤</div>
+                                <div class="profile-info">
+                                    <div class="profile-name">Sarah Mitchell</div>
+                                    <div class="profile-username">@sarah_m</div>
+                                    <div class="profile-bio">Living for Christ, spreading love and faith every day.</div>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary">❤️ Like (342)</button>
+                                <button class="btn btn-primary">📤 Share</button>
+                            </div>
+                        </div>
+
+                        <div class="music-player">
+                            <div class="music-info">
+                                <div class="music-title">How Great Is Our God</div>
+                                <div class="music-artist">Chris Tomlin</div>
+                            </div>
+                            <div class="music-controls">
+                                <button class="play-btn">▶</button>
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <span class="time">1:32/3:45</span>
+                            </div>
+                        </div>
+
+                        <div class="story-card">
+                            <div class="story-title">📖 My Faith Journey</div>
+                            <div class="story-content">
+                                Growing up, I always felt a calling to serve. Through prayer and community, I found my purpose in spreading God's love...
+                            </div>
+                        </div>
+
+                        <div class="bottom-nav">
+                            <div class="nav-item active">
+                                <div class="nav-icon">👤</div>
+                                <div class="nav-label">Profile</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">💬</div>
+                                <div class="nav-label">Messages</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">👥</div>
+                                <div class="nav-label">Groups</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">📍</div>
+                                <div class="nav-label">Connect</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">Current Design (Light)</div>
+            </div>
+
+            <!-- Current Design - Dark Mode -->
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen dark">
+                        <div class="header dark">
+                            <div class="header-top">
+                                <div class="logo dark">
+                                    <span>⚡</span>
+                                    <span>Lightning</span>
+                                </div>
+                                <div class="menu-icon dark">☰</div>
+                            </div>
+                        </div>
+
+                        <div class="profile-card dark">
+                            <div class="profile-header">
+                                <div class="avatar dark">👤</div>
+                                <div class="profile-info">
+                                    <div class="profile-name dark">Sarah Mitchell</div>
+                                    <div class="profile-username dark">@sarah_m</div>
+                                    <div class="profile-bio dark">Living for Christ, spreading love and faith every day.</div>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary dark">❤️ Like (342)</button>
+                                <button class="btn btn-primary dark">📤 Share</button>
+                            </div>
+                        </div>
+
+                        <div class="music-player dark">
+                            <div class="music-info">
+                                <div class="music-title dark">How Great Is Our God</div>
+                                <div class="music-artist dark">Chris Tomlin</div>
+                            </div>
+                            <div class="music-controls">
+                                <button class="play-btn">▶</button>
+                                <div class="progress-bar dark">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <span class="time dark">1:32/3:45</span>
+                            </div>
+                        </div>
+
+                        <div class="story-card dark">
+                            <div class="story-title dark">📖 My Faith Journey</div>
+                            <div class="story-content dark">
+                                Growing up, I always felt a calling to serve. Through prayer and community, I found my purpose in spreading God's love...
+                            </div>
+                        </div>
+
+                        <div class="bottom-nav dark">
+                            <div class="nav-item active dark">
+                                <div class="nav-icon">👤</div>
+                                <div class="nav-label">Profile</div>
+                            </div>
+                            <div class="nav-item dark">
+                                <div class="nav-icon">💬</div>
+                                <div class="nav-label">Messages</div>
+                            </div>
+                            <div class="nav-item dark">
+                                <div class="nav-icon">👥</div>
+                                <div class="nav-label">Groups</div>
+                            </div>
+                            <div class="nav-item dark">
+                                <div class="nav-icon">📍</div>
+                                <div class="nav-label">Connect</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">Current Design (Dark)</div>
+            </div>
+
+            <!-- Improved Design with FAB -->
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen">
+                        <span class="feature-tag new">NEW: FAB</span>
+                        <div class="header glass">
+                            <div class="header-top">
+                                <div class="logo">
+                                    <span>⚡</span>
+                                    <span>Lightning</span>
+                                </div>
+                                <div class="menu-icon">☰</div>
+                            </div>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="profile-header">
+                                <div class="avatar">👤</div>
+                                <div class="profile-info">
+                                    <div class="profile-name">Sarah Mitchell</div>
+                                    <div class="profile-username">@sarah_m</div>
+                                    <div class="profile-bio">Living for Christ, spreading love and faith every day.</div>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary">❤️ Like (342)</button>
+                                <button class="btn btn-primary">📤 Share</button>
+                            </div>
+                        </div>
+
+                        <div class="music-player">
+                            <div class="music-info">
+                                <div class="music-title">How Great Is Our God</div>
+                                <div class="music-artist">Chris Tomlin</div>
+                            </div>
+                            <div class="music-controls">
+                                <button class="play-btn">▶</button>
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <span class="time">1:32/3:45</span>
+                            </div>
+                        </div>
+
+                        <div class="story-card">
+                            <div class="story-title">📖 My Faith Journey</div>
+                            <div class="story-content">
+                                Growing up, I always felt a calling to serve. Through prayer and community, I found my purpose in spreading God's love...
+                            </div>
+                        </div>
+
+                        <button class="fab">+</button>
+
+                        <div class="bottom-nav">
+                            <div class="nav-item active">
+                                <div class="nav-icon">👤</div>
+                                <div class="nav-label">Profile</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">💬</div>
+                                <div class="nav-label">Messages</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">👥</div>
+                                <div class="nav-label">Groups</div>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon">📍</div>
+                                <div class="nav-label">Connect</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">Glassmorphism + FAB</div>
+            </div>
+
+            <!-- Dark Mode with FAB -->
+            <div>
+                <div class="phone-frame">
+                    <div class="phone-screen dark">
+                        <span class="feature-tag new">NEW: FAB</span>
+                        <div class="header dark">
+                            <div class="header-top">
+                                <div class="logo dark">
+                                    <span>⚡</span>
+                                    <span>Lightning</span>
+                                </div>
+                                <div class="menu-icon dark">☰</div>
+                            </div>
+                        </div>
+
+                        <div class="profile-card dark">
+                            <div class="profile-header">
+                                <div class="avatar dark">👤</div>
+                                <div class="profile-info">
+                                    <div class="profile-name dark">Sarah Mitchell</div>
+                                    <div class="profile-username dark">@sarah_m</div>
+                                    <div class="profile-bio dark">Living for Christ, spreading love and faith every day.</div>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary dark">❤️ Like (342)</button>
+                                <button class="btn btn-primary dark">📤 Share</button>
+                            </div>
+                        </div>
+
+                        <div class="music-player dark">
+                            <div class="music-info">
+                                <div class="music-title dark">How Great Is Our God</div>
+                                <div class="music-artist dark">Chris Tomlin</div>
+                            </div>
+                            <div class="music-controls">
+                                <button class="play-btn">▶</button>
+                                <div class="progress-bar dark">
+                                    <div class="progress-fill"></div>
+                                </div>
+                                <span class="time dark">1:32/3:45</span>
+                            </div>
+                        </div>
+
+                        <div class="story-card dark">
+                            <div class="story-title dark">📖 My Faith Journey</div>
+                            <div class="story-content dark">
+                                Growing up, I always felt a calling to serve. Through prayer and community, I found my purpose in spreading God's love...
+                            </div>
+                        </div>
+
+                        <button class="fab dark">+</button>
+
+                        <div class="bottom-nav dark">
+                            <div class="nav-item active dark">
+                                <div class="nav-icon">👤</div>
+                                <div class="nav-label">Profile</div>
+                            </div>
+                            <div class="nav-item dark">
+                                <div class="nav-icon">💬</div>
+                                <div class="nav-label">Messages</div>
+                            </div>
+                            <div class="nav-item dark">
+                                <div class="nav-icon">👥</div>
+                                <div class="nav-label">Groups</div>
+                            </div>
+                            <div class="nav-item dark">
+                                <div class="nav-icon">📍</div>
+                                <div class="nav-label">Connect</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mockup-label">Dark Mode + FAB</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

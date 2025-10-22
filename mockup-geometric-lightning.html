@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Logo - Geometric Icon with Glow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f0f0f0;
+            padding: 60px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 60px;
+            font-weight: 500;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            margin-bottom: 80px;
+        }
+
+        .mockup {
+            border-radius: 32px;
+            padding: 100px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 450px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.2);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .mockup:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 90px rgba(0,0,0,0.25);
+        }
+
+        .mockup-label {
+            position: absolute;
+            top: 30px;
+            left: 35px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .logo-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .lightning-icon {
+            width: 48px;
+            height: 48px;
+            transition: all 0.3s ease;
+        }
+
+        .text {
+            font-size: 52px;
+            font-weight: 600;
+            letter-spacing: 0px;
+            transition: all 0.3s ease;
+        }
+
+        /* Black Background with Blue Glow */
+        .black-bg {
+            background: #000000;
+        }
+
+        .black-bg .mockup-label {
+            color: #666;
+        }
+
+        .black-bg .lightning-icon {
+            filter: drop-shadow(0 0 20px rgba(147, 197, 253, 0.6))
+                    drop-shadow(0 0 35px rgba(147, 197, 253, 0.4))
+                    drop-shadow(0 4px 12px rgba(147, 197, 253, 0.3));
+        }
+
+        .black-bg .text {
+            background: linear-gradient(135deg, #93C5FD 0%, #C4B5FD 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(147, 197, 253, 0.4),
+                        0 0 35px rgba(147, 197, 253, 0.2);
+        }
+
+        .black-bg:hover .lightning-icon {
+            filter: drop-shadow(0 0 28px rgba(147, 197, 253, 0.7))
+                    drop-shadow(0 0 45px rgba(147, 197, 253, 0.5))
+                    drop-shadow(0 6px 16px rgba(147, 197, 253, 0.4));
+            transform: scale(1.05);
+        }
+
+        /* Black Background with White Glow */
+        .black-white-glow {
+            background: #000000;
+        }
+
+        .black-white-glow .mockup-label {
+            color: #666;
+        }
+
+        .black-white-glow .lightning-icon {
+            filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.8))
+                    drop-shadow(0 0 45px rgba(255, 255, 255, 0.5))
+                    drop-shadow(0 0 65px rgba(255, 255, 255, 0.3))
+                    drop-shadow(0 4px 15px rgba(255, 255, 255, 0.4));
+        }
+
+        .black-white-glow .text {
+            background: linear-gradient(135deg, #93C5FD 0%, #C4B5FD 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 25px rgba(255, 255, 255, 0.6),
+                        0 0 45px rgba(255, 255, 255, 0.4),
+                        0 0 65px rgba(255, 255, 255, 0.2);
+        }
+
+        .black-white-glow:hover .lightning-icon {
+            filter: drop-shadow(0 0 35px rgba(255, 255, 255, 0.9))
+                    drop-shadow(0 0 55px rgba(255, 255, 255, 0.6))
+                    drop-shadow(0 0 75px rgba(255, 255, 255, 0.4))
+                    drop-shadow(0 6px 20px rgba(255, 255, 255, 0.5));
+            transform: scale(1.05);
+        }
+
+        /* White Background */
+        .white-bg {
+            background: #FFFFFF;
+        }
+
+        .white-bg .mockup-label {
+            color: #999;
+        }
+
+        .white-bg .lightning-icon {
+            filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.3));
+        }
+
+        .white-bg .text {
+            background: linear-gradient(135deg, #3B82F6 0%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .white-bg:hover .lightning-icon {
+            filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.4));
+            transform: scale(1.05);
+        }
+
+        /* Large Showcase */
+        .showcase {
+            margin-top: 60px;
+        }
+
+        .showcase-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 60px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .large-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 60px;
+        }
+
+        .large-mockup {
+            border-radius: 40px;
+            padding: 140px 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.25);
+            transition: transform 0.3s ease;
+        }
+
+        .large-mockup:hover {
+            transform: translateY(-10px);
+        }
+
+        .large-mockup .lightning-icon {
+            width: 80px;
+            height: 80px;
+        }
+
+        .large-mockup .text {
+            font-size: 88px;
+        }
+
+        .large-mockup .logo-content {
+            gap: 30px;
+        }
+
+        @media (max-width: 968px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .large-mockup {
+                padding: 100px 60px;
+            }
+
+            .large-mockup .lightning-icon {
+                width: 64px;
+                height: 64px;
+            }
+
+            .large-mockup .text {
+                font-size: 68px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .mockup {
+                padding: 70px 40px;
+                min-height: 350px;
+            }
+
+            .lightning-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .text {
+                font-size: 42px;
+            }
+
+            .large-mockup {
+                padding: 80px 40px;
+            }
+
+            .large-mockup .lightning-icon {
+                width: 52px;
+                height: 52px;
+            }
+
+            .large-mockup .text {
+                font-size: 54px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lightning Logo - Geometric Icon</h1>
+        <p class="subtitle">Black with Blue Glow, Enhanced White Glow & White Background</p>
+
+        <div class="grid">
+            <!-- Black Background with Blue Glow (Original) -->
+            <div class="mockup black-bg">
+                <span class="mockup-label">Black / Blue Glow</span>
+                <div class="logo-content">
+                    <svg class="lightning-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="blueGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#93C5FD;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#C4B5FD;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="url(#blueGradient1)" stroke="url(#blueGradient1)" stroke-width="0.5" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Black Background with White Glow -->
+            <div class="mockup black-white-glow">
+                <span class="mockup-label">Black / White Glow</span>
+                <div class="logo-content">
+                    <svg class="lightning-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="blueGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#93C5FD;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#C4B5FD;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="url(#blueGradient2)" stroke="url(#blueGradient2)" stroke-width="0.5" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- White Background -->
+            <div class="mockup white-bg">
+                <span class="mockup-label">White / Blue</span>
+                <div class="logo-content">
+                    <svg class="lightning-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="blueGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#A78BFA;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="url(#blueGradient3)" stroke="url(#blueGradient3)" stroke-width="0.5" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="showcase">
+            <div class="showcase-title">Hero Size</div>
+
+            <div class="large-grid">
+                <!-- Large Black with Blue Glow -->
+                <div class="large-mockup black-bg">
+                    <div class="logo-content">
+                        <svg class="lightning-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="blueGradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#93C5FD;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#C4B5FD;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="url(#blueGradient4)" stroke="url(#blueGradient4)" stroke-width="0.5" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="text">Lightning</div>
+                    </div>
+                </div>
+
+                <!-- Large Black with White Glow -->
+                <div class="large-mockup black-white-glow">
+                    <div class="logo-content">
+                        <svg class="lightning-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="blueGradient5" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#93C5FD;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#C4B5FD;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="url(#blueGradient5)" stroke="url(#blueGradient5)" stroke-width="0.5" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="text">Lightning</div>
+                    </div>
+                </div>
+
+                <!-- Large White Background -->
+                <div class="large-mockup white-bg">
+                    <div class="logo-content">
+                        <svg class="lightning-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="blueGradient6" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#A78BFA;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" fill="url(#blueGradient6)" stroke="url(#blueGradient6)" stroke-width="0.5" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="text">Lightning</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

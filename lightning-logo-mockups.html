@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Logo Mockups - 15 Variations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 48px;
+            margin-bottom: 50px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .mockup {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .mockup-label {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Mockup 1: Classic Emoji */
+        .mockup-1 .logo {
+            font-size: 72px;
+            margin-bottom: 10px;
+        }
+        .mockup-1 .name {
+            font-size: 42px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Mockup 2: Bold & Minimal */
+        .mockup-2 {
+            background: #0F172A;
+        }
+        .mockup-2 .logo {
+            font-size: 56px;
+            margin-bottom: 5px;
+        }
+        .mockup-2 .name {
+            font-size: 36px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -1px;
+        }
+
+        /* Mockup 3: Gradient Glow */
+        .mockup-3 {
+            background: #1a1a2e;
+        }
+        .mockup-3 .logo {
+            font-size: 64px;
+            filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.8));
+            margin-bottom: 10px;
+        }
+        .mockup-3 .name {
+            font-size: 38px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+        }
+
+        /* Mockup 4: Side by Side */
+        .mockup-4 .content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .mockup-4 .logo {
+            font-size: 56px;
+        }
+        .mockup-4 .name {
+            font-size: 44px;
+            font-weight: 800;
+            color: #3B82F6;
+        }
+
+        /* Mockup 5: Outlined */
+        .mockup-5 {
+            background: black;
+        }
+        .mockup-5 .logo {
+            font-size: 60px;
+            margin-bottom: 8px;
+        }
+        .mockup-5 .name {
+            font-size: 40px;
+            font-weight: 700;
+            color: transparent;
+            -webkit-text-stroke: 2px white;
+            letter-spacing: 2px;
+        }
+
+        /* Mockup 6: Neon */
+        .mockup-6 {
+            background: #0a0a0a;
+        }
+        .mockup-6 .logo {
+            font-size: 64px;
+            filter: drop-shadow(0 0 30px #3B82F6);
+            margin-bottom: 10px;
+        }
+        .mockup-6 .name {
+            font-size: 40px;
+            font-weight: 800;
+            color: #60A5FA;
+            text-shadow:
+                0 0 10px #3B82F6,
+                0 0 20px #3B82F6,
+                0 0 40px #3B82F6;
+        }
+
+        /* Mockup 7: Compact Modern */
+        .mockup-7 .content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .mockup-7 .logo {
+            font-size: 48px;
+        }
+        .mockup-7 .name {
+            font-size: 36px;
+            font-weight: 900;
+            color: #1F2937;
+            letter-spacing: -2px;
+        }
+
+        /* Mockup 8: Electric Blue */
+        .mockup-8 {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+        }
+        .mockup-8 .logo {
+            font-size: 70px;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+            margin-bottom: 5px;
+        }
+        .mockup-8 .name {
+            font-size: 42px;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Mockup 9: Rounded Soft */
+        .mockup-9 {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        }
+        .mockup-9 .logo {
+            font-size: 58px;
+            margin-bottom: 8px;
+        }
+        .mockup-9 .name {
+            font-size: 38px;
+            font-weight: 700;
+            color: #92400E;
+        }
+
+        /* Mockup 10: Monochrome Elite */
+        .mockup-10 .logo {
+            font-size: 52px;
+            filter: grayscale(100%);
+            margin-bottom: 8px;
+        }
+        .mockup-10 .name {
+            font-size: 40px;
+            font-weight: 900;
+            color: #000;
+            letter-spacing: -1px;
+        }
+
+        /* Mockup 11: Horizontal Centered */
+        .mockup-11 .content {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .mockup-11 .logo {
+            font-size: 64px;
+        }
+        .mockup-11 .name {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Mockup 12: Dark Premium */
+        .mockup-12 {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        .mockup-12 .logo {
+            font-size: 68px;
+            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.6));
+            margin-bottom: 12px;
+        }
+        .mockup-12 .name {
+            font-size: 44px;
+            font-weight: 700;
+            color: #E2E8F0;
+            letter-spacing: 1px;
+        }
+
+        /* Mockup 13: Playful Color */
+        .mockup-13 {
+            background: linear-gradient(135deg, #A7F3D0 0%, #6EE7B7 100%);
+        }
+        .mockup-13 .logo {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+        .mockup-13 .name {
+            font-size: 40px;
+            font-weight: 800;
+            color: #065F46;
+        }
+
+        /* Mockup 14: Ultra Minimal */
+        .mockup-14 .content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mockup-14 .logo {
+            font-size: 40px;
+        }
+        .mockup-14 .name {
+            font-size: 32px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        /* Mockup 15: Futuristic */
+        .mockup-15 {
+            background: radial-gradient(circle at 50% 50%, #1e3a8a 0%, #0c1d3a 100%);
+        }
+        .mockup-15 .logo {
+            font-size: 72px;
+            filter: drop-shadow(0 0 25px rgba(96, 165, 250, 0.9));
+            margin-bottom: 15px;
+        }
+        .mockup-15 .name {
+            font-size: 46px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #93C5FD 0%, #60A5FA 50%, #3B82F6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Lightning Logo Mockups</h1>
+
+        <div class="grid">
+            <!-- Mockup 1 -->
+            <div class="mockup mockup-1">
+                <span class="mockup-label">01 - Classic Emoji</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 2 -->
+            <div class="mockup mockup-2">
+                <span class="mockup-label" style="color: #666;">02 - Bold & Minimal</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 3 -->
+            <div class="mockup mockup-3">
+                <span class="mockup-label" style="color: #666;">03 - Gradient Glow</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 4 -->
+            <div class="mockup mockup-4">
+                <span class="mockup-label">04 - Side by Side</span>
+                <div class="content">
+                    <div class="logo">⚡</div>
+                    <div class="name">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Mockup 5 -->
+            <div class="mockup mockup-5">
+                <span class="mockup-label" style="color: #666;">05 - Outlined</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 6 -->
+            <div class="mockup mockup-6">
+                <span class="mockup-label" style="color: #666;">06 - Neon</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 7 -->
+            <div class="mockup mockup-7">
+                <span class="mockup-label">07 - Compact Modern</span>
+                <div class="content">
+                    <div class="logo">⚡</div>
+                    <div class="name">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Mockup 8 -->
+            <div class="mockup mockup-8">
+                <span class="mockup-label" style="color: rgba(255,255,255,0.5);">08 - Electric Blue</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 9 -->
+            <div class="mockup mockup-9">
+                <span class="mockup-label">09 - Rounded Soft</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 10 -->
+            <div class="mockup mockup-10">
+                <span class="mockup-label">10 - Monochrome Elite</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 11 -->
+            <div class="mockup mockup-11">
+                <span class="mockup-label">11 - Horizontal Centered</span>
+                <div class="content">
+                    <div class="logo">⚡</div>
+                    <div class="name">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Mockup 12 -->
+            <div class="mockup mockup-12">
+                <span class="mockup-label" style="color: rgba(255,255,255,0.5);">12 - Dark Premium</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 13 -->
+            <div class="mockup mockup-13">
+                <span class="mockup-label">13 - Playful Color</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+
+            <!-- Mockup 14 -->
+            <div class="mockup mockup-14">
+                <span class="mockup-label">14 - Ultra Minimal</span>
+                <div class="content">
+                    <div class="logo">⚡</div>
+                    <div class="name">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Mockup 15 -->
+            <div class="mockup mockup-15">
+                <span class="mockup-label" style="color: rgba(255,255,255,0.5);">15 - Futuristic</span>
+                <div class="logo">⚡</div>
+                <div class="name">Lightning</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning - Complete Ondo Style Mockup (Light & Night Mode)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: background 0.4s ease;
+            overflow-x: hidden;
+        }
+
+        /* Light Mode */
+        body.light {
+            background: linear-gradient(135deg, #E8E5F5 0%, #F5E8F0 50%, #E5F0F5 100%);
+        }
+
+        /* Night Mode */
+        body.night {
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+        }
+
+        /* Floating Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        body.light .orb-1 {
+            width: 350px;
+            height: 350px;
+            background: linear-gradient(135deg, #C7B3FF 0%, #FF9ECD 100%);
+            top: 5%;
+            left: -5%;
+            opacity: 0.4;
+        }
+
+        body.light .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #9EECFF 0%, #B3D4FF 100%);
+            top: 50%;
+            right: -5%;
+            opacity: 0.4;
+        }
+
+        body.light .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #FFB3E6 0%, #E6B3FF 100%);
+            bottom: 10%;
+            left: 20%;
+            opacity: 0.3;
+        }
+
+        /* Night Mode Orbs */
+        body.night .orb-1 {
+            width: 350px;
+            height: 350px;
+            background: linear-gradient(135deg, #4C1D95 0%, #7C2D12 100%);
+            top: 5%;
+            left: -5%;
+            opacity: 0.3;
+        }
+
+        body.night .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #1E3A8A 0%, #312E81 100%);
+            top: 50%;
+            right: -5%;
+            opacity: 0.3;
+        }
+
+        body.night .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #831843 0%, #581C87 100%);
+            bottom: 10%;
+            left: 20%;
+            opacity: 0.25;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(40px, -40px); }
+            50% { transform: translate(-30px, 30px); }
+            75% { transform: translate(30px, 40px); }
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        body.light .logo { color: #1a1a1a; }
+        body.night .logo { color: #e5e7eb; }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Night Mode Toggle */
+        .mode-toggle {
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        body.light .mode-toggle {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            color: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        body.night .mode-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            color: #e5e7eb;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Screen Tabs */
+        .screen-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            padding: 0.75rem;
+            border-radius: 60px;
+            backdrop-filter: blur(20px);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        body.light .screen-tabs {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        body.night .screen-tabs {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab {
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        body.light .tab {
+            color: #4a4a4a;
+        }
+
+        body.night .tab {
+            color: #9ca3af;
+        }
+
+        body.light .tab.active {
+            background: #1a1a1a;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        body.night .tab.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: #e5e7eb;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .tab:hover:not(.active) {
+            transform: translateY(-2px);
+        }
+
+        body.light .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        body.night .tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Phone Mockup */
+        .mockup-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .phone {
+            width: 380px;
+            height: 780px;
+            border-radius: 50px;
+            padding: 1.25rem;
+            backdrop-filter: blur(30px);
+            box-shadow: 0 20px 70px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s ease;
+        }
+
+        body.light .phone {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        body.night .phone {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            border-radius: 42px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body.light .phone-screen {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 100%);
+        }
+
+        body.night .phone-screen {
+            background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%);
+        }
+
+        /* Scrollbar styling */
+        .phone-screen::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        body.light .phone-screen::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.night .phone-screen::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        body.light .phone-screen::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+        }
+
+        body.night .phone-screen::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        /* App Header */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 1.5rem 1rem;
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        body.light .app-header {
+            background: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.night .app-header {
+            background: rgba(10, 10, 15, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        body.light .app-title { color: #1a1a1a; }
+        body.night .app-title { color: #e5e7eb; }
+
+        .header-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        body.light .header-icon {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.night .header-icon {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .header-icon:hover {
+            transform: scale(1.1);
+        }
+
+        body.light .header-icon:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        body.night .header-icon:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Content Area */
+        .content {
+            padding: 1.5rem;
+        }
+
+        /* Glass Card */
+        .glass-card {
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        body.light .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        body.night .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+        }
+
+        body.light .glass-card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        body.night .glass-card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Profile Section */
+        .profile-header {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+            position: relative;
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: #10b981;
+            border-radius: 50%;
+            border: 3px solid;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        body.light .online-indicator { border-color: rgba(255, 255, 255, 0.6); }
+        body.night .online-indicator { border-color: rgba(10, 10, 15, 0.9); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        body.light .profile-name { color: #1a1a1a; }
+        body.night .profile-name { color: #e5e7eb; }
+
+        .profile-username {
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        body.light .profile-username { color: #6b7280; }
+        body.night .profile-username { color: #9ca3af; }
+
+        .profile-bio {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        body.light .profile-bio { color: #4b5563; }
+        body.night .profile-bio { color: #9ca3af; }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1.25rem;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        body.light .stat-item {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        body.night .stat-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        body.light .stat-label { color: #6b7280; }
+        body.night .stat-label { color: #9ca3af; }
+
+        /* Music Player */
+        .music-player {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 16px;
+        }
+
+        body.light .music-player {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        }
+
+        body.night .music-player {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+        }
+
+        .play-button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .play-button:hover {
+            transform: scale(1.1);
+        }
+
+        .track-info {
+            flex: 1;
+        }
+
+        .track-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        body.light .track-name { color: #1a1a1a; }
+        body.night .track-name { color: #e5e7eb; }
+
+        .track-artist {
+            font-size: 0.85rem;
+        }
+
+        body.light .track-artist { color: #6b7280; }
+        body.night .track-artist { color: #9ca3af; }
+
+        /* Testimony */
+        .testimony {
+            padding: 1.5rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 1rem;
+        }
+
+        body.light .testimony {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        body.night .testimony {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .testimony-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        body.light .testimony-header { color: #1a1a1a; }
+        body.night .testimony-header { color: #e5e7eb; }
+
+        .testimony-text {
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+
+        body.light .testimony-text { color: #374151; }
+        body.night .testimony-text { color: #d1d5db; }
+
+        .read-more {
+            color: #6366F1;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        /* User Card (Connect Page) */
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        body.light .user-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        body.night .user-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-card:hover {
+            transform: translateX(4px);
+        }
+
+        body.light .user-card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        body.night .user-card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .avatar-small {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .online-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 14px;
+            height: 14px;
+            background: #10b981;
+            border-radius: 50%;
+            border: 2px solid;
+        }
+
+        body.light .online-dot { border-color: rgba(255, 255, 255, 0.6); }
+        body.night .online-dot { border-color: rgba(10, 10, 15, 0.9); }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        body.light .user-name { color: #1a1a1a; }
+        body.night .user-name { color: #e5e7eb; }
+
+        .user-meta {
+            font-size: 0.85rem;
+        }
+
+        body.light .user-meta { color: #6b7280; }
+        body.night .user-meta { color: #9ca3af; }
+
+        .action-button {
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Message Bubble */
+        .message {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .message-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        body.light .message-name { color: #1a1a1a; }
+        body.night .message-name { color: #e5e7eb; }
+
+        .message-time {
+            font-size: 0.75rem;
+        }
+
+        body.light .message-time { color: #9ca3af; }
+        body.night .message-time { color: #6b7280; }
+
+        .message-bubble {
+            padding: 0.75rem 1rem;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            backdrop-filter: blur(10px);
+            max-width: 85%;
+        }
+
+        body.light .message-bubble {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            color: #1f2937;
+        }
+
+        body.night .message-bubble {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+        }
+
+        /* Message Input */
+        .message-input-container {
+            position: sticky;
+            bottom: 0;
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(20px);
+        }
+
+        body.light .message-input-container {
+            background: rgba(255, 255, 255, 0.8);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.night .message-input-container {
+            background: rgba(10, 10, 15, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message-input-wrapper {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 0.875rem 1.25rem;
+            border-radius: 25px;
+            border: none;
+            font-size: 0.95rem;
+            backdrop-filter: blur(10px);
+        }
+
+        body.light .message-input {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #1a1a1a;
+        }
+
+        body.night .message-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+        }
+
+        .message-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: scale(1.1);
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        body.light .section-title { color: #1a1a1a; }
+        body.night .section-title { color: #e5e7eb; }
+
+        .section-link {
+            font-size: 0.85rem;
+            color: #6366F1;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: sticky;
+            bottom: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem 0.5rem;
+            backdrop-filter: blur(20px);
+            border-radius: 30px 30px 0 0;
+        }
+
+        body.light .bottom-nav {
+            background: rgba(255, 255, 255, 0.8);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.night .bottom-nav {
+            background: rgba(10, 10, 15, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        body.light .nav-item {
+            color: #6b7280;
+        }
+
+        body.night .nav-item {
+            color: #9ca3af;
+        }
+
+        body.light .nav-item.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: #6366F1;
+        }
+
+        body.night .nav-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818CF8;
+        }
+
+        .nav-icon {
+            font-size: 22px;
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* Hide screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Pinned Message */
+        .pinned-message {
+            padding: 1rem;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+            border-left: 3px solid #6366F1;
+        }
+
+        body.light .pinned-message {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        body.night .pinned-message {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .pinned-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6366F1;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .pinned-text {
+            font-size: 0.85rem;
+        }
+
+        body.light .pinned-text { color: #374151; }
+        body.night .pinned-text { color: #d1d5db; }
+    </style>
+</head>
+<body class="light">
+    <!-- Floating Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                Lightning
+            </div>
+            <button class="mode-toggle" onclick="toggleMode()">
+                <span id="modeText">🌙 Night Mode</span>
+            </button>
+        </div>
+
+        <!-- Screen Tabs -->
+        <div class="screen-tabs">
+            <div class="tab active" onclick="switchScreen('profile')">👤 Profile</div>
+            <div class="tab" onclick="switchScreen('groups')">💬 Group Chat</div>
+            <div class="tab" onclick="switchScreen('connect')">📍 Connect</div>
+        </div>
+
+        <!-- Mockup Container -->
+        <div class="mockup-container">
+            <!-- PROFILE SCREEN -->
+            <div class="phone screen active" id="profile-screen">
+                <div class="phone-screen">
+                    <div class="app-header">
+                        <div class="app-title">
+                            <span>⚡</span>
+                            Lightning
+                        </div>
+                        <div class="header-icon">☰</div>
+                    </div>
+
+                    <div class="content">
+                        <!-- Profile Header -->
+                        <div class="profile-header">
+                            <div class="avatar-large">
+                                👤
+                                <div class="online-indicator"></div>
+                            </div>
+                            <div class="profile-name">Sarah Mitchell</div>
+                            <div class="profile-username">@sarah_m</div>
+                            <div class="profile-bio">Living for Christ daily. Saved by grace and sharing His love. 🙏✨</div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+
+                        <!-- Music Player -->
+                        <div class="glass-card">
+                            <div class="music-player">
+                                <div class="play-button">▶</div>
+                                <div class="track-info">
+                                    <div class="track-name">🎵 Amazing Grace</div>
+                                    <div class="track-artist">Various Artists</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testimony -->
+                        <div class="glass-card">
+                            <div class="testimony-header">
+                                ✨ My Testimony
+                            </div>
+                            <div class="testimony-text">
+                                I grew up in a Christian home, but it wasn't until my college years that I truly understood what it meant to have a personal relationship with Christ. Through a season of doubt and questioning, God revealed Himself to me in ways I never imagined...
+                            </div>
+                            <div class="read-more">Read more →</div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GROUP CHAT SCREEN -->
+            <div class="phone screen" id="groups-screen">
+                <div class="phone-screen">
+                    <div class="app-header">
+                        <div class="header-icon">←</div>
+                        <div class="app-title">Prayer Warriors</div>
+                        <div class="header-icon">⚙</div>
+                    </div>
+
+                    <div class="content" style="padding-bottom: 80px;">
+                        <!-- Pinned Message -->
+                        <div class="pinned-message">
+                            <div class="pinned-label">📌 Pinned</div>
+                            <div class="pinned-text">Prayer meeting tonight at 7 PM! Join us on Zoom.</div>
+                        </div>
+
+                        <!-- Messages -->
+                        <div class="message">
+                            <div class="message-avatar">👤</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-name">John Rivers</span>
+                                    <span class="message-time">10:23 AM</span>
+                                </div>
+                                <div class="message-bubble">
+                                    Good morning everyone! 🙏 Let's start the day with gratitude.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="message">
+                            <div class="message-avatar">👩</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-name">Emily Grace</span>
+                                    <span class="message-time">10:25 AM</span>
+                                </div>
+                                <div class="message-bubble">
+                                    Amen! Thank you Lord for this beautiful day! ☀️
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="message">
+                            <div class="message-avatar">🧔</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-name">David King</span>
+                                    <span class="message-time">10:27 AM</span>
+                                </div>
+                                <div class="message-bubble">
+                                    Grateful for this community. Can we pray for my friend's surgery today? 🙏
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="message">
+                            <div class="message-avatar">👤</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-name">John Rivers</span>
+                                    <span class="message-time">10:28 AM</span>
+                                </div>
+                                <div class="message-bubble">
+                                    Absolutely, David. Lifting your friend up in prayer right now. 🙏✨
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="message">
+                            <div class="message-avatar">👩</div>
+                            <div class="message-content">
+                                <div class="message-header">
+                                    <span class="message-name">Emily Grace</span>
+                                    <span class="message-time">10:30 AM</span>
+                                </div>
+                                <div class="message-bubble">
+                                    Praying for a successful surgery and quick recovery! God is in control. 💜
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message Input -->
+                    <div class="message-input-container">
+                        <div class="message-input-wrapper">
+                            <input type="text" class="message-input" placeholder="Type a message...">
+                            <button class="send-button">↑</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONNECT SCREEN -->
+            <div class="phone screen" id="connect-screen">
+                <div class="phone-screen">
+                    <div class="app-header">
+                        <div class="app-title">Connect</div>
+                        <div class="header-icon">☰</div>
+                    </div>
+
+                    <div class="content">
+                        <!-- Section: Nearby -->
+                        <div class="section-header">
+                            <div class="section-title">📍 Nearby</div>
+                            <div class="section-link">Sort by distance</div>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="avatar-small">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name">John Rivers</div>
+                                <div class="user-meta">📍 1.2 mi • 3 mutual friends</div>
+                            </div>
+                            <button class="action-button">Add</button>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="avatar-small">👩</div>
+                            <div class="user-info">
+                                <div class="user-name">Emily Grace</div>
+                                <div class="user-meta">📍 2.3 mi • Church member</div>
+                            </div>
+                            <button class="action-button">Add</button>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="avatar-small">
+                                🧔
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name">David King</div>
+                                <div class="user-meta">📍 3.8 mi • 1 mutual friend</div>
+                            </div>
+                            <button class="action-button">Add</button>
+                        </div>
+
+                        <!-- Section: Recommended -->
+                        <div class="section-header" style="margin-top: 2rem;">
+                            <div class="section-title">✨ Recommended</div>
+                            <div class="section-link">See all</div>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="avatar-small">👨</div>
+                            <div class="user-info">
+                                <div class="user-name">Michael Faith</div>
+                                <div class="user-meta">📍 5.2 mi • Youth leader</div>
+                            </div>
+                            <button class="action-button">Add</button>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="avatar-small">
+                                👩‍🦰
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name">Rachel Hope</div>
+                                <div class="user-meta">📍 6.7 mi • Worship team</div>
+                            </div>
+                            <button class="action-button">Add</button>
+                        </div>
+
+                        <div class="user-card">
+                            <div class="avatar-small">👴</div>
+                            <div class="user-info">
+                                <div class="user-name">Pastor James</div>
+                                <div class="user-meta">📍 4.5 mi • Community leader</div>
+                            </div>
+                            <button class="action-button">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Navigation -->
+                    <div class="bottom-nav">
+                        <div class="nav-item">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item active">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleMode() {
+            const body = document.body;
+            const modeText = document.getElementById('modeText');
+
+            if (body.classList.contains('light')) {
+                body.classList.remove('light');
+                body.classList.add('night');
+                modeText.textContent = '☀️ Light Mode';
+            } else {
+                body.classList.remove('night');
+                body.classList.add('light');
+                modeText.textContent = '🌙 Night Mode';
+            }
+        }
+
+        function switchScreen(screen) {
+            // Remove active from all tabs and screens
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+            // Add active to clicked tab
+            event.target.classList.add('active');
+
+            // Show corresponding screen
+            document.getElementById(screen + '-screen').classList.add('active');
+        }
+    </script>
+</body>
+</html>

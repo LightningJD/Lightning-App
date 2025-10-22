@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning - Ondo Style UI Mockup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #E8E5F5 0%, #F5E8F0 50%, #E5F0F5 100%);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Floating Orbs Background */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #C7B3FF 0%, #FF9ECD 100%);
+            top: 10%;
+            left: 5%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #9EECFF 0%, #B3D4FF 100%);
+            top: 60%;
+            right: 10%;
+            animation-delay: 7s;
+        }
+
+        .orb-3 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #FFB3E6 0%, #E6B3FF 100%);
+            bottom: 15%;
+            left: 15%;
+            animation-delay: 14s;
+        }
+
+        .orb-4 {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(135deg, #B3E6FF 0%, #D4B3FF 100%);
+            top: 35%;
+            right: 25%;
+            animation-delay: 3s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(30px, -30px) scale(1.1);
+            }
+            50% {
+                transform: translate(-20px, 20px) scale(0.9);
+            }
+            75% {
+                transform: translate(20px, 30px) scale(1.05);
+            }
+        }
+
+        /* Header */
+        .header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 4rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .nav {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px);
+            padding: 0.5rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #4a4a4a;
+        }
+
+        .nav-item.active {
+            background: #1a1a1a;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-item:not(.active):hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .cta-button {
+            padding: 0.75rem 1.75rem;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50px;
+            font-weight: 600;
+            color: #1a1a1a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .cta-button:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            z-index: 5;
+            text-align: center;
+            padding: 4rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: 5.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            color: #1a1a1a;
+            letter-spacing: -2px;
+        }
+
+        .hero-gradient-text {
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #EC4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 3D Gradient Sphere */
+        .sphere-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 3rem auto;
+        }
+
+        .sphere {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg,
+                rgba(147, 197, 253, 0.8) 0%,
+                rgba(167, 139, 250, 0.8) 25%,
+                rgba(236, 72, 153, 0.8) 50%,
+                rgba(251, 146, 60, 0.8) 75%,
+                rgba(147, 197, 253, 0.8) 100%
+            );
+            position: relative;
+            box-shadow:
+                0 20px 60px rgba(139, 92, 246, 0.3),
+                inset 0 -40px 80px rgba(255, 255, 255, 0.2),
+                inset 0 40px 80px rgba(0, 0, 0, 0.1);
+            animation: sphereRotate 10s linear infinite;
+        }
+
+        .sphere::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: linear-gradient(135deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.3) 50%,
+                transparent 100%
+            );
+        }
+
+        /* Rings around sphere */
+        .sphere-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            animation: ringPulse 3s ease-in-out infinite;
+        }
+
+        .ring-1 {
+            width: 110%;
+            height: 110%;
+            top: -5%;
+            left: -5%;
+        }
+
+        .ring-2 {
+            width: 120%;
+            height: 120%;
+            top: -10%;
+            left: -10%;
+            animation-delay: 1s;
+        }
+
+        .ring-3 {
+            width: 130%;
+            height: 130%;
+            top: -15%;
+            left: -15%;
+            animation-delay: 2s;
+        }
+
+        @keyframes sphereRotate {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes ringPulse {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.05);
+            }
+        }
+
+        .hero-subtitle {
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            font-size: 1.15rem;
+            line-height: 1.7;
+            color: #4a4a4a;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            position: relative;
+            z-index: 5;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: #4a4a4a;
+            font-weight: 500;
+        }
+
+        /* Features Section */
+        .features {
+            position: relative;
+            z-index: 5;
+            max-width: 1400px;
+            margin: 6rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+            color: #1a1a1a;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .feature-description {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #6a6a6a;
+        }
+
+        /* Mobile App Preview */
+        .app-preview {
+            position: relative;
+            z-index: 5;
+            max-width: 1400px;
+            margin: 6rem auto;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .phone-mockup {
+            width: 320px;
+            height: 640px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 40px;
+            margin: 0 auto;
+            padding: 1rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 32px;
+            padding: 2rem 1.5rem;
+            color: white;
+        }
+
+        .phone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .phone-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .profile-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        /* Footer */
+        .footer {
+            position: relative;
+            z-index: 5;
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+        }
+
+        .partners {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        .partner-logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #4a4a4a;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+
+            .sphere-container {
+                width: 280px;
+                height: 280px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Background Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">⚡</div>
+            Lightning
+        </div>
+
+        <nav class="nav">
+            <div class="nav-item active">About</div>
+            <div class="nav-item">Features</div>
+            <div class="nav-item">Testimonies</div>
+            <div class="nav-item">Community</div>
+        </nav>
+
+        <button class="cta-button">Open App</button>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1 class="hero-title">
+            The <span class="hero-gradient-text">Faith-Based</span><br>
+            Social Network
+        </h1>
+
+        <!-- 3D Gradient Sphere -->
+        <div class="sphere-container">
+            <div class="sphere-ring ring-1"></div>
+            <div class="sphere-ring ring-2"></div>
+            <div class="sphere-ring ring-3"></div>
+            <div class="sphere"></div>
+        </div>
+
+        <p class="hero-subtitle">
+            Connect with believers worldwide through AI-powered testimonies,
+            authentic community, and meaningful conversations centered on faith.
+        </p>
+    </section>
+
+    <!-- Stats Grid -->
+    <section class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">10K+</div>
+            <div class="stat-label">Active Believers</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">2,500+</div>
+            <div class="stat-label">Testimonies Shared</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">30 Sec</div>
+            <div class="stat-label">Average Connect Time</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">150+</div>
+            <div class="stat-label">Faith Communities</div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <h2 class="section-title">Built for Faith, Powered by AI</h2>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <h3 class="feature-title">AI-Powered Testimonies</h3>
+                <p class="feature-description">
+                    Share your faith journey with our intelligent testimony builder
+                    that helps craft your story into an inspiring narrative.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🌍</div>
+                <h3 class="feature-title">Location-Based Connect</h3>
+                <p class="feature-description">
+                    Discover believers near you with smart location matching,
+                    making it easy to build local faith communities.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3 class="feature-title">Real-Time Messaging</h3>
+                <p class="feature-description">
+                    Connect instantly with 1-to-1 messages and group chats
+                    designed for meaningful spiritual conversations.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3 class="feature-title">Faith Communities</h3>
+                <p class="feature-description">
+                    Join or create groups with shared interests, from Bible study
+                    to worship, prayer, and fellowship.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎵</div>
+                <h3 class="feature-title">Music Integration</h3>
+                <p class="feature-description">
+                    Share your favorite worship songs with Spotify integration,
+                    letting your music speak to your faith journey.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3 class="feature-title">Privacy First</h3>
+                <p class="feature-description">
+                    Control who sees your testimony, messages, and profile with
+                    granular privacy settings built for your peace of mind.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- App Preview -->
+    <section class="app-preview">
+        <h2 class="section-title">Experience Lightning</h2>
+
+        <div class="phone-mockup">
+            <div class="phone-screen">
+                <div class="phone-header">
+                    <div class="phone-title">⚡ Lightning</div>
+                    <div>☰</div>
+                </div>
+
+                <div class="profile-card">
+                    <div class="avatar">👤</div>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Sarah Mitchell</div>
+                    <div style="font-size: 0.85rem; opacity: 0.8;">@sarah_m</div>
+                    <div style="font-size: 0.85rem; margin-top: 1rem; opacity: 0.9;">
+                        "Living for Christ daily. Saved by grace. 🙏"
+                    </div>
+                </div>
+
+                <div class="profile-card" style="padding: 1rem;">
+                    <div style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 0.5rem;">🎵 Now Playing</div>
+                    <div style="font-weight: 600; font-size: 0.95rem;">Amazing Grace</div>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+                    <div style="flex: 1; background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 12px; text-align: center;">
+                        <div style="font-weight: 700;">127</div>
+                        <div style="font-size: 0.75rem; opacity: 0.8;">Friends</div>
+                    </div>
+                    <div style="flex: 1; background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 12px; text-align: center;">
+                        <div style="font-weight: 700;">12</div>
+                        <div style="font-size: 0.75rem; opacity: 0.8;">Groups</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="partners">
+            <div class="partner-logo">Powered by Clerk</div>
+            <div class="partner-logo">Built on Supabase</div>
+        </div>
+
+        <p style="color: #6a6a6a; font-size: 0.9rem;">
+            Lightning © 2025 - Connecting believers through faith and technology
+        </p>
+    </footer>
+
+    <script>
+        // Add smooth scroll behavior
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

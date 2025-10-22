@@ -1,0 +1,44 @@
+<svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Black Background -->
+  <rect width="800" height="400" fill="#000000"/>
+
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="lightningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#93C5FD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C4B5FD;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Glow filter for lightning bolt -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur2"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="25" result="blur3"/>
+      <feMerge>
+        <feMergeNode in="blur3"/>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Lightning Bolt Icon -->
+  <g transform="translate(320, 180)">
+    <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"
+          transform="scale(3.5)"
+          fill="url(#lightningGradient)"
+          stroke="url(#lightningGradient)"
+          stroke-width="0.5"
+          stroke-linejoin="round"
+          filter="url(#glow)"/>
+  </g>
+
+  <!-- Lightning Text -->
+  <text x="440" y="220"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="100"
+        font-weight="600"
+        fill="url(#lightningGradient)"
+        style="filter: drop-shadow(0 0 20px rgba(147, 197, 253, 0.4)) drop-shadow(0 0 35px rgba(147, 197, 253, 0.2));">Lightning</text>
+</svg>

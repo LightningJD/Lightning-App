@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Logo - Design 4 Blue/Purple Variations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f0f0f0;
+            padding: 60px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 42px;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 60px;
+            font-weight: 500;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+
+        .mockup {
+            background: white;
+            border-radius: 24px;
+            padding: 80px 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 350px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .mockup:hover {
+            transform: translateY(-5px);
+        }
+
+        .mockup-label {
+            position: absolute;
+            top: 25px;
+            left: 30px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #999;
+        }
+
+        .logo-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Compact Modern Style (from #7) */
+        .compact .logo-content {
+            flex-direction: row;
+            gap: 12px;
+        }
+
+        .compact .bolt {
+            font-size: 48px;
+        }
+
+        .compact .text {
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: -2px;
+        }
+
+        /* Ultra Minimal Style (from #14) */
+        .minimal .logo-content {
+            flex-direction: row;
+            gap: 10px;
+        }
+
+        .minimal .bolt {
+            font-size: 40px;
+        }
+
+        .minimal .text {
+            font-size: 32px;
+            font-weight: 600;
+        }
+
+        /* White Background Variations */
+        .white-bg-compact .bolt {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 6px rgba(102, 126, 234, 0.3));
+        }
+
+        .white-bg-compact .text {
+            color: #4F46E5;
+        }
+
+        .white-bg-minimal .bolt {
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 6px rgba(102, 126, 234, 0.3));
+        }
+
+        .white-bg-minimal .text {
+            color: #4F46E5;
+        }
+
+        /* Purple Background Variations */
+        .purple-bg-compact {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .purple-bg-compact .mockup-label {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .purple-bg-compact .bolt {
+            color: white;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+        }
+
+        .purple-bg-compact .text {
+            color: white;
+        }
+
+        .purple-bg-minimal {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .purple-bg-minimal .mockup-label {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .purple-bg-minimal .bolt {
+            color: white;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+        }
+
+        .purple-bg-minimal .text {
+            color: white;
+        }
+
+        /* Blue Background Variations */
+        .blue-bg-compact {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        .blue-bg-compact .mockup-label {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .blue-bg-compact .bolt {
+            color: white;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+        }
+
+        .blue-bg-compact .text {
+            color: white;
+        }
+
+        .blue-bg-minimal {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        .blue-bg-minimal .mockup-label {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .blue-bg-minimal .bolt {
+            color: white;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+        }
+
+        .blue-bg-minimal .text {
+            color: white;
+        }
+
+        /* Dark/Black Background Variations */
+        .dark-bg-compact {
+            background: #000000;
+        }
+
+        .dark-bg-compact .mockup-label {
+            color: #666;
+        }
+
+        .dark-bg-compact .bolt {
+            background: linear-gradient(180deg, #60A5FA 0%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.5));
+        }
+
+        .dark-bg-compact .text {
+            background: linear-gradient(90deg, #60A5FA 0%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dark-bg-minimal {
+            background: #000000;
+        }
+
+        .dark-bg-minimal .mockup-label {
+            color: #666;
+        }
+
+        .dark-bg-minimal .bolt {
+            background: linear-gradient(180deg, #60A5FA 0%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(96, 165, 250, 0.5));
+        }
+
+        .dark-bg-minimal .text {
+            background: linear-gradient(90deg, #60A5FA 0%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Large Showcase */
+        .showcase {
+            margin-top: 60px;
+        }
+
+        .showcase-title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 50px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .large-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 50px;
+        }
+
+        .large-mockup {
+            border-radius: 32px;
+            padding: 120px 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.2);
+        }
+
+        .large-mockup.compact .bolt {
+            font-size: 72px;
+        }
+
+        .large-mockup.compact .text {
+            font-size: 56px;
+        }
+
+        .large-mockup.minimal .bolt {
+            font-size: 60px;
+        }
+
+        .large-mockup.minimal .text {
+            font-size: 48px;
+        }
+
+        @media (max-width: 968px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .large-mockup {
+                padding: 80px 40px;
+            }
+
+            .large-mockup.compact .bolt {
+                font-size: 56px;
+            }
+
+            .large-mockup.compact .text {
+                font-size: 44px;
+            }
+
+            .large-mockup.minimal .bolt {
+                font-size: 48px;
+            }
+
+            .large-mockup.minimal .text {
+                font-size: 36px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .mockup {
+                padding: 60px 30px;
+                min-height: 280px;
+            }
+
+            .compact .bolt {
+                font-size: 40px;
+            }
+
+            .compact .text {
+                font-size: 30px;
+            }
+
+            .minimal .bolt {
+                font-size: 34px;
+            }
+
+            .minimal .text {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lightning Logo - Blue, White & Purple</h1>
+        <p class="subtitle">Design #4 with Compact Modern & Ultra Minimal Fonts</p>
+
+        <div class="grid">
+            <!-- White Background - Compact Modern -->
+            <div class="mockup white-bg-compact compact">
+                <span class="mockup-label">White / Compact Modern</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- White Background - Ultra Minimal -->
+            <div class="mockup white-bg-minimal minimal">
+                <span class="mockup-label">White / Ultra Minimal</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Purple Background - Compact Modern -->
+            <div class="mockup purple-bg-compact compact">
+                <span class="mockup-label">Purple / Compact Modern</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Purple Background - Ultra Minimal -->
+            <div class="mockup purple-bg-minimal minimal">
+                <span class="mockup-label">Purple / Ultra Minimal</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Blue Background - Compact Modern -->
+            <div class="mockup blue-bg-compact compact">
+                <span class="mockup-label">Blue / Compact Modern</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Blue Background - Ultra Minimal -->
+            <div class="mockup blue-bg-minimal minimal">
+                <span class="mockup-label">Blue / Ultra Minimal</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Dark Background - Compact Modern -->
+            <div class="mockup dark-bg-compact compact">
+                <span class="mockup-label">Dark / Compact Modern</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Dark Background - Ultra Minimal -->
+            <div class="mockup dark-bg-minimal minimal">
+                <span class="mockup-label">Dark / Ultra Minimal</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="showcase">
+            <div class="showcase-title">Featured Large Previews</div>
+
+            <div class="large-grid">
+                <!-- Large Purple - Compact Modern -->
+                <div class="large-mockup purple-bg-compact compact">
+                    <div class="logo-content">
+                        <div class="bolt">⚡</div>
+                        <div class="text">Lightning</div>
+                    </div>
+                </div>
+
+                <!-- Large Dark - Ultra Minimal -->
+                <div class="large-mockup dark-bg-minimal minimal">
+                    <div class="logo-content">
+                        <div class="bolt">⚡</div>
+                        <div class="text">Lightning</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

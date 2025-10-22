@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightning - Gradient Placement Options</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0f172a;
+      padding: 30px 20px;
+      color: white;
+    }
+
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      margin-bottom: 40px;
+      font-size: 16px;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 30px;
+    }
+
+    .option-card {
+      background: #1e293b;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid #334155;
+      transition: all 0.3s;
+    }
+
+    .option-card:hover {
+      border-color: #6a11cb;
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(106, 17, 203, 0.3);
+    }
+
+    .option-header {
+      padding: 20px;
+      background: #334155;
+      border-bottom: 2px solid #475569;
+    }
+
+    .option-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .option-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    .badge.recommended {
+      background: #22c55e;
+      color: white;
+    }
+
+    .badge.current {
+      background: #64748b;
+      color: white;
+    }
+
+    .badge.bold {
+      background: #f59e0b;
+      color: white;
+    }
+
+    /* Phone mockup */
+    .phone-mockup {
+      background: white;
+      margin: 20px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      height: 600px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Gradient styles */
+    .gradient-faith {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    }
+
+    /* Option 1: Current Design (Reduced) */
+    .option1 .app-header {
+      height: 64px;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      position: relative;
+    }
+
+    .option1 .header-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 0%, transparent 50%, #f8fafc 100%);
+    }
+
+    .option1 .header-content {
+      position: absolute;
+      top: 12px;
+      left: 0;
+      right: 0;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .option1 .back-btn {
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .option1 .group-title {
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Option 2: Minimal Accent Bar */
+    .option2 .app-header {
+      height: 6px;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    }
+
+    .option2 .header-content {
+      padding: 12px 20px;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .option2 .back-btn {
+      color: #2563eb;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .option2 .group-title {
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    /* Option 3: Gradient Border Cards */
+    .option3 .app-header {
+      padding: 12px 20px;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .option3 .back-btn {
+      color: #2563eb;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .option3 .group-title {
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .option3 .message-bubble {
+      border: 2px solid transparent;
+      background: linear-gradient(white, white) padding-box,
+                  linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) border-box;
+      border-radius: 12px;
+    }
+
+    /* Option 4: Bottom Nav Gradient (REDUCED SIZE) */
+    .option4 .app-header {
+      padding: 12px 20px;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .option4 .back-btn {
+      color: #2563eb;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .option4 .group-title {
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .option4 .bottom-nav {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      height: 48px !important;
+      padding: 8px !important;
+    }
+
+    .option4 .nav-item {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .option4 .nav-item.active {
+      color: white;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .option4 .nav-icon {
+      width: 20px !important;
+      height: 20px !important;
+    }
+
+    .option4 .nav-label {
+      font-size: 10px !important;
+    }
+
+    /* Option 5: Full Immersive Background */
+    .option5 .phone-mockup {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    }
+
+    .option5 .app-header {
+      padding: 12px 20px;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .option5 .back-btn {
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .option5 .group-title {
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .option5 .app-content {
+      background: transparent !important;
+    }
+
+    .option5 .message-bubble {
+      background: rgba(255, 255, 255, 0.95) !important;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .option5 .message-input {
+      background: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    /* Shared Styles */
+    .app-content {
+      flex: 1;
+      background: #f8fafc;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .messages-area {
+      flex: 1;
+      margin-bottom: 12px;
+    }
+
+    .message-group {
+      margin-bottom: 16px;
+    }
+
+    .sender-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 4px;
+      padding-left: 4px;
+    }
+
+    .message-bubble {
+      background: white;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #1e293b;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 4px;
+      max-width: 85%;
+    }
+
+    .message-time {
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    .my-message {
+      margin-left: auto;
+      background: #2563eb;
+      color: white;
+    }
+
+    .my-message .message-time {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .message-input {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      background: white;
+      border-radius: 24px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .message-input input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      padding: 4px 8px;
+    }
+
+    .send-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Bottom Navigation - REDUCED BY 40% */
+    .bottom-nav {
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-around;
+      padding: 6px 4px 10px;
+      height: 48px;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active {
+      background: #dbeafe;
+      color: #2563eb;
+    }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    .nav-label {
+      font-size: 9px;
+      font-weight: 600;
+    }
+
+    .pros-cons {
+      padding: 20px;
+      background: #0f172a;
+    }
+
+    .pros, .cons {
+      margin-bottom: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .pros {
+      background: rgba(34, 197, 94, 0.1);
+      border-left: 3px solid #22c55e;
+      color: #86efac;
+    }
+
+    .cons {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 3px solid #ef4444;
+      color: #fca5a5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ Lightning Gradient Placement Options</h1>
+    <p class="subtitle">Group Chat View • Navigation Reduced 40% • Faith Purple-Blue Gradient</p>
+
+    <div class="options-grid">
+      <!-- Option 1: Current (Reduced Header) -->
+      <div class="option-card option1">
+        <div class="option-header">
+          <div class="option-title">Option 1: Current Design (Reduced)</div>
+          <div class="option-desc">Top gradient header - now 40% smaller for more content space</div>
+          <span class="badge recommended">RECOMMENDED</span>
+        </div>
+
+        <div class="phone-mockup">
+          <div class="app-header">
+            <div class="header-fade"></div>
+            <div class="header-content">
+              <span class="back-btn">← Back</span>
+              <span class="group-title">Prayer Warriors 🙏</span>
+            </div>
+          </div>
+
+          <div class="app-content">
+            <div class="messages-area">
+              <div class="message-group">
+                <div class="sender-name">Sarah M.</div>
+                <div class="message-bubble">
+                  Hey everyone! Just wanted to share that my interview went really well today 🙏
+                </div>
+                <div class="message-time">2:30 PM</div>
+              </div>
+
+              <div class="message-group">
+                <div class="sender-name">John R.</div>
+                <div class="message-bubble">
+                  Praise God! We've been praying for you all week ✨
+                </div>
+                <div class="message-time">2:32 PM</div>
+              </div>
+
+              <div class="message-group" style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div class="message-bubble my-message">
+                  That's amazing Sarah! God is faithful 🙌
+                </div>
+                <div class="message-time" style="text-align: right;">2:35 PM</div>
+              </div>
+            </div>
+
+            <div class="message-input">
+              <input type="text" placeholder="Type a message...">
+              <button class="send-btn">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <span class="nav-label">Profile</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              <span class="nav-label">Messages</span>
+            </div>
+            <div class="nav-item active">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span class="nav-label">Groups</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              </svg>
+              <span class="nav-label">Connect</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            ✓ Familiar iOS/Android pattern<br>
+            ✓ 40% more content space<br>
+            ✓ Beautiful fade effect<br>
+            ✓ Easy navigation
+          </div>
+          <div class="cons">
+            ✗ Still takes some vertical space
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 2: Minimal Accent Bar -->
+      <div class="option-card option2">
+        <div class="option-header">
+          <div class="option-title">Option 2: Minimal Accent Bar</div>
+          <div class="option-desc">Thin 6px gradient line - maximum content, subtle branding</div>
+        </div>
+
+        <div class="phone-mockup">
+          <div class="app-header"></div>
+          <div class="header-content">
+            <span class="back-btn">← Back</span>
+            <span class="group-title">Prayer Warriors 🙏</span>
+          </div>
+
+          <div class="app-content">
+            <div class="messages-area">
+              <div class="message-group">
+                <div class="sender-name">Sarah M.</div>
+                <div class="message-bubble">
+                  Hey everyone! Just wanted to share that my interview went really well today 🙏
+                </div>
+                <div class="message-time">2:30 PM</div>
+              </div>
+
+              <div class="message-group">
+                <div class="sender-name">John R.</div>
+                <div class="message-bubble">
+                  Praise God! We've been praying for you all week ✨
+                </div>
+                <div class="message-time">2:32 PM</div>
+              </div>
+
+              <div class="message-group" style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div class="message-bubble my-message">
+                  That's amazing Sarah! God is faithful 🙌
+                </div>
+                <div class="message-time" style="text-align: right;">2:35 PM</div>
+              </div>
+            </div>
+
+            <div class="message-input">
+              <input type="text" placeholder="Type a message...">
+              <button class="send-btn">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <span class="nav-label">Profile</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              <span class="nav-label">Messages</span>
+            </div>
+            <div class="nav-item active">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span class="nav-label">Groups</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              </svg>
+              <span class="nav-label">Connect</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            ✓ Maximum content space<br>
+            ✓ Clean and minimalist<br>
+            ✓ Sophisticated look<br>
+            ✓ Modern design trend
+          </div>
+          <div class="cons">
+            ✗ Less visual impact<br>
+            ✗ Brand less prominent
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 3: Gradient Border Cards -->
+      <div class="option-card option3">
+        <div class="option-header">
+          <div class="option-title">Option 3: Gradient Border Accents</div>
+          <div class="option-desc">Clean header, gradient appears on message cards for premium feel</div>
+        </div>
+
+        <div class="phone-mockup">
+          <div class="app-header">
+            <span class="back-btn">← Back</span>
+            <span class="group-title">Prayer Warriors 🙏</span>
+          </div>
+
+          <div class="app-content">
+            <div class="messages-area">
+              <div class="message-group">
+                <div class="sender-name">Sarah M.</div>
+                <div class="message-bubble">
+                  Hey everyone! Just wanted to share that my interview went really well today 🙏
+                </div>
+                <div class="message-time">2:30 PM</div>
+              </div>
+
+              <div class="message-group">
+                <div class="sender-name">John R.</div>
+                <div class="message-bubble">
+                  Praise God! We've been praying for you all week ✨
+                </div>
+                <div class="message-time">2:32 PM</div>
+              </div>
+
+              <div class="message-group" style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div class="message-bubble my-message">
+                  That's amazing Sarah! God is faithful 🙌
+                </div>
+                <div class="message-time" style="text-align: right;">2:35 PM</div>
+              </div>
+            </div>
+
+            <div class="message-input">
+              <input type="text" placeholder="Type a message...">
+              <button class="send-btn">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <span class="nav-label">Profile</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              <span class="nav-label">Messages</span>
+            </div>
+            <div class="nav-item active">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span class="nav-label">Groups</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              </svg>
+              <span class="nav-label">Connect</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            ✓ Very premium feel<br>
+            ✓ Unique and memorable<br>
+            ✓ Maximum content space<br>
+            ✓ Distributed branding
+          </div>
+          <div class="cons">
+            ✗ Complex to implement<br>
+            ✗ May feel busy with many messages
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 4: Bottom Nav Gradient -->
+      <div class="option-card option4">
+        <div class="option-header">
+          <div class="option-title">Option 4: Bottom Nav Gradient</div>
+          <div class="option-desc">Gradient at bottom for thumb-friendly design - 40% smaller nav</div>
+          <span class="badge bold">BOLD CHOICE</span>
+        </div>
+
+        <div class="phone-mockup">
+          <div class="app-header">
+            <span class="back-btn">← Back</span>
+            <span class="group-title">Prayer Warriors 🙏</span>
+          </div>
+
+          <div class="app-content">
+            <div class="messages-area">
+              <div class="message-group">
+                <div class="sender-name">Sarah M.</div>
+                <div class="message-bubble">
+                  Hey everyone! Just wanted to share that my interview went really well today 🙏
+                </div>
+                <div class="message-time">2:30 PM</div>
+              </div>
+
+              <div class="message-group">
+                <div class="sender-name">John R.</div>
+                <div class="message-bubble">
+                  Praise God! We've been praying for you all week ✨
+                </div>
+                <div class="message-time">2:32 PM</div>
+              </div>
+
+              <div class="message-group" style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div class="message-bubble my-message">
+                  That's amazing Sarah! God is faithful 🙌
+                </div>
+                <div class="message-time" style="text-align: right;">2:35 PM</div>
+              </div>
+            </div>
+
+            <div class="message-input">
+              <input type="text" placeholder="Type a message...">
+              <button class="send-btn">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <span class="nav-label">Profile</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              <span class="nav-label">Messages</span>
+            </div>
+            <div class="nav-item active">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span class="nav-label">Groups</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              </svg>
+              <span class="nav-label">Connect</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            ✓ Thumb-friendly design<br>
+            ✓ Unique and bold<br>
+            ✓ Clean top area<br>
+            ✓ Navigation stands out
+          </div>
+          <div class="cons">
+            ✗ Unconventional placement<br>
+            ✗ May hide message input
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 5: Full Immersive -->
+      <div class="option-card option5">
+        <div class="option-header">
+          <div class="option-title">Option 5: Full Immersive Background</div>
+          <div class="option-desc">Entire screen has gradient - very bold and distinctive</div>
+          <span class="badge bold">VERY BOLD</span>
+        </div>
+
+        <div class="phone-mockup">
+          <div class="app-header">
+            <span class="back-btn">← Back</span>
+            <span class="group-title">Prayer Warriors 🙏</span>
+          </div>
+
+          <div class="app-content">
+            <div class="messages-area">
+              <div class="message-group">
+                <div class="sender-name" style="color: rgba(255,255,255,0.8);">Sarah M.</div>
+                <div class="message-bubble">
+                  Hey everyone! Just wanted to share that my interview went really well today 🙏
+                </div>
+                <div class="message-time" style="color: rgba(255,255,255,0.7);">2:30 PM</div>
+              </div>
+
+              <div class="message-group">
+                <div class="sender-name" style="color: rgba(255,255,255,0.8);">John R.</div>
+                <div class="message-bubble">
+                  Praise God! We've been praying for you all week ✨
+                </div>
+                <div class="message-time" style="color: rgba(255,255,255,0.7);">2:32 PM</div>
+              </div>
+
+              <div class="message-group" style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div class="message-bubble my-message">
+                  That's amazing Sarah! God is faithful 🙌
+                </div>
+                <div class="message-time" style="text-align: right; color: rgba(255,255,255,0.7);">2:35 PM</div>
+              </div>
+            </div>
+
+            <div class="message-input">
+              <input type="text" placeholder="Type a message...">
+              <button class="send-btn">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <span class="nav-label">Profile</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              <span class="nav-label">Messages</span>
+            </div>
+            <div class="nav-item active">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span class="nav-label">Groups</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              </svg>
+              <span class="nav-label">Connect</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            ✓ Extremely immersive<br>
+            ✓ Unforgettable branding<br>
+            ✓ Very distinctive<br>
+            ✓ Spiritual atmosphere
+          </div>
+          <div class="cons">
+            ✗ May reduce readability<br>
+            ✗ Very unconventional<br>
+            ✗ Could be overwhelming
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 6: Dynamic Adaptive -->
+      <div class="option-card option1">
+        <div class="option-header">
+          <div class="option-title">Option 6: Smart & Adaptive</div>
+          <div class="option-desc">Gradient appears/disappears based on context and scroll position</div>
+          <span class="badge">SMART UX</span>
+        </div>
+
+        <div class="phone-mockup">
+          <div class="app-header">
+            <div class="header-fade"></div>
+            <div class="header-content">
+              <span class="back-btn">← Back</span>
+              <span class="group-title">Prayer Warriors 🙏</span>
+            </div>
+          </div>
+
+          <div class="app-content">
+            <div class="messages-area">
+              <div class="message-group">
+                <div class="sender-name">Sarah M.</div>
+                <div class="message-bubble">
+                  Hey everyone! Just wanted to share that my interview went really well today 🙏
+                </div>
+                <div class="message-time">2:30 PM</div>
+              </div>
+
+              <div class="message-group">
+                <div class="sender-name">John R.</div>
+                <div class="message-bubble">
+                  Praise God! We've been praying for you all week ✨
+                </div>
+                <div class="message-time">2:32 PM</div>
+              </div>
+
+              <div class="message-group" style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div class="message-bubble my-message">
+                  That's amazing Sarah! God is faithful 🙌
+                </div>
+                <div class="message-time" style="text-align: right;">2:35 PM</div>
+              </div>
+            </div>
+
+            <div class="message-input">
+              <input type="text" placeholder="Type a message...">
+              <button class="send-btn">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <span class="nav-label">Profile</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              <span class="nav-label">Messages</span>
+            </div>
+            <div class="nav-item active">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span class="nav-label">Groups</span>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              </svg>
+              <span class="nav-label">Connect</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            ✓ Best of all worlds<br>
+            ✓ Intelligent UX<br>
+            ✓ Maximizes space when needed<br>
+            ✓ Beautiful when visible
+          </div>
+          <div class="cons">
+            ✗ More complex to code<br>
+            ✗ Needs scroll logic
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

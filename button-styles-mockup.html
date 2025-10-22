@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Styles Mockup - 12 Options</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+      background-size: 200% 200%;
+      animation: gradientMove 15s ease infinite;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    @keyframes gradientMove {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: white;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      text-align: center;
+      color: rgba(255,255,255,0.9);
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .option-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .option-header {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    .option-description {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .button-showcase {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .demo-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(100, 116, 139, 0.2);
+    }
+
+    .demo-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    /* Option 1: Classic Solid (Current) */
+    .btn-1 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-1.primary {
+      background: #3b82f6;
+      color: white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+    .btn-1.primary:hover {
+      background: #2563eb;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      transform: translateY(-1px);
+    }
+    .btn-1.secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .btn-1.secondary:hover {
+      background: #e2e8f0;
+    }
+
+    /* Option 2: Gradient Bold */
+    .btn-2 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-2.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+    .btn-2.primary:hover {
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5);
+      transform: translateY(-2px);
+    }
+    .btn-2.secondary {
+      background: rgba(241, 245, 249, 0.8);
+      color: #475569;
+    }
+    .btn-2.secondary:hover {
+      background: rgba(226, 232, 240, 0.9);
+    }
+
+    /* Option 3: Soft Glassmorphism */
+    .btn-3 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .btn-3.primary {
+      background: rgba(59, 130, 246, 0.7);
+      color: white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    }
+    .btn-3.primary:hover {
+      background: rgba(59, 130, 246, 0.85);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .btn-3.secondary {
+      background: rgba(255, 255, 255, 0.5);
+      color: #1e293b;
+    }
+    .btn-3.secondary:hover {
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Option 4: Outlined Modern */
+    .btn-4 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: transparent;
+    }
+    .btn-4.primary {
+      border: 2px solid #3b82f6;
+      color: #3b82f6;
+    }
+    .btn-4.primary:hover {
+      background: #3b82f6;
+      color: white;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .btn-4.secondary {
+      border: 2px solid #cbd5e1;
+      color: #475569;
+    }
+    .btn-4.secondary:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    /* Option 5: Rounded Pill */
+    .btn-5 {
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-5.primary {
+      background: #3b82f6;
+      color: white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+    .btn-5.primary:hover {
+      background: #2563eb;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      transform: scale(1.05);
+    }
+    .btn-5.secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .btn-5.secondary:hover {
+      background: #e2e8f0;
+      transform: scale(1.05);
+    }
+
+    /* Option 6: Neo-Brutalism */
+    .btn-6 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 6px;
+      border: 2px solid #000;
+      cursor: pointer;
+      transition: all 0.1s;
+      position: relative;
+    }
+    .btn-6.primary {
+      background: #3b82f6;
+      color: white;
+      box-shadow: 4px 4px 0px #000;
+    }
+    .btn-6.primary:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #000;
+    }
+    .btn-6.secondary {
+      background: white;
+      color: #000;
+      box-shadow: 4px 4px 0px #000;
+    }
+    .btn-6.secondary:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    /* Option 7: Minimal Flat */
+    .btn-7 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-7.primary {
+      background: #3b82f6;
+      color: white;
+    }
+    .btn-7.primary:hover {
+      background: #2563eb;
+    }
+    .btn-7.secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .btn-7.secondary:hover {
+      background: #e2e8f0;
+    }
+
+    /* Option 8: Soft Shadow Elevated */
+    .btn-8 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-8.primary {
+      background: #3b82f6;
+      color: white;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25);
+    }
+    .btn-8.primary:hover {
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
+      transform: translateY(-4px);
+    }
+    .btn-8.secondary {
+      background: white;
+      color: #475569;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    .btn-8.secondary:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      transform: translateY(-4px);
+    }
+
+    /* Option 9: Neumorphism Soft */
+    .btn-9 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-9.primary {
+      background: #3b82f6;
+      color: white;
+      box-shadow:
+        4px 4px 8px rgba(37, 99, 235, 0.3),
+        -4px -4px 8px rgba(96, 165, 250, 0.3);
+    }
+    .btn-9.primary:hover {
+      box-shadow:
+        2px 2px 4px rgba(37, 99, 235, 0.3),
+        -2px -2px 4px rgba(96, 165, 250, 0.3);
+    }
+    .btn-9.secondary {
+      background: #e2e8f0;
+      color: #475569;
+      box-shadow:
+        4px 4px 8px rgba(203, 213, 225, 0.5),
+        -4px -4px 8px rgba(255, 255, 255, 0.8);
+    }
+    .btn-9.secondary:hover {
+      box-shadow:
+        2px 2px 4px rgba(203, 213, 225, 0.5),
+        -2px -2px 4px rgba(255, 255, 255, 0.8);
+    }
+
+    /* Option 10: Gradient Outline */
+    .btn-10 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      background: white;
+    }
+    .btn-10.primary {
+      border: 2px solid transparent;
+      background-image:
+        linear-gradient(white, white),
+        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      color: #667eea;
+    }
+    .btn-10.primary:hover {
+      background-image:
+        linear-gradient(135deg, #667eea 0%, #764ba2 100%),
+        linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-10.secondary {
+      border: 2px solid #cbd5e1;
+      color: #475569;
+    }
+    .btn-10.secondary:hover {
+      background: #f1f5f9;
+    }
+
+    /* Option 11: Compact Squared */
+    .btn-11 {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-11.primary {
+      background: #3b82f6;
+      color: white;
+      box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+    }
+    .btn-11.primary:hover {
+      background: #2563eb;
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+    }
+    .btn-11.secondary {
+      background: #e2e8f0;
+      color: #475569;
+    }
+    .btn-11.secondary:hover {
+      background: #cbd5e1;
+    }
+
+    /* Option 12: Vibrant Glow */
+    .btn-12 {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .btn-12.primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn-12.primary:hover {
+      box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+      transform: scale(1.05);
+    }
+    .btn-12.secondary {
+      background: white;
+      color: #667eea;
+      box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+    }
+    .btn-12.secondary:hover {
+      box-shadow: 0 0 25px rgba(102, 126, 234, 0.3);
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 Button Style Options</h1>
+    <p class="subtitle">Choose your preferred button style for the app (Recommended, Friends, Add, etc.)</p>
+
+    <div class="grid">
+      <!-- Option 1 -->
+      <div class="option-card">
+        <div class="option-header">1. Classic Solid (Current)</div>
+        <div class="option-description">Traditional solid buttons with subtle shadows. Clean and professional.</div>
+        <div class="button-showcase">
+          <button class="btn-1 primary">Add</button>
+          <button class="btn-1 primary">Recommended</button>
+          <button class="btn-1 secondary">Friends</button>
+          <button class="btn-1 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-1 primary">Recommended</button>
+            <button class="btn-1 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 2 -->
+      <div class="option-card">
+        <div class="option-header">2. Gradient Bold</div>
+        <div class="option-description">Eye-catching gradient backgrounds. Modern and vibrant aesthetic.</div>
+        <div class="button-showcase">
+          <button class="btn-2 primary">Add</button>
+          <button class="btn-2 primary">Recommended</button>
+          <button class="btn-2 secondary">Friends</button>
+          <button class="btn-2 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-2 primary">Recommended</button>
+            <button class="btn-2 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 3 -->
+      <div class="option-card">
+        <div class="option-header">3. Soft Glassmorphism</div>
+        <div class="option-description">Translucent frosted glass effect. Matches your app's glassmorphism theme perfectly.</div>
+        <div class="button-showcase">
+          <button class="btn-3 primary">Add</button>
+          <button class="btn-3 primary">Recommended</button>
+          <button class="btn-3 secondary">Friends</button>
+          <button class="btn-3 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-3 primary">Recommended</button>
+            <button class="btn-3 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 4 -->
+      <div class="option-card">
+        <div class="option-header">4. Outlined Modern</div>
+        <div class="option-description">Outlined buttons that fill on hover. Clean and minimalist.</div>
+        <div class="button-showcase">
+          <button class="btn-4 primary">Add</button>
+          <button class="btn-4 primary">Recommended</button>
+          <button class="btn-4 secondary">Friends</button>
+          <button class="btn-4 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-4 primary">Recommended</button>
+            <button class="btn-4 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 5 -->
+      <div class="option-card">
+        <div class="option-header">5. Rounded Pill</div>
+        <div class="option-description">Fully rounded pill-shaped buttons. Friendly and approachable.</div>
+        <div class="button-showcase">
+          <button class="btn-5 primary">Add</button>
+          <button class="btn-5 primary">Recommended</button>
+          <button class="btn-5 secondary">Friends</button>
+          <button class="btn-5 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-5 primary">Recommended</button>
+            <button class="btn-5 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 6 -->
+      <div class="option-card">
+        <div class="option-header">6. Neo-Brutalism</div>
+        <div class="option-description">Bold borders with hard shadows. Edgy and distinctive design.</div>
+        <div class="button-showcase">
+          <button class="btn-6 primary">Add</button>
+          <button class="btn-6 primary">Recommended</button>
+          <button class="btn-6 secondary">Friends</button>
+          <button class="btn-6 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-6 primary">Recommended</button>
+            <button class="btn-6 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 7 -->
+      <div class="option-card">
+        <div class="option-header">7. Minimal Flat</div>
+        <div class="option-description">Ultra-simple flat design. No shadows, pure simplicity.</div>
+        <div class="button-showcase">
+          <button class="btn-7 primary">Add</button>
+          <button class="btn-7 primary">Recommended</button>
+          <button class="btn-7 secondary">Friends</button>
+          <button class="btn-7 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-7 primary">Recommended</button>
+            <button class="btn-7 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 8 -->
+      <div class="option-card">
+        <div class="option-header">8. Soft Shadow Elevated</div>
+        <div class="option-description">Floating buttons with smooth lift animation. Elegant and refined.</div>
+        <div class="button-showcase">
+          <button class="btn-8 primary">Add</button>
+          <button class="btn-8 primary">Recommended</button>
+          <button class="btn-8 secondary">Friends</button>
+          <button class="btn-8 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-8 primary">Recommended</button>
+            <button class="btn-8 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 9 -->
+      <div class="option-card">
+        <div class="option-header">9. Neumorphism Soft</div>
+        <div class="option-description">Soft embossed look with dual shadows. Tactile and dimensional.</div>
+        <div class="button-showcase">
+          <button class="btn-9 primary">Add</button>
+          <button class="btn-9 primary">Recommended</button>
+          <button class="btn-9 secondary">Friends</button>
+          <button class="btn-9 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-9 primary">Recommended</button>
+            <button class="btn-9 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 10 -->
+      <div class="option-card">
+        <div class="option-header">10. Gradient Outline</div>
+        <div class="option-description">Gradient borders that fill on hover. Unique and stylish.</div>
+        <div class="button-showcase">
+          <button class="btn-10 primary">Add</button>
+          <button class="btn-10 primary">Recommended</button>
+          <button class="btn-10 secondary">Friends</button>
+          <button class="btn-10 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-10 primary">Recommended</button>
+            <button class="btn-10 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 11 -->
+      <div class="option-card">
+        <div class="option-header">11. Compact Squared</div>
+        <div class="option-description">Small, uppercase, sharp corners. Technical and precise.</div>
+        <div class="button-showcase">
+          <button class="btn-11 primary">Add</button>
+          <button class="btn-11 primary">Recommended</button>
+          <button class="btn-11 secondary">Friends</button>
+          <button class="btn-11 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-11 primary">Recommended</button>
+            <button class="btn-11 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 12 -->
+      <div class="option-card">
+        <div class="option-header">12. Vibrant Glow</div>
+        <div class="option-description">Glowing gradient buttons with luminous effect. Bold and energetic.</div>
+        <div class="button-showcase">
+          <button class="btn-12 primary">Add</button>
+          <button class="btn-12 primary">Recommended</button>
+          <button class="btn-12 secondary">Friends</button>
+          <button class="btn-12 secondary">Message</button>
+        </div>
+        <div class="demo-section">
+          <div class="demo-label">Tab Buttons</div>
+          <div class="button-showcase">
+            <button class="btn-12 primary">Recommended</button>
+            <button class="btn-12 secondary">Friends</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

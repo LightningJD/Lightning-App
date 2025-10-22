@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightning App - Ondo DeFAI Style Mockup</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0f;
+      color: white;
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 1400px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #a8c5ff 0%, #e5b3ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
+      margin-bottom: 48px;
+    }
+
+    .phones-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .phone-container {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .phone-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .phone {
+      width: 100%;
+      max-width: 375px;
+      height: 700px;
+      margin: 0 auto;
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      position: relative;
+      background: linear-gradient(135deg, #e8f0ff 0%, #f5e6ff 25%, #ffe6f5 50%, #e6f5ff 75%, #f0e6ff 100%);
+    }
+
+    .phone-content {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .phone-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Header */
+    .header {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d3748;
+    }
+
+    .nav-pills {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 4px;
+      border-radius: 12px;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .nav-pill {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-pill.active {
+      background: white;
+      color: #2d3748;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .hero-subtitle {
+      font-size: 14px;
+      color: #64748b;
+      max-width: 300px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+
+    /* 3D Orb */
+    .orb-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 40px;
+    }
+
+    .orb {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a8c5ff 0%, #c5b3ff 25%, #ffb3e5 50%, #b3e5ff 75%, #e0b3ff 100%);
+      position: relative;
+      animation: float 6s ease-in-out infinite;
+      box-shadow: 0 20px 60px rgba(168, 197, 255, 0.3);
+    }
+
+    .orb::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 255, 255, 0.2) 10px,
+        rgba(255, 255, 255, 0.2) 11px
+      );
+      animation: rotate 20s linear infinite;
+    }
+
+    .orb-accent {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(197, 179, 255, 0.4), rgba(255, 179, 229, 0.4));
+      animation: floatAccent 8s ease-in-out infinite;
+    }
+
+    .orb-accent-1 {
+      width: 80px;
+      height: 80px;
+      top: -20px;
+      left: -30px;
+      animation-delay: 0s;
+    }
+
+    .orb-accent-2 {
+      width: 60px;
+      height: 60px;
+      bottom: -10px;
+      right: -20px;
+      animation-delay: 2s;
+    }
+
+    .orb-accent-3 {
+      width: 50px;
+      height: 50px;
+      top: 50%;
+      right: -40px;
+      animation-delay: 4s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    @keyframes floatAccent {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(10px, -10px); }
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      padding: 20px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Content Cards */
+    .content {
+      padding: 20px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+
+    .card-text {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    /* User Card */
+    .user-card {
+      display: flex;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .user-info {
+      flex: 1;
+    }
+
+    .user-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 2px;
+    }
+
+    .user-username {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+
+    .user-meta {
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+
+    .user-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #667eea;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.4);
+      color: #64748b;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Chat Message */
+    .message {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .message-content {
+      flex: 1;
+    }
+
+    .message-header {
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .message-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .message-time {
+      font-size: 10px;
+      color: #cbd5e1;
+    }
+
+    .message-text {
+      font-size: 13px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: space-around;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active {
+      color: #667eea;
+    }
+
+    .nav-icon {
+      font-size: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .phones-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡️ Lightning App - Ondo DeFAI Style</h1>
+    <p class="subtitle">Pastel gradient glassmorphism with 3D orb accents</p>
+
+    <div class="phones-grid">
+      <!-- Profile Page -->
+      <div class="phone-container">
+        <div class="phone-label">Profile Page</div>
+        <div class="phone">
+          <div class="phone-content">
+            <!-- Header -->
+            <div class="header">
+              <div class="logo">
+                <div class="logo-icon">⚡️</div>
+                <div class="logo-text">Lightning</div>
+              </div>
+              <div class="nav-pills">
+                <button class="nav-pill active">Profile</button>
+                <button class="nav-pill">Groups</button>
+              </div>
+            </div>
+
+            <!-- Hero with Orb -->
+            <div class="hero">
+              <h1 class="hero-title">My Faith Journey</h1>
+              <p class="hero-subtitle">
+                Sharing my testimony and connecting with believers worldwide
+              </p>
+
+              <div class="orb-container">
+                <div class="orb-accent orb-accent-1"></div>
+                <div class="orb"></div>
+                <div class="orb-accent orb-accent-2"></div>
+                <div class="orb-accent orb-accent-3"></div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-value">42</div>
+                <div class="stat-label">Connections</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">8</div>
+                <div class="stat-label">Groups</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">156</div>
+                <div class="stat-label">Prayers</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">2.4k</div>
+                <div class="stat-label">Impact Reach</div>
+              </div>
+            </div>
+
+            <!-- Story Card -->
+            <div class="content">
+              <div class="card">
+                <div class="card-title">My Story</div>
+                <div class="card-text">
+                  I grew up without knowing God, but He found me in my darkest moment. Now I'm passionate about sharing His love with others and seeing lives transformed through faith.
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-title">Key Lesson</div>
+                <div class="card-text">
+                  God can use anyone, regardless of their past. Your story is your greatest testimony and can bring hope to others.
+                </div>
+              </div>
+            </div>
+
+            <div style="height: 80px;"></div>
+          </div>
+
+          <!-- Bottom Nav -->
+          <div class="bottom-nav">
+            <div class="nav-item active">
+              <div class="nav-icon">👤</div>
+              <span>Profile</span>
+            </div>
+            <div class="nav-item">
+              <div class="nav-icon">💬</div>
+              <span>Messages</span>
+            </div>
+            <div class="nav-item">
+              <div class="nav-icon">👥</div>
+              <span>Groups</span>
+            </div>
+            <div class="nav-item">
+              <div class="nav-icon">📍</div>
+              <span>Connect</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group Chat -->
+      <div class="phone-container">
+        <div class="phone-label">Group Chat</div>
+        <div class="phone">
+          <div class="phone-content">
+            <!-- Header -->
+            <div class="header">
+              <div class="logo">
+                <div class="logo-icon">✨</div>
+                <div class="logo-text">Prayer Warriors</div>
+              </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="content">
+              <div class="message">
+                <div class="message-avatar">👤</div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <div class="message-name">Sarah M</div>
+                    <div class="message-time">2:30 PM</div>
+                  </div>
+                  <div class="message-text">
+                    Can we pray for my friend who's going through a difficult time? She needs breakthrough.
+                  </div>
+                </div>
+              </div>
+
+              <div class="message">
+                <div class="message-avatar">🧑</div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <div class="message-name">Mike J</div>
+                    <div class="message-time">2:32 PM</div>
+                  </div>
+                  <div class="message-text">
+                    Absolutely! Praying for breakthrough and peace over her situation. 🙏
+                  </div>
+                </div>
+              </div>
+
+              <div class="message">
+                <div class="message-avatar">👩</div>
+                <div class="message-content">
+                  <div class="message-header">
+                    <div class="message-name">Rachel A</div>
+                    <div class="message-time">2:35 PM</div>
+                  </div>
+                  <div class="message-text">
+                    Standing with you both in prayer! God is faithful and will see her through. ✝️
+                  </div>
+                </div>
+              </div>
+
+              <div class="card" style="margin-top: 32px;">
+                <div class="card-title">🎯 Group Stats</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
+                  <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: #2d3748;">24</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Members</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: #2d3748;">380</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Messages</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: #2d3748;">12</div>
+                    <div style="font-size: 10px; color: #94a3b8;">Active Today</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-title">📌 Pinned Message</div>
+                <div class="card-text">
+                  Welcome to Prayer Warriors! Share your prayer requests and lift each other up in faith.
+                </div>
+              </div>
+            </div>
+
+            <div style="height: 80px;"></div>
+          </div>
+
+          <!-- Bottom Nav -->
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <div class="nav-icon">👤</div>
+              <span>Profile</span>
+            </div>
+            <div class="nav-item">
+              <div class="nav-icon">💬</div>
+              <span>Messages</span>
+            </div>
+            <div class="nav-item active">
+              <div class="nav-icon">👥</div>
+              <span>Groups</span>
+            </div>
+            <div class="nav-item">
+              <div class="nav-icon">📍</div>
+              <span>Connect</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connect Page -->
+      <div class="phone-container">
+        <div class="phone-label">Connect Page</div>
+        <div class="phone">
+          <div class="phone-content">
+            <!-- Header -->
+            <div class="header">
+              <div class="logo">
+                <div class="logo-icon">📍</div>
+                <div class="logo-text">Connect Nearby</div>
+              </div>
+            </div>
+
+            <!-- Hero with Small Orb -->
+            <div class="hero" style="padding: 20px 20px 0;">
+              <div style="width: 120px; height: 120px; margin: 0 auto 20px; position: relative;">
+                <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #a8c5ff 0%, #ffb3e5 100%); animation: float 6s ease-in-out infinite; box-shadow: 0 15px 40px rgba(168, 197, 255, 0.3);"></div>
+              </div>
+              <div class="stats-grid" style="padding: 0; margin-bottom: 20px;">
+                <div class="stat-card">
+                  <div class="stat-value">5</div>
+                  <div class="stat-label">Nearby</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value">12</div>
+                  <div class="stat-label">Online Now</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- User Cards -->
+            <div class="content">
+              <div class="card user-card">
+                <div class="user-avatar">👤</div>
+                <div class="user-info">
+                  <div class="user-name">Sarah Mitchell</div>
+                  <div class="user-username">@grace_walker</div>
+                  <div class="user-meta">0 mi • 3 mutual</div>
+                </div>
+                <div class="user-actions">
+                  <button class="btn btn-primary">Add</button>
+                  <button class="btn btn-secondary">Message</button>
+                </div>
+              </div>
+
+              <div class="card user-card">
+                <div class="user-avatar">🧑</div>
+                <div class="user-info">
+                  <div class="user-name">John Rivers</div>
+                  <div class="user-username">@john_rivers</div>
+                  <div class="user-meta">1 mi • 1 mutual</div>
+                </div>
+                <div class="user-actions">
+                  <button class="btn btn-primary">Add</button>
+                  <button class="btn btn-secondary">Message</button>
+                </div>
+              </div>
+
+              <div class="card user-card">
+                <div class="user-avatar">👩</div>
+                <div class="user-info">
+                  <div class="user-name">Maya Chen</div>
+                  <div class="user-username">@maya_heart</div>
+                  <div class="user-meta">1 mi • 2 mutual</div>
+                </div>
+                <div class="user-actions">
+                  <button class="btn btn-primary">Add</button>
+                  <button class="btn btn-secondary">Message</button>
+                </div>
+              </div>
+
+              <div class="card user-card">
+                <div class="user-avatar">👨</div>
+                <div class="user-info">
+                  <div class="user-name">Marcus Johnson</div>
+                  <div class="user-username">@faith_seeker</div>
+                  <div class="user-meta">2 mi • Nearby</div>
+                </div>
+                <div class="user-actions">
+                  <button class="btn btn-primary">Add</button>
+                  <button class="btn btn-secondary">Message</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="height: 80px;"></div>
+          </div>
+
+          <!-- Bottom Nav -->
+          <div class="bottom-nav">
+            <div class="nav-item">
+              <div class="nav-icon">👤</div>
+              <span>Profile</span>
+            </div>
+            <div class="nav-item">
+              <div class="nav-icon">💬</div>
+              <span>Messages</span>
+            </div>
+            <div class="nav-item">
+              <div class="nav-icon">👥</div>
+              <span>Groups</span>
+            </div>
+            <div class="nav-item active">
+              <div class="nav-icon">📍</div>
+              <span>Connect</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

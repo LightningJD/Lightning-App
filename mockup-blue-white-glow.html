@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Logo - Blue with Soft White Glow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f0f0f0;
+            padding: 60px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 60px;
+            font-weight: 500;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            margin-bottom: 80px;
+        }
+
+        .mockup {
+            border-radius: 32px;
+            padding: 100px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 450px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.2);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .mockup:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 90px rgba(0,0,0,0.25);
+        }
+
+        .mockup-label {
+            position: absolute;
+            top: 30px;
+            left: 35px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .logo-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bolt {
+            font-size: 52px;
+            transition: all 0.3s ease;
+        }
+
+        .text {
+            font-size: 40px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            transition: all 0.3s ease;
+        }
+
+        /* Blue Background with Soft White Glow */
+        .blue-bg {
+            background: #3B82F6;
+        }
+
+        .blue-bg .mockup-label {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .blue-bg .bolt {
+            color: #FFFFFF;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.6))
+                    drop-shadow(0 0 35px rgba(255, 255, 255, 0.4))
+                    drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
+        }
+
+        .blue-bg .text {
+            color: #FFFFFF;
+        }
+
+        .blue-bg:hover .bolt {
+            filter: drop-shadow(0 0 28px rgba(255, 255, 255, 0.7))
+                    drop-shadow(0 0 45px rgba(255, 255, 255, 0.5))
+                    drop-shadow(0 6px 16px rgba(255, 255, 255, 0.4));
+            transform: scale(1.05);
+        }
+
+        /* White Background */
+        .white-bg {
+            background: #FFFFFF;
+        }
+
+        .white-bg .mockup-label {
+            color: #999;
+        }
+
+        .white-bg .bolt {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.4));
+        }
+
+        .white-bg .text {
+            color: #1F2937;
+        }
+
+        .white-bg:hover .bolt {
+            filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.5));
+            transform: scale(1.05);
+        }
+
+        /* Large Showcase */
+        .showcase {
+            margin-top: 60px;
+        }
+
+        .showcase-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 60px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .large-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 60px;
+        }
+
+        .large-mockup {
+            border-radius: 40px;
+            padding: 140px 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.25);
+            transition: transform 0.3s ease;
+        }
+
+        .large-mockup:hover {
+            transform: translateY(-10px);
+        }
+
+        .large-mockup .bolt {
+            font-size: 88px;
+        }
+
+        .large-mockup .text {
+            font-size: 68px;
+        }
+
+        .large-mockup .logo-content {
+            gap: 20px;
+        }
+
+        @media (max-width: 968px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .large-mockup {
+                padding: 100px 60px;
+            }
+
+            .large-mockup .bolt {
+                font-size: 68px;
+            }
+
+            .large-mockup .text {
+                font-size: 52px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .mockup {
+                padding: 70px 40px;
+                min-height: 350px;
+            }
+
+            .bolt {
+                font-size: 44px;
+            }
+
+            .text {
+                font-size: 34px;
+            }
+
+            .large-mockup {
+                padding: 80px 40px;
+            }
+
+            .large-mockup .bolt {
+                font-size: 54px;
+            }
+
+            .large-mockup .text {
+                font-size: 42px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lightning Logo - Compact Modern</h1>
+        <p class="subtitle">Blue with Soft White Glow & White Background</p>
+
+        <div class="grid">
+            <!-- Blue Background with Soft White Glow -->
+            <div class="mockup blue-bg">
+                <span class="mockup-label">Blue / Soft White Glow</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- White Background -->
+            <div class="mockup white-bg">
+                <span class="mockup-label">White / Blue Gradient</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="showcase">
+            <div class="showcase-title">Hero Size</div>
+
+            <div class="large-grid">
+                <!-- Large Blue with Soft White Glow -->
+                <div class="large-mockup blue-bg">
+                    <div class="logo-content">
+                        <div class="bolt">⚡</div>
+                        <div class="text">Lightning</div>
+                    </div>
+                </div>
+
+                <!-- Large White Background -->
+                <div class="large-mockup white-bg">
+                    <div class="logo-content">
+                        <div class="bolt">⚡</div>
+                        <div class="text">Lightning</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

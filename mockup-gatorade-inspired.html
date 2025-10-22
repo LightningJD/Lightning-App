@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Logo - Athletic Bold Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f0f0f0;
+            padding: 60px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 42px;
+            margin-bottom: 60px;
+            font-weight: 800;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .mockup {
+            border-radius: 24px;
+            padding: 100px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .mockup-label {
+            position: absolute;
+            top: 25px;
+            left: 30px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #999;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        /* Bold Lightning Icon */
+        .bolt-icon {
+            font-size: 52px;
+            font-weight: 900;
+            line-height: 1;
+            transform: rotate(15deg) skewY(-3deg);
+            transition: all 0.3s ease;
+        }
+
+        /* Athletic Wordmark */
+        .wordmark {
+            font-size: 46px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+            font-style: italic;
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+
+        /* White Background Versions */
+        .mockup-white {
+            background: white;
+        }
+
+        .mockup-white-orange {
+            background: white;
+        }
+
+        .mockup-white-orange .bolt-icon {
+            color: #FF6B35;
+            filter: drop-shadow(0 4px 12px rgba(255, 107, 53, 0.4));
+        }
+
+        .mockup-white-orange .wordmark {
+            color: #1a1a1a;
+        }
+
+        .mockup-white-orange:hover .bolt-icon {
+            filter: drop-shadow(0 6px 20px rgba(255, 107, 53, 0.6));
+            transform: rotate(15deg) skewY(-3deg) scale(1.05);
+        }
+
+        .mockup-white-blue {
+            background: white;
+        }
+
+        .mockup-white-blue .bolt-icon {
+            color: #0066FF;
+            filter: drop-shadow(0 4px 12px rgba(0, 102, 255, 0.4));
+        }
+
+        .mockup-white-blue .wordmark {
+            color: #1a1a1a;
+        }
+
+        .mockup-white-blue:hover .bolt-icon {
+            filter: drop-shadow(0 6px 20px rgba(0, 102, 255, 0.6));
+            transform: rotate(15deg) skewY(-3deg) scale(1.05);
+        }
+
+        /* Black Background Versions */
+        .mockup-black-orange {
+            background: #000000;
+        }
+
+        .mockup-black-orange .mockup-label {
+            color: #666;
+        }
+
+        .mockup-black-orange .bolt-icon {
+            color: #FF6B35;
+            filter: drop-shadow(0 0 25px rgba(255, 107, 53, 0.6))
+                    drop-shadow(0 4px 12px rgba(255, 107, 53, 0.8));
+        }
+
+        .mockup-black-orange .wordmark {
+            color: #FFFFFF;
+        }
+
+        .mockup-black-orange:hover .bolt-icon {
+            filter: drop-shadow(0 0 35px rgba(255, 107, 53, 0.8))
+                    drop-shadow(0 6px 20px rgba(255, 107, 53, 0.9));
+            transform: rotate(15deg) skewY(-3deg) scale(1.05);
+        }
+
+        .mockup-black-blue {
+            background: #000000;
+        }
+
+        .mockup-black-blue .mockup-label {
+            color: #666;
+        }
+
+        .mockup-black-blue .bolt-icon {
+            color: #0066FF;
+            filter: drop-shadow(0 0 25px rgba(0, 102, 255, 0.6))
+                    drop-shadow(0 4px 12px rgba(0, 102, 255, 0.8));
+        }
+
+        .mockup-black-blue .wordmark {
+            color: #FFFFFF;
+        }
+
+        .mockup-black-blue:hover .bolt-icon {
+            filter: drop-shadow(0 0 35px rgba(0, 102, 255, 0.8))
+                    drop-shadow(0 6px 20px rgba(0, 102, 255, 0.9));
+            transform: rotate(15deg) skewY(-3deg) scale(1.05);
+        }
+
+        /* Green Energetic Version */
+        .mockup-green {
+            background: linear-gradient(135deg, #00D9FF 0%, #00FF94 100%);
+        }
+
+        .mockup-green .mockup-label {
+            color: rgba(0, 0, 0, 0.3);
+        }
+
+        .mockup-green .bolt-icon {
+            color: #FFFFFF;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5))
+                    drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+        }
+
+        .mockup-green .wordmark {
+            color: #FFFFFF;
+        }
+
+        .mockup-green:hover .bolt-icon {
+            filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.7))
+                    drop-shadow(0 6px 20px rgba(0, 0, 0, 0.4));
+            transform: rotate(15deg) skewY(-3deg) scale(1.05);
+        }
+
+        /* Purple Power Version */
+        .mockup-purple {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .mockup-purple .mockup-label {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .mockup-purple .bolt-icon {
+            color: #FFD700;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5))
+                    drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+        }
+
+        .mockup-purple .wordmark {
+            color: #FFFFFF;
+        }
+
+        .mockup-purple:hover .bolt-icon {
+            filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.7))
+                    drop-shadow(0 6px 20px rgba(0, 0, 0, 0.4));
+            transform: rotate(15deg) skewY(-3deg) scale(1.05);
+        }
+
+        /* Large Showcase */
+        .showcase {
+            margin-top: 80px;
+        }
+
+        .showcase-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #666;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .large-mockup {
+            border-radius: 32px;
+            padding: 120px 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.2);
+        }
+
+        .large-mockup .bolt-icon {
+            font-size: 88px;
+        }
+
+        .large-mockup .wordmark {
+            font-size: 72px;
+        }
+
+        @media (max-width: 968px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .large-mockup {
+                padding: 80px 40px;
+            }
+
+            .large-mockup .bolt-icon {
+                font-size: 64px;
+            }
+
+            .large-mockup .wordmark {
+                font-size: 52px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .mockup {
+                padding: 60px 30px;
+                min-height: 300px;
+            }
+
+            .bolt-icon {
+                font-size: 42px;
+            }
+
+            .wordmark {
+                font-size: 36px;
+            }
+
+            .large-mockup .bolt-icon {
+                font-size: 52px;
+            }
+
+            .large-mockup .wordmark {
+                font-size: 42px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lightning Logo - Athletic Bold Style</h1>
+
+        <div class="grid">
+            <!-- White Orange -->
+            <div class="mockup mockup-white-orange">
+                <span class="mockup-label">White / Orange</span>
+                <div class="logo-container">
+                    <div class="bolt-icon">⚡</div>
+                    <div class="wordmark">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Black Orange -->
+            <div class="mockup mockup-black-orange">
+                <span class="mockup-label">Black / Orange</span>
+                <div class="logo-container">
+                    <div class="bolt-icon">⚡</div>
+                    <div class="wordmark">Lightning</div>
+                </div>
+            </div>
+
+            <!-- White Blue -->
+            <div class="mockup mockup-white-blue">
+                <span class="mockup-label">White / Blue</span>
+                <div class="logo-container">
+                    <div class="bolt-icon">⚡</div>
+                    <div class="wordmark">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Black Blue -->
+            <div class="mockup mockup-black-blue">
+                <span class="mockup-label">Black / Blue</span>
+                <div class="logo-container">
+                    <div class="bolt-icon">⚡</div>
+                    <div class="wordmark">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Energetic Green -->
+            <div class="mockup mockup-green">
+                <span class="mockup-label">Energetic Green</span>
+                <div class="logo-container">
+                    <div class="bolt-icon">⚡</div>
+                    <div class="wordmark">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Purple Power -->
+            <div class="mockup mockup-purple">
+                <span class="mockup-label">Purple Power</span>
+                <div class="logo-container">
+                    <div class="bolt-icon">⚡</div>
+                    <div class="wordmark">Lightning</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="showcase">
+            <div class="showcase-title">Hero Size Previews</div>
+
+            <!-- Large White Orange -->
+            <div class="large-mockup mockup-white-orange">
+                <div class="logo-container">
+                    <div class="bolt-icon">⚡</div>
+                    <div class="wordmark">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Large Black Orange -->
+            <div class="large-mockup mockup-black-orange">
+                <div class="logo-container">
+                    <div class="bolt-icon">⚡</div>
+                    <div class="wordmark">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Large Energetic Green -->
+            <div class="large-mockup mockup-green">
+                <div class="logo-container">
+                    <div class="bolt-icon">⚡</div>
+                    <div class="wordmark">Lightning</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

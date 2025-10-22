@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, X, Settings, Crown, Users, Trash2, LogOut, UserPlus, Check, XCircle, ChevronRight, Smile, Pin } from 'lucide-react';
+import { Search, Plus, X, Settings, Crown, Users, Trash2, LogOut, UserPlus, Check, XCircle, ChevronRight, Smile, Pin, Info } from 'lucide-react';
 import {
   createGroup,
   getUserGroups,
@@ -44,6 +44,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
   const [expandedReactions, setExpandedReactions] = useState({});
   const [showMessageMenu, setShowMessageMenu] = useState(null);
   const [showAllEmojis, setShowAllEmojis] = useState({});
+  const [showGroupBio, setShowGroupBio] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDescription, setNewGroupDescription] = useState('');
@@ -478,7 +479,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
           }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className={nightMode ? 'text-xl font-bold text-white' : 'text-xl font-bold text-black'}>Create Group</h2>
+            <h2 className={nightMode ? 'text-xl font-bold text-slate-100' : 'text-xl font-bold text-black'}>Create Group</h2>
             <button onClick={() => setShowCreateGroup(false)} className={nightMode ? 'p-2 hover:bg-white/10 rounded-lg' : 'p-2 hover:bg-white/20 rounded-lg'}>
               <X className="w-5 h-5" />
             </button>
@@ -486,7 +487,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
 
           <form onSubmit={handleCreateGroup} className="space-y-4">
             <div>
-              <label className={nightMode ? 'block text-sm font-semibold text-white mb-2' : 'block text-sm font-semibold text-black mb-2'}>
+              <label className={nightMode ? 'block text-sm font-semibold text-slate-100 mb-2' : 'block text-sm font-semibold text-black mb-2'}>
                 Group Name *
               </label>
               <input
@@ -494,7 +495,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 placeholder="e.g., Prayer Warriors"
-                className={nightMode ? 'w-full px-4 py-2 bg-white/5 border border-white/10 text-white placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2 border border-white/25 text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
+                className={nightMode ? 'w-full px-4 py-2 bg-white/5 border border-white/10 text-slate-100 placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2 border border-white/25 text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
                 style={nightMode ? {} : {
                   background: 'rgba(255, 255, 255, 0.2)',
                   backdropFilter: 'blur(30px)',
@@ -505,7 +506,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
             </div>
 
             <div>
-              <label className={nightMode ? 'block text-sm font-semibold text-white mb-2' : 'block text-sm font-semibold text-black mb-2'}>
+              <label className={nightMode ? 'block text-sm font-semibold text-slate-100 mb-2' : 'block text-sm font-semibold text-black mb-2'}>
                 Description (optional)
               </label>
               <textarea
@@ -513,7 +514,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                 onChange={(e) => setNewGroupDescription(e.target.value)}
                 placeholder="What's this group about?"
                 rows="3"
-                className={nightMode ? 'w-full px-4 py-2 bg-white/5 border border-white/10 text-white placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2 border border-white/25 text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
+                className={nightMode ? 'w-full px-4 py-2 bg-white/5 border border-white/10 text-slate-100 placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2 border border-white/25 text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
                 style={nightMode ? {} : {
                   background: 'rgba(255, 255, 255, 0.2)',
                   backdropFilter: 'blur(30px)',
@@ -526,7 +527,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
               <button
                 type="button"
                 onClick={() => setShowCreateGroup(false)}
-                className={`flex-1 px-4 py-2 border rounded-lg transition-all duration-200 ${nightMode ? 'border-white/10 text-white hover:bg-white/10' : 'border-white/30 text-black shadow-md'}`}
+                className={`flex-1 px-4 py-2 border rounded-lg transition-all duration-200 ${nightMode ? 'border-white/10 text-slate-100 hover:bg-white/10' : 'border-white/30 text-black shadow-md'}`}
                 style={nightMode ? {} : {
                   background: 'rgba(255, 255, 255, 0.2)',
                   backdropFilter: 'blur(30px)',
@@ -540,30 +541,19 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
               <button
                 type="submit"
                 disabled={loading || !newGroupName.trim()}
-                className={`flex-1 px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-white ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
-                style={nightMode ? {
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                } : {
-                  background: 'rgba(59, 130, 246, 0.7)',
+                className={`flex-1 px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
+                style={{
+                  background: 'rgba(79, 150, 255, 0.85)',
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)'
                 }}
                 onMouseEnter={(e) => {
-                  if (nightMode && !loading && newGroupName.trim()) {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
-                  } else if (!nightMode && !loading && newGroupName.trim()) {
-                    e.currentTarget.style.background = 'rgba(59, 130, 246, 0.85)';
+                  if (!loading && newGroupName.trim()) {
+                    e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (nightMode) {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-                  } else {
-                    e.currentTarget.style.background = 'rgba(59, 130, 246, 0.7)';
-                  }
+                  e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
                 }}
               >
                 {loading ? 'Creating...' : 'Create Group'}
@@ -591,15 +581,15 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
           >
             ← Back to Chat
           </button>
-          <h2 className={nightMode ? 'text-lg font-bold text-white' : 'text-lg font-bold text-black'}>Group Settings</h2>
+          <h2 className={nightMode ? 'text-lg font-bold text-slate-100' : 'text-lg font-bold text-black'}>Group Settings</h2>
           <div className="w-20"></div>
         </div>
 
         {isLeader ? (
           <form onSubmit={handleUpdateGroup} className="space-y-4">
-            <div className={nightMode ? 'bg-white/5 rounded-xl border border-white/10 p-4 space-y-4 shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'bg-white rounded-xl border border-white/25 p-4 space-y-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}>
+            <div className={nightMode ? 'bg-white/5 rounded-xl border border-white/10 p-4 space-y-4 ' : 'bg-white rounded-xl border border-white/25 p-4 space-y-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}>
               <div>
-                <label className={nightMode ? 'block text-sm font-semibold text-white mb-2' : 'block text-sm font-semibold text-black mb-2'}>
+                <label className={nightMode ? 'block text-sm font-semibold text-slate-100 mb-2' : 'block text-sm font-semibold text-black mb-2'}>
                   Group Name
                 </label>
                 <input
@@ -607,12 +597,12 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                   value={editGroupName}
                   onChange={(e) => setEditGroupName(e.target.value)}
                   placeholder={group.name}
-                  className={nightMode ? 'w-full px-4 py-2 bg-white/5 border border-white/10 text-white placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2 border border-white/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
+                  className={nightMode ? 'w-full px-4 py-2 bg-white/5 border border-white/10 text-slate-100 placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2 border border-white/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
                 />
               </div>
 
               <div>
-                <label className={nightMode ? 'block text-sm font-semibold text-white mb-2' : 'block text-sm font-semibold text-black mb-2'}>
+                <label className={nightMode ? 'block text-sm font-semibold text-slate-100 mb-2' : 'block text-sm font-semibold text-black mb-2'}>
                   Description
                 </label>
                 <textarea
@@ -620,53 +610,42 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                   onChange={(e) => setEditGroupDescription(e.target.value)}
                   placeholder={group.description || 'Add a description'}
                   rows="3"
-                  className={nightMode ? 'w-full px-4 py-2 bg-white/5 border border-white/10 text-white placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2 border border-white/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
+                  className={nightMode ? 'w-full px-4 py-2 bg-white/5 border border-white/10 text-slate-100 placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2 border border-white/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading || !editGroupName.trim()}
-                className={`w-full px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-white ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
-                style={nightMode ? {
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                } : {
-                  background: 'rgba(59, 130, 246, 0.7)',
+                className={`w-full px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
+                style={{
+                  background: 'rgba(79, 150, 255, 0.85)',
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)'
                 }}
                 onMouseEnter={(e) => {
-                  if (nightMode && !loading && editGroupName.trim()) {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
-                  } else if (!nightMode && !loading && editGroupName.trim()) {
-                    e.currentTarget.style.background = 'rgba(59, 130, 246, 0.85)';
+                  if (!loading && editGroupName.trim()) {
+                    e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (nightMode) {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-                  } else {
-                    e.currentTarget.style.background = 'rgba(59, 130, 246, 0.7)';
-                  }
+                  e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
                 }}
               >
                 {loading ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
 
-            <div className={nightMode ? 'bg-white/5 rounded-xl border border-red-300 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'bg-white rounded-xl border border-red-200 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}>
+            <div className={nightMode ? 'bg-white/5 rounded-xl border border-red-300 p-4 ' : 'bg-white rounded-xl border border-red-200 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}>
               <h3 className="font-semibold text-red-900 mb-2">Danger Zone</h3>
-              <p className={nightMode ? 'text-sm text-gray-400 mb-4' : 'text-sm text-black mb-4'}>
+              <p className={nightMode ? 'text-sm text-slate-100 mb-4' : 'text-sm text-black mb-4'}>
                 Once you delete a group, all messages and members will be removed. This action cannot be undone.
               </p>
               <button
                 type="button"
                 onClick={handleDeleteGroup}
                 disabled={loading}
-                className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 bg-red-500 text-slate-100 rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete Group
@@ -674,15 +653,15 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
             </div>
           </form>
         ) : (
-          <div className={nightMode ? 'bg-white/5 rounded-xl border border-white/10 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'bg-white rounded-xl border border-white/25 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}>
-            <h3 className={nightMode ? 'font-semibold text-white mb-2' : 'font-semibold text-black mb-2'}>Leave Group</h3>
-            <p className={nightMode ? 'text-sm text-gray-400 mb-4' : 'text-sm text-black mb-4'}>
+          <div className={nightMode ? 'bg-white/5 rounded-xl border border-white/10 p-4 ' : 'bg-white rounded-xl border border-white/25 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}>
+            <h3 className={nightMode ? 'font-semibold text-slate-100 mb-2' : 'font-semibold text-black mb-2'}>Leave Group</h3>
+            <p className={nightMode ? 'text-sm text-slate-100 mb-4' : 'text-sm text-black mb-4'}>
               You can rejoin this group later by requesting access again.
             </p>
             <button
               onClick={handleLeaveGroup}
               disabled={loading}
-              className="w-full px-4 py-2 bg-white/100 text-white rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full px-4 py-2 bg-white/100 text-slate-100 rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <LogOut className="w-4 h-4" />
               Leave Group
@@ -709,13 +688,13 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
           >
             ← Back to Chat
           </button>
-          <h2 className={nightMode ? 'text-lg font-bold text-white' : 'text-lg font-bold text-black'}>Members ({groupMembers.length})</h2>
+          <h2 className={nightMode ? 'text-lg font-bold text-slate-100' : 'text-lg font-bold text-black'}>Members ({groupMembers.length})</h2>
           <div className="w-20"></div>
         </div>
 
         <div className="space-y-2">
           {groupMembers.map((member) => (
-            <div key={member.id} className={nightMode ? 'bg-white/5 rounded-xl border border-white/10 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'bg-white rounded-xl border border-white/25 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}>
+            <div key={member.id} className={nightMode ? 'bg-white/5 rounded-xl border border-white/10 p-4 ' : 'bg-white rounded-xl border border-white/25 p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="relative">
@@ -726,12 +705,12 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className={nightMode ? 'font-semibold text-white' : 'font-semibold text-black'}>{member.user.display_name}</h3>
+                      <h3 className={nightMode ? 'font-semibold text-slate-100' : 'font-semibold text-black'}>{member.user.display_name}</h3>
                       {member.role === 'leader' && (
                         <Crown className="w-4 h-4 text-yellow-500" />
                       )}
                     </div>
-                    <p className={nightMode ? 'text-xs text-gray-400' : 'text-xs text-black'}>@{member.user.username}</p>
+                    <p className={nightMode ? 'text-xs text-slate-100' : 'text-xs text-black'}>@{member.user.username}</p>
                   </div>
                 </div>
 
@@ -775,13 +754,13 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
           >
             ← Back to Chat
           </button>
-          <h2 className={nightMode ? 'text-lg font-bold text-white' : 'text-lg font-bold text-black'}>Join Requests ({joinRequests.length})</h2>
+          <h2 className={nightMode ? 'text-lg font-bold text-slate-100' : 'text-lg font-bold text-black'}>Join Requests ({joinRequests.length})</h2>
           <div className="w-20"></div>
         </div>
 
         {joinRequests.length === 0 ? (
           <div
-            className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+            className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10 ' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
             style={nightMode ? {} : {
               background: 'rgba(255, 255, 255, 0.2)',
               backdropFilter: 'blur(30px)',
@@ -789,15 +768,15 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
             }}
           >
             <div className="text-5xl mb-4">✅</div>
-            <p className={`font-semibold mb-2 ${nightMode ? 'text-white' : 'text-black'}`}>All caught up!</p>
-            <p className={nightMode ? 'text-sm text-gray-400' : 'text-sm text-black'}>No pending join requests</p>
+            <p className={`font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>All caught up!</p>
+            <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>No pending join requests</p>
           </div>
         ) : (
           <div className="space-y-2">
             {joinRequests.map((request) => (
               <div
                 key={request.id}
-                className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+                className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10 ' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
                 style={nightMode ? {} : {
                   background: 'rgba(255, 255, 255, 0.2)',
                   backdropFilter: 'blur(30px)',
@@ -808,10 +787,10 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                   <div className="flex items-center gap-3">
                     <div className="text-2xl">{request.user.avatar_emoji}</div>
                     <div>
-                      <h3 className={nightMode ? 'font-semibold text-white' : 'font-semibold text-black'}>{request.user.display_name}</h3>
-                      <p className={nightMode ? 'text-xs text-gray-400' : 'text-xs text-black'}>@{request.user.username}</p>
+                      <h3 className={nightMode ? 'font-semibold text-slate-100' : 'font-semibold text-black'}>{request.user.display_name}</h3>
+                      <p className={nightMode ? 'text-xs text-slate-100' : 'text-xs text-black'}>@{request.user.username}</p>
                       {request.message && (
-                        <p className={nightMode ? 'text-sm text-white mt-1' : 'text-sm text-black mt-1'}>{request.message}</p>
+                        <p className={nightMode ? 'text-sm text-slate-100 mt-1' : 'text-sm text-black mt-1'}>{request.message}</p>
                       )}
                     </div>
                   </div>
@@ -819,10 +798,11 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleApproveRequest(request.id, request.user.id)}
-                      className={`px-3 py-1 border rounded-lg flex items-center gap-1 transition-all duration-200 text-white ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
+                      className={`px-3 py-1 border rounded-lg flex items-center gap-1 transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
                       style={nightMode ? {
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                        background: 'rgba(79, 150, 255, 0.85)',
+                        backdropFilter: 'blur(30px)',
+                        WebkitBackdropFilter: 'blur(30px)'
                       } : {
                         background: 'rgba(34, 197, 94, 0.7)',
                         backdropFilter: 'blur(30px)',
@@ -830,16 +810,14 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                       }}
                       onMouseEnter={(e) => {
                         if (nightMode) {
-                          e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
-                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
+                          e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
                         } else {
                           e.currentTarget.style.background = 'rgba(34, 197, 94, 0.85)';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (nightMode) {
-                          e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
+                          e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
                         } else {
                           e.currentTarget.style.background = 'rgba(34, 197, 94, 0.7)';
                         }
@@ -850,7 +828,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                     </button>
                     <button
                       onClick={() => handleDenyRequest(request.id)}
-                      className={`px-3 py-1 border rounded-lg flex items-center gap-1 transition-all duration-200 ${nightMode ? 'bg-white/10 hover:bg-[#343536] text-gray-400 border-white/10' : 'text-white shadow-md border-white/30'}`}
+                      className={`px-3 py-1 border rounded-lg flex items-center gap-1 transition-all duration-200 ${nightMode ? 'bg-white/10 hover:bg-[#343536] text-slate-100 border-white/10' : 'text-slate-100 shadow-md border-white/30'}`}
                       style={nightMode ? {} : {
                         background: 'rgba(239, 68, 68, 0.7)',
                         backdropFilter: 'blur(30px)',
@@ -883,7 +861,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
           >
             ← Back to My Groups
           </button>
-          <h2 className={nightMode ? 'text-lg font-bold text-white' : 'text-lg font-bold text-black'}>Discover Groups</h2>
+          <h2 className={nightMode ? 'text-lg font-bold text-slate-100' : 'text-lg font-bold text-black'}>Discover Groups</h2>
           <div className="w-20"></div>
         </div>
 
@@ -896,36 +874,23 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
             onChange={(e) => setGroupSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleDiscoverGroups()}
             placeholder="Search public groups..."
-            className={nightMode ? 'w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 text-white placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full pl-10 pr-4 py-2 border border-white/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
+            className={nightMode ? 'w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 text-slate-100 placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full pl-10 pr-4 py-2 border border-white/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
           />
         </div>
 
         <button
           onClick={handleDiscoverGroups}
-          className={`w-full px-4 py-2 border rounded-lg transition-all duration-200 text-white ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
-          style={nightMode ? {
-            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-          } : {
-            background: 'rgba(59, 130, 246, 0.7)',
+          className={`w-full px-4 py-2 border rounded-lg transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
+          style={{
+            background: 'rgba(79, 150, 255, 0.85)',
             backdropFilter: 'blur(30px)',
             WebkitBackdropFilter: 'blur(30px)'
           }}
           onMouseEnter={(e) => {
-            if (nightMode) {
-              e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
-              e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
-            } else {
-              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.85)';
-            }
+            e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
           }}
           onMouseLeave={(e) => {
-            if (nightMode) {
-              e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-            } else {
-              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.7)';
-            }
+            e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
           }}
         >
           {loading ? 'Searching...' : 'Search Groups'}
@@ -933,7 +898,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
 
         {publicGroups.length === 0 ? (
           <div
-            className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+            className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10 ' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
             style={nightMode ? {} : {
               background: 'rgba(255, 255, 255, 0.2)',
               backdropFilter: 'blur(30px)',
@@ -941,8 +906,8 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
             }}
           >
             <div className="text-5xl mb-4">🔍</div>
-            <p className={`font-semibold mb-2 ${nightMode ? 'text-white' : 'text-black'}`}>No groups found</p>
-            <p className={nightMode ? 'text-sm text-gray-400' : 'text-sm text-black'}>Try searching for a group name or topic!</p>
+            <p className={`font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No groups found</p>
+            <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>Try searching for a group name or topic!</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -951,7 +916,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
               return (
                 <div
                   key={group.id}
-                  className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+                  className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10 ' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
                   style={nightMode ? {} : {
                     background: 'rgba(255, 255, 255, 0.2)',
                     backdropFilter: 'blur(30px)',
@@ -961,11 +926,11 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                   <div className="flex items-center gap-3">
                     <div className="text-3xl">{group.avatar_emoji}</div>
                     <div className="flex-1">
-                      <h3 className={nightMode ? 'font-semibold text-white' : 'font-semibold text-black'}>{group.name}</h3>
+                      <h3 className={nightMode ? 'font-semibold text-slate-100' : 'font-semibold text-black'}>{group.name}</h3>
                       {group.description && (
-                        <p className={nightMode ? 'text-sm text-white' : 'text-sm text-black'}>{group.description}</p>
+                        <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>{group.description}</p>
                       )}
-                      <p className={nightMode ? 'text-xs text-gray-400 mt-1' : 'text-xs text-black mt-1'}>
+                      <p className={nightMode ? 'text-xs text-slate-100 mt-1' : 'text-xs text-black mt-1'}>
                         {group.member_count?.[0]?.count || 0} members
                       </p>
                     </div>
@@ -975,7 +940,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                           setActiveGroup(group.id);
                           setActiveView('chat');
                         }}
-                        className={`px-4 py-2 ${nightMode ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'} rounded-lg flex items-center gap-2`}
+                        className={`px-4 py-2 ${nightMode ? 'bg-blue-600 hover:bg-blue-700 text-slate-100' : 'bg-blue-500 hover:bg-blue-600 text-slate-100'} rounded-lg flex items-center gap-2`}
                       >
                         Open
                         <ChevronRight className="w-4 h-4" />
@@ -984,10 +949,11 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                       <button
                         onClick={() => handleJoinGroup(group.id)}
                         disabled={loading}
-                        className={`px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all duration-200 text-white ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
+                        className={`px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
                         style={nightMode ? {
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                          background: 'rgba(79, 150, 255, 0.85)',
+                          backdropFilter: 'blur(30px)',
+                          WebkitBackdropFilter: 'blur(30px)'
                         } : {
                           background: 'rgba(34, 197, 94, 0.7)',
                           backdropFilter: 'blur(30px)',
@@ -995,16 +961,14 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                         }}
                         onMouseEnter={(e) => {
                           if (nightMode && !loading) {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
-                            e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
+                            e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
                           } else if (!nightMode && !loading) {
                             e.currentTarget.style.background = 'rgba(34, 197, 94, 0.85)';
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (nightMode) {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
+                            e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
                           } else {
                             e.currentTarget.style.background = 'rgba(34, 197, 94, 0.7)';
                           }
@@ -1056,9 +1020,18 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
             <div className="flex items-center gap-2">
               <div className="text-xl">{group.avatar_emoji}</div>
               <div>
-                <h3 className={nightMode ? 'font-semibold text-white text-sm' : 'font-semibold text-black text-sm'}>{group.name}</h3>
-                <p className={nightMode ? 'text-[10px] text-gray-400' : 'text-[10px] text-black'}>{group.member_count} members</p>
+                <h3 className={nightMode ? 'font-semibold text-slate-100 text-sm' : 'font-semibold text-black text-sm'}>{group.name}</h3>
+                <p className={nightMode ? 'text-[10px] text-slate-100' : 'text-[10px] text-black'}>{group.member_count} members</p>
               </div>
+              {group.description && (
+                <button
+                  onClick={() => setShowGroupBio(!showGroupBio)}
+                  className={nightMode ? 'p-1 hover:bg-white/10 rounded-lg' : 'p-1 hover:bg-white/20 rounded-lg'}
+                  title={showGroupBio ? "Hide Group Bio" : "Show Group Bio"}
+                >
+                  <Info className={nightMode ? 'w-3.5 h-3.5 text-slate-100' : 'w-3.5 h-3.5 text-black'} />
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <button
@@ -1066,7 +1039,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                 className={nightMode ? 'p-2 hover:bg-white/10 rounded-lg relative' : 'p-2 hover:bg-white/20 rounded-lg relative'}
                 title="Members"
               >
-                <Users className={nightMode ? 'w-4 h-4 text-white' : 'w-4 h-4 text-black'} />
+                <Users className={nightMode ? 'w-4 h-4 text-slate-100' : 'w-4 h-4 text-black'} />
               </button>
               {isLeader && (
                 <button
@@ -1074,24 +1047,49 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                   className={nightMode ? 'p-2 hover:bg-white/10 rounded-lg relative' : 'p-2 hover:bg-white/20 rounded-lg relative'}
                   title="Join Requests"
                 >
-                  <UserPlus className={nightMode ? 'w-4 h-4 text-white' : 'w-4 h-4 text-black'} />
+                  <UserPlus className={nightMode ? 'w-4 h-4 text-slate-100' : 'w-4 h-4 text-black'} />
                   {pendingRequests > 0 && (
-                    <span className={`absolute -top-0.5 -right-0.5 ${nightMode ? 'bg-blue-700 text-white' : 'bg-red-500 text-white'} text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-semibold`}>
+                    <span className={`absolute -top-0.5 -right-0.5 ${nightMode ? 'bg-blue-700 text-slate-100' : 'bg-red-500 text-slate-100'} text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-semibold`}>
                       {pendingRequests}
                     </span>
                   )}
                 </button>
               )}
-              <button
-                onClick={() => setActiveView('settings')}
-                className={nightMode ? 'p-2 hover:bg-white/10 rounded-lg' : 'p-2 hover:bg-white/20 rounded-lg'}
-                title="Settings"
-              >
-                <Settings className={nightMode ? 'w-4 h-4 text-white' : 'w-4 h-4 text-black'} />
-              </button>
+              {isLeader && (
+                <button
+                  onClick={() => setActiveView('settings')}
+                  className={nightMode ? 'p-2 hover:bg-white/10 rounded-lg' : 'p-2 hover:bg-white/20 rounded-lg'}
+                  title="Settings"
+                >
+                  <Settings className={nightMode ? 'w-4 h-4 text-slate-100' : 'w-4 h-4 text-black'} />
+                </button>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Group Bio Banner */}
+        {group.description && showGroupBio && (
+          <div
+            className={`px-4 py-2.5 border-b ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
+            style={nightMode ? {} : {
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)'
+            }}
+          >
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <p className={nightMode ? 'text-[11px] font-semibold text-slate-100 mb-1' : 'text-[11px] font-semibold text-black mb-1'}>
+                  Group Bio
+                </p>
+                <p className={nightMode ? 'text-[12px] text-slate-100 leading-relaxed' : 'text-[12px] text-black leading-relaxed'}>
+                  {group.description}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Pinned Message Preview Banner */}
         {pinnedMessages.length > 0 && (
@@ -1110,10 +1108,10 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
               <div className="flex items-start gap-2">
                 <Pin className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className={nightMode ? 'text-[11px] font-semibold text-white mb-0.5' : 'text-[11px] font-semibold text-blue-900 mb-0.5'}>
+                  <p className={nightMode ? 'text-[11px] font-semibold text-slate-100 mb-0.5' : 'text-[11px] font-semibold text-blue-900 mb-0.5'}>
                     Pinned Message
                   </p>
-                  <p className={nightMode ? 'text-[11px] text-white truncate' : 'text-[11px] text-blue-700 truncate'}>
+                  <p className={nightMode ? 'text-[11px] text-slate-100 truncate' : 'text-[11px] text-blue-700 truncate'}>
                     {pinnedMessages[0].content}
                   </p>
                 </div>
@@ -1132,7 +1130,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
           }}
         >
           {loading ? (
-            <div className={nightMode ? 'text-center text-white py-8' : 'text-center text-black py-8'}>
+            <div className={nightMode ? 'text-center text-slate-100 py-8' : 'text-center text-black py-8'}>
               Loading messages...
             </div>
           ) : (
@@ -1142,7 +1140,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                 <div ref={pinnedSectionRef} className={nightMode ? 'mb-4 pb-3 border-b border-white/10' : 'mb-4 pb-3 border-b border-white/25'}>
                   <div className="flex items-center gap-1.5 mb-2">
                     <Pin className="w-3.5 h-3.5 text-blue-600" />
-                    <span className={nightMode ? 'text-xs font-semibold text-white' : 'text-xs font-semibold text-black'}>Pinned Message</span>
+                    <span className={nightMode ? 'text-xs font-semibold text-slate-100' : 'text-xs font-semibold text-black'}>Pinned Message</span>
                   </div>
                   {pinnedMessages.map((msg) => {
                     const isMe = msg.sender_id === profile.supabaseId;
@@ -1159,18 +1157,18 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                       <div key={msg.id} className="mt-2">
                         <div className="flex items-center gap-1.5 mb-1 ml-1">
                           <span className="text-sm">{msg.sender.avatar_emoji}</span>
-                          <span className={nightMode ? 'text-xs font-semibold text-white' : 'text-xs font-semibold text-black'}>
+                          <span className={nightMode ? 'text-xs font-semibold text-slate-100' : 'text-xs font-semibold text-black'}>
                             {msg.sender.display_name}
                           </span>
                         </div>
                         <div className="flex flex-col items-start ml-1">
-                          <div className={nightMode ? 'bg-transparent hover:bg-white/10 text-white px-2 py-1 rounded-md max-w-[80%] sm:max-w-md inline-block relative group border border-blue-400 transition-colors' : 'bg-slate-100 text-black px-2 py-1 rounded-lg max-w-[80%] sm:max-w-md inline-block relative group border border-blue-200'}>
+                          <div className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md inline-block relative group border border-blue-400 transition-colors' : 'bg-slate-100 text-black px-2 py-1 rounded-lg max-w-[80%] sm:max-w-md inline-block relative group border border-blue-200'}>
                             <div className="flex items-start gap-1.5">
                               <Pin className="w-3 h-3 text-blue-600 flex-shrink-0 mt-0.5" />
                               <div className="flex-1">
                                 <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
                                 <div className="flex items-center justify-between gap-2 mt-0.5">
-                                  <p className={nightMode ? 'text-[10px] text-gray-400' : 'text-[10px] text-black'}>
+                                  <p className={nightMode ? 'text-[10px] text-slate-100' : 'text-[10px] text-black'}>
                                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                   </p>
                                   <div className="flex gap-1">
@@ -1198,13 +1196,23 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={nightMode ? 'absolute bottom-full mb-1 left-0 bg-white/5 border border-white/10 rounded-xl shadow-2xl p-2 z-50' : 'absolute bottom-full mb-1 left-0 bg-white border border-white/25 rounded-xl shadow-2xl p-2 z-50'}>
+                              <div className={nightMode ? 'absolute bottom-full mb-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-50' : 'absolute bottom-full mb-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-50'} style={nightMode ? {
+                                background: '#1a1a1a',
+                                backdropFilter: 'blur(30px)',
+                                WebkitBackdropFilter: 'blur(30px)',
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+                              } : {
+                                background: '#ffffff',
+                                backdropFilter: 'blur(30px)',
+                                WebkitBackdropFilter: 'blur(30px)',
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                              }}>
                                 <div className="grid grid-cols-6 gap-1 w-[200px]">
                                   {(showAllEmojis[msg.id] ? reactionEmojis : reactionEmojis.slice(0, 6)).map(emoji => (
                                     <button
                                       key={emoji}
                                       onClick={() => handleReaction(msg.id, emoji)}
-                                      className={nightMode ? 'text-xl hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center' : 'text-xl hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center'}
+                                      className={nightMode ? 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center' : 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center'}
                                     >
                                       {emoji}
                                     </button>
@@ -1213,7 +1221,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                                 {!showAllEmojis[msg.id] && reactionEmojis.length > 6 && (
                                   <button
                                     onClick={() => setShowAllEmojis(prev => ({ ...prev, [msg.id]: true }))}
-                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-white hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
+                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
                                   >
                                     +{reactionEmojis.length - 6} more
                                   </button>
@@ -1221,7 +1229,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                                 {showAllEmojis[msg.id] && (
                                   <button
                                     onClick={() => setShowAllEmojis(prev => ({ ...prev, [msg.id]: false }))}
-                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-white hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
+                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
                                   >
                                     Show less
                                   </button>
@@ -1288,7 +1296,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
 
               {/* Regular Messages */}
               {groupMessages.length === 0 ? (
-                <div className={nightMode ? 'text-center text-white py-8' : 'text-center text-black py-8'}>
+                <div className={nightMode ? 'text-center text-slate-100 py-8' : 'text-center text-black py-8'}>
                   <p>No messages yet.</p>
                   <p className="text-sm mt-2">Start the conversation!</p>
                 </div>
@@ -1312,7 +1320,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                     // User's own messages (Discord-style left-aligned)
                     <div className="flex gap-2 items-start">
                       {/* Avatar (always show) */}
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-lg flex-shrink-0">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
                         {profile.avatar}
                       </div>
 
@@ -1320,28 +1328,38 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                       <div className="flex-1 min-w-0">
                         {/* Name and timestamp (always show) */}
                         <div className="flex items-baseline gap-2 mb-1">
-                          <span className={nightMode ? 'text-sm font-semibold text-white' : 'text-sm font-semibold text-black'}>
+                          <span className={nightMode ? 'text-sm font-semibold text-slate-100' : 'text-sm font-semibold text-black'}>
                             {profile.displayName}
                           </span>
-                          <span className={nightMode ? 'text-[10px] text-gray-400' : 'text-[10px] text-black'}>
+                          <span className={nightMode ? 'text-[10px] text-slate-100' : 'text-[10px] text-black'}>
                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
 
                         {/* Message bubble with reactions */}
                         <div className="flex items-center gap-2 group">
-                      <div className={nightMode ? 'bg-transparent hover:bg-white/10 text-white px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
+                      <div className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
                             <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={nightMode ? 'absolute bottom-full mb-1 left-0 bg-white/5 border border-white/10 rounded-xl shadow-2xl p-2 z-50' : 'absolute bottom-full mb-1 left-0 bg-white border border-white/25 rounded-xl shadow-2xl p-2 z-50'}>
+                              <div className={nightMode ? 'absolute bottom-full mb-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-50' : 'absolute bottom-full mb-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-50'} style={nightMode ? {
+                                background: '#1a1a1a',
+                                backdropFilter: 'blur(30px)',
+                                WebkitBackdropFilter: 'blur(30px)',
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+                              } : {
+                                background: '#ffffff',
+                                backdropFilter: 'blur(30px)',
+                                WebkitBackdropFilter: 'blur(30px)',
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                              }}>
                           <div className="grid grid-cols-6 gap-1 w-[200px]">
                             {(showAllEmojis[msg.id] ? reactionEmojis : reactionEmojis.slice(0, 6)).map(emoji => (
                               <button
                                 key={emoji}
                                 onClick={() => handleReaction(msg.id, emoji)}
-                                className={nightMode ? 'text-xl hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center' : 'text-xl hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center'}
+                                className={nightMode ? 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center' : 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center'}
                               >
                                 {emoji}
                               </button>
@@ -1350,7 +1368,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                                 {!showAllEmojis[msg.id] && reactionEmojis.length > 6 && (
                                   <button
                                     onClick={() => setShowAllEmojis(prev => ({ ...prev, [msg.id]: true }))}
-                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-white hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
+                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
                                   >
                                     +{reactionEmojis.length - 6} more
                                   </button>
@@ -1358,7 +1376,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                                 {showAllEmojis[msg.id] && (
                                   <button
                                     onClick={() => setShowAllEmojis(prev => ({ ...prev, [msg.id]: false }))}
-                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-white hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
+                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
                                   >
                                     Show less
                                   </button>
@@ -1372,7 +1390,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                             {/* Reaction button */}
                             <button
                               onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
-                              className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-white hover:text-white' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
+                              className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
                             >
                               <Smile className="w-3.5 h-3.5" />
                             </button>
@@ -1380,7 +1398,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                             {isLeader && (
                               <button
                                 onClick={() => handlePinMessage(msg.id)}
-                                className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-white hover:text-white' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
+                                className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
                                 title="Pin message"
                               >
                                 <Pin className="w-3.5 h-3.5" />
@@ -1418,8 +1436,8 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                                         }`}
                                         title={data.users.join(', ')}
                                       >
-                                        <span className="text-base leading-none">{emoji}</span>
-                                        <span className={`text-[13px] font-medium leading-none ${
+                                        <span className="text-sm leading-none">{emoji}</span>
+                                        <span className={`text-[11px] font-medium leading-none ${
                                           data.hasReacted
                                             ? nightMode ? 'text-[#dee0fc]' : 'text-blue-700'
                                             : nightMode ? 'text-[#b5bac1]' : 'text-black'
@@ -1466,7 +1484,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                     // Other users' messages (Discord-style with avatar on left)
                     <div className="flex gap-2 items-start">
                       {/* Avatar (always show) */}
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-lg flex-shrink-0">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
                         {msg.sender.avatar_emoji}
                       </div>
 
@@ -1474,23 +1492,23 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                       <div className="flex-1 min-w-0">
                         {/* Name and timestamp (always show) */}
                         <div className="flex items-baseline gap-2 mb-1">
-                          <span className={nightMode ? 'text-sm font-semibold text-white' : 'text-sm font-semibold text-black'}>
+                          <span className={nightMode ? 'text-sm font-semibold text-slate-100' : 'text-sm font-semibold text-black'}>
                             {msg.sender.display_name}
                           </span>
-                          <span className={nightMode ? 'text-[10px] text-gray-400' : 'text-[10px] text-black'}>
+                          <span className={nightMode ? 'text-[10px] text-slate-100' : 'text-[10px] text-black'}>
                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
 
                         {/* Message bubble with reactions */}
                         <div className="flex flex-col items-start">
-                          <div className={nightMode ? 'bg-transparent hover:bg-white/10 text-white px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors'}>
+                          <div className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors'}>
                             <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
                             <div className="flex gap-1 absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               {/* Reaction button (shows on hover) */}
                               <button
                                 onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
-                                className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-white hover:text-white' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
+                                className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
                               >
                                 <Smile className="w-3.5 h-3.5" />
                               </button>
@@ -1498,7 +1516,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                               {isLeader && (
                                 <button
                                   onClick={() => handlePinMessage(msg.id)}
-                                  className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-white hover:text-white' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
+                                  className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
                                   title="Pin message"
                                 >
                                   <Pin className="w-3.5 h-3.5" />
@@ -1508,13 +1526,23 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={nightMode ? 'absolute bottom-full mb-1 left-0 bg-white/5 border border-white/10 rounded-xl shadow-2xl p-2 z-50' : 'absolute bottom-full mb-1 left-0 bg-white border border-white/25 rounded-xl shadow-2xl p-2 z-50'}>
+                              <div className={nightMode ? 'absolute bottom-full mb-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-50' : 'absolute bottom-full mb-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-50'} style={nightMode ? {
+                                background: '#1a1a1a',
+                                backdropFilter: 'blur(30px)',
+                                WebkitBackdropFilter: 'blur(30px)',
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+                              } : {
+                                background: '#ffffff',
+                                backdropFilter: 'blur(30px)',
+                                WebkitBackdropFilter: 'blur(30px)',
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                              }}>
                                 <div className="grid grid-cols-6 gap-1 w-[200px]">
                                   {(showAllEmojis[msg.id] ? reactionEmojis : reactionEmojis.slice(0, 6)).map(emoji => (
                                     <button
                                       key={emoji}
                                       onClick={() => handleReaction(msg.id, emoji)}
-                                      className={nightMode ? 'text-xl hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center' : 'text-xl hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center'}
+                                      className={nightMode ? 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center' : 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center'}
                                     >
                                       {emoji}
                                     </button>
@@ -1523,7 +1551,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                                 {!showAllEmojis[msg.id] && reactionEmojis.length > 6 && (
                                   <button
                                     onClick={() => setShowAllEmojis(prev => ({ ...prev, [msg.id]: true }))}
-                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-white hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
+                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
                                   >
                                     +{reactionEmojis.length - 6} more
                                   </button>
@@ -1531,7 +1559,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                                 {showAllEmojis[msg.id] && (
                                   <button
                                     onClick={() => setShowAllEmojis(prev => ({ ...prev, [msg.id]: false }))}
-                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-white hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
+                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
                                   >
                                     Show less
                                   </button>
@@ -1545,7 +1573,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                             {/* Reaction button */}
                             <button
                               onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
-                              className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-white hover:text-white' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
+                              className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
                             >
                               <Smile className="w-3.5 h-3.5" />
                             </button>
@@ -1553,7 +1581,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                             {isLeader && (
                               <button
                                 onClick={() => handlePinMessage(msg.id)}
-                                className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-white hover:text-white' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
+                                className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
                                 title="Pin message"
                               >
                                 <Pin className="w-3.5 h-3.5" />
@@ -1591,8 +1619,8 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                                         }`}
                                         title={data.users.join(', ')}
                                       >
-                                        <span className="text-base leading-none">{emoji}</span>
-                                        <span className={`text-[13px] font-medium leading-none ${
+                                        <span className="text-sm leading-none">{emoji}</span>
+                                        <span className={`text-[11px] font-medium leading-none ${
                                           data.hasReacted
                                             ? nightMode ? 'text-[#dee0fc]' : 'text-blue-700'
                                             : nightMode ? 'text-[#b5bac1]' : 'text-black'
@@ -1666,10 +1694,16 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
             }}
             placeholder="Message..."
             rows={1}
-            className={nightMode ? 'flex-1 px-3 py-2.5 bg-white/5 border border-white/10 text-white placeholder-[#818384] rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white/5 resize-none min-h-[40px] max-h-[100px] overflow-y-auto text-[15px]' : 'flex-1 px-3 py-2.5 bg-white/10 border border-white/25 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white resize-none min-h-[40px] max-h-[100px] overflow-y-auto text-[15px]'}
-            style={{
+            className={nightMode ? 'flex-1 px-3 py-2.5 bg-white/5 border border-white/10 text-slate-100 placeholder-gray-400 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[40px] max-h-[100px] overflow-y-auto text-[15px]' : 'flex-1 px-3 py-2.5 border border-white/25 text-black placeholder-black/50 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[40px] max-h-[100px] overflow-y-auto text-[15px]'}
+            style={nightMode ? {
               height: 'auto',
               minHeight: '40px'
+            } : {
+              height: 'auto',
+              minHeight: '40px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)'
             }}
             onInput={(e) => {
               e.target.style.height = 'auto';
@@ -1679,30 +1713,19 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
           <button
             type="submit"
             disabled={!newMessage.trim()}
-            className={`w-10 h-10 border rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center transition-all duration-200 text-white ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
-            style={nightMode ? {
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-            } : {
-              background: 'rgba(59, 130, 246, 0.7)',
+            className={`w-10 h-10 border rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
+            style={{
+              background: 'rgba(79, 150, 255, 0.85)',
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)'
             }}
             onMouseEnter={(e) => {
-              if (nightMode && newMessage.trim()) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
-              } else if (!nightMode && newMessage.trim()) {
-                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.85)';
+              if (newMessage.trim()) {
+                e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
               }
             }}
             onMouseLeave={(e) => {
-              if (nightMode) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-              } else {
-                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.7)';
-              }
+              e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
             }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1720,42 +1743,40 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className={nightMode ? 'text-lg font-bold text-white' : 'text-lg font-bold text-black'}>Groups</h2>
-          <p className={nightMode ? 'text-sm text-white' : 'text-sm text-black'}>Connect with your community</p>
+          <h2 className={nightMode ? 'text-lg font-bold text-slate-100' : 'text-lg font-bold text-black'}>Groups</h2>
+          <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>Connect with your community</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setActiveView('discover')}
-            className={nightMode ? 'p-2 bg-white/5 text-white rounded-lg hover:bg-white/10' : 'p-2 bg-slate-100 text-black rounded-lg hover:bg-slate-200'}
+            className={`p-2 border rounded-lg transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
+            style={{
+              background: 'rgba(79, 150, 255, 0.85)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
+            }}
           >
             <Search className="w-5 h-5" />
           </button>
           <button
             onClick={() => setShowCreateGroup(true)}
-            className={`p-2 border rounded-lg transition-all duration-200 text-white ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
-            style={nightMode ? {
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-            } : {
-              background: 'rgba(59, 130, 246, 0.7)',
+            className={`p-2 border rounded-lg transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
+            style={{
+              background: 'rgba(79, 150, 255, 0.85)',
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)'
             }}
             onMouseEnter={(e) => {
-              if (nightMode) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
-              } else {
-                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.85)';
-              }
+              e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
             }}
             onMouseLeave={(e) => {
-              if (nightMode) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
-              } else {
-                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.7)';
-              }
+              e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
             }}
           >
             <Plus className="w-5 h-5" />
@@ -1765,10 +1786,10 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
 
       {/* My Groups */}
       <div>
-        <h3 className={nightMode ? 'text-sm font-semibold text-gray-400 mb-2' : 'text-sm font-semibold text-black mb-2'}>My Groups ({myGroups.length})</h3>
+        <h3 className={nightMode ? 'text-sm font-semibold text-slate-100 mb-2' : 'text-sm font-semibold text-black mb-2'}>My Groups ({myGroups.length})</h3>
         {myGroups.length === 0 ? (
           <div
-            className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3)]' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+            className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10 ' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
             style={nightMode ? {} : {
               background: 'rgba(255, 255, 255, 0.2)',
               backdropFilter: 'blur(30px)',
@@ -1776,8 +1797,8 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
             }}
           >
             <div className="text-5xl mb-4">👥</div>
-            <p className={`font-semibold mb-2 ${nightMode ? 'text-white' : 'text-black'}`}>No groups yet</p>
-            <p className={nightMode ? 'text-sm text-gray-400' : 'text-sm text-black'}>Create a group or discover existing ones to connect with your faith community!</p>
+            <p className={`font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No groups yet</p>
+            <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>Create a group or discover existing ones to connect with your faith community!</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -1788,7 +1809,7 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                   setActiveGroup(group.id);
                   setActiveView('chat');
                 }}
-                className={`w-full rounded-xl border p-4 text-left transition-all hover:-translate-y-1 ${nightMode ? 'bg-white/5 border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.4)]' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)]'}`}
+                className={`w-full rounded-xl border p-4 text-left transition-all hover:-translate-y-1 ${nightMode ? 'bg-white/5 border-white/10  ' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)]'}`}
                 style={nightMode ? {} : {
                   background: 'rgba(255, 255, 255, 0.2)',
                   backdropFilter: 'blur(30px)',
@@ -1799,14 +1820,14 @@ const GroupsTab = ({ groupSearchQuery, setGroupSearchQuery, nightMode }) => {
                   <div className="text-3xl">{group.avatar_emoji}</div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className={nightMode ? 'font-semibold text-white' : 'font-semibold text-black'}>{group.name}</h3>
+                      <h3 className={nightMode ? 'font-semibold text-slate-100' : 'font-semibold text-black'}>{group.name}</h3>
                       {group.userRole === 'leader' && (
                         <Crown className="w-4 h-4 text-yellow-500" />
                       )}
                     </div>
-                    <p className={nightMode ? 'text-sm text-white' : 'text-sm text-black'}>{group.member_count} members</p>
+                    <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>{group.member_count} members</p>
                   </div>
-                  <ChevronRight className={nightMode ? 'w-5 h-5 text-gray-400' : 'w-5 h-5 text-slate-400'} />
+                  <ChevronRight className={nightMode ? 'w-5 h-5 text-slate-100' : 'w-5 h-5 text-slate-400'} />
                 </div>
               </button>
             ))}

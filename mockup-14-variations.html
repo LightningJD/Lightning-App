@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Logo - Mockup 14 Variations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f0f0f0;
+            padding: 60px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 42px;
+            margin-bottom: 60px;
+            font-weight: 800;
+        }
+
+        .variations {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .mockup {
+            border-radius: 24px;
+            padding: 100px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .mockup-label {
+            position: absolute;
+            top: 25px;
+            left: 30px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo {
+            font-size: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .name {
+            font-size: 32px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        /* White Background Version */
+        .mockup-white {
+            background: white;
+        }
+
+        .mockup-white .mockup-label {
+            color: #999;
+        }
+
+        .mockup-white .logo {
+            filter: drop-shadow(0 0 18px rgba(59, 130, 246, 0.6))
+                    drop-shadow(0 0 35px rgba(59, 130, 246, 0.4));
+        }
+
+        .mockup-white .name {
+            color: #374151;
+        }
+
+        .mockup-white:hover .logo {
+            filter: drop-shadow(0 0 28px rgba(59, 130, 246, 0.8))
+                    drop-shadow(0 0 45px rgba(59, 130, 246, 0.5));
+            transform: scale(1.05);
+        }
+
+        /* Black Background Version */
+        .mockup-black {
+            background: #000000;
+        }
+
+        .mockup-black .mockup-label {
+            color: #666;
+        }
+
+        .mockup-black .logo {
+            filter: drop-shadow(0 0 22px rgba(96, 165, 250, 0.8))
+                    drop-shadow(0 0 42px rgba(96, 165, 250, 0.5))
+                    drop-shadow(0 0 58px rgba(96, 165, 250, 0.3));
+        }
+
+        .mockup-black .name {
+            color: #FFFFFF;
+        }
+
+        .mockup-black:hover .logo {
+            filter: drop-shadow(0 0 32px rgba(96, 165, 250, 0.9))
+                    drop-shadow(0 0 52px rgba(96, 165, 250, 0.6))
+                    drop-shadow(0 0 70px rgba(96, 165, 250, 0.4));
+            transform: scale(1.05);
+        }
+
+        /* Large showcase section */
+        .showcase {
+            margin-top: 80px;
+        }
+
+        .showcase-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #666;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .large-mockup {
+            border-radius: 32px;
+            padding: 120px 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.2);
+        }
+
+        .large-mockup .content {
+            gap: 16px;
+        }
+
+        .large-mockup .logo {
+            font-size: 72px;
+        }
+
+        .large-mockup .name {
+            font-size: 56px;
+        }
+
+        .large-mockup.mockup-white .logo {
+            filter: drop-shadow(0 0 28px rgba(59, 130, 246, 0.7))
+                    drop-shadow(0 0 55px rgba(59, 130, 246, 0.5));
+        }
+
+        .large-mockup.mockup-black .logo {
+            filter: drop-shadow(0 0 32px rgba(96, 165, 250, 0.9))
+                    drop-shadow(0 0 62px rgba(96, 165, 250, 0.6))
+                    drop-shadow(0 0 78px rgba(96, 165, 250, 0.4));
+        }
+
+        @media (max-width: 968px) {
+            .variations {
+                grid-template-columns: 1fr;
+            }
+
+            .large-mockup {
+                padding: 80px 40px;
+            }
+
+            .large-mockup .logo {
+                font-size: 56px;
+            }
+
+            .large-mockup .name {
+                font-size: 44px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .mockup {
+                padding: 60px 40px;
+                min-height: 300px;
+            }
+
+            .content {
+                gap: 8px;
+            }
+
+            .logo {
+                font-size: 34px;
+            }
+
+            .name {
+                font-size: 26px;
+            }
+
+            .large-mockup .content {
+                gap: 12px;
+            }
+
+            .large-mockup .logo {
+                font-size: 44px;
+            }
+
+            .large-mockup .name {
+                font-size: 34px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lightning Logo - Ultra Minimal</h1>
+
+        <div class="variations">
+            <!-- White Background -->
+            <div class="mockup mockup-white">
+                <span class="mockup-label">White Background</span>
+                <div class="content">
+                    <div class="logo">⚡</div>
+                    <div class="name">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Black Background -->
+            <div class="mockup mockup-black">
+                <span class="mockup-label">Black Background</span>
+                <div class="content">
+                    <div class="logo">⚡</div>
+                    <div class="name">Lightning</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="showcase">
+            <div class="showcase-title">Large Scale Preview</div>
+
+            <!-- Large White Background -->
+            <div class="large-mockup mockup-white">
+                <div class="content">
+                    <div class="logo">⚡</div>
+                    <div class="name">Lightning</div>
+                </div>
+            </div>
+
+            <!-- Large Black Background -->
+            <div class="large-mockup mockup-black">
+                <div class="content">
+                    <div class="logo">⚡</div>
+                    <div class="name">Lightning</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

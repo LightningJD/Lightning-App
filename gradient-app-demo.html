@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightning App - Gradient Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #1e293b;
+      padding: 20px;
+    }
+
+    .demo-container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .demo-header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: white;
+    }
+
+    .demo-header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .demo-header p {
+      color: #94a3b8;
+      font-size: 16px;
+    }
+
+    .gradient-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .gradient-btn {
+      padding: 12px 20px;
+      border: 2px solid #475569;
+      background: #334155;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .gradient-btn:hover {
+      background: #475569;
+      transform: translateY(-2px);
+    }
+
+    .gradient-btn.active {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      border-color: #4facfe;
+      box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+    }
+
+    .phone-container {
+      max-width: 400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    /* Phone notch */
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 28px;
+      background: black;
+      border-radius: 0 0 16px 16px;
+      z-index: 100;
+    }
+
+    .app-screen {
+      background: #f8fafc;
+      min-height: 700px;
+      position: relative;
+    }
+
+    /* Gradient Header */
+    .app-header {
+      height: 64px;
+      position: relative;
+      transition: background 0.5s ease;
+    }
+
+    .header-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 0%, transparent 50%, #f8fafc 100%);
+    }
+
+    .header-content {
+      position: absolute;
+      top: 12px;
+      left: 0;
+      right: 0;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lightning-icon {
+      width: 20px;
+      height: 20px;
+      color: #fbbf24;
+      fill: #fbbf24;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    }
+
+    .app-title {
+      font-weight: 700;
+      color: white;
+      font-size: 16px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Content Area */
+    .app-content {
+      padding: 20px;
+    }
+
+    .profile-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 16px;
+    }
+
+    .profile-header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+
+    .profile-username {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .bio {
+      color: #475569;
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 8px 20px;
+      box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active {
+      background: #dbeafe;
+      color: #2563eb;
+    }
+
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* Gradient Definitions */
+    .gradient-current { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .gradient-softer { background: linear-gradient(135deg, #667eea 0%, #4facfe 50%, #00d4ff 100%); }
+    .gradient-warmth { background: linear-gradient(135deg, #5f72ff 0%, #4facfe 40%, #6dd5ed 100%); }
+    .gradient-premium { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .gradient-sunrise { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .gradient-ocean { background: linear-gradient(135deg, #2e3192 0%, #1bffff 100%); }
+    .gradient-heaven { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+    .gradient-royal { background: linear-gradient(135deg, #4481eb 0%, #04befe 100%); }
+    .gradient-faith { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); }
+    .gradient-peace { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
+    .gradient-hope { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+    .gradient-light { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <div class="demo-header">
+      <h1>⚡ Lightning App Gradient Preview</h1>
+      <p>Click any gradient below to see it in the real app layout</p>
+    </div>
+
+    <div class="gradient-selector">
+      <button class="gradient-btn active" data-gradient="current">Current</button>
+      <button class="gradient-btn" data-gradient="softer">Softer Indigo-Blue ⭐</button>
+      <button class="gradient-btn" data-gradient="warmth">Deeper Blue Warmth</button>
+      <button class="gradient-btn" data-gradient="royal">Royal Blue</button>
+      <button class="gradient-btn" data-gradient="faith">Faith Purple-Blue</button>
+      <button class="gradient-btn" data-gradient="premium">Premium Purple</button>
+      <button class="gradient-btn" data-gradient="ocean">Ocean Deep</button>
+      <button class="gradient-btn" data-gradient="heaven">Heavenly Peace</button>
+      <button class="gradient-btn" data-gradient="peace">Peace Pastel</button>
+      <button class="gradient-btn" data-gradient="hope">Hope Green-Blue</button>
+      <button class="gradient-btn" data-gradient="sunrise">Sunrise Warmth</button>
+      <button class="gradient-btn" data-gradient="light">Light & Love</button>
+    </div>
+
+    <div class="phone-container">
+      <div class="phone-notch"></div>
+
+      <div class="app-screen">
+        <!-- Gradient Header -->
+        <div class="app-header gradient-current" id="appHeader">
+          <div class="header-fade"></div>
+          <div class="header-content">
+            <div class="app-logo">
+              <svg class="lightning-icon" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z"/>
+              </svg>
+              <span class="app-title">Lightning</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- App Content -->
+        <div class="app-content">
+          <div class="profile-card">
+            <div class="profile-header">
+              <div class="avatar">👑</div>
+              <div class="profile-name">David</div>
+              <div class="profile-username">@king_david</div>
+            </div>
+            <p class="bio">Shepherd. Warrior. King. A man after God's own heart, saved by His grace.</p>
+            <div class="stats">
+              <div class="stat">
+                <div class="stat-value">234</div>
+                <div class="stat-label">Followers</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">189</div>
+                <div class="stat-label">Following</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Groups</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-card">
+            <div style="font-weight: 700; color: #1e293b; margin-bottom: 8px; font-size: 16px;">✨ My Testimony</div>
+            <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+              From shepherd boy to king, my journey has been marked by both triumph and failure.
+              God's grace has carried me through my darkest moments...
+            </p>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+          <div class="nav-item active">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <span class="nav-label">Profile</span>
+          </div>
+          <div class="nav-item">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <span class="nav-label">Messages</span>
+          </div>
+          <div class="nav-item">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span class="nav-label">Groups</span>
+          </div>
+          <div class="nav-item">
+            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="nav-label">Connect</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const buttons = document.querySelectorAll('.gradient-btn');
+    const header = document.getElementById('appHeader');
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Remove active class from all buttons
+        buttons.forEach(btn => btn.classList.remove('active'));
+
+        // Add active class to clicked button
+        button.classList.add('active');
+
+        // Get gradient type
+        const gradient = button.dataset.gradient;
+
+        // Remove all gradient classes
+        header.className = 'app-header';
+
+        // Add new gradient class
+        header.classList.add(`gradient-${gradient}`);
+      });
+    });
+  </script>
+</body>
+</html>

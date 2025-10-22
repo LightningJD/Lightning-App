@@ -53,33 +53,19 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
         >
           <button
             onClick={() => setActiveConnectTab('recommended')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${activeConnectTab === 'recommended' ? nightMode ? 'text-white border-white/20' : 'text-white shadow-md border-white/30' : nightMode ? 'text-gray-400 hover:bg-white/5 border-transparent' : 'text-black border-transparent'}`}
-            style={activeConnectTab === 'recommended' ? nightMode ? {
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-            } : {
-              background: 'rgba(59, 130, 246, 0.7)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)'
-            } : activeConnectTab !== 'recommended' && !nightMode ? {
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'recommended' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            style={{
               background: 'transparent'
-            } : {}}
+            }}
           >
             Recommended
           </button>
           <button
             onClick={() => setActiveConnectTab('friends')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all border ${activeConnectTab === 'friends' ? nightMode ? 'text-white border-white/20' : 'text-white shadow-md border-white/30' : nightMode ? 'text-gray-400 hover:bg-white/5 border-transparent' : 'text-black border-transparent'}`}
-            style={activeConnectTab === 'friends' ? nightMode ? {
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-            } : {
-              background: 'rgba(59, 130, 246, 0.7)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)'
-            } : activeConnectTab !== 'friends' && !nightMode ? {
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'friends' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            style={{
               background: 'transparent'
-            } : {}}
+            }}
           >
             Friends
           </button>
@@ -89,14 +75,15 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
       {activeConnectTab === 'recommended' && (
         <div className="px-4">
           <div className="mb-3">
-            <h3 className={`text-sm font-semibold mb-2 ${nightMode ? 'text-white' : 'text-black'}`}>Sort by:</h3>
+            <h3 className={`text-sm font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>Sort by:</h3>
             <div className="flex gap-1.5 flex-wrap">
               <button
                 onClick={() => setSortBy('recommended')}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${sortBy === 'recommended' ? nightMode ? 'text-white border-white/20' : 'text-blue-700 shadow-md border-white/30' : nightMode ? 'bg-white/5 text-gray-400 hover:bg-white/10 border-white/10' : 'text-black shadow-sm border-white/30'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${sortBy === 'recommended' ? nightMode ? 'text-slate-100 border-white/20' : 'text-blue-700 shadow-md border-white/30' : nightMode ? 'bg-white/5 text-slate-100 hover:bg-white/10 border-white/10' : 'text-black shadow-sm border-white/30'}`}
                 style={sortBy === 'recommended' ? nightMode ? {
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(79, 150, 255, 0.85)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
                 } : {
                   background: 'rgba(219, 234, 254, 0.7)',
                   backdropFilter: 'blur(30px)',
@@ -111,10 +98,11 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
               </button>
               <button
                 onClick={() => setSortBy('nearby')}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${sortBy === 'nearby' ? nightMode ? 'text-white border-white/20' : 'text-blue-700 shadow-md border-white/30' : nightMode ? 'bg-white/5 text-gray-400 hover:bg-white/10 border-white/10' : 'text-black shadow-sm border-white/30'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${sortBy === 'nearby' ? nightMode ? 'text-slate-100 border-white/20' : 'text-blue-700 shadow-md border-white/30' : nightMode ? 'bg-white/5 text-slate-100 hover:bg-white/10 border-white/10' : 'text-black shadow-sm border-white/30'}`}
                 style={sortBy === 'nearby' ? nightMode ? {
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(79, 150, 255, 0.85)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
                 } : {
                   background: 'rgba(219, 234, 254, 0.7)',
                   backdropFilter: 'blur(30px)',
@@ -129,10 +117,11 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
               </button>
               <button
                 onClick={() => setSortBy('mutual')}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${sortBy === 'mutual' ? nightMode ? 'text-white border-white/20' : 'text-blue-700 shadow-md border-white/30' : nightMode ? 'bg-white/5 text-gray-400 hover:bg-white/10 border-white/10' : 'text-black shadow-sm border-white/30'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${sortBy === 'mutual' ? nightMode ? 'text-slate-100 border-white/20' : 'text-blue-700 shadow-md border-white/30' : nightMode ? 'bg-white/5 text-slate-100 hover:bg-white/10 border-white/10' : 'text-black shadow-sm border-white/30'}`}
                 style={sortBy === 'mutual' ? nightMode ? {
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(79, 150, 255, 0.85)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
                 } : {
                   background: 'rgba(219, 234, 254, 0.7)',
                   backdropFilter: 'blur(30px)',

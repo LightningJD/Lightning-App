@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning - 10 Refined Glossmorphic Variations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            padding: 3rem 2rem;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #818CF8 0%, #C084FC 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #9ca3af;
+            margin-bottom: 3rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 2.5rem;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        .mockup-wrapper {
+            position: relative;
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .mockup-wrapper:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+        }
+
+        .mockup-label {
+            position: absolute;
+            top: 1.25rem;
+            left: 1.25rem;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            color: white;
+            padding: 0.6rem 1.25rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Phone mockup */
+        .phone {
+            width: 100%;
+            aspect-ratio: 9/19.5;
+            border-radius: 32px;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Enhanced Floating Orbs */
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            pointer-events: none;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -30px) scale(1.1); }
+            50% { transform: translate(-20px, 25px) scale(0.9); }
+            75% { transform: translate(25px, 35px) scale(1.05); }
+        }
+
+        .orb-1 {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(135deg, #818CF8 0%, #C084FC 100%);
+            top: 15%;
+            left: -10%;
+            opacity: 0.5;
+        }
+
+        .orb-2 {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+            bottom: 20%;
+            right: -5%;
+            opacity: 0.45;
+            animation-delay: 7s;
+        }
+
+        .orb-3 {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #F472B6 0%, #C084FC 100%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.3;
+            animation-delay: 3s;
+        }
+
+        /* Small floating blobs */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(30px);
+            pointer-events: none;
+            opacity: 0.4;
+            animation: blobFloat 15s ease-in-out infinite;
+        }
+
+        @keyframes blobFloat {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
+        }
+
+        .blob-1 {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #DBEAFE 0%, #E9D5FF 100%);
+            top: 10%;
+            right: 15%;
+        }
+
+        .blob-2 {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #FBCFE8 0%, #DDD6FE 100%);
+            bottom: 30%;
+            left: 10%;
+            animation-delay: 5s;
+        }
+
+        /* Background Variations */
+        .bg-1 {
+            background:
+                radial-gradient(circle at 20% 30%, rgba(129, 140, 248, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(192, 132, 252, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #E0E7FF 0%, #EDE9FE 50%, #FCE7F3 100%);
+        }
+
+        .bg-2 {
+            background:
+                radial-gradient(circle at 30% 20%, rgba(147, 197, 253, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(196, 181, 253, 0.4) 0%, transparent 50%),
+                linear-gradient(135deg, #DBEAFE 0%, #E9D5FF 100%);
+        }
+
+        .bg-3 {
+            background:
+                radial-gradient(at 27% 37%, rgba(129, 140, 248, 0.35) 0px, transparent 50%),
+                radial-gradient(at 97% 21%, rgba(96, 165, 250, 0.3) 0px, transparent 50%),
+                radial-gradient(at 52% 99%, rgba(244, 114, 182, 0.25) 0px, transparent 50%),
+                radial-gradient(at 10% 29%, rgba(167, 139, 250, 0.3) 0px, transparent 50%),
+                radial-gradient(at 97% 96%, rgba(192, 132, 252, 0.3) 0px, transparent 50%),
+                linear-gradient(135deg, #EEF2FF 0%, #F3E8FF 50%, #FDF2F8 100%);
+        }
+
+        .bg-4 {
+            background:
+                radial-gradient(circle at 15% 25%, rgba(199, 210, 254, 0.6) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(233, 213, 255, 0.6) 0%, transparent 40%),
+                linear-gradient(135deg, #EEF2FF 0%, #EDE9FE 100%);
+        }
+
+        .bg-5 {
+            background:
+                linear-gradient(135deg, rgba(224, 231, 255, 0.9) 0%, transparent 100%),
+                radial-gradient(circle at 50% 50%, rgba(192, 132, 252, 0.2) 0%, transparent 60%),
+                linear-gradient(45deg, #DBEAFE 0%, #E9D5FF 50%, #FBCFE8 100%);
+        }
+
+        .bg-6 {
+            background:
+                radial-gradient(circle at 40% 30%, rgba(129, 140, 248, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 60% 70%, rgba(244, 114, 182, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #E0E7FF 0%, #F5F3FF 50%, #FCE7F3 100%);
+        }
+
+        .bg-7 {
+            background:
+                radial-gradient(circle at 10% 20%, rgba(224, 231, 255, 0.8) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(237, 233, 254, 0.7) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(219, 234, 254, 0.5) 0%, transparent 50%),
+                linear-gradient(135deg, #F0F4FF 0%, #F5F3FF 100%);
+        }
+
+        .bg-8 {
+            background:
+                radial-gradient(circle at 25% 35%, rgba(165, 180, 252, 0.4) 0%, transparent 45%),
+                radial-gradient(circle at 75% 65%, rgba(216, 180, 254, 0.4) 0%, transparent 45%),
+                linear-gradient(135deg, #DBEAFE 0%, #DDD6FE 50%, #FBCFE8 100%);
+        }
+
+        .bg-9 {
+            background:
+                linear-gradient(135deg, rgba(238, 242, 255, 0.95) 0%, rgba(237, 233, 254, 0.9) 100%),
+                radial-gradient(circle at 30% 40%, rgba(129, 140, 248, 0.25) 0%, transparent 60%),
+                radial-gradient(circle at 70% 60%, rgba(192, 132, 252, 0.25) 0%, transparent 60%),
+                linear-gradient(45deg, #E0E7FF 0%, #EDE9FE 100%);
+        }
+
+        .bg-10 {
+            background:
+                radial-gradient(circle at 20% 25%, rgba(147, 197, 253, 0.45) 0%, transparent 50%),
+                radial-gradient(circle at 80% 75%, rgba(251, 207, 232, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(196, 181, 253, 0.35) 0%, transparent 55%),
+                linear-gradient(135deg, #F0F9FF 0%, #FAF5FF 50%, #FDF2F8 100%);
+        }
+
+        /* Phone screen content */
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow:
+                inset 0 1px 1px rgba(255, 255, 255, 0.5),
+                0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Glossy Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(30px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #1a1a1a;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow:
+                0 4px 12px rgba(99, 102, 241, 0.4),
+                inset 0 -2px 8px rgba(0, 0, 0, 0.2),
+                inset 0 2px 8px rgba(255, 255, 255, 0.3);
+        }
+
+        .menu-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.05),
+                inset 0 1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .profile-section {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 45px;
+            box-shadow:
+                0 8px 24px rgba(99, 102, 241, 0.4),
+                inset 0 -4px 12px rgba(0, 0, 0, 0.2),
+                inset 0 4px 12px rgba(255, 255, 255, 0.3);
+            position: relative;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .online-dot {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+        }
+
+        .name {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+
+        .username {
+            font-size: 0.95rem;
+            color: #6366F1;
+            margin-bottom: 0.6rem;
+            font-weight: 500;
+        }
+
+        .bio {
+            font-size: 0.9rem;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            padding: 1.25rem;
+            text-align: center;
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.06),
+                inset 0 1px 2px rgba(255, 255, 255, 0.5);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow:
+                0 4px 20px rgba(0, 0, 0, 0.06),
+                inset 0 1px 2px rgba(255, 255, 255, 0.5);
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1a1a1a;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-content {
+            font-size: 0.85rem;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 0.85rem 0.5rem;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(30px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow:
+                0 -4px 20px rgba(0, 0, 0, 0.05),
+                inset 0 1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.6rem 1rem;
+            border-radius: 16px;
+            transition: all 0.2s;
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow:
+                0 4px 12px rgba(99, 102, 241, 0.2),
+                inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-icon {
+            font-size: 22px;
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .nav-item.active .nav-label {
+            color: #6366F1;
+        }
+
+        /* Scrollbar */
+        .content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="page-title">⚡ Lightning App - Refined Edition</h1>
+    <p class="page-subtitle">10 Glossmorphic Variations - Enhanced Blue & Purple Gradients</p>
+
+    <div class="grid">
+        <!-- Variation 1 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 1: Iris Bloom</div>
+            <div class="phone bg-1">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation 2 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 2: Azure Dream</div>
+            <div class="phone bg-2">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation 3 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 3: Cosmic Mesh</div>
+            <div class="phone bg-3">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation 4 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 4: Periwinkle Glow</div>
+            <div class="phone bg-4">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation 5 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 5: Rainbow Mist</div>
+            <div class="phone bg-5">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation 6 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 6: Cotton Candy</div>
+            <div class="phone bg-6">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation 7 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 7: Crystal Sky</div>
+            <div class="phone bg-7">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation 8 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 8: Violet Fusion</div>
+            <div class="phone bg-8">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation 9 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 9: Twilight Haze</div>
+            <div class="phone bg-9">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variation 10 -->
+        <div class="mockup-wrapper">
+            <div class="mockup-label">Variation 10: Opal Essence</div>
+            <div class="phone bg-10">
+                <div class="floating-orb orb-1"></div>
+                <div class="floating-orb orb-2"></div>
+                <div class="floating-orb orb-3"></div>
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="phone-screen">
+                    <div class="header">
+                        <div class="logo">
+                            <div class="logo-icon">⚡</div>
+                            Lightning
+                        </div>
+                        <div class="menu-icon">☰</div>
+                    </div>
+                    <div class="content">
+                        <div class="profile-section">
+                            <div class="avatar">
+                                👤
+                                <div class="online-dot"></div>
+                            </div>
+                            <div class="name">Sarah Mitchell</div>
+                            <div class="username">@sarah_m</div>
+                            <div class="bio">Living for Christ daily 🙏✨</div>
+                        </div>
+                        <div class="stats">
+                            <div class="stat-card">
+                                <div class="stat-number">127</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">Groups</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🎵 Now Playing</div>
+                            <div class="card-content">Amazing Grace • Various Artists</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">✨ My Testimony</div>
+                            <div class="card-content">I grew up in a Christian home, but it wasn't until college that I truly understood what it meant...</div>
+                        </div>
+                    </div>
+                    <div class="bottom-nav">
+                        <div class="nav-item active">
+                            <div class="nav-icon">👤</div>
+                            <div class="nav-label">Profile</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">💬</div>
+                            <div class="nav-label">Messages</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">👥</div>
+                            <div class="nav-label">Groups</div>
+                        </div>
+                        <div class="nav-item">
+                            <div class="nav-icon">📍</div>
+                            <div class="nav-label">Connect</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

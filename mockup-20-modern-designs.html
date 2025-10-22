@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>20 Sleek Modern Lightning Logo Designs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            font-weight: 900;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            font-size: 18px;
+            margin-bottom: 60px;
+            font-weight: 500;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .mockup {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 280px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .mockup:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        }
+
+        .mockup-number {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .logo-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* 01 - Minimal Outline */
+        .v01 .bolt {
+            font-size: 64px;
+            color: transparent;
+            -webkit-text-stroke: 3px #1F2937;
+        }
+        .v01 .text {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1F2937;
+            letter-spacing: -1px;
+        }
+
+        /* 02 - Gradient Glow */
+        .v02 {
+            background: #0a0a0a;
+        }
+        .v02 .mockup-number {
+            color: #666;
+        }
+        .v02 .bolt {
+            font-size: 72px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 30px rgba(102, 126, 234, 0.6));
+        }
+        .v02 .text {
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+        }
+
+        /* 03 - Neon Blue */
+        .v03 {
+            background: #000;
+        }
+        .v03 .mockup-number {
+            color: #666;
+        }
+        .v03 .bolt {
+            font-size: 68px;
+            color: #00d9ff;
+            text-shadow:
+                0 0 10px #00d9ff,
+                0 0 20px #00d9ff,
+                0 0 40px #00d9ff,
+                0 0 80px #00d9ff;
+        }
+        .v03 .text {
+            font-size: 34px;
+            font-weight: 700;
+            color: #00d9ff;
+            text-shadow: 0 0 10px #00d9ff;
+        }
+
+        /* 04 - Dual Tone */
+        .v04 .bolt {
+            font-size: 70px;
+            background: linear-gradient(180deg, #FF6B6B 0%, #4ECDC4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .v04 .text {
+            font-size: 36px;
+            font-weight: 900;
+            color: #1a1a1a;
+        }
+
+        /* 05 - Monochrome Elite */
+        .v05 .bolt {
+            font-size: 58px;
+            color: #000;
+            transform: rotate(15deg);
+        }
+        .v05 .text {
+            font-size: 42px;
+            font-weight: 900;
+            color: #000;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+        }
+
+        /* 06 - Pastel Soft */
+        .v06 {
+            background: linear-gradient(135deg, #FFE5EC 0%, #FFC2D1 100%);
+        }
+        .v06 .bolt {
+            font-size: 64px;
+            color: #FF6B9D;
+        }
+        .v06 .text {
+            font-size: 34px;
+            font-weight: 700;
+            color: #C9184A;
+        }
+
+        /* 07 - Metallic Silver */
+        .v07 {
+            background: #1a1a1a;
+        }
+        .v07 .mockup-number {
+            color: #666;
+        }
+        .v07 .bolt {
+            font-size: 66px;
+            background: linear-gradient(135deg, #E8E8E8 0%, #8C8C8C 50%, #E8E8E8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(255,255,255,0.3));
+        }
+        .v07 .text {
+            font-size: 34px;
+            font-weight: 800;
+            color: #E8E8E8;
+        }
+
+        /* 08 - Vibrant Orange */
+        .v08 {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+        }
+        .v08 .mockup-number {
+            color: rgba(255,255,255,0.5);
+        }
+        .v08 .bolt {
+            font-size: 70px;
+            color: white;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+        }
+        .v08 .text {
+            font-size: 38px;
+            font-weight: 900;
+            color: white;
+        }
+
+        /* 09 - Minimal Geometric */
+        .v09 .logo-content {
+            flex-direction: row;
+            gap: 10px;
+        }
+        .v09 .bolt {
+            font-size: 44px;
+            color: #3B82F6;
+        }
+        .v09 .text {
+            font-size: 36px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        /* 10 - Electric Purple */
+        .v10 {
+            background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+        }
+        .v10 .mockup-number {
+            color: rgba(255,255,255,0.5);
+        }
+        .v10 .bolt {
+            font-size: 68px;
+            color: #FFD700;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+        }
+        .v10 .text {
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+        }
+
+        /* 11 - Aqua Fresh */
+        .v11 {
+            background: linear-gradient(135deg, #06B6D4 0%, #14B8A6 100%);
+        }
+        .v11 .mockup-number {
+            color: rgba(255,255,255,0.5);
+        }
+        .v11 .bolt {
+            font-size: 64px;
+            color: white;
+        }
+        .v11 .text {
+            font-size: 34px;
+            font-weight: 700;
+            color: white;
+        }
+
+        /* 12 - Dark Premium */
+        .v12 {
+            background: #0F172A;
+        }
+        .v12 .mockup-number {
+            color: #666;
+        }
+        .v12 .bolt {
+            font-size: 66px;
+            background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.5));
+        }
+        .v12 .text {
+            font-size: 34px;
+            font-weight: 700;
+            color: #E2E8F0;
+            letter-spacing: 1px;
+        }
+
+        /* 13 - Bold Italic */
+        .v13 .logo-content {
+            flex-direction: row;
+            gap: 8px;
+        }
+        .v13 .bolt {
+            font-size: 52px;
+            color: #EF4444;
+            transform: rotate(15deg);
+        }
+        .v13 .text {
+            font-size: 42px;
+            font-weight: 900;
+            color: #1a1a1a;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        /* 14 - Lime Energy */
+        .v14 {
+            background: linear-gradient(135deg, #84CC16 0%, #65A30D 100%);
+        }
+        .v14 .mockup-number {
+            color: rgba(0,0,0,0.3);
+        }
+        .v14 .bolt {
+            font-size: 68px;
+            color: white;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+        }
+        .v14 .text {
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+        }
+
+        /* 15 - Rose Gold */
+        .v15 {
+            background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%);
+        }
+        .v15 .bolt {
+            font-size: 64px;
+            background: linear-gradient(135deg, #FB7185 0%, #E11D48 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .v15 .text {
+            font-size: 34px;
+            font-weight: 700;
+            color: #BE123C;
+        }
+
+        /* 16 - Tech Blue */
+        .v16 {
+            background: #001a33;
+        }
+        .v16 .mockup-number {
+            color: #666;
+        }
+        .v16 .bolt {
+            font-size: 66px;
+            color: #0EA5E9;
+            filter: drop-shadow(0 0 30px rgba(14, 165, 233, 0.6));
+        }
+        .v16 .text {
+            font-size: 34px;
+            font-weight: 700;
+            color: #38BDF8;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* 17 - Sunset Gradient */
+        .v17 {
+            background: linear-gradient(135deg, #FF512F 0%, #DD2476 100%);
+        }
+        .v17 .mockup-number {
+            color: rgba(255,255,255,0.5);
+        }
+        .v17 .bolt {
+            font-size: 70px;
+            color: #FFD700;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+        }
+        .v17 .text {
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+        }
+
+        /* 18 - Emerald Elegant */
+        .v18 {
+            background: linear-gradient(135deg, #064E3B 0%, #065F46 100%);
+        }
+        .v18 .mockup-number {
+            color: rgba(255,255,255,0.3);
+        }
+        .v18 .bolt {
+            font-size: 64px;
+            color: #34D399;
+            filter: drop-shadow(0 0 20px rgba(52, 211, 153, 0.4));
+        }
+        .v18 .text {
+            font-size: 34px;
+            font-weight: 700;
+            color: #D1FAE5;
+        }
+
+        /* 19 - Classic Clean */
+        .v19 .bolt {
+            font-size: 56px;
+            color: #2563EB;
+        }
+        .v19 .text {
+            font-size: 38px;
+            font-weight: 700;
+            color: #1E3A8A;
+        }
+
+        /* 20 - Cosmic Purple */
+        .v20 {
+            background: radial-gradient(circle at 50% 50%, #5B21B6 0%, #1E1B4B 100%);
+        }
+        .v20 .mockup-number {
+            color: rgba(255,255,255,0.3);
+        }
+        .v20 .bolt {
+            font-size: 68px;
+            background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 50%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.6));
+        }
+        .v20 .text {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #DDD6FE 0%, #C4B5FD 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            .mockup {
+                min-height: 240px;
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Lightning Logo Collection</h1>
+        <p class="subtitle">20 Sleek Modern Design Variations</p>
+
+        <div class="grid">
+            <!-- 01 -->
+            <div class="mockup v01">
+                <span class="mockup-number">01 - Minimal Outline</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 02 -->
+            <div class="mockup v02">
+                <span class="mockup-number">02 - Gradient Glow</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 03 -->
+            <div class="mockup v03">
+                <span class="mockup-number">03 - Neon Blue</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 04 -->
+            <div class="mockup v04">
+                <span class="mockup-number">04 - Dual Tone</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 05 -->
+            <div class="mockup v05">
+                <span class="mockup-number">05 - Monochrome Elite</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 06 -->
+            <div class="mockup v06">
+                <span class="mockup-number">06 - Pastel Soft</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 07 -->
+            <div class="mockup v07">
+                <span class="mockup-number">07 - Metallic Silver</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 08 -->
+            <div class="mockup v08">
+                <span class="mockup-number">08 - Vibrant Orange</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 09 -->
+            <div class="mockup v09">
+                <span class="mockup-number">09 - Minimal Geometric</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 10 -->
+            <div class="mockup v10">
+                <span class="mockup-number">10 - Electric Purple</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 11 -->
+            <div class="mockup v11">
+                <span class="mockup-number">11 - Aqua Fresh</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 12 -->
+            <div class="mockup v12">
+                <span class="mockup-number">12 - Dark Premium</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 13 -->
+            <div class="mockup v13">
+                <span class="mockup-number">13 - Bold Italic</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 14 -->
+            <div class="mockup v14">
+                <span class="mockup-number">14 - Lime Energy</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 15 -->
+            <div class="mockup v15">
+                <span class="mockup-number">15 - Rose Gold</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 16 -->
+            <div class="mockup v16">
+                <span class="mockup-number">16 - Tech Blue</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 17 -->
+            <div class="mockup v17">
+                <span class="mockup-number">17 - Sunset Gradient</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 18 -->
+            <div class="mockup v18">
+                <span class="mockup-number">18 - Emerald Elegant</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 19 -->
+            <div class="mockup v19">
+                <span class="mockup-number">19 - Classic Clean</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+
+            <!-- 20 -->
+            <div class="mockup v20">
+                <span class="mockup-number">20 - Cosmic Purple</span>
+                <div class="logo-content">
+                    <div class="bolt">⚡</div>
+                    <div class="text">Lightning</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

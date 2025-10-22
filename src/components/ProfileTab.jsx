@@ -73,48 +73,39 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
 
   return (
     <div className="py-4 space-y-4">
-      <div className="flex items-start gap-4 -mt-12 relative z-10 px-4 pt-6">
-        <div className={`w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-purple-500 to-indigo-600' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0`}>
+      <div className="flex flex-col items-center -mt-12 relative z-10 px-4 pt-6">
+        <div className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0 mb-4`}>
           {profile.avatar}
         </div>
-        <div className="flex-1 mt-2 min-w-0">
-          <h1 className={`text-2xl font-bold ${nightMode ? 'text-white' : 'text-black'} break-words`}>{profile.displayName}</h1>
-          <p className={`${nightMode ? 'text-gray-400' : 'text-black'} text-sm ${!nightMode && 'opacity-70'}`}>@{profile.username}</p>
-          <p className={`${nightMode ? 'text-gray-400' : 'text-black'} mt-3 text-sm leading-relaxed break-words`}>{profile.bio}</p>
+        <div className="text-center w-full">
+          <div className="flex items-center justify-center gap-2">
+            <h1 className={`text-2xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} break-words`}>{profile.username}</h1>
+            {/* Like Button - Beside Username */}
+            <button
+              onClick={handleLike}
+              className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${isLiked ? 'border-red-500' : nightMode ? 'border-white/20' : 'border-white/30'}`}
+              style={isLiked ? {
+                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                boxShadow: '0 2px 6px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+              } : nightMode ? {
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)'
+              } : {
+                background: 'rgba(255, 255, 255, 0.25)',
+                backdropFilter: 'blur(30px)',
+                WebkitBackdropFilter: 'blur(30px)',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+              }}
+            >
+              <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-slate-100' : nightMode ? 'text-slate-100' : 'text-black'}`} />
+              <span className={`text-xs font-medium ${isLiked ? 'text-slate-100' : nightMode ? 'text-slate-100' : 'text-black'}`}>{likeCount}</span>
+            </button>
+          </div>
+          <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm ${!nightMode && 'opacity-70'} mt-1`}>{profile.displayName}</p>
+          <p className={`${nightMode ? 'text-slate-100' : 'text-black'} mt-3 text-sm leading-relaxed break-words`}>{profile.bio}</p>
         </div>
-      </div>
-
-      <div className="px-4 flex gap-3">
-        <button
-          onClick={handleLike}
-          className={`flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm transition-all duration-200 border ${isLiked ? 'bg-red-500 text-white border-red-500' : nightMode ? 'bg-white/5 text-white border-white/10 hover:bg-white/10' : 'text-black shadow-md border-white/30'}`}
-          style={isLiked || nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.25)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-          }}
-          onMouseEnter={(e) => !isLiked && !nightMode && (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.35)')}
-          onMouseLeave={(e) => !isLiked && !nightMode && (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)')}
-        >
-          <Heart className={`w-4 h-4 ${isLiked ? 'fill-white' : ''}`} style={!isLiked && !nightMode ? { filter: 'brightness(0)' } : {}} />
-          {isLiked ? 'Liked' : 'Like'} ({likeCount})
-        </button>
-        <button
-          onClick={() => setShowQR(!showQR)}
-          className={`px-6 py-3 rounded-xl font-semibold flex items-center gap-2 text-sm transition-all duration-200 border ${nightMode ? 'bg-white/5 text-white border-white/10 hover:bg-white/10' : 'text-black shadow-md border-white/30'}`}
-          style={nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.25)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-          }}
-          onMouseEnter={(e) => !nightMode && (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.35)')}
-          onMouseLeave={(e) => !nightMode && (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)')}
-        >
-          <Share2 className="w-4 h-4" style={!nightMode ? { filter: 'brightness(0)' } : {}} />
-          Share
-        </button>
       </div>
 
       {showQR && (
@@ -129,7 +120,7 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
             }}
           >
             <div className="text-5xl">📱</div>
-            <p className={`mt-2 text-sm ${nightMode ? 'text-white' : 'text-black'}`}>Scan to connect</p>
+            <p className={`mt-2 text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>Scan to connect</p>
           </div>
         </div>
       )}
@@ -137,7 +128,7 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
       {profile.music && (
         <div className="px-4">
           <div
-            className={`p-4 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+            className={`p-3 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
             style={nightMode ? {} : {
               background: 'rgba(255, 255, 255, 0.2)',
               backdropFilter: 'blur(30px)',
@@ -154,13 +145,24 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
               autoPlay
             />
 
-            <div className={`mb-3 text-sm ${nightMode ? 'text-white' : 'text-black'}`}>
+            <div className={`mb-2 text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>
               <p className="font-semibold">{profile.music.trackName}</p>
-              <p className={nightMode ? 'text-gray-400' : 'text-black opacity-70'}>{profile.music.artist}</p>
+              <p className={nightMode ? 'text-slate-100' : 'text-black opacity-70'}>{profile.music.artist}</p>
             </div>
 
             <div className="flex items-center gap-2">
-              <button onClick={togglePlay} className={`w-9 h-9 flex items-center justify-center rounded-full flex-shrink-0 ${isPlaying ? 'bg-blue-600 text-white' : nightMode ? 'bg-white/10 text-white' : 'bg-slate-300 text-slate-700'}`}>
+              <button
+                onClick={togglePlay}
+                className={`w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0 text-slate-100 transition-all`}
+                style={isPlaying ? {
+                  background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                  boxShadow: '0 2px 6px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                } : nightMode ? {
+                  background: 'rgba(255, 255, 255, 0.1)'
+                } : {
+                  background: 'rgba(203, 213, 225, 0.8)'
+                }}
+              >
                 {isPlaying ? (
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <rect x="5" y="3" width="3" height="14" />
@@ -174,14 +176,20 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
               </button>
 
               <div className={`flex-1 h-1.5 ${nightMode ? 'bg-white/10' : 'bg-slate-300'} rounded-full cursor-pointer`} onClick={handleProgressClick}>
-                <div className={`h-full rounded-full ${nightMode ? 'bg-blue-600' : 'bg-gradient-to-r from-emerald-400 to-emerald-500'}`} style={{ width: `${progress}%` }} />
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${progress}%`,
+                    background: nightMode ? '#3b82f6' : 'linear-gradient(90deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)'
+                  }}
+                />
               </div>
 
-              <span className={`text-xs ${nightMode ? 'text-gray-400' : 'text-slate-500'} w-10 text-right flex-shrink-0`}>
+              <span className={`text-xs ${nightMode ? 'text-slate-100' : 'text-slate-500'} w-10 text-right flex-shrink-0`}>
                 {formatTime(audioRef.current?.currentTime)}/{formatTime(duration)}
               </span>
 
-              <button onClick={toggleMute} className={`flex-shrink-0 text-sm ${isMuted ? nightMode ? 'text-gray-400' : 'text-slate-400' : nightMode ? 'text-purple-600' : 'text-emerald-600'}`}>
+              <button onClick={toggleMute} className={`flex-shrink-0 text-sm ${isMuted ? nightMode ? 'text-slate-100' : 'text-slate-400' : nightMode ? 'text-blue-600' : 'text-emerald-600'}`}>
                 {isMuted ? (
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M8.707 7.293a1 1 0 00-1.414 1.414l.707.707-3.5 3.5a1 1 0 101.414 1.414L8.414 11l.707.707a1 1 0 001.414-1.414L9.414 11l3.5-3.5a1 1 0 00-1.414-1.414L8.414 9l-.707-.707z"/>
@@ -194,7 +202,7 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
                 )}
               </button>
 
-              <a href={profile.music.spotifyUrl} target="_blank" rel="noopener noreferrer" className={`flex-shrink-0 ${nightMode ? 'text-gray-400 hover:text-white' : 'text-slate-400 hover:text-slate-700'}`}>
+              <a href={profile.music.spotifyUrl} target="_blank" rel="noopener noreferrer" className={`flex-shrink-0 ${nightMode ? 'text-slate-100 hover:text-slate-100' : 'text-slate-400 hover:text-slate-700'}`}>
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
@@ -212,17 +220,17 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
           }}
         >
-          <h2 className={`text-xl font-bold ${nightMode ? 'text-white' : 'text-black'} mb-4 flex items-center gap-2`}>
+          <h2 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} mb-4 flex items-center gap-2`}>
             <span>✨</span> {profile.story.title}
           </h2>
-          <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>{profile.story.content}</p>
+          <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>{profile.story.content}</p>
         </div>
       </div>
 
       <div className="px-4 pb-20">
         <button
           onClick={() => setShowLesson(!showLesson)}
-          className={`w-full p-4 rounded-xl border text-left font-semibold transition-all flex items-center justify-between ${nightMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'border-white/25 text-black shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+          className={`w-full p-4 rounded-xl border text-left font-semibold transition-all flex items-center justify-between ${nightMode ? 'bg-white/5 border-white/10 text-slate-100 hover:bg-white/10' : 'border-white/25 text-black shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
           style={nightMode ? {} : {
             background: 'rgba(255, 255, 255, 0.2)',
             backdropFilter: 'blur(30px)',
@@ -244,20 +252,66 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
               boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
             }}
           >
-            <p className={`text-sm ${nightMode ? 'text-gray-400' : 'text-black'} italic`}>{profile.story.lesson}</p>
+            <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} italic`}>{profile.story.lesson}</p>
           </div>
         )}
+
+        {/* Share Button */}
+        <button
+          onClick={() => setShowQR(!showQR)}
+          className={`w-full mt-3 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 text-sm transition-all duration-200 border ${nightMode ? 'text-slate-100 border-white/20' : 'text-black border-white/30'}`}
+          style={nightMode ? {
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)'
+          } : {
+            background: 'rgba(255, 255, 255, 0.25)',
+            backdropFilter: 'blur(30px)',
+            WebkitBackdropFilter: 'blur(30px)',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+          }}
+          onMouseEnter={(e) => {
+            if (nightMode) {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)';
+            } else {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.35)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (nightMode) {
+              e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)';
+            } else {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+            }
+          }}
+        >
+          <Share2 className="w-4 h-4" />
+          Share Testimony
+        </button>
       </div>
 
       {/* Floating Action Button (FAB) for Add Testimony */}
       {onAddTestimony && (
         <button
           onClick={onAddTestimony}
-          className={`fixed bottom-20 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 z-40 ${
-            nightMode
-              ? 'bg-gradient-to-br from-purple-500 to-pink-500 hover:shadow-[0_8px_24px_rgba(168,85,247,0.4)]'
-              : 'bg-gradient-to-br from-blue-500 to-purple-500 hover:shadow-[0_8px_24px_rgba(59,130,246,0.4)]'
-          }`}
+          className="fixed bottom-20 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 z-40 text-white"
+          style={{
+            background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+            boxShadow: nightMode
+              ? '0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+              : '0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = nightMode
+              ? '0 8px 24px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+              : '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = nightMode
+              ? '0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+              : '0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
+          }}
           title="Add Testimony"
           aria-label="Add Testimony"
         >
