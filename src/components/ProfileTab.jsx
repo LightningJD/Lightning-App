@@ -631,8 +631,8 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
         </button>
       </div>
 
-      {/* Floating Action Button (FAB) for Add Testimony */}
-      {onAddTestimony && (
+      {/* Floating Action Button (FAB) for Add Testimony - Only show if user doesn't have testimony */}
+      {onAddTestimony && !profile?.hasTestimony && (
         <button
           onClick={onAddTestimony}
           className="fixed bottom-20 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 z-40 text-white"

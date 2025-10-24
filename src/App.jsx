@@ -488,6 +488,15 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
 
       if (updated) {
         console.log('✅ Profile updated successfully!', updated);
+
+        // If testimony was edited, update it separately
+        if (profileData.testimonyContent && userProfile.story?.id) {
+          await updateTestimony(userProfile.story.id, {
+            content: profileData.testimonyContent,
+            lesson: profileData.testimonyLesson
+          });
+        }
+
         updateToSuccess(toastId, 'Profile updated successfully!');
         setShowProfileEdit(false);
 

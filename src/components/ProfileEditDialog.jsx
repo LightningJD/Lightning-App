@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Save, User, MapPin, FileText } from 'lucide-react';
+import { X, Save, User, MapPin, FileText, Book } from 'lucide-react';
 import ImageUploadButton from './ImageUploadButton';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from '../lib/toast';
 
@@ -10,7 +10,9 @@ const ProfileEditDialog = ({ profile, nightMode, onSave, onClose }) => {
     bio: profile?.bio || '',
     location: profile?.location || '',
     avatar: profile?.avatar || '👤',
-    avatarUrl: profile?.avatarImage || null
+    avatarUrl: profile?.avatarImage || null,
+    testimonyContent: profile?.testimony || '',
+    testimonyLesson: profile?.testimonyLesson || ''
   });
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
@@ -40,7 +42,9 @@ const ProfileEditDialog = ({ profile, nightMode, onSave, onClose }) => {
       formData.bio !== profile?.bio ||
       formData.location !== profile?.location ||
       formData.avatar !== profile?.avatar ||
-      formData.avatarUrl !== profile?.avatarImage;
+      formData.avatarUrl !== profile?.avatarImage ||
+      formData.testimonyContent !== (profile?.testimony || '') ||
+      formData.testimonyLesson !== (profile?.testimonyLesson || '');
     setHasChanges(changed);
   }, [formData, profile]);
 
@@ -305,6 +309,60 @@ const ProfileEditDialog = ({ profile, nightMode, onSave, onClose }) => {
                 </div>
               </div>
             </div>
+
+            {/* Testimony Section - Full Width */}
+            {profile?.hasTestimony && (
+              <div className="mt-6 pt-6 border-t" style={{ borderColor: nightMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Book className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`} />
+                  <h3 className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                    Edit Your Testimony
+                  </h3>
+                </div>
+
+                {/* Testimony Content */}
+                <div className="mb-4">
+                  <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                    Testimony
+                  </label>
+                  <textarea
+                    value={formData.testimonyContent}
+                    onChange={(e) => handleInputChange('testimonyContent', e.target.value)}
+                    placeholder="Share your testimony..."
+                    rows={8}
+                    className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  />
+                  <p className={`text-xs mt-1 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
+                    {formData.testimonyContent.length} characters
+                  </p>
+                </div>
+
+                {/* Lesson Learned */}
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                    Lesson Learned
+                  </label>
+                  <textarea
+                    value={formData.testimonyLesson}
+                    onChange={(e) => handleInputChange('testimonyLesson', e.target.value)}
+                    placeholder="What lesson did you learn from this experience?"
+                    rows={4}
+                    className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  />
+                  <p className={`text-xs mt-1 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
+                    {formData.testimonyLesson.length} characters
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Error Message */}
             {errors.submit && (
