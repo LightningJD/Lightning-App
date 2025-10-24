@@ -599,7 +599,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
 
       {/* Floating Logo/Menu Header */}
       {!nightMode && (
-        <div className="sticky top-0 z-50">
+        <div className="sticky top-0 z-50 backdrop-blur-md bg-white/30 border-b border-white/20">
           <div className="px-5 py-3">
             <div className="flex items-center justify-between">
               {currentTab === 'profile' && (
@@ -641,7 +641,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
 
       {/* Night Mode Header */}
       {nightMode && (
-        <div className="sticky top-0 z-50">
+        <div className="sticky top-0 z-50 backdrop-blur-md bg-black/30 border-b border-white/10">
           <div className="px-5 py-3">
             <div className="flex items-center justify-between">
               {currentTab === 'profile' && (
