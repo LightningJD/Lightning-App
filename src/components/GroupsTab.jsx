@@ -51,6 +51,19 @@ const GroupsTab = ({ nightMode }) => {
   const messagesEndRef = useRef(null);
   const pinnedSectionRef = useRef(null);
   const subscriptionRef = useRef(null);
+  const messageRefs = useRef({});
+
+  // Helper function to check if message is in bottom half of viewport
+  const isMessageInBottomHalf = (messageId) => {
+    const messageEl = messageRefs.current[messageId];
+    if (!messageEl) return false;
+
+    const rect = messageEl.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const messageMiddle = rect.top + (rect.height / 2);
+
+    return messageMiddle > (viewportHeight / 2);
+  };
 
   // Reaction emojis for faith-based groups (22 emojis)
   const reactionEmojis = [
@@ -882,7 +895,9 @@ const GroupsTab = ({ nightMode }) => {
                           </span>
                         </div>
                         <div className="flex flex-col items-start ml-1">
-                          <div className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md inline-block relative group border border-blue-400 transition-colors' : 'bg-slate-100 text-black px-2 py-1 rounded-lg max-w-[80%] sm:max-w-md inline-block relative group border border-blue-200'}>
+                          <div
+                            ref={el => messageRefs.current[msg.id] = el}
+                            className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md inline-block relative group border border-blue-400 transition-colors' : 'bg-slate-100 text-black px-2 py-1 rounded-lg max-w-[80%] sm:max-w-md inline-block relative group border border-blue-200'}>
                             <div className="flex items-start gap-1.5">
                               <Pin className="w-3 h-3 text-blue-600 flex-shrink-0 mt-0.5" />
                               <div className="flex-1">
@@ -916,7 +931,7 @@ const GroupsTab = ({ nightMode }) => {
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={nightMode ? 'absolute top-full mt-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-[100]' : 'absolute top-full mt-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-[100]'} style={nightMode ? {
+                              <div className={`${isMessageInBottomHalf(msg.id) ? 'absolute bottom-full mb-1 left-0' : 'absolute top-full mt-1 left-0'} border rounded-xl shadow-2xl p-2 z-[100] ${nightMode ? 'border-white/10' : 'border-white/25'}`} style={nightMode ? {
                                 background: '#1a1a1a',
                                 backdropFilter: 'blur(30px)',
                                 WebkitBackdropFilter: 'blur(30px)',
@@ -1064,12 +1079,14 @@ const GroupsTab = ({ nightMode }) => {
 
                         {/* Message bubble with reactions */}
                         <div className="flex items-center gap-2 group">
-                      <div className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
+                      <div
+                        ref={el => messageRefs.current[msg.id] = el}
+                        className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
                             <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={nightMode ? 'absolute top-full mt-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-[100]' : 'absolute top-full mt-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-[100]'} style={nightMode ? {
+                              <div className={`${isMessageInBottomHalf(msg.id) ? 'absolute bottom-full mb-1 left-0' : 'absolute top-full mt-1 left-0'} border rounded-xl shadow-2xl p-2 z-[100] ${nightMode ? 'border-white/10' : 'border-white/25'}`} style={nightMode ? {
                                 background: '#1a1a1a',
                                 backdropFilter: 'blur(30px)',
                                 WebkitBackdropFilter: 'blur(30px)',
@@ -1231,7 +1248,9 @@ const GroupsTab = ({ nightMode }) => {
 
                         {/* Message bubble with reactions */}
                         <div className="flex flex-col items-start">
-                          <div className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors'}>
+                          <div
+                            ref={el => messageRefs.current[msg.id] = el}
+                            className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors'}>
                             <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
                             <div className="flex gap-1 absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               {/* Reaction button (shows on hover) */}
@@ -1255,7 +1274,7 @@ const GroupsTab = ({ nightMode }) => {
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={nightMode ? 'absolute top-full mt-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-[100]' : 'absolute top-full mt-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-[100]'} style={nightMode ? {
+                              <div className={`${isMessageInBottomHalf(msg.id) ? 'absolute bottom-full mb-1 left-0' : 'absolute top-full mt-1 left-0'} border rounded-xl shadow-2xl p-2 z-[100] ${nightMode ? 'border-white/10' : 'border-white/25'}`} style={nightMode ? {
                                 background: '#1a1a1a',
                                 backdropFilter: 'blur(30px)',
                                 WebkitBackdropFilter: 'blur(30px)',
