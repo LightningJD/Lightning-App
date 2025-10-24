@@ -38,7 +38,7 @@ export const secrets = {
   },
   triple_tap_profile: {
     id: 'triple_tap_profile',
-    name: 'Self Love',
+    name: 'Loved by God',
     description: 'Triple-tapped your own profile picture',
     icon: '🎉',
     unlockMessage: 'You are fearfully and wonderfully made!',
@@ -74,7 +74,7 @@ export const secrets = {
   },
   night_mode_7_days: {
     id: 'night_mode_7_days',
-    name: 'Night Owl',
+    name: 'Lightbringer',
     description: 'Used night mode for 7 days',
     icon: '🌙',
     unlockMessage: 'You love the dark side... of the app!',
