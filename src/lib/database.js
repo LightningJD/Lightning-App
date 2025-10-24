@@ -55,6 +55,40 @@ export const getUserByClerkId = async (clerkUserId) => {
 };
 
 /**
+ * Update user profile
+ */
+export const updateUserProfile = async (userId, profileData) => {
+  if (!supabase) return null;
+
+  const updates = {
+    updated_at: new Date().toISOString()
+  };
+
+  // Only add fields that are provided
+  if (profileData.displayName) updates.display_name = profileData.displayName;
+  if (profileData.username) updates.username = profileData.username;
+  if (profileData.bio) updates.bio = profileData.bio;
+  if (profileData.location) updates.location_city = profileData.location;
+  if (profileData.avatar) updates.avatar_emoji = profileData.avatar;
+  if (profileData.avatarUrl !== undefined) updates.avatar_url = profileData.avatarUrl;
+  if (profileData.profileCompleted !== undefined) updates.profile_completed = profileData.profileCompleted;
+
+  const { data, error } = await supabase
+    .from('users')
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating user profile:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
  * Update user location
  */
 export const updateUserLocation = async (userId, latitude, longitude) => {
@@ -260,6 +294,53 @@ export const getConversation = async (userId1, userId2, limit = 50) => {
   }
 
   return data;
+};
+
+/**
+ * Get all conversations for a user (list of recent chats)
+ */
+export const getUserConversations = async (userId) => {
+  if (!supabase) return [];
+
+  // Get all messages where user is either sender or recipient
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*, sender:users!sender_id(id, username, display_name, avatar_emoji, avatar_url, is_online), recipient:users!recipient_id(id, username, display_name, avatar_emoji, avatar_url, is_online)')
+    .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching conversations:', error);
+    return [];
+  }
+
+  // Group messages by conversation partner
+  const conversationsMap = new Map();
+
+  data.forEach(msg => {
+    // Determine the other user in the conversation
+    const otherUser = msg.sender_id === userId ? msg.recipient : msg.sender;
+    const otherUserId = msg.sender_id === userId ? msg.recipient_id : msg.sender_id;
+
+    if (!conversationsMap.has(otherUserId)) {
+      conversationsMap.set(otherUserId, {
+        id: otherUserId,
+        userId: otherUserId,
+        name: otherUser.display_name,
+        username: otherUser.username,
+        avatar: otherUser.avatar_emoji,
+        avatarImage: otherUser.avatar_url,
+        online: otherUser.is_online,
+        lastMessage: msg.content,
+        timestamp: msg.created_at,
+        unreadCount: 0
+      });
+    }
+  });
+
+  return Array.from(conversationsMap.values()).sort((a, b) =>
+    new Date(b.timestamp) - new Date(a.timestamp)
+  );
 };
 
 /**

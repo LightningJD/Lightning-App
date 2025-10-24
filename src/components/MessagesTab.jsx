@@ -1,14 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Smile, Plus, X, Search } from 'lucide-react';
-import { sendMessage, getConversation } from '../lib/database';
+import { sendMessage, getConversation, getUserConversations, subscribeToMessages, unsubscribe } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
+import { showError } from '../lib/toast';
+import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
+
+// Helper function to format timestamp
+const formatTimestamp = (timestamp) => {
+  const now = new Date();
+  const messageDate = new Date(timestamp);
+  const diffMs = now - messageDate;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return messageDate.toLocaleDateString();
+};
 
 const MessagesTab = ({ nightMode }) => {
   const { profile } = useUserProfile();
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showReactionPicker, setShowReactionPicker] = useState(null);
   const [messageReactions, setMessageReactions] = useState({});
   const [showAllEmojis, setShowAllEmojis] = useState({});
@@ -72,36 +93,45 @@ const MessagesTab = ({ nightMode }) => {
     });
   };
 
-  // Hardcoded conversations for now (will load from database later)
-  const conversations = [
-    {
-      id: 1,
-      userId: '993b3e03-fa0a-42fd-b2d5-1b1b49d17b5c', // Your user ID
-      name: "Sarah Mitchell",
-      avatar: "👤",
-      online: true,
-      lastMessage: "That's amazing!",
-      timestamp: "2m ago"
-    },
-    {
-      id: 2,
-      userId: '993b3e03-fa0a-42fd-b2d5-1b1b49d17b5c', // Your user ID (for testing)
-      name: "John Rivers",
-      avatar: "🧑",
-      online: false,
-      lastMessage: "See you Sunday!",
-      timestamp: "1h ago"
-    },
-    {
-      id: 3,
-      userId: '993b3e03-fa0a-42fd-b2d5-1b1b49d17b5c',
-      name: "Emma Grace",
-      avatar: "👩",
-      online: true,
-      lastMessage: "Thanks for the encouragement!",
-      timestamp: "5m ago"
-    },
-  ];
+  // Load conversations from database
+  useEffect(() => {
+    const loadConversations = async () => {
+      if (profile?.supabaseId) {
+        const userConversations = await getUserConversations(profile.supabaseId);
+        setConversations(userConversations);
+        setIsInitialLoad(false);
+      }
+    };
+
+    loadConversations();
+  }, [profile?.supabaseId]);
+
+  // Subscribe to new messages for real-time updates
+  useEffect(() => {
+    if (!profile?.supabaseId) return;
+
+    console.log('📡 Setting up real-time message subscription...');
+
+    const subscription = subscribeToMessages(profile.supabaseId, (payload) => {
+      console.log('📨 New message received!', payload);
+
+      // Reload conversations to update the list
+      getUserConversations(profile.supabaseId).then(setConversations);
+
+      // If the message is for the active chat, reload messages
+      if (activeChat && payload.new.sender_id === activeChat) {
+        getConversation(profile.supabaseId, activeChat).then(setMessages);
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      console.log('🔌 Cleaning up message subscription...');
+      if (subscription) {
+        unsubscribe(subscription);
+      }
+    };
+  }, [profile?.supabaseId, activeChat]);
 
   // Load messages when opening a chat
   useEffect(() => {
@@ -136,12 +166,16 @@ const MessagesTab = ({ nightMode }) => {
     const conversation = conversations.find(c => c.id === activeChat);
     if (!conversation) return;
 
+    // Save the original message content and previous messages
+    const messageContent = newMessage;
+    const previousMessages = [...messages];
+
     // Optimistically add message to UI
     const tempMessage = {
       id: Date.now(),
       sender_id: profile.supabaseId,
       recipient_id: conversation.userId,
-      content: newMessage,
+      content: messageContent,
       created_at: new Date().toISOString(),
       sender: {
         username: profile.username,
@@ -153,30 +187,39 @@ const MessagesTab = ({ nightMode }) => {
     setMessages([...messages, tempMessage]);
     setNewMessage('');
 
-    // Send to database
-    console.log('Sending message...', {
-      from: profile.supabaseId,
-      to: conversation.userId,
-      content: newMessage
-    });
+    try {
+      // Send to database
+      console.log('Sending message...', {
+        from: profile.supabaseId,
+        to: conversation.userId,
+        content: messageContent
+      });
 
-    const savedMessage = await sendMessage(
-      profile.supabaseId,
-      conversation.userId,
-      newMessage
-    );
-
-    if (savedMessage) {
-      console.log('✅ Message sent to database!', savedMessage);
-      // Reload messages to get the real data
-      const updatedMessages = await getConversation(
+      const savedMessage = await sendMessage(
         profile.supabaseId,
-        conversation.userId
+        conversation.userId,
+        messageContent
       );
-      console.log('Loaded messages from database:', updatedMessages);
-      setMessages(updatedMessages || []);
-    } else {
-      console.error('❌ Failed to send message');
+
+      if (savedMessage) {
+        console.log('✅ Message sent to database!', savedMessage);
+        // Reload messages to get the real data
+        const updatedMessages = await getConversation(
+          profile.supabaseId,
+          conversation.userId
+        );
+        console.log('Loaded messages from database:', updatedMessages);
+        setMessages(updatedMessages || []);
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('❌ Failed to send message:', error);
+      showError(error.message || 'Failed to send message. Please try again.');
+      // Revert to previous messages (remove optimistic message)
+      setMessages(previousMessages);
+      // Restore the message text so user can try again
+      setNewMessage(messageContent);
     }
   };
 
@@ -203,7 +246,13 @@ const MessagesTab = ({ nightMode }) => {
           </button>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <div className="text-2xl">{conversation.avatar}</div>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl overflow-hidden ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
+                {conversation.avatarImage ? (
+                  <img src={conversation.avatarImage} alt={conversation.name} className="w-full h-full object-cover" />
+                ) : (
+                  conversation.avatar
+                )}
+              </div>
               {conversation.online && (
                 <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? 'border-[#0a0a0a]' : 'border-white'}`}></div>
               )}
@@ -238,8 +287,20 @@ const MessagesTab = ({ nightMode }) => {
                 <div key={msg.id} className="mt-3">
                   <div className="flex gap-2 items-start">
                     {/* Avatar */}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
-                      {isMe ? profile.avatar : conversation.avatar}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0 overflow-hidden ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
+                      {isMe ? (
+                        profile.avatarImage ? (
+                          <img src={profile.avatarImage} alt={profile.displayName} className="w-full h-full object-cover" />
+                        ) : (
+                          profile.avatar
+                        )
+                      ) : (
+                        conversation.avatarImage ? (
+                          <img src={conversation.avatarImage} alt={conversation.name} className="w-full h-full object-cover" />
+                        ) : (
+                          conversation.avatar
+                        )
+                      )}
                     </div>
 
                     <div className="flex-1">
@@ -507,9 +568,15 @@ const MessagesTab = ({ nightMode }) => {
         <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>Stay connected with your community</p>
       </div>
 
-      {conversations.length === 0 ? (
+      {isInitialLoad ? (
+        <div className="space-y-2">
+          {[1, 2, 3, 4].map((i) => (
+            <ConversationSkeleton key={i} nightMode={nightMode} />
+          ))}
+        </div>
+      ) : conversations.length === 0 ? (
         <div
-          className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+          className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
           style={nightMode ? {} : {
             background: 'rgba(255, 255, 255, 0.2)',
             backdropFilter: 'blur(30px)',
@@ -517,9 +584,16 @@ const MessagesTab = ({ nightMode }) => {
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
           }}
         >
-          <div className="text-5xl mb-4">💬</div>
-          <p className={`font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No conversations yet</p>
-          <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black opacity-70'}>Connect with others to start messaging!</p>
+          <div className="text-6xl mb-4">💬</div>
+          <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No conversations yet</p>
+          <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
+            Connect with others in the Connect tab to start messaging!
+          </p>
+          <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
+            <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+              💡 Tip: Visit the <span className="font-bold">Connect</span> tab to find nearby believers
+            </p>
+          </div>
         </div>
       ) : (
         conversations.map((chat) => (
@@ -538,7 +612,13 @@ const MessagesTab = ({ nightMode }) => {
           >
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="text-2xl">{chat.avatar}</div>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl overflow-hidden ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
+                  {chat.avatarImage ? (
+                    <img src={chat.avatarImage} alt={chat.name} className="w-full h-full object-cover" />
+                  ) : (
+                    chat.avatar
+                  )}
+                </div>
                 {chat.online && (
                   <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? 'border-[#0a0a0a]' : 'border-white'}`}></div>
                 )}
@@ -547,7 +627,7 @@ const MessagesTab = ({ nightMode }) => {
                 <h3 className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{chat.name}</h3>
                 <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{chat.lastMessage}</p>
               </div>
-              <span className={`text-xs ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{chat.timestamp}</span>
+              <span className={`text-xs ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{formatTimestamp(chat.timestamp)}</span>
             </div>
           </button>
         ))
