@@ -17,6 +17,7 @@ import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
+import { unlockEasterEgg, startTimeBasedEasterEggs, stopTimeBasedEasterEggs } from './lib/easterEggs';
 
 function App() {
   const { signOut } = useClerk();
@@ -46,6 +47,8 @@ function App() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
+  const [logoClicks, setLogoClicks] = useState(0);
+  const [logoClickTimer, setLogoClickTimer] = useState(null);
 
   // Network status detection
   React.useEffect(() => {
@@ -67,6 +70,35 @@ function App() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Start time-based easter eggs (John 3:16 at 3:16)
+  React.useEffect(() => {
+    startTimeBasedEasterEggs();
+    return () => stopTimeBasedEasterEggs();
+  }, []);
+
+  // Logo click easter egg handler
+  const handleLogoClick = () => {
+    const newCount = logoClicks + 1;
+    setLogoClicks(newCount);
+
+    // Clear existing timer
+    if (logoClickTimer) {
+      clearTimeout(logoClickTimer);
+    }
+
+    // Check if reached 10 clicks
+    if (newCount === 10) {
+      unlockEasterEgg('logo_10_clicks');
+      setLogoClicks(0);
+    } else {
+      // Reset counter after 2 seconds of no clicks
+      const timer = setTimeout(() => {
+        setLogoClicks(0);
+      }, 2000);
+      setLogoClickTimer(timer);
+    }
+  };
 
   // Periwinkle Theme - Blue-Purple Glossmorphic Gradient (Reduced 30% for daily use)
   const themes = {
@@ -178,6 +210,9 @@ function App() {
               clearGuestTestimony();
               updateToSuccess(toastId, 'Your testimony has been published!');
               console.log('✅ Guest testimony auto-saved and cleared from localStorage');
+
+              // First Testimony Easter Egg
+              unlockEasterEgg('first_testimony');
 
               // Close the save testimony modal if it's open
               setShowSaveTestimonyModal(false);
@@ -293,6 +328,9 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
           if (saved) {
             console.log('✅ Testimony saved to database!', saved);
             showSuccess('Testimony saved to your profile!');
+
+            // First Testimony Easter Egg
+            unlockEasterEgg('first_testimony');
           } else {
             console.error('❌ Failed to save testimony');
             showError('Failed to save testimony. Please try again.');
@@ -528,7 +566,11 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
           <div className="px-5 py-3">
             <div className="flex items-center justify-between">
               {currentTab === 'profile' && (
-                <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2 cursor-pointer select-none"
+                  onClick={handleLogoClick}
+                  title="Click me 10 times quickly..."
+                >
                   <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" style={{ filter: 'brightness(0)' }} />
                   <span className="font-semibold text-black">Lightning</span>
                 </div>
@@ -566,7 +608,11 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
           <div className="px-5 py-3">
             <div className="flex items-center justify-between">
               {currentTab === 'profile' && (
-                <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2 cursor-pointer select-none"
+                  onClick={handleLogoClick}
+                  title="Click me 10 times quickly..."
+                >
                   <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
                   <span className="font-semibold text-white">Lightning</span>
                 </div>

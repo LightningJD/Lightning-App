@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Heart, Share2, ExternalLink, Plus, Edit3, MapPin } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
+import { unlockEasterEgg } from '../lib/easterEggs';
 
 const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -14,6 +15,8 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
   const [showLesson, setShowLesson] = useState(false);
   const audioRef = useRef(null);
   const { isGuest, checkAndShowModal } = useGuestModalContext();
+  const [avatarTaps, setAvatarTaps] = useState(0);
+  const [avatarTapTimer, setAvatarTapTimer] = useState(null);
 
   React.useEffect(() => {
     if (audioRef.current) {
@@ -83,10 +86,36 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
     setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
   };
 
+  const handleAvatarTap = () => {
+    const newCount = avatarTaps + 1;
+    setAvatarTaps(newCount);
+
+    // Clear existing timer
+    if (avatarTapTimer) {
+      clearTimeout(avatarTapTimer);
+    }
+
+    // Check if reached 3 taps
+    if (newCount === 3) {
+      unlockEasterEgg('triple_tap_profile');
+      setAvatarTaps(0);
+    } else {
+      // Reset counter after 1.5 seconds of no taps
+      const timer = setTimeout(() => {
+        setAvatarTaps(0);
+      }, 1500);
+      setAvatarTapTimer(timer);
+    }
+  };
+
   return (
     <div className="py-4 space-y-4">
       <div className="flex flex-col items-center -mt-12 relative z-10 px-4 pt-6">
-        <div className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0 mb-4 overflow-hidden`}>
+        <div
+          className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0 mb-4 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95`}
+          onClick={handleAvatarTap}
+          title="Triple tap for a surprise..."
+        >
           {profile.avatarImage ? (
             <img
               src={profile.avatarImage}
