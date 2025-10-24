@@ -632,6 +632,1369 @@ CREATE TABLE notifications (
 
 ---
 
+### PHASE 1.5: CODE ARCHITECTURE IMPROVEMENTS (Parallel with Weeks 4-6)
+
+**Purpose:** Refactor codebase for scalability, maintainability, and production-readiness
+**Duration:** 3-4 weeks (can run parallel to MVP polish)
+**Philosophy:** SOLID principles, modular design, <500 lines per file
+
+---
+
+#### Module 1: Database Layer Refactoring (Week 1)
+
+**Current State:**
+- `src/lib/database.js`: 1177 lines (TOO LARGE)
+- Violates Single Responsibility Principle
+- Difficult to test, maintain, and extend
+
+**Target Architecture (SOLID Principles):**
+
+```
+src/lib/database/
+├── index.js                 # Main export (re-exports all modules) [~50 lines]
+├── base/
+│   ├── client.js           # Supabase client singleton [~30 lines]
+│   ├── errors.js           # Custom error classes [~80 lines]
+│   └── types.js            # TypeScript types (for future migration) [~100 lines]
+├── repositories/           # Data access layer (Single Responsibility)
+│   ├── users.repository.js         # User CRUD [~250 lines]
+│   ├── testimonies.repository.js   # Testimony CRUD [~200 lines]
+│   ├── friendships.repository.js   # Friendship operations [~180 lines]
+│   ├── messages.repository.js      # Direct messages [~220 lines]
+│   ├── groups.repository.js        # Group management [~280 lines]
+│   ├── groupMessages.repository.js # Group messages [~180 lines]
+│   └── notifications.repository.js # Notifications [~150 lines]
+├── services/              # Business logic layer (Open/Closed)
+│   ├── user.service.js            # User sync, profile logic [~200 lines]
+│   ├── testimony.service.js       # Testimony generation flow [~150 lines]
+│   ├── friendship.service.js      # Friend request workflow [~180 lines]
+│   ├── messaging.service.js       # Message delivery logic [~200 lines]
+│   └── group.service.js           # Group invitation logic [~220 lines]
+├── realtime/              # Real-time subscriptions (Interface Segregation)
+│   ├── messageSubscriber.js       # Messages channel [~120 lines]
+│   ├── groupSubscriber.js         # Group messages [~120 lines]
+│   ├── userStatusSubscriber.js    # Online status [~100 lines]
+│   └── subscriptionManager.js     # Cleanup & lifecycle [~150 lines]
+└── utils/                 # Shared utilities
+    ├── geospatial.js      # PostGIS helpers (distance calc) [~100 lines]
+    ├── validators.js      # Input validation [~150 lines]
+    └── formatters.js      # Data transformation [~100 lines]
+```
+
+**Benefits:**
+1. **Single Responsibility:** Each file has one clear purpose
+2. **Testability:** Small modules = easy unit tests
+3. **Maintainability:** Find code in seconds (users.repository.js vs. line 450 of database.js)
+4. **Team Scalability:** Multiple developers can work on different modules
+5. **Type Safety Ready:** Structure supports future TypeScript migration
+
+**Implementation Tasks:**
+
+**Days 1-2: Setup Structure & Base Layer**
+- [ ] Create new directory structure
+- [ ] Extract Supabase client to `base/client.js`
+- [ ] Create custom error classes in `base/errors.js`
+- [ ] Define base interfaces/types in `base/types.js`
+
+**🧪 TESTING CHECKPOINT - BASE LAYER (15 min):**
+- [ ] ✅ Import `client.js` → Supabase client works
+- [ ] ✅ Custom errors throw correctly
+- [ ] ✅ No circular dependencies
+- [ ] 📸 Screenshot of clean import structure
+- [ ] ⚠️ Base must be solid before building on top
+
+**Days 3-4: Extract Repositories**
+- [ ] Move user operations → `users.repository.js`
+  - Functions: syncUser, getUserByClerkId, getUserProfile, updateUserProfile, updateUserLocation, findNearbyUsers
+- [ ] Move testimony operations → `testimonies.repository.js`
+  - Functions: createTestimony, getTestimony, updateTestimony, deleteTestimony, getPublicTestimonies
+- [ ] Move friendship operations → `friendships.repository.js`
+  - Functions: sendFriendRequest, acceptFriendRequest, declineFriendRequest, getFriends, unfriend
+- [ ] Move message operations → `messages.repository.js`
+  - Functions: sendMessage, getConversation, getConversations, markAsRead
+- [ ] Add JSDoc comments to all functions
+- [ ] Verify each file <500 lines
+
+**🧪 TESTING CHECKPOINT - REPOSITORIES (45 min):**
+- [ ] ✅ Run app → All user operations work
+- [ ] ✅ Send message → Saves to database
+- [ ] ✅ Create testimony → Saves correctly
+- [ ] ✅ Friend request → Works end-to-end
+- [ ] ✅ No import errors in console
+- [ ] ✅ Each repository file under 500 lines
+- [ ] 🧪 Test every function once (smoke test)
+- [ ] 📸 Screenshot of working app with new structure
+- [ ] ⚠️ DO NOT PROCEED if any function breaks
+
+**Days 5-6: Extract Services & Realtime**
+- [ ] Create service layer for business logic
+  - `user.service.js`: User sync workflow, profile validation
+  - `messaging.service.js`: Message delivery, unread counts
+  - `friendship.service.js`: Request state machine logic
+- [ ] Extract real-time subscriptions → `realtime/`
+  - `messageSubscriber.js`: Message channel listeners
+  - `groupSubscriber.js`: Group message listeners
+  - `subscriptionManager.js`: Centralized cleanup
+- [ ] Move utilities → `utils/`
+  - `geospatial.js`: Distance calculations (Haversine)
+  - `validators.js`: Input validation helpers
+  - `formatters.js`: Timestamp formatting
+
+**🧪 TESTING CHECKPOINT - SERVICES (30 min):**
+- [ ] ✅ Real-time messages still work
+- [ ] ✅ Friend request workflow intact
+- [ ] ✅ Nearby users query works
+- [ ] ✅ Two browser tabs → send message → appears in other
+- [ ] ✅ All subscriptions clean up (no memory leaks)
+- [ ] 📸 Screenshot of real-time working
+- [ ] ⚠️ Real-time is critical, must be perfect
+
+**Day 7: Integration & Update Imports**
+- [ ] Create `index.js` to re-export all modules
+- [ ] Update all component imports
+  - `import { getUserProfile } from '../lib/database'` (still works!)
+  - Internal: Actually calls `repositories/users.repository.js`
+- [ ] Run full app test
+- [ ] Verify bundle size not significantly increased
+
+**🧪 TESTING CHECKPOINT - FULL INTEGRATION (60 min):**
+- [ ] ✅ All tabs load without errors
+- [ ] ✅ Profile tab: Load user, edit profile, create testimony
+- [ ] ✅ Messages tab: Load conversations, send messages, real-time updates
+- [ ] ✅ Groups tab: Create group, send messages, pin messages
+- [ ] ✅ Connect tab: Load nearby users, send friend requests
+- [ ] ✅ Settings: All actions work
+- [ ] ✅ Console: No errors, no warnings
+- [ ] ✅ Network tab: Query times similar to before (no performance regression)
+- [ ] 🧪 Test on mobile view (responsive)
+- [ ] 🧪 Test on slow 3G (loading states)
+- [ ] 📸 Screenshot of console (clean)
+- [ ] 📸 Screenshot of Network tab (healthy)
+- [ ] 🐛 Document any issues in BUGS.md
+- [ ] ⚠️ CRITICAL: App must work exactly as before, just cleaner code
+- [ ] ✅ Commit changes: "Refactor database layer into SOLID-compliant modules"
+
+**Success Criteria:**
+- ✅ All files under 500 lines
+- ✅ Clear separation of concerns (Repository vs. Service vs. Realtime)
+- ✅ No functionality broken
+- ✅ 100% backward compatible with existing imports
+- ✅ Ready for TypeScript migration
+
+---
+
+#### Module 2: TypeScript Migration (Week 2)
+
+**Current State:**
+- All files are `.js` or `.jsx`
+- No type safety
+- IDE autocomplete limited
+
+**Target:**
+- Incremental migration to TypeScript
+- Start with new files, gradually migrate existing
+- Full type coverage for database layer
+
+**Benefits:**
+1. **Catch bugs at compile-time** (not runtime)
+2. **Better IDE support** (autocomplete, refactoring)
+3. **Self-documenting code** (types as inline docs)
+4. **Safer refactoring** (compiler catches breaking changes)
+5. **Third-party types** (Supabase has official TypeScript support)
+
+**Implementation Plan:**
+
+**Days 1-2: Setup TypeScript Infrastructure**
+- [ ] Install TypeScript: `npm install --save-dev typescript @types/react @types/react-dom`
+- [ ] Create `tsconfig.json` with strict mode
+  ```json
+  {
+    "compilerOptions": {
+      "target": "ES2020",
+      "module": "ESNext",
+      "lib": ["ES2020", "DOM"],
+      "jsx": "react-jsx",
+      "strict": true,
+      "moduleResolution": "bundler",
+      "allowImportingTsExtensions": true,
+      "resolveJsonModule": true,
+      "noEmit": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "allowJs": true,
+      "checkJs": false,
+      "incremental": true
+    },
+    "include": ["src"],
+    "exclude": ["node_modules"]
+  }
+  ```
+- [ ] Install Supabase types: `npm install --save-dev @supabase/supabase-js`
+- [ ] Generate database types: `npx supabase gen types typescript --project-id <project-id> > src/lib/database/base/database.types.ts`
+- [ ] Add type-check script to package.json: `"type-check": "tsc --noEmit"`
+- [ ] Verify Vite supports TypeScript (built-in support)
+
+**🧪 TESTING CHECKPOINT - TS SETUP (20 min):**
+- [ ] ✅ `npm run type-check` runs without errors
+- [ ] ✅ Vite dev server starts with TS files
+- [ ] ✅ Create test file `src/test.ts` with typed code → compiles
+- [ ] ✅ Database types generated correctly
+- [ ] ✅ No breaking changes to existing JS files
+- [ ] 📸 Screenshot of successful type-check
+- [ ] ⚠️ Setup must work before migration
+
+**Days 3-4: Migrate Database Layer to TypeScript**
+- [ ] Rename files in order:
+  1. `base/types.js` → `base/types.ts`
+  2. `base/errors.js` → `base/errors.ts`
+  3. `base/client.js` → `base/client.ts`
+  4. `repositories/users.repository.js` → `repositories/users.repository.ts`
+  5. `repositories/testimonies.repository.js` → `repositories/testimonies.repository.ts`
+  6. Continue for all repository files...
+- [ ] Add TypeScript types to all functions
+  ```typescript
+  // Before (JS)
+  export const getUserProfile = async (userId) => { ... }
+
+  // After (TS)
+  export const getUserProfile = async (userId: string): Promise<User | null> => { ... }
+  ```
+- [ ] Use generated Supabase types for database queries
+  ```typescript
+  import { Database } from './base/database.types';
+  type User = Database['public']['Tables']['users']['Row'];
+  ```
+- [ ] Add proper error typing
+  ```typescript
+  import { DatabaseError } from './base/errors';
+
+  export const createUser = async (data: UserInsert): Promise<User> => {
+    const { data: user, error } = await supabase.from('users').insert(data);
+    if (error) throw new DatabaseError(error.message, error);
+    return user;
+  };
+  ```
+
+**🧪 TESTING CHECKPOINT - DATABASE TS (45 min):**
+- [ ] ✅ `npm run type-check` passes with 0 errors
+- [ ] ✅ All database functions have type signatures
+- [ ] ✅ IDE autocomplete works for database queries
+- [ ] ✅ Try passing wrong type to function → TypeScript error shows
+- [ ] ✅ App still runs in dev mode
+- [ ] ✅ Build succeeds: `npm run build`
+- [ ] 🧪 Test type safety: `getUserProfile(123)` (number instead of string) → type error
+- [ ] 📸 Screenshot of IDE autocomplete
+- [ ] 📸 Screenshot of type error in IDE
+- [ ] ⚠️ Must have 0 type errors before proceeding
+
+**Days 5-6: Migrate React Components to TypeScript**
+- [ ] Rename component files `.jsx` → `.tsx` in order:
+  1. Simple components first: `UserCard.jsx` → `UserCard.tsx`
+  2. Context providers: `GuestModalContext.jsx` → `GuestModalContext.tsx`
+  3. Custom hooks: `useUserProfile.js` → `useUserProfile.ts`
+  4. Complex components: `ProfileTab.jsx` → `ProfileTab.tsx`
+  5. Main app: `App.jsx` → `App.tsx`
+- [ ] Add React prop types
+  ```typescript
+  // Before
+  const UserCard = ({ user, onClick }) => { ... }
+
+  // After
+  interface UserCardProps {
+    user: User;
+    onClick: (userId: string) => void;
+  }
+
+  const UserCard: React.FC<UserCardProps> = ({ user, onClick }) => { ... }
+  ```
+- [ ] Add state typing
+  ```typescript
+  const [profile, setProfile] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  ```
+- [ ] Type event handlers
+  ```typescript
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => { ... }
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => { ... }
+  ```
+
+**🧪 TESTING CHECKPOINT - COMPONENTS TS (45 min):**
+- [ ] ✅ `npm run type-check` passes
+- [ ] ✅ All components render correctly
+- [ ] ✅ No TypeScript errors in IDE
+- [ ] ✅ Props are typed (IDE shows autocomplete)
+- [ ] ✅ Event handlers typed correctly
+- [ ] ✅ Build succeeds
+- [ ] 🧪 Try passing wrong prop type → type error
+- [ ] 📸 Screenshot of component prop autocomplete
+- [ ] ⚠️ Components must work identically to before
+
+**Day 7: Type Coverage & Documentation**
+- [ ] Add JSDoc comments with TypeScript types to all public functions
+  ```typescript
+  /**
+   * Fetches a user profile by ID
+   * @param userId - The UUID of the user
+   * @returns User profile or null if not found
+   * @throws {DatabaseError} If database query fails
+   */
+  export const getUserProfile = async (userId: string): Promise<User | null> => { ... }
+  ```
+- [ ] Create type utility file: `src/types/index.ts`
+  - Common types (User, Testimony, Message, etc.)
+  - Utility types (ApiResponse<T>, Paginated<T>, etc.)
+- [ ] Run type coverage report: `npx type-coverage --detail`
+- [ ] Aim for >90% type coverage
+- [ ] Update README with TypeScript setup instructions
+
+**🧪 TESTING CHECKPOINT - FULL TS MIGRATION (60 min):**
+- [ ] ✅ `npm run type-check` passes with 0 errors
+- [ ] ✅ Type coverage >90%
+- [ ] ✅ All components work perfectly
+- [ ] ✅ All database operations work
+- [ ] ✅ Build succeeds: `npm run build`
+- [ ] ✅ Production build works: `npm run preview`
+- [ ] ✅ Bundle size similar to before (<10% increase)
+- [ ] 🧪 Full app smoke test (all features)
+- [ ] 📸 Screenshot of type coverage report
+- [ ] 📸 Screenshot of successful build
+- [ ] 🐛 Document any type issues
+- [ ] ⚠️ CRITICAL: App must work perfectly in production
+- [ ] ✅ Commit changes: "Migrate codebase to TypeScript with full type coverage"
+
+**Success Criteria:**
+- ✅ All files migrated to TypeScript
+- ✅ Type coverage >90%
+- ✅ No `any` types (except third-party)
+- ✅ Build succeeds without type errors
+- ✅ IDE autocomplete works everywhere
+- ✅ Production bundle works perfectly
+
+---
+
+#### Module 3: Testing Infrastructure (Week 3)
+
+**Current State:**
+- No test files
+- No testing framework
+- Manual testing only
+
+**Target:**
+- Comprehensive test coverage (>80%)
+- Unit tests, integration tests, E2E tests
+- CI/CD integration ready
+
+**Testing Stack:**
+- **Vitest** - Fast unit testing (Vite-native)
+- **React Testing Library** - Component testing
+- **Playwright** - E2E testing
+- **MSW (Mock Service Worker)** - API mocking
+
+**Implementation Plan:**
+
+**Days 1-2: Setup Testing Infrastructure**
+- [ ] Install testing libraries:
+  ```bash
+  npm install --save-dev vitest @vitest/ui jsdom
+  npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event
+  npm install --save-dev @playwright/test
+  npm install --save-dev msw
+  ```
+- [ ] Create `vitest.config.ts`:
+  ```typescript
+  import { defineConfig } from 'vitest/config';
+  import react from '@vitejs/plugin-react';
+
+  export default defineConfig({
+    plugins: [react()],
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['./src/tests/setup.ts'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html'],
+        exclude: ['node_modules/', 'src/tests/'],
+      },
+    },
+  });
+  ```
+- [ ] Create test setup file: `src/tests/setup.ts`
+  ```typescript
+  import '@testing-library/jest-dom';
+  import { beforeAll, afterEach, afterAll } from 'vitest';
+  import { cleanup } from '@testing-library/react';
+  import { server } from './mocks/server';
+
+  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+  afterEach(() => {
+    cleanup();
+    server.resetHandlers();
+  });
+  afterAll(() => server.close());
+  ```
+- [ ] Setup MSW for API mocking: `src/tests/mocks/handlers.ts`
+  ```typescript
+  import { http, HttpResponse } from 'msw';
+
+  export const handlers = [
+    http.post('/api/generate-testimony', () => {
+      return HttpResponse.json({
+        testimony: 'Test testimony content...',
+        success: true,
+      });
+    }),
+  ];
+  ```
+- [ ] Add test scripts to package.json:
+  ```json
+  {
+    "scripts": {
+      "test": "vitest",
+      "test:ui": "vitest --ui",
+      "test:coverage": "vitest run --coverage",
+      "test:e2e": "playwright test"
+    }
+  }
+  ```
+
+**🧪 TESTING CHECKPOINT - TEST SETUP (20 min):**
+- [ ] ✅ `npm run test` runs without errors
+- [ ] ✅ Create simple test file → passes
+- [ ] ✅ MSW mocks API requests correctly
+- [ ] ✅ Coverage report generates
+- [ ] 📸 Screenshot of Vitest UI
+- [ ] ⚠️ Infrastructure must work before writing tests
+
+**Days 3-4: Unit Tests for Database Layer**
+- [ ] Create test files matching structure:
+  ```
+  src/lib/database/
+    repositories/
+      users.repository.ts
+      users.repository.test.ts      # <-- Test file
+      testimonies.repository.ts
+      testimonies.repository.test.ts
+      ...
+  ```
+- [ ] Write tests for `users.repository.ts`:
+  ```typescript
+  // users.repository.test.ts
+  import { describe, it, expect, beforeEach } from 'vitest';
+  import { getUserProfile, updateUserProfile } from './users.repository';
+  import { mockSupabaseClient } from '../../tests/mocks/supabase';
+
+  describe('users.repository', () => {
+    beforeEach(() => {
+      mockSupabaseClient.reset();
+    });
+
+    describe('getUserProfile', () => {
+      it('should fetch user profile successfully', async () => {
+        const mockUser = { id: '123', username: 'testuser' };
+        mockSupabaseClient.mockResponse(mockUser);
+
+        const result = await getUserProfile('123');
+
+        expect(result).toEqual(mockUser);
+      });
+
+      it('should return null if user not found', async () => {
+        mockSupabaseClient.mockError({ code: 'PGRST116' });
+
+        const result = await getUserProfile('nonexistent');
+
+        expect(result).toBeNull();
+      });
+
+      it('should throw DatabaseError on query failure', async () => {
+        mockSupabaseClient.mockError({ message: 'Connection failed' });
+
+        await expect(getUserProfile('123')).rejects.toThrow('Connection failed');
+      });
+    });
+  });
+  ```
+- [ ] Write tests for all repositories:
+  - User operations (sync, fetch, update, location)
+  - Testimony operations (create, read, update, delete)
+  - Friendship operations (send, accept, decline)
+  - Message operations (send, fetch, mark read)
+  - Group operations (create, join, leave)
+- [ ] Test edge cases:
+  - Empty results
+  - Network failures
+  - Invalid inputs
+  - Race conditions
+- [ ] Aim for >90% coverage on database layer
+
+**🧪 TESTING CHECKPOINT - UNIT TESTS (45 min):**
+- [ ] ✅ `npm run test` passes all tests
+- [ ] ✅ `npm run test:coverage` shows >90% coverage for database layer
+- [ ] ✅ All edge cases tested
+- [ ] ✅ Tests run fast (<5 seconds for all unit tests)
+- [ ] 📸 Screenshot of test coverage report
+- [ ] ⚠️ High coverage critical for confidence
+
+**Days 5-6: Component Tests**
+- [ ] Write tests for React components:
+  ```typescript
+  // UserCard.test.tsx
+  import { describe, it, expect, vi } from 'vitest';
+  import { render, screen, fireEvent } from '@testing-library/react';
+  import UserCard from './UserCard';
+
+  describe('UserCard', () => {
+    const mockUser = {
+      id: '123',
+      username: 'testuser',
+      display_name: 'Test User',
+      avatar_emoji: '👤',
+      is_online: true,
+    };
+
+    it('should render user information', () => {
+      render(<UserCard user={mockUser} onClick={() => {}} />);
+
+      expect(screen.getByText('Test User')).toBeInTheDocument();
+      expect(screen.getByText('@testuser')).toBeInTheDocument();
+      expect(screen.getByText('👤')).toBeInTheDocument();
+    });
+
+    it('should show online indicator when user is online', () => {
+      render(<UserCard user={mockUser} onClick={() => {}} />);
+
+      const onlineIndicator = screen.getByTestId('online-indicator');
+      expect(onlineIndicator).toHaveClass('bg-green-400');
+    });
+
+    it('should call onClick when clicked', () => {
+      const handleClick = vi.fn();
+      render(<UserCard user={mockUser} onClick={handleClick} />);
+
+      fireEvent.click(screen.getByRole('button'));
+
+      expect(handleClick).toHaveBeenCalledWith('123');
+    });
+  });
+  ```
+- [ ] Test critical components:
+  - ProfileTab (profile display, edit mode)
+  - MessagesTab (conversation list, message display)
+  - GroupsTab (group list, create group)
+  - NearbyTab (user discovery, sorting)
+  - AuthWrapper (Clerk integration)
+  - ProfileCreationWizard (multi-step form)
+- [ ] Test user interactions:
+  - Form submissions
+  - Button clicks
+  - Input validation
+  - Loading states
+  - Error states
+  - Empty states
+- [ ] Test real-time subscriptions (mocked)
+
+**🧪 TESTING CHECKPOINT - COMPONENT TESTS (45 min):**
+- [ ] ✅ All component tests pass
+- [ ] ✅ Coverage >80% for components
+- [ ] ✅ User interactions tested
+- [ ] ✅ Edge cases covered
+- [ ] 📸 Screenshot of component test results
+- [ ] ⚠️ Components must be thoroughly tested
+
+**Day 7: E2E Tests with Playwright**
+- [ ] Setup Playwright: `npx playwright install`
+- [ ] Create E2E test file: `tests/e2e/auth-flow.spec.ts`
+  ```typescript
+  import { test, expect } from '@playwright/test';
+
+  test.describe('Authentication Flow', () => {
+    test('should allow user to sign up and create profile', async ({ page }) => {
+      await page.goto('http://localhost:5173');
+
+      // Click sign up
+      await page.click('text=Join Lightning');
+
+      // Fill in Google OAuth (mocked in test environment)
+      await page.fill('input[name="email"]', 'test@example.com');
+      await page.click('text=Continue with Google');
+
+      // Should redirect to profile creation
+      await expect(page).toHaveURL(/.*profile/);
+
+      // Fill profile form
+      await page.fill('input[name="displayName"]', 'Test User');
+      await page.fill('textarea[name="bio"]', 'Test bio');
+      await page.click('button:has-text("Save Profile")');
+
+      // Should see profile tab
+      await expect(page.locator('text=Test User')).toBeVisible();
+    });
+  });
+  ```
+- [ ] Write E2E tests for critical flows:
+  - [ ] Authentication (signup, login, logout)
+  - [ ] Profile creation and editing
+  - [ ] Testimony generation and saving
+  - [ ] Sending friend requests
+  - [ ] Sending messages
+  - [ ] Creating groups
+  - [ ] Real-time messaging (two browser contexts)
+- [ ] Run E2E tests on CI/CD pipeline
+
+**🧪 TESTING CHECKPOINT - E2E TESTS (60 min):**
+- [ ] ✅ All E2E tests pass locally
+- [ ] ✅ Critical user flows tested
+- [ ] ✅ Real-time features tested (multi-tab)
+- [ ] ✅ Tests run in headless mode (CI-ready)
+- [ ] 📸 Screenshot of E2E test results
+- [ ] 📸 Video recording of test execution
+- [ ] ⚠️ E2E tests validate entire system works
+
+**Final Testing Checkpoint:**
+- [ ] ✅ Overall test coverage >80%
+- [ ] ✅ All tests pass: `npm run test`
+- [ ] ✅ E2E tests pass: `npm run test:e2e`
+- [ ] ✅ Coverage report clean
+- [ ] ✅ CI/CD pipeline ready
+- [ ] 📊 Coverage breakdown:
+  - Database layer: >90%
+  - Services: >85%
+  - Components: >80%
+  - Utils: >95%
+- [ ] ✅ Commit changes: "Add comprehensive test coverage (unit, integration, E2E)"
+
+**Success Criteria:**
+- ✅ Test coverage >80%
+- ✅ All critical flows tested
+- ✅ Tests run fast (<30 seconds for unit tests)
+- ✅ E2E tests validate real user flows
+- ✅ CI/CD integration ready
+
+---
+
+#### Module 4: Error Boundaries & Resilience (Week 4, Days 1-3)
+
+**Current State:**
+- No error boundaries
+- One error crashes entire app
+- Poor error UX
+
+**Target:**
+- Graceful error handling
+- Isolated failures
+- User-friendly error messages
+
+**Implementation Plan:**
+
+**Day 1: Error Boundary Infrastructure**
+- [ ] Create error boundary components:
+  ```typescript
+  // src/components/errors/ErrorBoundary.tsx
+  import React, { Component, ErrorInfo, ReactNode } from 'react';
+
+  interface Props {
+    children: ReactNode;
+    fallback?: ReactNode;
+    onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  }
+
+  interface State {
+    hasError: boolean;
+    error: Error | null;
+  }
+
+  class ErrorBoundary extends Component<Props, State> {
+    constructor(props: Props) {
+      super(props);
+      this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error: Error): State {
+      return { hasError: true, error };
+    }
+
+    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+      console.error('ErrorBoundary caught:', error, errorInfo);
+      this.props.onError?.(error, errorInfo);
+
+      // Send to error tracking service (Sentry, LogRocket, etc.)
+      // logErrorToService(error, errorInfo);
+    }
+
+    render() {
+      if (this.state.hasError) {
+        return this.props.fallback || (
+          <div className="error-fallback">
+            <h2>Something went wrong</h2>
+            <button onClick={() => this.setState({ hasError: false, error: null })}>
+              Try again
+            </button>
+          </div>
+        );
+      }
+
+      return this.props.children;
+    }
+  }
+
+  export default ErrorBoundary;
+  ```
+- [ ] Create specialized error UI components:
+  ```typescript
+  // src/components/errors/ErrorFallback.tsx
+  export const ErrorFallback: React.FC<{ error: Error; resetError: () => void }> = ({ error, resetError }) => (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-8 shadow-xl max-w-md">
+        <div className="text-6xl mb-4">⚠️</div>
+        <h2 className="text-2xl font-bold mb-2">Oops! Something went wrong</h2>
+        <p className="text-gray-600 mb-6">We're sorry for the inconvenience. Please try again.</p>
+        <button onClick={resetError} className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-lg">
+          Try Again
+        </button>
+      </div>
+    </div>
+  );
+  ```
+- [ ] Create feature-specific error boundaries:
+  ```typescript
+  // src/components/errors/MessageErrorBoundary.tsx
+  export const MessageErrorBoundary: React.FC<{ children: ReactNode }> = ({ children }) => (
+    <ErrorBoundary
+      fallback={
+        <div className="p-4 bg-red-50 rounded-lg">
+          <p>Failed to load messages. Please refresh.</p>
+        </div>
+      }
+    >
+      {children}
+    </ErrorBoundary>
+  );
+  ```
+
+**Day 2: Implement Error Boundaries Throughout App**
+- [ ] Wrap entire app in root error boundary:
+  ```typescript
+  // App.tsx
+  <ErrorBoundary fallback={<ErrorFallback />}>
+    <ClerkProvider>
+      <AuthWrapper>
+        {/* App content */}
+      </AuthWrapper>
+    </ClerkProvider>
+  </ErrorBoundary>
+  ```
+- [ ] Wrap each tab in feature error boundary:
+  ```typescript
+  // App.tsx
+  <ErrorBoundary fallback={<TabErrorFallback tabName="Messages" />}>
+    <MessagesTab />
+  </ErrorBoundary>
+
+  <ErrorBoundary fallback={<TabErrorFallback tabName="Groups" />}>
+    <GroupsTab />
+  </ErrorBoundary>
+  ```
+- [ ] Wrap critical components:
+  ```typescript
+  // ProfileTab.tsx
+  <ErrorBoundary fallback={<p>Failed to load profile</p>}>
+    <TestimonyDisplay testimony={testimony} />
+  </ErrorBoundary>
+
+  <ErrorBoundary fallback={<p>Failed to load music player</p>}>
+    <MusicPlayer url={musicUrl} />
+  </ErrorBoundary>
+  ```
+
+**Day 3: Error Tracking & Monitoring**
+- [ ] Integrate error tracking service (choose one):
+  - **Option A: Sentry** (recommended, free tier)
+    ```bash
+    npm install @sentry/react
+    ```
+    ```typescript
+    // main.tsx
+    import * as Sentry from '@sentry/react';
+
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      environment: import.meta.env.MODE,
+      tracesSampleRate: 1.0,
+    });
+    ```
+  - **Option B: LogRocket** (session replay)
+  - **Option C: Custom logging** (to Supabase)
+- [ ] Add error context to all boundaries:
+  ```typescript
+  <ErrorBoundary
+    onError={(error, errorInfo) => {
+      Sentry.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack,
+          },
+        },
+      });
+    }}
+  >
+    {children}
+  </ErrorBoundary>
+  ```
+- [ ] Create error notification system:
+  ```typescript
+  // src/lib/errors/notifier.ts
+  import toast from 'react-hot-toast';
+
+  export const notifyError = (error: Error, context?: string) => {
+    console.error(`Error in ${context}:`, error);
+    toast.error(error.message || 'Something went wrong. Please try again.');
+  };
+  ```
+
+**🧪 TESTING CHECKPOINT - ERROR BOUNDARIES (45 min):**
+- [ ] ✅ Simulate error in ProfileTab → only Profile breaks, app still works
+- [ ] ✅ Simulate error in MessagesTab → Messages shows error, other tabs work
+- [ ] ✅ Click "Try Again" → component recovers
+- [ ] ✅ Simulate network error → user-friendly message shows
+- [ ] ✅ Error logged to tracking service (check Sentry dashboard)
+- [ ] 🧪 Test each tab with simulated errors
+- [ ] 🧪 Test nested component errors
+- [ ] 📸 Screenshot of error fallback UI
+- [ ] 📸 Screenshot of Sentry dashboard (if using)
+- [ ] ⚠️ CRITICAL: App must stay functional when parts fail
+- [ ] ✅ Commit changes: "Add error boundaries for graceful failure handling"
+
+**Success Criteria:**
+- ✅ Error boundaries at app, tab, and component levels
+- ✅ User-friendly error messages
+- ✅ App stays functional when features fail
+- ✅ Errors logged to tracking service
+- ✅ "Try Again" functionality works
+
+---
+
+#### Module 5: API Implementation - Testimony Generation Backend (Week 4, Days 4-7)
+
+**Current State:**
+- `/api/generate-testimony` endpoint documented but not implemented
+- Client-side fallback template in use
+- No server-side AI integration
+
+**Target:**
+- Production-ready testimony generation API
+- Multiple deployment options
+- Fallback handling
+- Rate limiting & security
+
+**Implementation Options:**
+
+**Option A: Supabase Edge Functions (Recommended)**
+
+**Day 4: Setup Supabase Edge Functions**
+- [ ] Install Supabase CLI: `npm install -g supabase`
+- [ ] Login: `supabase login`
+- [ ] Initialize: `supabase functions new generate-testimony`
+- [ ] Create function:
+  ```typescript
+  // supabase/functions/generate-testimony/index.ts
+  import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  const openAIKey = Deno.env.get('OPENAI_API_KEY');
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  serve(async (req) => {
+    try {
+      const { answers, userId } = await req.json();
+
+      // Validate input
+      if (!answers || answers.length !== 4) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid input: 4 answers required' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Call OpenAI API
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openAIKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a compassionate Christian testimony writer. Create a 250-350 word testimony in 4 paragraphs based on the user's answers. Be authentic, hopeful, and Christ-centered.`
+            },
+            {
+              role: 'user',
+              content: `
+                1. Background: ${answers[0]}
+                2. Turning Point: ${answers[1]}
+                3. How God worked: ${answers[2]}
+                4. Life now: ${answers[3]}
+
+                Write a compelling testimony based on these answers.
+              `
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      });
+
+      const data = await response.json();
+      const testimony = data.choices[0].message.content;
+
+      return new Response(
+        JSON.stringify({ testimony, success: true }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+
+    } catch (error) {
+      console.error('Error generating testimony:', error);
+      return new Response(
+        JSON.stringify({ error: 'Failed to generate testimony', success: false }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  });
+  ```
+- [ ] Set environment variables:
+  ```bash
+  supabase secrets set OPENAI_API_KEY=sk-...
+  ```
+- [ ] Deploy function:
+  ```bash
+  supabase functions deploy generate-testimony
+  ```
+
+**Day 5: Integrate Frontend with API**
+- [ ] Update frontend to call Supabase Edge Function:
+  ```typescript
+  // src/lib/services/testimony.service.ts
+  import { supabase } from '../database/base/client';
+
+  export const generateTestimony = async (answers: string[]): Promise<string> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-testimony', {
+        body: { answers },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        return data.testimony;
+      } else {
+        // Fallback to template
+        return generateTestimonyTemplate(answers);
+      }
+    } catch (error) {
+      console.error('API error, using fallback template:', error);
+      return generateTestimonyTemplate(answers);
+    }
+  };
+
+  // Fallback template (existing client-side logic)
+  const generateTestimonyTemplate = (answers: string[]): string => {
+    return `
+      ${answers[0]}
+
+      ${answers[1]}
+
+      ${answers[2]}
+
+      ${answers[3]}
+    `.trim();
+  };
+  ```
+- [ ] Update ProfileCreationWizard to use new service:
+  ```typescript
+  // src/components/ProfileCreationWizard.jsx
+  import { generateTestimony } from '../lib/services/testimony.service';
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    try {
+      const testimony = await generateTestimony([answer1, answer2, answer3, answer4]);
+      setGeneratedTestimony(testimony);
+    } catch (error) {
+      toast.error('Failed to generate testimony. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  ```
+
+**Day 6: Add Rate Limiting & Security**
+- [ ] Implement rate limiting in Edge Function:
+  ```typescript
+  // Check rate limit (max 3 testimonies per user per day)
+  const supabase = createClient(supabaseUrl!, supabaseKey!);
+
+  const { count, error } = await supabase
+    .from('testimonies')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+  if (count && count >= 3) {
+    return new Response(
+      JSON.stringify({ error: 'Rate limit exceeded. Max 3 testimonies per day.' }),
+      { status: 429 }
+    );
+  }
+  ```
+- [ ] Add input validation:
+  ```typescript
+  const validateAnswers = (answers: string[]): boolean => {
+    return answers.every(answer =>
+      answer.trim().length >= 10 && answer.trim().length <= 500
+    );
+  };
+
+  if (!validateAnswers(answers)) {
+    return new Response(
+      JSON.stringify({ error: 'Each answer must be 10-500 characters' }),
+      { status: 400 }
+    );
+  }
+  ```
+- [ ] Add cost monitoring:
+  ```typescript
+  // Log API usage
+  await supabase.from('api_usage_logs').insert({
+    user_id: userId,
+    endpoint: 'generate-testimony',
+    cost_estimate: 0.002, // GPT-4o-mini cost
+    timestamp: new Date().toISOString(),
+  });
+  ```
+
+**Day 7: Testing & Monitoring**
+- [ ] Write tests for Edge Function:
+  ```bash
+  supabase functions serve generate-testimony
+  ```
+- [ ] Test with curl:
+  ```bash
+  curl -X POST https://<project-ref>.supabase.co/functions/v1/generate-testimony \
+    -H "Authorization: Bearer <anon-key>" \
+    -H "Content-Type: application/json" \
+    -d '{"answers": ["...", "...", "...", "..."]}'
+  ```
+- [ ] Add monitoring dashboard (Supabase Dashboard → Functions)
+- [ ] Set up alerts for high usage or errors
+
+**🧪 TESTING CHECKPOINT - API IMPLEMENTATION (60 min):**
+- [ ] ✅ Edge Function deploys successfully
+- [ ] ✅ API returns generated testimony (200-350 words)
+- [ ] ✅ Fallback template works when API fails
+- [ ] ✅ Rate limiting prevents abuse (max 3/day)
+- [ ] ✅ Input validation rejects invalid data
+- [ ] ✅ Cost per testimony: ~$0.002 (GPT-4o-mini)
+- [ ] ✅ Response time: <5 seconds
+- [ ] 🧪 Test with valid input → AI testimony generated
+- [ ] 🧪 Test with invalid input → error message
+- [ ] 🧪 Test exceeding rate limit → 429 error
+- [ ] 🧪 Test API failure → fallback template used
+- [ ] 📸 Screenshot of Supabase Functions dashboard
+- [ ] 📸 Screenshot of generated testimony
+- [ ] ⚠️ CRITICAL: API must be reliable and cost-effective
+- [ ] ✅ Commit changes: "Implement testimony generation API with Supabase Edge Functions"
+
+**Success Criteria:**
+- ✅ Production API endpoint deployed
+- ✅ AI-generated testimonies working
+- ✅ Fallback template for failures
+- ✅ Rate limiting implemented
+- ✅ Cost per testimony <$0.01
+- ✅ Response time <10 seconds
+
+---
+
+#### Module 6: Caching & Performance Optimization (Week 4, Days 4-7, parallel with Module 5)
+
+**Current State:**
+- No caching layer
+- Redundant database queries
+- Potential performance issues at scale
+
+**Target:**
+- Intelligent caching strategy
+- Reduced database load
+- Faster page loads
+- Better UX (instant navigation)
+
+**Implementation Plan:**
+
+**Day 4: Setup TanStack Query (React Query)**
+- [ ] Install React Query:
+  ```bash
+  npm install @tanstack/react-query @tanstack/react-query-devtools
+  ```
+- [ ] Setup QueryClient:
+  ```typescript
+  // src/lib/query/client.ts
+  import { QueryClient } from '@tanstack/react-query';
+
+  export const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        cacheTime: 10 * 60 * 1000, // 10 minutes
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+  ```
+- [ ] Wrap app in QueryClientProvider:
+  ```typescript
+  // App.tsx
+  import { QueryClientProvider } from '@tanstack/react-query';
+  import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+  import { queryClient } from './lib/query/client';
+
+  function App() {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary>
+          {/* App content */}
+        </ErrorBoundary>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    );
+  }
+  ```
+
+**Day 5: Implement Query Hooks for Database Operations**
+- [ ] Create query hooks for users:
+  ```typescript
+  // src/lib/query/hooks/useUserProfile.ts
+  import { useQuery } from '@tanstack/react-query';
+  import { getUserProfile } from '../../database/repositories/users.repository';
+
+  export const useUserProfile = (userId: string) => {
+    return useQuery({
+      queryKey: ['user', userId],
+      queryFn: () => getUserProfile(userId),
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      enabled: !!userId,
+    });
+  };
+
+  // Usage in component:
+  // const { data: profile, isLoading, error } = useUserProfile(userId);
+  ```
+- [ ] Create query hooks for other data:
+  ```typescript
+  // src/lib/query/hooks/useTestimony.ts
+  export const useTestimony = (userId: string) => {
+    return useQuery({
+      queryKey: ['testimony', userId],
+      queryFn: () => getTestimony(userId),
+      staleTime: 60 * 60 * 1000, // Cache for 1 hour (testimonies change rarely)
+    });
+  };
+
+  // src/lib/query/hooks/useConversations.ts
+  export const useConversations = (userId: string) => {
+    return useQuery({
+      queryKey: ['conversations', userId],
+      queryFn: () => getUserConversations(userId),
+      staleTime: 30 * 1000, // Cache for 30 seconds (fresher for messages)
+    });
+  };
+
+  // src/lib/query/hooks/useNearbyUsers.ts
+  export const useNearbyUsers = (lat: number, lng: number, radius: number) => {
+    return useQuery({
+      queryKey: ['nearbyUsers', lat, lng, radius],
+      queryFn: () => findNearbyUsers(lat, lng, radius),
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    });
+  };
+  ```
+- [ ] Create mutation hooks for updates:
+  ```typescript
+  // src/lib/query/hooks/useUpdateProfile.ts
+  import { useMutation, useQueryClient } from '@tanstack/react-query';
+  import { updateUserProfile } from '../../database/repositories/users.repository';
+
+  export const useUpdateProfile = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: (data: UserUpdate) => updateUserProfile(data),
+      onSuccess: (updatedUser) => {
+        // Invalidate and refetch user profile
+        queryClient.invalidateQueries({ queryKey: ['user', updatedUser.id] });
+        toast.success('Profile updated!');
+      },
+      onError: (error) => {
+        toast.error('Failed to update profile');
+      },
+    });
+  };
+
+  // Usage:
+  // const { mutate: updateProfile, isLoading } = useUpdateProfile();
+  // updateProfile({ id: userId, bio: 'New bio' });
+  ```
+
+**Day 6: Integrate Caching in Components**
+- [ ] Update ProfileTab to use caching:
+  ```typescript
+  // src/components/ProfileTab.tsx (before)
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const data = await getUserProfile(userId);
+      setProfile(data);
+    };
+    loadProfile();
+  }, [userId]);
+
+  // src/components/ProfileTab.tsx (after)
+  import { useUserProfile } from '../lib/query/hooks/useUserProfile';
+  import { useTestimony } from '../lib/query/hooks/useTestimony';
+
+  const { data: profile, isLoading: profileLoading } = useUserProfile(userId);
+  const { data: testimony, isLoading: testimonyLoading } = useTestimony(userId);
+
+  if (profileLoading || testimonyLoading) return <LoadingSpinner />;
+  ```
+- [ ] Update MessagesTab:
+  ```typescript
+  // MessagesTab.tsx
+  import { useConversations } from '../lib/query/hooks/useConversations';
+
+  const { data: conversations, isLoading } = useConversations(currentUserId);
+  ```
+- [ ] Update NearbyTab:
+  ```typescript
+  // NearbyTab.tsx
+  import { useNearbyUsers } from '../lib/query/hooks/useNearbyUsers';
+
+  const { data: nearbyUsers, isLoading } = useNearbyUsers(lat, lng, radius);
+  ```
+
+**Day 7: Real-time Cache Invalidation**
+- [ ] Invalidate cache on real-time updates:
+  ```typescript
+  // src/lib/realtime/messageSubscriber.ts
+  import { queryClient } from '../query/client';
+
+  export const subscribeToMessages = (userId: string, callback: (message: Message) => void) => {
+    const channel = supabase
+      .channel('messages')
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `recipient_id=eq.${userId}` },
+        (payload) => {
+          callback(payload.new as Message);
+
+          // Invalidate conversations cache
+          queryClient.invalidateQueries({ queryKey: ['conversations', userId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  };
+  ```
+- [ ] Optimistic updates for instant UX:
+  ```typescript
+  // src/lib/query/hooks/useSendMessage.ts
+  export const useSendMessage = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+      mutationFn: (message: MessageInsert) => sendMessage(message),
+      onMutate: async (newMessage) => {
+        // Cancel outgoing refetches
+        await queryClient.cancelQueries({ queryKey: ['conversations'] });
+
+        // Snapshot previous value
+        const previousConversations = queryClient.getQueryData(['conversations']);
+
+        // Optimistically update cache
+        queryClient.setQueryData(['conversations', newMessage.sender_id], (old: any) => {
+          return [newMessage, ...old];
+        });
+
+        return { previousConversations };
+      },
+      onError: (err, newMessage, context) => {
+        // Rollback on error
+        queryClient.setQueryData(['conversations'], context?.previousConversations);
+      },
+      onSettled: () => {
+        // Refetch after mutation
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      },
+    });
+  };
+  ```
+
+**🧪 TESTING CHECKPOINT - CACHING (45 min):**
+- [ ] ✅ Open DevTools → React Query tab appears
+- [ ] ✅ Load profile → query cached (see in DevTools)
+- [ ] ✅ Switch tabs → return to profile → loads instantly (from cache)
+- [ ] ✅ Send message → optimistic update (appears before server confirms)
+- [ ] ✅ Real-time message → cache invalidated → refetches
+- [ ] ✅ Network tab: Fewer database queries (deduplication working)
+- [ ] 🧪 Throttle to Slow 3G → cached data appears instantly
+- [ ] 🧪 Disconnect internet → cached data still visible
+- [ ] 🧪 Reconnect → refetches fresh data
+- [ ] 📸 Screenshot of React Query DevTools
+- [ ] 📸 Screenshot of Network tab (showing reduced queries)
+- [ ] ⚠️ CRITICAL: Caching must reduce queries without stale data
+- [ ] ✅ Commit changes: "Implement intelligent caching with React Query"
+
+**Success Criteria:**
+- ✅ All data fetching uses React Query
+- ✅ Reduced database queries (>50% reduction)
+- ✅ Instant tab switching (cached data)
+- ✅ Real-time updates invalidate cache
+- ✅ Optimistic updates for better UX
+- ✅ No stale data bugs
+
+---
+
+### **PHASE 1.5 COMPLETION CRITERIA**
+
+**Before Proceeding to Phase 2:**
+- ✅ Database layer refactored into SOLID-compliant modules (<500 lines each)
+- ✅ TypeScript migration complete (>90% type coverage)
+- ✅ Test coverage >80% (unit, integration, E2E)
+- ✅ Error boundaries implemented (graceful failures)
+- ✅ API endpoint deployed (testimony generation)
+- ✅ Caching layer working (React Query)
+- ✅ All tests passing
+- ✅ Production build succeeds
+- ✅ Performance improved (measured with Lighthouse)
+- ✅ Code quality high (ESLint, Prettier)
+- ✅ Documentation updated
+
+**Expected Outcomes:**
+- 📦 Codebase is production-ready
+- 🚀 Performance improved (>50% faster page loads)
+- 🛡️ Reliability improved (graceful error handling)
+- 🧪 Confidence in code quality (comprehensive tests)
+- 👥 Team-ready (clear architecture, documentation)
+- 📈 Scalable foundation (SOLID principles, modular design)
+
+---
+
 ### PHASE 2: CORE FEATURES (3-4 weeks after MVP)
 
 **Week 7-8: Groups**
