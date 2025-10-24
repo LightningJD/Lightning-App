@@ -5,7 +5,7 @@ import { useUserProfile } from './useUserProfile';
 import { showError } from '../lib/toast';
 import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
-import { checkMilestoneSecret } from '../lib/secrets';
+import { checkMilestoneSecret, checkMessageSecrets } from '../lib/secrets';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp) => {
@@ -245,6 +245,9 @@ const MessagesTab = ({ nightMode }) => {
         } else if (totalMessages === 100) {
           checkMilestoneSecret('messages', 100);
         }
+
+        // Check message content for secrets (Amen 3x, scripture sharing)
+        checkMessageSecrets(messageContent);
 
         // Reload messages to get the real data
         const updatedMessages = await getConversation(

@@ -742,6 +742,9 @@ export const checkProfileSecrets = (profile) => {
   if (profile.bio && profile.bio.length >= 200) {
     unlockSecret('bio_inspiring');
   }
+
+  // Check bio content for "hallelujah"
+  checkBioSecret(profile.bio);
 };
 
 // Check scripture sharing secrets
@@ -779,4 +782,20 @@ export const checkEarlyAdopterSecret = (userId, userNumber) => {
   if (userNumber <= 1000) {
     unlockSecret('early_adopter');
   }
+};
+
+// Check message content for secrets
+export const checkMessageSecrets = (messageText) => {
+  if (!messageText) return;
+
+  const lowerText = messageText.toLowerCase();
+
+  // Count occurrences of "amen" (whole word only)
+  const amenMatches = lowerText.match(/\bamen\b/g);
+  if (amenMatches && amenMatches.length >= 3) {
+    unlockSecret('amen_3x');
+  }
+
+  // Check for scripture references
+  checkScriptureSecret(messageText);
 };

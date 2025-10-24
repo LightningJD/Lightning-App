@@ -24,6 +24,7 @@ import {
 import { useUserProfile } from './useUserProfile';
 import { GroupCardSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
+import { checkMessageSecrets } from '../lib/secrets';
 
 const GroupsTab = ({ nightMode }) => {
   const { profile } = useUserProfile();
@@ -225,6 +226,9 @@ const GroupsTab = ({ nightMode }) => {
     e.preventDefault();
     if (!newMessage.trim() || !profile?.supabaseId || !activeGroup) return;
 
+    // Save message content for secret checking
+    const messageContent = newMessage;
+
     // Optimistically add message
     const tempMessage = {
       id: Date.now(),
@@ -244,11 +248,14 @@ const GroupsTab = ({ nightMode }) => {
     const savedMessage = await sendGroupMessage(
       activeGroup,
       profile.supabaseId,
-      newMessage
+      messageContent
     );
 
     if (savedMessage) {
       console.log('✅ Group message sent!', savedMessage);
+
+      // Check message content for secrets (Amen 3x, scripture sharing)
+      checkMessageSecrets(messageContent);
     }
   };
 
