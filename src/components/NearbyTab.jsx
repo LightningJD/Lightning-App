@@ -1,20 +1,166 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import UserCard from './UserCard';
+import { UserCardSkeleton } from './SkeletonLoader';
+import OtherUserProfileDialog from './OtherUserProfileDialog';
+import { useUserProfile } from './useUserProfile';
+import {
+  getFriends,
+  findNearbyUsers,
+  getPendingFriendRequests,
+  getSentFriendRequests,
+  sendFriendRequest,
+  acceptFriendRequest,
+  declineFriendRequest,
+  unfriend,
+  checkFriendshipStatus,
+  getMutualFriends
+} from '../lib/database';
 
 const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, nightMode }) => {
-  const recommendedUsers = [
-    { id: 1, displayName: "Sarah Mitchell", username: "grace_walker", distance: "0.3 mi", avatar: "👤", online: true, mutualFriends: 3, reason: "3 mutual friends" },
-    { id: 2, displayName: "John Rivers", username: "john_rivers", distance: "0.8 mi", avatar: "🧑", online: true, mutualFriends: 1, reason: "1 mutual friend" },
-    { id: 3, displayName: "Maya Chen", username: "maya_heart", distance: "1.2 mi", avatar: "👩", online: false, mutualFriends: 2, reason: "2 mutual friends" },
-    { id: 4, displayName: "Marcus Johnson", username: "faith_seeker", distance: "2.1 mi", avatar: "👨", online: true, mutualFriends: 0, reason: "Nearby" },
-    { id: 5, displayName: "Emily Grace", username: "em_grace", distance: "3.5 mi", avatar: "👧", online: false, mutualFriends: 1, reason: "Similar interests" },
-  ];
+  const { profile } = useUserProfile();
+  const [isLoading, setIsLoading] = useState(true);
+  const [viewingUser, setViewingUser] = useState(null);
+  const [recommendedUsers, setRecommendedUsers] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
 
-  const friends = [
-    { id: 6, displayName: "Rachel Adams", username: "rachel_a", distance: "1.5 mi", avatar: "👩", online: true, mutualFriends: 0 },
-    { id: 7, displayName: "Joshua Lee", username: "josh_lee", distance: "4.2 mi", avatar: "🧑", online: false, mutualFriends: 0 },
-    { id: 8, displayName: "Daniel Kim", username: "dan_kim", distance: "0.9 mi", avatar: "👨", online: true, mutualFriends: 0 },
-  ];
+  // Load users and friends from database
+  useEffect(() => {
+    const loadData = async () => {
+      if (!profile?.supabaseId) {
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        // Load friends
+        const friendsList = await getFriends(profile.supabaseId);
+        setFriends(friendsList || []);
+
+        // Load pending friend requests
+        const pending = await getPendingFriendRequests(profile.supabaseId);
+        setPendingRequests(pending || []);
+
+        // Load sent requests
+        const sent = await getSentFriendRequests(profile.supabaseId);
+        setSentRequests(sent || []);
+
+        // Load nearby users (if location available)
+        if (profile.locationLat && profile.locationLng) {
+          const nearby = await findNearbyUsers(profile.locationLat, profile.locationLng, 25);
+
+          // Filter out current user and existing friends
+          const friendIds = new Set(friendsList?.map(f => f.id) || []);
+          const filteredUsers = nearby?.filter(u =>
+            u.id !== profile.supabaseId && !friendIds.has(u.id)
+          ) || [];
+
+          // Add mutual friends count and friendship status
+          const enrichedUsers = await Promise.all(
+            filteredUsers.map(async (user) => {
+              const mutualFriends = await getMutualFriends(profile.supabaseId, user.id);
+              const friendshipStatus = await checkFriendshipStatus(profile.supabaseId, user.id);
+
+              return {
+                ...user,
+                displayName: user.display_name,
+                avatarImage: user.avatar_url,
+                avatar: user.avatar_emoji,
+                online: user.is_online,
+                location: user.location_city || 'Unknown',
+                mutualFriends: mutualFriends?.length || 0,
+                reason: mutualFriends?.length > 0
+                  ? `${mutualFriends.length} mutual friend${mutualFriends.length > 1 ? 's' : ''}`
+                  : 'Nearby',
+                friendshipStatus // 'pending', 'accepted', null
+              };
+            })
+          );
+
+          setRecommendedUsers(enrichedUsers);
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [profile?.supabaseId, profile?.locationLat, profile?.locationLng]);
+
+  const handleViewProfile = (user) => {
+    setViewingUser(user);
+  };
+
+  const handleMessage = (user) => {
+    // TODO: Navigate to messages tab with this user
+    console.log('Message user:', user);
+  };
+
+  const handleAddFriend = async (userId) => {
+    if (!profile?.supabaseId) return;
+
+    try {
+      await sendFriendRequest(profile.supabaseId, userId);
+      // Reload data to update UI
+      const sent = await getSentFriendRequests(profile.supabaseId);
+      setSentRequests(sent || []);
+
+      // Update recommended users to show pending status
+      setRecommendedUsers(prev =>
+        prev.map(u =>
+          u.id === userId ? { ...u, friendshipStatus: 'pending' } : u
+        )
+      );
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+    }
+  };
+
+  const handleAcceptRequest = async (requestId) => {
+    if (!profile?.supabaseId) return;
+
+    try {
+      await acceptFriendRequest(requestId);
+      // Reload data
+      const pending = await getPendingFriendRequests(profile.supabaseId);
+      setPendingRequests(pending || []);
+      const friendsList = await getFriends(profile.supabaseId);
+      setFriends(friendsList || []);
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+    }
+  };
+
+  const handleDeclineRequest = async (requestId) => {
+    if (!profile?.supabaseId) return;
+
+    try {
+      await declineFriendRequest(requestId);
+      // Reload data
+      const pending = await getPendingFriendRequests(profile.supabaseId);
+      setPendingRequests(pending || []);
+    } catch (error) {
+      console.error('Error declining friend request:', error);
+    }
+  };
+
+  const handleUnfriend = async (friendId) => {
+    if (!profile?.supabaseId) return;
+
+    try {
+      await unfriend(profile.supabaseId, friendId);
+      // Reload data
+      const friendsList = await getFriends(profile.supabaseId);
+      setFriends(friendsList || []);
+    } catch (error) {
+      console.error('Error unfriending user:', error);
+    }
+  };
 
   const getSortedUsers = (usersList) => {
     return [...usersList].sort((a, b) => {
@@ -57,6 +203,7 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
             style={{
               background: 'transparent'
             }}
+            aria-label="Show recommended users"
           >
             Recommended
           </button>
@@ -66,6 +213,7 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
             style={{
               background: 'transparent'
             }}
+            aria-label="Show friends"
           >
             Friends
           </button>
@@ -93,6 +241,7 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)'
                 } : {}}
+                aria-label="Sort by recommended"
               >
                 Recommended
               </button>
@@ -112,6 +261,7 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)'
                 } : {}}
+                aria-label="Sort by distance"
               >
                 Nearby
               </button>
@@ -131,6 +281,7 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)'
                 } : {}}
+                aria-label="Sort by mutual friends"
               >
                 Mutual
               </button>
@@ -140,20 +291,98 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
       )}
 
       <div className="px-4 pb-20">
-        {activeConnectTab === 'recommended' ? (
+        {isLoading ? (
           <div className="space-y-3">
-            {sortedRecommended.map((user) => (
-              <UserCard key={user.id} user={user} showReason nightMode={nightMode} />
+            {[1, 2, 3, 4, 5].map((i) => (
+              <UserCardSkeleton key={i} nightMode={nightMode} />
             ))}
           </div>
+        ) : activeConnectTab === 'recommended' ? (
+          sortedRecommended.length === 0 ? (
+            <div
+              className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+              style={nightMode ? {} : {
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(30px)',
+                WebkitBackdropFilter: 'blur(30px)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+              }}
+            >
+              <div className="text-6xl mb-4">🔍</div>
+              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No users nearby</p>
+              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
+                We couldn't find any believers near you right now.
+              </p>
+              <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
+                <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                  💡 Tip: Try adjusting your search radius in Settings or check back later
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sortedRecommended.map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  showReason
+                  nightMode={nightMode}
+                  onViewProfile={handleViewProfile}
+                  onMessage={handleMessage}
+                  onAddFriend={handleAddFriend}
+                />
+              ))}
+            </div>
+          )
         ) : (
-          <div className="space-y-3">
-            {sortedFriends.map((user) => (
-              <UserCard key={user.id} user={user} isFriend nightMode={nightMode} />
-            ))}
-          </div>
+          sortedFriends.length === 0 ? (
+            <div
+              className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+              style={nightMode ? {} : {
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(30px)',
+                WebkitBackdropFilter: 'blur(30px)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+              }}
+            >
+              <div className="text-6xl mb-4">👥</div>
+              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No friends yet</p>
+              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
+                Connect with users from the Recommended tab to add them as friends!
+              </p>
+              <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
+                <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                  💡 Tip: Visit the <span className="font-bold">Recommended</span> tab to find believers near you
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sortedFriends.map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  isFriend
+                  nightMode={nightMode}
+                  onViewProfile={handleViewProfile}
+                  onMessage={handleMessage}
+                  onUnfriend={handleUnfriend}
+                />
+              ))}
+            </div>
+          )
         )}
       </div>
+
+      {/* Other User Profile Dialog */}
+      {viewingUser && (
+        <OtherUserProfileDialog
+          user={viewingUser}
+          onClose={() => setViewingUser(null)}
+          nightMode={nightMode}
+          onMessage={handleMessage}
+        />
+      )}
     </div>
   );
 };
