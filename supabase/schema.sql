@@ -19,6 +19,7 @@ CREATE TABLE users (
   avatar_url TEXT,
   avatar_emoji TEXT DEFAULT '👤',
   bio TEXT,
+  location_city TEXT, -- User's city/location for display
   location_lat DECIMAL,
   location_lng DECIMAL,
   location_point GEOGRAPHY(POINT, 4326), -- PostGIS point for spatial queries
@@ -330,6 +331,11 @@ RETURNS TABLE (
     username TEXT,
     display_name TEXT,
     avatar_emoji TEXT,
+    avatar_url TEXT,
+    bio TEXT,
+    location_city TEXT,
+    is_online BOOLEAN,
+    has_testimony BOOLEAN,
     distance_miles DECIMAL
 ) AS $$
 BEGIN
@@ -339,6 +345,11 @@ BEGIN
         u.username,
         u.display_name,
         u.avatar_emoji,
+        u.avatar_url,
+        u.bio,
+        u.location_city,
+        u.is_online,
+        u.has_testimony,
         ROUND(
             ST_Distance(
                 u.location_point,
