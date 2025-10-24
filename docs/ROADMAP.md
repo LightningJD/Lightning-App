@@ -773,6 +773,322 @@ CREATE TABLE notifications (
 
 ---
 
+## 🎯 CONVERSION STRATEGIES
+
+### Strategy 1: Testimony-First Conversion (PRIORITY - Highest ROI)
+
+**Concept:** Allow anyone to create a testimony BEFORE signing up, then prompt them to save/publish it.
+
+**Why This Works:**
+1. **Psychological Commitment (Sunk Cost Fallacy):**
+   - User spends 5-10 minutes answering 4 questions
+   - User watches AI generate their personal story
+   - User reads their completed testimony (emotional connection)
+   - Loss aversion: "I don't want to lose this beautiful testimony I just created"
+   - Estimated conversion: **65-80%** (highest of all strategies)
+
+2. **Experience-First, Gate-Later:**
+   - User experiences core value BEFORE friction
+   - Proves the product works (builds trust)
+   - Removes "what if it's not good?" doubt
+   - Similar to: Canva (design first, signup to save), Grammarly (edit first, signup for premium)
+
+3. **Intent Signal:**
+   - Only serious users create testimonies
+   - Filters out casual browsers
+   - Higher quality signups (engaged users)
+   - These users more likely to be active long-term
+
+4. **Emotional Connection:**
+   - Testimonies are deeply personal
+   - Users feel vulnerable sharing their story
+   - Creates stronger bond with the app
+   - "This app helped me articulate my faith journey"
+
+**Implementation:**
+```
+1. Guest clicks "Share Your Testimony" → No signup required
+2. Guest answers 4 questions (full experience)
+3. AI generates testimony (show full generated text)
+4. Modal appears: "✨ Save Your Testimony"
+   - "Your story is ready! Create a free account to:"
+   - ✓ Publish your testimony
+   - ✓ Share with the community
+   - ✓ Connect with believers who relate
+   - ✓ Keep your story forever
+   - [Sign Up with Google] (primary)
+   - [Continue Without Saving] (secondary - shown in small text)
+5. If user signs up → Testimony auto-saves to their profile
+6. If user dismisses → Store testimony in localStorage
+   - Next visit: "Welcome back! Your testimony is waiting. Sign up to publish it."
+   - 7-day retention: Remind user via browser notification (if granted)
+```
+
+**Edge Cases:**
+- User refreshes during generation → Save answers in localStorage
+- User closes modal without signing up → Store testimony, show reminder on next visit
+- User signs up later → Migrate saved testimony to their account
+
+**Expected Conversion Rate:** 65-80% (compared to 35-45% for passive browsing limits)
+
+---
+
+### Strategy 2: Freemium Browse & Block (IMPLEMENTED - Infrastructure Ready)
+
+**Concept:** Let guests browse 2 testimonies, scroll 3 users, then require signup.
+
+**Why This Works:**
+1. **FOMO (Fear of Missing Out):**
+   - "I want to read the rest of that testimony..."
+   - "I saw someone interesting, but now I can't message them"
+   - Creates urgency without being pushy
+
+2. **Social Proof:**
+   - Guest sees real testimonies from real people
+   - "Wow, these stories are powerful"
+   - Validates the community quality
+
+3. **Hybrid Approach (Instagram + Reddit):**
+   - Aggressive enough to convert (35-45%)
+   - Lenient enough to not frustrate users
+   - 2 testimonies = 5-6 minutes of content (enough to decide)
+
+**Implementation Status:**
+- ✅ Infrastructure 100% complete (guestSession.js, SignupModal.jsx, useGuestModal.js, GuestModalContext.jsx)
+- ⏳ Tracking integration pending (30-60 mins)
+- 📊 See `/docs/FREEMIUM_AUTH_STRATEGY.md` for full analysis
+- 📋 See `/docs/FREEMIUM_IMPLEMENTATION_STATUS.md` for integration guide
+
+**Expected Conversion Rate:** 35-45%
+
+---
+
+### Strategy 3: Social Proof & Testimonials (Quick Win)
+
+**Concept:** Show signup stats and recent activity to build trust.
+
+**Implementation Ideas:**
+1. **Live Counter on Landing/Profile:**
+   - "Join 1,247 believers sharing their stories"
+   - Updates in real-time (motivates joining a movement)
+
+2. **Recent Testimonies Feed (Public Preview):**
+   - Show 3 recent testimonies on landing page
+   - "See what others are sharing..."
+   - Truncated with "Sign up to read more"
+
+3. **Social Proof Badges:**
+   - "Sarah, John, and 12 others from your area are on Lightning"
+   - "15 new testimonies shared this week"
+   - "328 believers connected this month"
+
+4. **Trust Indicators:**
+   - "🔒 Your story is private until you choose to share"
+   - "⚡ AI-powered, human-approved"
+   - "🙏 Built by believers, for believers"
+
+**Expected Conversion Lift:** +10-15% (additive to other strategies)
+
+---
+
+### Strategy 4: Scarcity & Exclusivity (Growth Hack)
+
+**Concept:** Create artificial scarcity to increase demand.
+
+**Implementation Ideas:**
+1. **Beta Waitlist (Launch Phase):**
+   - "Lightning is currently invite-only"
+   - "Join 500 people on the waitlist"
+   - Request email → Send invite code in 2-3 days
+   - Psychology: "If it's exclusive, it must be valuable"
+
+2. **Invite System:**
+   - Each user gets 5 invite codes
+   - "Invite friends to skip the waitlist"
+   - Creates viral loop (users recruit users)
+   - Similar to: Gmail (invite-only initially), Clubhouse, OnlyFans
+
+3. **Limited-Time Features:**
+   - "Sign up this week to get early access to Groups"
+   - "First 1,000 users get a Founder badge"
+   - Urgency + exclusivity = higher conversion
+
+**Expected Conversion Lift:** +20-30% (during launch phase)
+
+---
+
+### Strategy 5: Progressive Profiling (Reduce Friction)
+
+**Concept:** Minimize signup friction, collect data gradually.
+
+**Implementation:**
+1. **One-Click Signup:**
+   - "Continue with Google" (no email/password)
+   - Auto-generate username (let them change later)
+   - NO multi-step forms initially
+
+2. **Post-Signup Gradual Data Collection:**
+   - Step 1 (immediate): Just sign in
+   - Step 2 (after 1 min): "Add your name and location" (optional)
+   - Step 3 (after viewing 3 profiles): "Upload a profile picture to connect with others"
+   - Step 4 (after 1 day): "Share your testimony to complete your profile"
+
+3. **Profile Completeness Bar:**
+   - "Your profile is 60% complete"
+   - Shows missing items: Testimony (40%), Bio (10%), Picture (20%), Location (10%)
+   - Gamification: Users want to hit 100%
+
+**Expected Conversion Lift:** +25-35% (reduces signup abandonment)
+
+---
+
+### Strategy 6: Personalized Onboarding (Retention Tool)
+
+**Concept:** Tailor experience based on user intent.
+
+**Implementation:**
+1. **First-Time User Flow:**
+   - "What brings you to Lightning?" (multi-choice)
+     - [ ] I want to share my testimony
+     - [ ] I want to read others' stories
+     - [ ] I'm looking for Christian friends nearby
+     - [ ] I want to join a faith-based group
+
+2. **Intent-Based Routing:**
+   - Selected "Share testimony" → Direct to testimony generator
+   - Selected "Read stories" → Show curated testimonies feed
+   - Selected "Find friends" → Show Connect tab with nearby users
+   - Selected "Join group" → Show popular groups
+
+3. **Quick Wins:**
+   - "Complete these 3 actions to get started:"
+   - ✓ Add your testimony (40% complete)
+   - ✓ Connect with 3 believers (0% complete)
+   - ✓ Join your first group (0% complete)
+   - Progress bar motivates completion
+
+**Expected Retention Lift:** +30-40% (keeps users engaged past Day 1)
+
+---
+
+### Strategy 7: Email Re-engagement (Recovery Tool)
+
+**Concept:** Win back users who signed up but didn't complete profile.
+
+**Implementation:**
+1. **Drip Campaign for Incomplete Profiles:**
+   - Day 1: "Welcome to Lightning! Complete your profile to start connecting."
+   - Day 3: "You're missing out! 47 new believers joined this week."
+   - Day 7: "Your testimony is waiting. Share your story in 5 minutes."
+   - Day 14: "Last chance: Your Lightning account will expire soon."
+
+2. **Behavioral Triggers:**
+   - User viewed 2 testimonies but didn't create one → "Ready to share your story?"
+   - User added 3 friends but no messages → "Say hi to your new connections!"
+   - User joined group but silent → "Introduce yourself in [Group Name]!"
+
+3. **Win-Back Incentives:**
+   - "Come back and get featured in this week's spotlight"
+   - "Your friends are wondering where you went"
+   - "Someone liked your testimony!"
+
+**Expected Recovery Rate:** 15-25% of inactive users
+
+---
+
+### Strategy 8: Referral Program (Viral Growth)
+
+**Concept:** Turn users into recruiters with incentives.
+
+**Implementation:**
+1. **Invite & Earn:**
+   - "Invite 3 friends, unlock Premium features for free"
+   - Each referral = 1 month free premium
+   - Track via unique referral codes
+
+2. **Friend Finder:**
+   - "Find friends from your contacts"
+   - Import contacts (with permission)
+   - "5 of your contacts are already on Lightning!"
+
+3. **Social Sharing:**
+   - "Share your testimony on Facebook/Twitter"
+   - Auto-generate beautiful social cards
+   - Include "Created with Lightning ⚡" watermark
+   - Links back to signup page
+
+**Expected Growth Rate:** 1.3x viral coefficient (each user brings 0.3 more users)
+
+---
+
+### Strategy 9: Exit-Intent Popup (Last Chance)
+
+**Concept:** Catch users before they leave.
+
+**Implementation:**
+1. **Mouse Leaves Browser Window:**
+   - Show modal: "Before you go..."
+   - "Join 1,200 believers sharing their faith journey"
+   - [Sign Up in 10 Seconds] button
+   - Discount/incentive: "Get featured in this week's newsletter"
+
+2. **Session Timeout (After 5 Minutes Inactive):**
+   - "Still there? Save your progress by creating a free account."
+   - Prevents data loss (esp. for testimony drafts)
+
+**Expected Conversion Lift:** +5-10% (low effort, decent ROI)
+
+---
+
+### Strategy 10: Notifications & Push (Re-engagement)
+
+**Concept:** Bring users back with timely notifications.
+
+**Implementation:**
+1. **Browser Push Notifications:**
+   - "John liked your testimony!"
+   - "Sarah wants to connect with you"
+   - "Your friend just shared their story"
+   - Re-engagement: Brings users back daily
+
+2. **In-App Notification Badge:**
+   - Red badge on Messages/Connect tabs
+   - FOMO: "I need to check what I'm missing"
+
+3. **Email Digests:**
+   - Weekly: "5 new testimonies from your area"
+   - Monthly: "You inspired 12 people this month"
+
+**Expected Re-engagement Rate:** 40-50% of users return within 7 days
+
+---
+
+### 📊 COMBINED STRATEGY RECOMMENDATION
+
+**Phase 1 (Beta Launch - 50 users):**
+1. ✅ **Testimony-First Conversion** (65-80% conversion) - PRIORITY
+2. ✅ **Progressive Profiling** (one-click Google signup)
+3. ✅ **Social Proof** (live counter, recent testimonies)
+4. ✅ **Scarcity** (invite-only beta)
+
+**Phase 2 (Public Launch - 1,000 users):**
+5. ✅ **Freemium Browse & Block** (35-45% conversion for casual browsers)
+6. ✅ **Personalized Onboarding** (intent-based routing)
+7. ✅ **Email Re-engagement** (drip campaigns)
+
+**Phase 3 (Growth - 10,000+ users):**
+8. ✅ **Referral Program** (viral growth)
+9. ✅ **Exit-Intent Popup** (recover abandoners)
+10. ✅ **Push Notifications** (daily re-engagement)
+
+**Expected Combined Results:**
+- **Signup Conversion:** 65-80% (testimony-first) + 10-15% (social proof) = **75-95%** for testimony creators
+- **Browse Conversion:** 35-45% (freemium) + 10-15% (social proof) = **45-60%** for browsers
+- **Day 7 Retention:** 60-70% (personalized onboarding + email re-engagement)
+- **Viral Coefficient:** 1.3x (referral program)
+
+---
+
 ## 🎯 LAUNCH CRITERIA
 
 ### Before Beta Launch (50 users):
@@ -785,6 +1101,8 @@ CREATE TABLE notifications (
 - ✅ Legal pages published
 - ✅ Mobile responsive
 - [ ] **Apple Sign In** enabled (requires Apple Developer account - $99/year)
+- [ ] **Freemium Auth Integration** (30-60 mins) - Infrastructure complete, tracking integration pending
+- [ ] **Testimony-First Conversion** - Allow testimony creation BEFORE signup, then prompt to save
 
 ### Before Public Launch (unlimited users):
 - ✅ All Phase 2 tasks complete
@@ -872,6 +1190,52 @@ CREATE TABLE notifications (
 ---
 
 ## 🔄 UPDATE LOG
+
+**October 23, 2025 (Night)** - Conversion Strategies Documentation & Roadmap Update
+- **🎯 10 Conversion Strategies Added:**
+  1. **Testimony-First Conversion (PRIORITY):** Allow guests to create testimonies BEFORE signup
+     - Expected conversion: 65-80% (highest ROI strategy)
+     - Psychology: Sunk cost fallacy + emotional connection + loss aversion
+     - Implementation: Let anyone generate testimony, then prompt to save/publish
+     - Similar to: Canva (design first, save later), Grammarly (edit first, upgrade later)
+  2. **Freemium Browse & Block:** 2 testimonies, 3 users, 1 dismissal, 3-minute window
+     - Expected conversion: 35-45%
+     - Infrastructure 100% complete, tracking integration pending
+  3. **Social Proof & Testimonials:** Live counters, recent activity, trust badges
+     - Expected lift: +10-15%
+  4. **Scarcity & Exclusivity:** Beta waitlist, invite system, limited-time features
+     - Expected lift: +20-30% (during launch)
+  5. **Progressive Profiling:** One-click signup, gradual data collection, completeness bar
+     - Expected lift: +25-35% (reduces abandonment)
+  6. **Personalized Onboarding:** Intent-based routing, quick wins, progress tracking
+     - Expected retention lift: +30-40%
+  7. **Email Re-engagement:** Drip campaigns, behavioral triggers, win-back incentives
+     - Expected recovery: 15-25% of inactive users
+  8. **Referral Program:** Invite & earn, friend finder, social sharing
+     - Expected viral coefficient: 1.3x
+  9. **Exit-Intent Popup:** Mouse exit detection, session timeout, last chance offer
+     - Expected lift: +5-10%
+  10. **Notifications & Push:** Browser push, in-app badges, email digests
+     - Expected re-engagement: 40-50% return within 7 days
+- **📊 Combined Strategy Results:**
+  - Testimony creators: 75-95% conversion
+  - Browsers: 45-60% conversion
+  - Day 7 retention: 60-70%
+  - Viral coefficient: 1.3x
+- **🚀 Launch Criteria Updated:**
+  - Added "Freemium Auth Integration" as pre-launch requirement
+  - Added "Testimony-First Conversion" as pre-launch requirement
+- **📝 Rationale for Testimony-First:**
+  - Users invest 5-10 minutes creating testimony (psychological commitment)
+  - Experience core value BEFORE friction (builds trust)
+  - Only serious users create testimonies (filters quality)
+  - Deeply personal stories create emotional connection
+  - Similar to industry-leading products (Canva, Grammarly, Figma)
+- **🎓 Why This Matters:**
+  - Current approach: Auth → Profile → Testimony (multi-step friction)
+  - New approach: Testimony → Auth → Auto-save (single decision point)
+  - Users get instant value, then choose to keep it
+  - Dramatically reduces signup abandonment
 
 **October 23, 2025 (Evening)** - Real-Time Messaging Backend COMPLETE ✅
 - **Week 3 Progress: Messaging Backend - ✅ COMPLETE**
