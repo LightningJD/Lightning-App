@@ -53,7 +53,7 @@ export const useUserProfile = () => {
     username: supabaseUser?.username || user.username || user.emailAddresses[0]?.emailAddress.split('@')[0] || 'user',
     displayName: supabaseUser?.display_name || user.fullName || user.firstName || user.username || 'User',
     avatar: supabaseUser?.avatar_emoji || user.publicMetadata?.customAvatar || getDefaultAvatar(),
-    avatarImage: user.imageUrl, // Keep Clerk's image URL for future use
+    avatarImage: supabaseUser?.avatar_url || user.imageUrl, // Cloudinary upload or Clerk's image
     email: user.primaryEmailAddress?.emailAddress,
     bio: supabaseUser?.bio || user.publicMetadata?.bio || 'Welcome to Lightning! Share your testimony to inspire others.',
     hasTestimony: testimony ? true : (supabaseUser?.has_testimony || false),
