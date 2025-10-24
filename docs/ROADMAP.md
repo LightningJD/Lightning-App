@@ -2554,16 +2554,6 @@ AI content generation was rejected due to testimony integrity concerns. Users' e
 **Philosophy:** Security first, scale-ready, user-friendly errors
 
 **Why This Matters:**
-
----
-
-### PHASE 1.75: PRODUCTION HARDENING & SECURITY (Parallel with Phase 1.5 or immediately after)
-
-**Purpose:** Make the app production-ready with security, scalability, and data protection
-**Duration:** 2-3 weeks (can run parallel with Phase 1.5 modules)
-**Philosophy:** Security first, scale-ready, user-friendly errors
-
-**Why This Matters:**
 Phase 1.5 makes code maintainable. Phase 1.75 makes the app secure and scalable. Together, they create a bulletproof foundation for 10,000+ users.
 
 **Modules:**
@@ -3891,6 +3881,3 @@ serve(async () => {
 
 ---
 
-### PHASE 2: CORE FEATURES (3-4 weeks after MVP)
-
-**Week 7-8: Groups**
