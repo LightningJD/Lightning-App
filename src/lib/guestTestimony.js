@@ -23,7 +23,6 @@ export const saveGuestTestimony = (testimonyData) => {
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    console.log('💾 Guest testimony saved to localStorage', data);
     return true;
   } catch (error) {
     console.error('Failed to save guest testimony:', error);
@@ -41,7 +40,6 @@ export const getGuestTestimony = () => {
     if (!data) return null;
 
     const testimony = JSON.parse(data);
-    console.log('📖 Guest testimony loaded from localStorage', testimony);
     return testimony;
   } catch (error) {
     console.error('Failed to load guest testimony:', error);
@@ -63,7 +61,6 @@ export const hasGuestTestimony = () => {
 export const clearGuestTestimony = () => {
   try {
     localStorage.removeItem(STORAGE_KEY);
-    console.log('🗑️ Guest testimony cleared from localStorage');
     return true;
   } catch (error) {
     console.error('Failed to clear guest testimony:', error);

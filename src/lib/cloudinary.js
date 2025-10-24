@@ -57,8 +57,6 @@ export const uploadImage = async (file, options = {}) => {
   }
 
   try {
-    console.log('📤 Uploading image to Cloudinary...');
-
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
       {
@@ -74,7 +72,6 @@ export const uploadImage = async (file, options = {}) => {
     }
 
     const data = await response.json();
-    console.log('✅ Image uploaded successfully:', data.secure_url);
 
     return {
       url: data.secure_url,

@@ -33,7 +33,6 @@ export const initGuestSession = () => {
       isReturningVisitor: false
     };
     localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(newSession));
-    console.log('🆕 New guest session created:', newSession);
     return newSession;
   }
 
@@ -45,7 +44,6 @@ export const initGuestSession = () => {
     localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(parsed));
   }
 
-  console.log('🔄 Existing guest session loaded:', parsed);
   return parsed;
 };
 
@@ -60,7 +58,6 @@ export const updateGuestSession = (updates) => {
     lastVisit: new Date().toISOString()
   };
   localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(updated));
-  console.log('✏️ Guest session updated:', updates);
   return updated;
 };
 
@@ -71,46 +68,37 @@ export const updateGuestSession = (updates) => {
 export const checkGuestLimit = () => {
   const session = initGuestSession();
 
-  console.log('🔍 Checking guest limits...', session);
-
   // Returning visitors get blocked immediately
   if (session.isReturningVisitor && session.testimoniesViewed > 0) {
-    console.log('⛔ Returning visitor - immediate block');
     return { blocked: true, reason: 'returning_visitor', version: 2 };
   }
 
   // Already dismissed once = hard block
   if (session.modalDismissCount >= HYBRID_LIMITS.modalDismissCount) {
-    console.log('⛔ Modal dismissed limit reached - hard block');
     return { blocked: true, reason: 'dismissals', version: 2 };
   }
 
   // Viewed 2 testimonies = soft block (can dismiss)
   if (session.testimoniesViewed >= HYBRID_LIMITS.testimoniesViewed) {
-    console.log('⚠️ Testimony limit reached - soft block');
     return { blocked: true, reason: 'testimonies', version: 1 };
   }
 
   // Viewed 1 profile preview and trying to see full = soft block
   if (session.profilePreviewsViewed >= HYBRID_LIMITS.profilePreviewsViewed) {
-    console.log('⚠️ Profile preview limit reached');
     return { blocked: true, reason: 'profiles', version: 1 };
   }
 
   // Scrolled past 3 users = soft block
   if (session.usersScrolled >= HYBRID_LIMITS.usersScrolled) {
-    console.log('⚠️ User scroll limit reached');
     return { blocked: true, reason: 'users', version: 1 };
   }
 
   // 3 minutes elapsed = soft block
   const timeElapsed = Date.now() - new Date(session.firstVisit).getTime();
   if (timeElapsed > HYBRID_LIMITS.timeLimit) {
-    console.log('⚠️ Time limit reached (3 min)');
     return { blocked: true, reason: 'time', version: 1 };
   }
 
-  console.log('✅ Guest within limits');
   return { blocked: false };
 };
 
@@ -170,7 +158,6 @@ export const trackModalDismiss = () => {
  */
 export const clearGuestSession = () => {
   localStorage.removeItem(GUEST_SESSION_KEY);
-  console.log('🗑️ Guest session cleared');
 };
 
 /**

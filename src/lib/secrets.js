@@ -509,13 +509,11 @@ export const isSecretDiscovered = (secretId) => {
 export const unlockSecret = (secretId) => {
   const secret = secrets[secretId];
   if (!secret) {
-    console.warn('Unknown secret:', secretId);
     return false;
   }
 
   // Check if already discovered
   if (isSecretDiscovered(secretId)) {
-    console.log('🔒 Already found:', secret.name);
     return false;
   }
 
@@ -525,7 +523,6 @@ export const unlockSecret = (secretId) => {
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(discovered));
-    console.log('🎉 Secret Unlocked:', secret.name);
 
     // Show toast notification
     showSecretToast(secret);
@@ -664,15 +661,12 @@ export const startTimeBasedSecrets = () => {
   timeCheckInterval = setInterval(() => {
     checkTimeBasedSecrets();
   }, 60000); // 60 seconds
-
-  console.log('⏰ Time-based secrets activated');
 };
 
 export const stopTimeBasedSecrets = () => {
   if (timeCheckInterval) {
     clearInterval(timeCheckInterval);
     timeCheckInterval = null;
-    console.log('⏰ Time-based secrets stopped');
   }
 };
 

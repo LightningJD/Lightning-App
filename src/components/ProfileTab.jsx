@@ -230,10 +230,15 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-xs font-medium truncate ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                      {profile.music.trackName} <span className={`${nightMode ? 'text-slate-300' : 'text-black/60'}`}>• {profile.music.artist}</span>
-                    </p>
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="inline-flex animate-scroll">
+                      <p className={`text-xs font-medium whitespace-nowrap ${nightMode ? 'text-slate-100' : 'text-black'} pr-8`}>
+                        {profile.music.trackName} <span className={`${nightMode ? 'text-slate-300' : 'text-black/60'}`}>• {profile.music.artist}</span>
+                      </p>
+                      <p className={`text-xs font-medium whitespace-nowrap ${nightMode ? 'text-slate-100' : 'text-black'} pr-8`}>
+                        {profile.music.trackName} <span className={`${nightMode ? 'text-slate-300' : 'text-black/60'}`}>• {profile.music.artist}</span>
+                      </p>
+                    </div>
                   </div>
                   <span className={`text-[10px] ${nightMode ? 'text-slate-400' : 'text-slate-500'} flex-shrink-0`}>
                     {formatTime(audioRef.current?.currentTime)}

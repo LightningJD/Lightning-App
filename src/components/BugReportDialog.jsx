@@ -46,9 +46,6 @@ export default function BugReportDialog({ onClose, nightMode, currentTab, userPr
       existingReports.push(bugReport);
       localStorage.setItem('lightning_bug_reports', JSON.stringify(existingReports));
 
-      // Log to console for developers
-      console.log('🐛 Bug Report Submitted:', bugReport);
-
       showSuccess('Bug report submitted! Thank you for helping us improve.');
 
       // Close dialog after short delay
