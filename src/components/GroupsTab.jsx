@@ -24,7 +24,7 @@ import {
 import { useUserProfile } from './useUserProfile';
 import { GroupCardSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
-import { checkMessageSecrets } from '../lib/secrets';
+import { checkMessageSecrets, unlockSecret } from '../lib/secrets';
 
 const GroupsTab = ({ nightMode }) => {
   const { profile } = useUserProfile();
@@ -209,6 +209,10 @@ const GroupsTab = ({ nightMode }) => {
 
     if (newGroup) {
       console.log('✅ Group created!', newGroup);
+
+      // Unlock group creator secret
+      unlockSecret('group_creator');
+
       // Reload groups
       const groups = await getUserGroups(profile.supabaseId);
       setMyGroups(groups || []);
