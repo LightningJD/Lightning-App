@@ -12,9 +12,11 @@ import ProfileCreationWizard from './components/ProfileCreationWizard';
 import ProfileEditDialog from './components/ProfileEditDialog';
 import EditTestimonyDialog from './components/EditTestimonyDialog';
 import ConfirmDialog from './components/ConfirmDialog';
+import SaveTestimonyModal from './components/SaveTestimonyModal';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
+import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
 
 function App() {
   const { signOut } = useClerk();
@@ -43,6 +45,7 @@ function App() {
   });
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
 
   // Network status detection
   React.useEffect(() => {
@@ -150,6 +153,51 @@ function App() {
     }
   ];
 
+  // Auto-save guest testimony when user signs up
+  React.useEffect(() => {
+    const autoSaveGuestTestimony = async () => {
+      if (isAuthenticated && userProfile?.supabaseId) {
+        const guestTestimony = getGuestTestimony();
+
+        if (guestTestimony) {
+          console.log('🎉 User signed up! Auto-saving guest testimony to database...');
+          const toastId = showLoading('Saving your testimony...');
+
+          try {
+            const saved = await createTestimony(userProfile.supabaseId, {
+              content: guestTestimony.content,
+              question1: guestTestimony.answers.question1,
+              question2: guestTestimony.answers.question2,
+              question3: guestTestimony.answers.question3,
+              question4: guestTestimony.answers.question4,
+              lesson: guestTestimony.lesson || 'My journey taught me that transformation is possible through faith.',
+              isPublic: true
+            });
+
+            if (saved) {
+              clearGuestTestimony();
+              updateToSuccess(toastId, 'Your testimony has been published!');
+              console.log('✅ Guest testimony auto-saved and cleared from localStorage');
+
+              // Close the save testimony modal if it's open
+              setShowSaveTestimonyModal(false);
+
+              // Reload to show the testimony on profile
+              setTimeout(() => window.location.reload(), 1500);
+            } else {
+              throw new Error('Failed to save testimony');
+            }
+          } catch (error) {
+            console.error('❌ Failed to auto-save guest testimony:', error);
+            updateToError(toastId, 'Testimony saved locally. You can publish it from your profile.');
+          }
+        }
+      }
+    };
+
+    autoSaveGuestTestimony();
+  }, [isAuthenticated, userProfile?.supabaseId]);
+
   // Check if profile needs to be completed (first-time users)
   React.useEffect(() => {
     if (isAuthenticated && userProfile && userProfile.supabaseId) {
@@ -228,10 +276,10 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
 
         setGeneratedTestimony(demoTestimony);
 
-        // Save testimony to database
-        console.log('Attempting to save testimony... Profile:', profile);
-        if (profile.supabaseId) {
-          console.log('Supabase ID found:', profile.supabaseId);
+        // For authenticated users: Save to database immediately
+        // For guests: Show save modal (Testimony-First Conversion)
+        if (isAuthenticated && profile?.supabaseId) {
+          console.log('Authenticated user - saving testimony to database');
           const saved = await createTestimony(profile.supabaseId, {
             content: demoTestimony,
             question1: testimonyAnswers[0],
@@ -244,11 +292,31 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
 
           if (saved) {
             console.log('✅ Testimony saved to database!', saved);
+            showSuccess('Testimony saved to your profile!');
           } else {
             console.error('❌ Failed to save testimony');
+            showError('Failed to save testimony. Please try again.');
           }
         } else {
-          console.error('❌ No Supabase ID found. Profile:', profile);
+          // Guest user - save to localStorage and show conversion modal
+          console.log('💡 Guest user - saving testimony to localStorage');
+          const testimonyData = {
+            content: demoTestimony,
+            answers: {
+              question1: testimonyAnswers[0],
+              question2: testimonyAnswers[1],
+              question3: testimonyAnswers[2],
+              question4: testimonyAnswers[3]
+            },
+            lesson: 'My journey taught me that transformation is possible through faith.'
+          };
+
+          saveGuestTestimony(testimonyData);
+
+          // Show save testimony modal after a brief delay (let them see the testimony first)
+          setTimeout(() => {
+            setShowSaveTestimonyModal(true);
+          }, 1500);
         }
       } finally {
         setIsGenerating(false);
@@ -299,6 +367,19 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
   const handleSkipProfileWizard = () => {
     setShowProfileWizard(false);
     setProfileCompleted(true); // Don't show again this session
+  };
+
+  const handleContinueAsGuest = () => {
+    // Close modal and let guest continue browsing with testimony saved
+    setShowSaveTestimonyModal(false);
+    showSuccess('Testimony saved! Sign up anytime to publish it.');
+    console.log('💾 Guest chose to continue without signup - testimony remains in localStorage');
+  };
+
+  const handleSaveTestimonyModalClose = () => {
+    // Don't allow closing without making a choice (force decision)
+    // User must either sign up or click "Continue as Guest"
+    console.log('⚠️ User tried to close save testimony modal');
   };
 
   const handleProfileEdit = async (profileData) => {
@@ -1008,6 +1089,15 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         cancelText="Cancel"
         variant="danger"
         nightMode={nightMode}
+      />
+
+      {/* Save Testimony Modal (Testimony-First Conversion) */}
+      <SaveTestimonyModal
+        isOpen={showSaveTestimonyModal}
+        onClose={handleSaveTestimonyModalClose}
+        onContinueAsGuest={handleContinueAsGuest}
+        nightMode={nightMode}
+        testimonyPreview={generatedTestimony}
       />
       </div>
     </GuestModalProvider>
