@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Heart, Share2, ExternalLink, Plus, Edit3, MapPin } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
-import { unlockSecret } from '../lib/easterEggs';
+import { unlockSecret } from '../lib/secrets';
 
 const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => {
   const [isLiked, setIsLiked] = useState(false);
