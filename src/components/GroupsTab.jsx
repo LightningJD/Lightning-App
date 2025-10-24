@@ -25,6 +25,7 @@ import { useUserProfile } from './useUserProfile';
 import { GroupCardSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { checkMessageSecrets, unlockSecret } from '../lib/secrets';
+import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
 
 const GroupsTab = ({ nightMode }) => {
   const { profile } = useUserProfile();
@@ -260,6 +261,24 @@ const GroupsTab = ({ nightMode }) => {
 
       // Check message content for secrets (Amen 3x, scripture sharing)
       checkMessageSecrets(messageContent);
+
+      // Track message timing for early bird / night owl secrets
+      trackMessageByHour();
+      const earlyBirdCount = getEarlyBirdMessages();
+      const nightOwlCount = getNightOwlMessages();
+
+      if (earlyBirdCount >= 10) {
+        unlockSecret('early_bird_messenger');
+      }
+      if (nightOwlCount >= 10) {
+        unlockSecret('night_owl_messenger');
+      }
+
+      // Track message streak for consistent encourager
+      const streak = trackMessageStreak();
+      if (streak >= 7) {
+        unlockSecret('messages_streak_7');
+      }
     }
   };
 

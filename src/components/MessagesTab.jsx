@@ -5,7 +5,8 @@ import { useUserProfile } from './useUserProfile';
 import { showError } from '../lib/toast';
 import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
-import { checkMilestoneSecret, checkMessageSecrets } from '../lib/secrets';
+import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/secrets';
+import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak, getMessageStreak } from '../lib/activityTracker';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp) => {
@@ -248,6 +249,24 @@ const MessagesTab = ({ nightMode }) => {
 
         // Check message content for secrets (Amen 3x, scripture sharing)
         checkMessageSecrets(messageContent);
+
+        // Track message timing for early bird / night owl secrets
+        trackMessageByHour();
+        const earlyBirdCount = getEarlyBirdMessages();
+        const nightOwlCount = getNightOwlMessages();
+
+        if (earlyBirdCount >= 10) {
+          unlockSecret('early_bird_messenger');
+        }
+        if (nightOwlCount >= 10) {
+          unlockSecret('night_owl_messenger');
+        }
+
+        // Track message streak for consistent encourager
+        const streak = trackMessageStreak();
+        if (streak >= 7) {
+          unlockSecret('messages_streak_7');
+        }
 
         // Reload messages to get the real data
         const updatedMessages = await getConversation(
