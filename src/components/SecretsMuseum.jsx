@@ -1,19 +1,19 @@
 import React from 'react';
 import { X, Lock, CheckCircle, Trophy, Sparkles } from 'lucide-react';
-import { getAllEggsWithStatus, getEasterEggProgress } from '../lib/easterEggs';
+import { getAllSecretsWithStatus, getSecretProgress } from '../lib/secrets';
 
 /**
- * Easter Egg Museum
+ * Secret Museum
  *
- * Hidden page showing all easter eggs (found + locked)
- * Access: Settings menu → scroll to bottom → "Easter Egg Museum"
+ * Hidden page showing all secrets (found + locked)
+ * Access: Settings menu → scroll to bottom → "Secret Museum"
  */
 
-const EasterEggMuseum = ({ isOpen, onClose, nightMode }) => {
+const SecretsMuseum = ({ isOpen, onClose, nightMode }) => {
   if (!isOpen) return null;
 
-  const eggs = getAllEggsWithStatus();
-  const { found, total, percentage } = getEasterEggProgress();
+  const secrets = getAllSecretsWithStatus();
+  const { found, total, percentage } = getSecretProgress();
 
   const rarityColors = {
     common: nightMode ? 'text-green-400' : 'text-green-600',
@@ -60,7 +60,7 @@ const EasterEggMuseum = ({ isOpen, onClose, nightMode }) => {
               <Trophy className={`w-7 h-7 ${nightMode ? 'text-white' : 'text-blue-600'}`} />
               <div>
                 <h2 className={`text-2xl font-bold ${nightMode ? 'text-white' : 'text-blue-900'}`}>
-                  Easter Egg Museum
+                  Secret Museum
                 </h2>
                 <p className={`text-sm ${nightMode ? 'text-white/80' : 'text-blue-700'}`}>
                   {found} of {total} discovered ({percentage}%)
@@ -88,13 +88,13 @@ const EasterEggMuseum = ({ isOpen, onClose, nightMode }) => {
           </div>
         </div>
 
-        {/* Easter Eggs Grid */}
+        {/* Secrets Grid */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
           {found === 0 && (
             <div className="text-center py-12">
               <Sparkles className={`w-16 h-16 mx-auto mb-4 ${nightMode ? 'text-slate-100/50' : 'text-slate-400'}`} />
               <p className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                No easter eggs found yet!
+                No secrets found yet!
               </p>
               <p className={`text-sm mt-2 ${nightMode ? 'text-slate-100/70' : 'text-slate-600'}`}>
                 Explore the app to discover hidden surprises
@@ -103,11 +103,11 @@ const EasterEggMuseum = ({ isOpen, onClose, nightMode }) => {
           )}
 
           <div className="grid grid-cols-1 gap-4">
-            {eggs.map((egg) => (
+            { secrets.map((secret) => (
               <div
-                key={egg.id}
+                key={secret.id}
                 className={`p-4 rounded-xl border transition-all ${
-                  egg.discovered
+                  secret.discovered
                     ? nightMode
                       ? 'bg-white/5 border-white/10'
                       : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'
@@ -120,39 +120,39 @@ const EasterEggMuseum = ({ isOpen, onClose, nightMode }) => {
                   {/* Icon */}
                   <div
                     className={`w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0 ${
-                      egg.discovered
-                        ? rarityBgColors[egg.rarity]
+                      secret.discovered
+                        ? rarityBgColors[secret.rarity]
                         : nightMode
                         ? 'bg-white/5'
                         : 'bg-gray-200'
                     }`}
                   >
-                    {egg.discovered ? egg.icon : <Lock className="w-8 h-8 text-gray-400" />}
+                    {secret.discovered ? secret.icon : <Lock className="w-8 h-8 text-gray-400" />}
                   </div>
 
                   {/* Content */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className={`font-bold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                        {egg.discovered ? egg.name : '???'}
+                        {secret.discovered ? secret.name : '???'}
                       </h3>
-                      {egg.discovered && (
+                      {secret.discovered && (
                         <CheckCircle className="w-5 h-5 text-green-500" />
                       )}
                       <span
-                        className={`text-xs font-semibold px-2 py-1 rounded-full ${rarityColors[egg.rarity]} ${rarityBgColors[egg.rarity]}`}
+                        className={`text-xs font-semibold px-2 py-1 rounded-full ${rarityColors[secret.rarity]} ${rarityBgColors[secret.rarity]}`}
                       >
-                        {egg.rarity.toUpperCase()}
+                        {secret.rarity.toUpperCase()}
                       </span>
                     </div>
 
                     <p className={`text-sm ${nightMode ? 'text-slate-100/70' : 'text-slate-600'} mb-2`}>
-                      {egg.discovered ? egg.description : 'Locked - Keep exploring!'}
+                      {secret.discovered ? secret.description : 'Locked - Keep exploring!'}
                     </p>
 
-                    {egg.discovered && (
+                    {secret.discovered && (
                       <div className={`text-xs ${nightMode ? 'text-slate-100/50' : 'text-slate-500'} italic`}>
-                        💡 {egg.funFact}
+                        💡 {secret.funFact}
                       </div>
                     )}
                   </div>
@@ -185,7 +185,7 @@ const EasterEggMuseum = ({ isOpen, onClose, nightMode }) => {
                 🏆 Master Hunter!
               </p>
               <p className={`text-sm ${nightMode ? 'text-slate-100/70' : 'text-slate-600'}`}>
-                You've discovered all {total} easter eggs! You're in the top 1% of Lightning users.
+                You've discovered all {total} secrets! You're in the top 1% of Lightning users.
               </p>
             </div>
           )}
@@ -212,4 +212,4 @@ const EasterEggMuseum = ({ isOpen, onClose, nightMode }) => {
   );
 };
 
-export default EasterEggMuseum;
+export default SecretsMuseum;

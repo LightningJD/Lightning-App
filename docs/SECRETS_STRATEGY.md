@@ -1,14 +1,14 @@
-# 🥚 Lightning App - Easter Eggs Strategy
+# 🥚 Lightning App - Secrets Strategy
 
 **Goal:** Add delightful surprises that reward exploration, engagement, and faith
-**Target:** 5-10 easter eggs that feel natural and meaningful
+**Target:** 5-10 secrets that feel natural and meaningful
 **Impact:** Increased engagement, word-of-mouth, community bonding
 
 ---
 
-## 🎯 TYPES OF EASTER EGGS FOR LIGHTNING
+## 🎯 TYPES OF SECRETS FOR LIGHTNING
 
-### 1. **Scripture Reference Easter Eggs**
+### 1. **Scripture Reference Secrets**
 Hidden Bible verses that appear in specific conditions
 
 **Examples:**
@@ -20,7 +20,7 @@ Hidden Bible verses that appear in specific conditions
 **Implementation:**
 ```javascript
 // In search or profile view
-const checkScriptureEasterEgg = (input) => {
+const checkScriptureSecret = (input) => {
   const verses = {
     'jeremiah 29:11': {
       text: 'For I know the plans I have for you...',
@@ -40,7 +40,7 @@ const checkScriptureEasterEgg = (input) => {
   };
 
   if (verses[input.toLowerCase()]) {
-    showEasterEggAnimation(verses[input]);
+    showSecretAnimation(verses[input]);
   }
 };
 ```
@@ -74,7 +74,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === konamiCode[konamiIndex]) {
     konamiIndex++;
     if (konamiIndex === konamiCode.length) {
-      unlockEasterEgg('konami');
+      unlockSecret('konami');
       konamiIndex = 0;
     }
   } else {
@@ -85,18 +85,18 @@ document.addEventListener('keydown', (e) => {
 
 ---
 
-### 3. **Time-Based Easter Eggs**
+### 3. **Time-Based Secrets**
 Surprises that appear at specific times
 
 **Examples:**
 - **Easter Sunday (April):**
   - App shows resurrection theme
   - Special "He Is Risen" animation on login
-  - Temporary easter egg hunt (find 3 eggs hidden in UI)
+  - Temporary secret hunt (find 3 eggs hidden in UI)
 
 - **Christmas Day:**
   - Snow animation on app
-  - Nativity scene easter egg
+  - Nativity scene secret
   - "Merry Christmas" greeting from team
 
 - **Your Signup Anniversary:**
@@ -115,14 +115,14 @@ Surprises that appear at specific times
 **Implementation:**
 ```javascript
 // Check for special times
-const checkTimeBasedEasterEggs = () => {
+const checkTimeBasedSecrets = () => {
   const now = new Date();
   const hour = now.getHours();
   const minute = now.getMinutes();
 
-  // John 3:16 easter egg
+  // John 3:16 secret
   if ((hour === 3 || hour === 15) && minute === 16) {
-    showVerseEasterEgg('john 3:16');
+    showVerseSecret('john 3:16');
   }
 
   // Check if today is Easter
@@ -134,7 +134,7 @@ const checkTimeBasedEasterEggs = () => {
 
 ---
 
-### 4. **Milestone Easter Eggs**
+### 4. **Milestone Secrets**
 Rewards for reaching specific achievements
 
 **Examples:**
@@ -166,14 +166,14 @@ const checkMilestone = (action, count) => {
   };
 
   if (milestones[action]?.includes(count)) {
-    unlockMilestoneEasterEgg(action, count);
+    unlockMilestoneSecret(action, count);
   }
 };
 ```
 
 ---
 
-### 5. **Interactive UI Easter Eggs**
+### 5. **Interactive UI Secrets**
 Hidden interactions in the interface
 
 **Examples:**
@@ -193,7 +193,7 @@ Hidden interactions in the interface
 
 - **Settings Menu:**
   - Scroll to bottom → Hidden "Developer Mode" toggle
-  - Opens advanced settings and easter egg tracker
+  - Opens advanced settings and secret tracker
 
 **Implementation:**
 ```javascript
@@ -218,7 +218,7 @@ const handleLogoClick = () => {
 
 ---
 
-### 6. **Content-Based Easter Eggs**
+### 6. **Content-Based Secrets**
 Triggered by specific words or phrases
 
 **Examples:**
@@ -239,7 +239,7 @@ Triggered by specific words or phrases
 
 **Implementation:**
 ```javascript
-const checkContentEasterEggs = (text) => {
+const checkContentSecrets = (text) => {
   const amen = text.toLowerCase().match(/amen/g);
   if (amen && amen.length >= 3) {
     showGoldenGlowEffect();
@@ -253,7 +253,7 @@ const checkContentEasterEggs = (text) => {
 
 ---
 
-### 7. **Social / Viral Easter Eggs**
+### 7. **Social / Viral Secrets**
 Encourage sharing and community
 
 **Examples:**
@@ -271,7 +271,7 @@ Encourage sharing and community
 
 **Implementation:**
 ```javascript
-const trackSocialEasterEggs = (userId) => {
+const trackSocialSecrets = (userId) => {
   const referrals = getReferralCount(userId);
   if (referrals === 3) {
     unlockBadge('fishers_of_men');
@@ -281,13 +281,13 @@ const trackSocialEasterEggs = (userId) => {
 
 ---
 
-### 8. **Meta Easter Eggs**
+### 8. **Meta Secrets**
 Self-referential surprises
 
 **Examples:**
-- **Find all other easter eggs:**
-  - Unlock master "Easter Egg Hunter" badge
-  - Shows secret easter egg museum
+- **Find all other secrets:**
+  - Unlock master "Secret Hunter" badge
+  - Shows secret secret museum
   - Lists all found + hints for unfound
 
 - **Read entire Terms of Service:**
@@ -303,20 +303,20 @@ Self-referential surprises
 ## 🛠️ IMPLEMENTATION STRATEGY
 
 ### Phase 1: Core System (1-2 hours)
-Create the infrastructure for tracking and triggering easter eggs
+Create the infrastructure for tracking and triggering secrets
 
-**File:** `src/lib/easterEggs.js`
+**File:** `src/lib/secrets.js`
 
 ```javascript
 /**
- * Easter Egg System for Lightning App
+ * Secret System for Lightning App
  * Tracks discoveries, shows animations, awards badges
  */
 
 const STORAGE_KEY = 'lightning_easter_eggs';
 
-// All available easter eggs
-const easterEggs = {
+// All available secrets
+const secrets = {
   konami_code: {
     name: 'OG Believer',
     description: 'Found the secret code',
@@ -341,14 +341,14 @@ const easterEggs = {
   // Add more...
 };
 
-// Get discovered easter eggs
+// Get discovered secrets
 export const getDiscoveredEggs = () => {
   const data = localStorage.getItem(STORAGE_KEY);
   return data ? JSON.parse(data) : [];
 };
 
-// Unlock an easter egg
-export const unlockEasterEgg = (eggId) => {
+// Unlock an secret
+export const unlockSecret = (eggId) => {
   const discovered = getDiscoveredEggs();
 
   if (discovered.includes(eggId)) {
@@ -359,46 +359,46 @@ export const unlockEasterEgg = (eggId) => {
   discovered.push(eggId);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(discovered));
 
-  showEasterEggAnimation(easterEggs[eggId]);
+  showSecretAnimation(secrets[eggId]);
   return true;
 };
 
-// Show easter egg animation
-const showEasterEggAnimation = (egg) => {
+// Show secret animation
+const showSecretAnimation = (egg) => {
   // Create toast or modal
-  console.log('🎉 Easter Egg Unlocked:', egg.name);
+  console.log('🎉 Secret Unlocked:', egg.name);
   // showToast with special animation
 };
 
 // Get progress (X out of Y found)
-export const getEasterEggProgress = () => {
+export const getSecretProgress = () => {
   const discovered = getDiscoveredEggs();
-  const total = Object.keys(easterEggs).length;
+  const total = Object.keys(secrets).length;
   return { found: discovered.length, total };
 };
 ```
 
-### Phase 2: Individual Easter Eggs (30 min each)
+### Phase 2: Individual Secrets (30 min each)
 Add specific triggers throughout the app
 
-### Phase 3: Easter Egg Museum (1 hour)
-Create a hidden page showing all easter eggs (found + locked)
+### Phase 3: Secret Museum (1 hour)
+Create a hidden page showing all secrets (found + locked)
 
 ---
 
 ## 🎨 UI COMPONENTS NEEDED
 
-### 1. Easter Egg Toast
+### 1. Secret Toast
 Special toast notification when egg is found
 
 ```javascript
 import { Sparkles } from 'lucide-react';
 
-const EasterEggToast = ({ egg }) => (
+const SecretToast = ({ egg }) => (
   <div className="easter-egg-toast">
     <Sparkles className="animate-spin" />
     <div>
-      <div className="font-bold">Easter Egg Found! {egg.icon}</div>
+      <div className="font-bold">Secret Found! {egg.icon}</div>
       <div className="text-sm">{egg.name}</div>
       <div className="text-xs">{egg.unlockMessage}</div>
     </div>
@@ -409,8 +409,8 @@ const EasterEggToast = ({ egg }) => (
 ### 2. Badge Display
 Show badges on profile
 
-### 3. Easter Egg Museum
-Hidden page showing all easter eggs
+### 3. Secret Museum
+Hidden page showing all secrets
 
 ---
 
@@ -426,7 +426,7 @@ Hidden page showing all easter eggs
    - Already have the hook
    - Just add special animation
 
-3. **John 3:16 Time Easter Egg** (20 min)
+3. **John 3:16 Time Secret** (20 min)
    - 3:16 AM/PM → Special verse display
    - Hidden but findable
 
@@ -439,7 +439,7 @@ Hidden page showing all easter eggs
    - Educational + fun
 
 **Total Time:** ~90 minutes
-**Impact:** High (5 easter eggs active)
+**Impact:** High (5 secrets active)
 
 ---
 
@@ -461,11 +461,11 @@ Hidden page showing all easter eggs
 
 ## 🚀 NEXT STEPS
 
-1. **Choose 3-5 starter easter eggs**
-2. **Build core system** (`easterEggs.js`)
+1. **Choose 3-5 starter secrets**
+2. **Build core system** (`secrets.js`)
 3. **Implement triggers** throughout app
-4. **Test easter egg flow**
-5. **Add easter egg museum**
+4. **Test secret flow**
+5. **Add secret museum**
 6. **Launch and observe** which get discovered
 
 ---
@@ -485,4 +485,4 @@ Hidden page showing all easter eggs
 
 ---
 
-Would you like me to implement the starter pack (5 easter eggs, ~90 minutes)? Or just pick 1-2 to start with?
+Would you like me to implement the starter pack (5 secrets, ~90 minutes)? Or just pick 1-2 to start with?

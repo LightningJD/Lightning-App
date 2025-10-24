@@ -1,20 +1,20 @@
 /**
- * Easter Egg System for Lightning App
+ * Secrets System for Lightning App
  * Tracks discoveries, shows animations, awards badges
  */
 
 import { showSuccess } from './toast';
 
-const STORAGE_KEY = 'lightning_easter_eggs';
+const STORAGE_KEY = 'lightning_secrets';
 
-// All available easter eggs
-export const easterEggs = {
+// All available secrets
+export const secrets = {
   logo_10_clicks: {
     id: 'logo_10_clicks',
     name: 'Lightning Fast',
     description: 'Clicked the logo 10 times rapidly',
     icon: '⚡',
-    unlockMessage: 'You found the Lightning Fast easter egg!',
+    unlockMessage: 'You found the Lightning Fast secret!',
     rarity: 'common',
     funFact: 'The Lightning logo was designed in one night!'
   },
@@ -117,100 +117,73 @@ export const easterEggs = {
     rarity: 'common',
     funFact: 'Hallelujah appears 24 times in the Bible!'
   },
-  poke_10_people: {
-    id: 'poke_10_people',
-    name: 'Friendly Poker',
-    description: 'Poked 10 different people',
-    icon: '👉',
-    unlockMessage: 'You love poking people! Just like Facebook 2007.',
-    rarity: 'common',
-    funFact: 'Poking was the original way to say "thinking of you"!'
-  },
-  profile_viewer_detective: {
-    id: 'profile_viewer_detective',
-    name: 'Profile Detective',
-    description: 'Checked who viewed your profile 10 times',
-    icon: '🕵️',
-    unlockMessage: 'Someone\'s curious about who\'s curious!',
-    rarity: 'common',
-    funFact: 'Most profile views happen within the first 24 hours!'
-  },
-  anonymous_viewer: {
-    id: 'anonymous_viewer',
-    name: 'Incognito Mode',
-    description: 'Viewed 5 profiles anonymously',
-    icon: '👤',
-    unlockMessage: 'Sneaky! You like browsing in stealth mode.',
-    rarity: 'rare',
-    funFact: 'Anonymous viewing keeps your visits private!'
-  },
-  easter_egg_hunter: {
-    id: 'easter_egg_hunter',
+  secret_hunter: {
+    id: 'secret_hunter',
     name: 'Master Hunter',
-    description: 'Found all easter eggs',
+    description: 'Found all secrets',
     icon: '🏆',
     unlockMessage: 'You found them all! You\'re a master hunter!',
     rarity: 'legendary',
-    funFact: 'Only 1% of users find all the easter eggs!'
+    funFact: 'Only 1% of users find all the secrets!'
   }
 };
 
-// Get discovered easter eggs from localStorage
-export const getDiscoveredEggs = () => {
+// Get discovered secrets from localStorage
+export const getDiscoveredSecrets = () => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch (error) {
-    console.error('Failed to load easter eggs:', error);
+    console.error('Failed to load secrets:', error);
     return [];
   }
 };
 
-// Check if an easter egg has been discovered
-export const isEggDiscovered = (eggId) => {
-  const discovered = getDiscoveredEggs();
-  return discovered.includes(eggId);
+// Check if a secret has been discovered
+export const isSecretDiscovered = (secretId) => {
+  const discovered = getDiscoveredSecrets();
+  return discovered.includes(secretId);
 };
 
-// Unlock an easter egg
-export const unlockEasterEgg = (eggId) => {
-  const egg = easterEggs[eggId];
-  if (!egg) {
-    console.warn('Unknown easter egg:', eggId);
+// Unlock a secret
+export const unlockSecret = (secretId) => {
+  const secret = secrets[secretId];
+  if (!secret) {
+    console.warn('Unknown secret:', secretId);
     return false;
   }
 
   // Check if already discovered
-  if (isEggDiscovered(eggId)) {
-    console.log('🥚 Already found:', egg.name);
+  if (isSecretDiscovered(secretId)) {
+    console.log('🔒 Already found:', secret.name);
     return false;
   }
 
   // Add to discovered list
-  const discovered = getDiscoveredEggs();
-  discovered.push(eggId);
+  const discovered = getDiscoveredSecrets();
+  discovered.push(secretId);
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(discovered));
-    console.log('🎉 Easter Egg Unlocked:', egg.name);
+    console.log('🎉 Secret Unlocked:', secret.name);
 
     // Show toast notification
-    showEasterEggToast(egg);
+    showSecretToast(secret);
 
-    // Check if user just found all eggs (delayed to avoid double-toast)
-    if (eggId !== 'easter_egg_hunter') {
+    // Check if user just found all secrets (delayed to avoid double-toast)
+    if (secretId !== 'secret_hunter') {
       setTimeout(() => checkMasterHunter(), 1000);
     }
 
     return true;
   } catch (error) {
-    console.error('Failed to save easter egg:', error);
+    console.error('Failed to save secret:', error);
     return false;
   }
 };
 
-// Show easter egg toast notification
-const showEasterEggToast = (egg) => {
+// Show secret toast notification
+const showSecretToast = (secret) => {
   const rarityColors = {
     common: '#10b981',
     rare: '#3b82f6',
@@ -218,10 +191,10 @@ const showEasterEggToast = (egg) => {
     legendary: '#f59e0b'
   };
 
-  const color = rarityColors[egg.rarity] || rarityColors.common;
+  const color = rarityColors[secret.rarity] || rarityColors.common;
 
   showSuccess(
-    `${egg.icon} Easter Egg: ${egg.name}!\n${egg.unlockMessage}`,
+    `${secret.icon} Secret: ${secret.name}!\n${secret.unlockMessage}`,
     {
       duration: 6000,
       style: {
@@ -238,9 +211,9 @@ const showEasterEggToast = (egg) => {
 };
 
 // Get progress (X out of Y found)
-export const getEasterEggProgress = () => {
-  const discovered = getDiscoveredEggs();
-  const total = Object.keys(easterEggs).length;
+export const getSecretProgress = () => {
+  const discovered = getDiscoveredSecrets();
+  const total = Object.keys(secrets).length;
   return {
     found: discovered.length,
     total,
@@ -248,29 +221,29 @@ export const getEasterEggProgress = () => {
   };
 };
 
-// Get all eggs with discovered status
-export const getAllEggsWithStatus = () => {
-  const discovered = getDiscoveredEggs();
-  return Object.values(easterEggs).map(egg => ({
-    ...egg,
-    discovered: discovered.includes(egg.id)
+// Get all secrets with discovered status
+export const getAllSecretsWithStatus = () => {
+  const discovered = getDiscoveredSecrets();
+  return Object.values(secrets).map(secret => ({
+    ...secret,
+    discovered: discovered.includes(secret.id)
   }));
 };
 
-// Check for time-based easter eggs
-export const checkTimeBasedEasterEggs = () => {
+// Check for time-based secrets
+export const checkTimeBasedSecrets = () => {
   const now = new Date();
   const hour = now.getHours();
   const minute = now.getMinutes();
 
-  // John 3:16 easter egg (3:16 AM or PM)
+  // John 3:16 secret (3:16 AM or PM)
   if ((hour === 3 || hour === 15) && minute === 16) {
-    unlockEasterEgg('john_316_time');
+    unlockSecret('john_316_time');
   }
 };
 
-// Check for milestone-based easter eggs
-export const checkMilestoneEasterEgg = (type, count) => {
+// Check for milestone-based secrets
+export const checkMilestoneSecret = (type, count) => {
   const milestones = {
     messages: { 100: 'messages_100' },
     friends: { 10: 'friends_10' },
@@ -278,53 +251,53 @@ export const checkMilestoneEasterEgg = (type, count) => {
     testimony_shares: { 5: 'share_testimony_5x' }
   };
 
-  const eggId = milestones[type]?.[count];
-  if (eggId) {
-    unlockEasterEgg(eggId);
+  const secretId = milestones[type]?.[count];
+  if (secretId) {
+    unlockSecret(secretId);
   }
 };
 
-// Check if user found all eggs (Master Hunter)
+// Check if user found all secrets (Master Hunter)
 export const checkMasterHunter = () => {
-  const discovered = getDiscoveredEggs();
-  const totalEggs = Object.keys(easterEggs).length;
+  const discovered = getDiscoveredSecrets();
+  const totalSecrets = Object.keys(secrets).length;
 
   // Exclude master hunter itself from the count
-  const eggsNeeded = totalEggs - 1;
+  const secretsNeeded = totalSecrets - 1;
 
-  if (discovered.length >= eggsNeeded && !discovered.includes('easter_egg_hunter')) {
-    unlockEasterEgg('easter_egg_hunter');
+  if (discovered.length >= secretsNeeded && !discovered.includes('secret_hunter')) {
+    unlockSecret('secret_hunter');
   }
 };
 
 // Check bio for "hallelujah"
-export const checkBioEasterEgg = (bio) => {
+export const checkBioSecret = (bio) => {
   if (bio && bio.toLowerCase().includes('hallelujah')) {
-    unlockEasterEgg('hallelujah_bio');
+    unlockSecret('hallelujah_bio');
   }
 };
 
-// Start checking for time-based easter eggs every minute
+// Start checking for time-based secrets every minute
 let timeCheckInterval = null;
 
-export const startTimeBasedEasterEggs = () => {
+export const startTimeBasedSecrets = () => {
   if (timeCheckInterval) return; // Already running
 
   // Check immediately
-  checkTimeBasedEasterEggs();
+  checkTimeBasedSecrets();
 
   // Check every minute
   timeCheckInterval = setInterval(() => {
-    checkTimeBasedEasterEggs();
+    checkTimeBasedSecrets();
   }, 60000); // 60 seconds
 
-  console.log('⏰ Time-based easter eggs activated');
+  console.log('⏰ Time-based secrets activated');
 };
 
-export const stopTimeBasedEasterEggs = () => {
+export const stopTimeBasedSecrets = () => {
   if (timeCheckInterval) {
     clearInterval(timeCheckInterval);
     timeCheckInterval = null;
-    console.log('⏰ Time-based easter eggs stopped');
+    console.log('⏰ Time-based secrets stopped');
   }
 };

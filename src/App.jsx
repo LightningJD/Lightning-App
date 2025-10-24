@@ -13,12 +13,12 @@ import ProfileEditDialog from './components/ProfileEditDialog';
 import EditTestimonyDialog from './components/EditTestimonyDialog';
 import ConfirmDialog from './components/ConfirmDialog';
 import SaveTestimonyModal from './components/SaveTestimonyModal';
-import EasterEggMuseum from './components/EasterEggMuseum';
+import SecretsMuseum from './components/SecretsMuseum';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
-import { unlockEasterEgg, startTimeBasedEasterEggs, stopTimeBasedEasterEggs } from './lib/easterEggs';
+import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets } from './lib/secrets';
 
 function App() {
   const { signOut } = useClerk();
@@ -51,7 +51,7 @@ function App() {
   const [logoClicks, setLogoClicks] = useState(0);
   const [logoClickTimer, setLogoClickTimer] = useState(null);
   const [konamiIndex, setKonamiIndex] = useState(0);
-  const [showEasterEggMuseum, setShowEasterEggMuseum] = useState(false);
+  const [showSecretsMuseum, setShowSecretsMuseum] = useState(false);
 
   // Network status detection
   React.useEffect(() => {
@@ -74,13 +74,13 @@ function App() {
     };
   }, []);
 
-  // Start time-based easter eggs (John 3:16 at 3:16)
+  // Start time-based secrets (John 3:16 at 3:16)
   React.useEffect(() => {
-    startTimeBasedEasterEggs();
-    return () => stopTimeBasedEasterEggs();
+    startTimeBasedSecrets();
+    return () => stopTimeBasedSecrets();
   }, []);
 
-  // Konami Code easter egg
+  // Konami Code secret
   React.useEffect(() => {
     const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
@@ -92,10 +92,10 @@ function App() {
         setKonamiIndex(newIndex);
 
         if (newIndex === konamiCode.length) {
-          unlockEasterEgg('konami_code');
+          unlockSecret('konami_code');
           setKonamiIndex(0);
-          // Show easter egg museum as a reward
-          setTimeout(() => setShowEasterEggMuseum(true), 500);
+          // Show secret museum as a reward
+          setTimeout(() => setShowSecretsMuseum(true), 500);
         }
       } else {
         setKonamiIndex(0);
@@ -106,7 +106,7 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [konamiIndex]);
 
-  // Logo click easter egg handler
+  // Logo click secret handler
   const handleLogoClick = () => {
     const newCount = logoClicks + 1;
     setLogoClicks(newCount);
@@ -118,7 +118,7 @@ function App() {
 
     // Check if reached 10 clicks
     if (newCount === 10) {
-      unlockEasterEgg('logo_10_clicks');
+      unlockSecret('logo_10_clicks');
       setLogoClicks(0);
     } else {
       // Reset counter after 2 seconds of no clicks
@@ -240,8 +240,8 @@ function App() {
               updateToSuccess(toastId, 'Your testimony has been published!');
               console.log('✅ Guest testimony auto-saved and cleared from localStorage');
 
-              // First Testimony Easter Egg
-              unlockEasterEgg('first_testimony');
+              // First Testimony Secret
+              unlockSecret('first_testimony');
 
               // Close the save testimony modal if it's open
               setShowSaveTestimonyModal(false);
@@ -358,8 +358,8 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
             console.log('✅ Testimony saved to database!', saved);
             showSuccess('Testimony saved to your profile!');
 
-            // First Testimony Easter Egg
-            unlockEasterEgg('first_testimony');
+            // First Testimony Secret
+            unlockSecret('first_testimony');
           } else {
             console.error('❌ Failed to save testimony');
             showError('Failed to save testimony. Please try again.');
@@ -1175,10 +1175,10 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         testimonyPreview={generatedTestimony}
       />
 
-      {/* Easter Egg Museum */}
-      <EasterEggMuseum
-        isOpen={showEasterEggMuseum}
-        onClose={() => setShowEasterEggMuseum(false)}
+      {/* Secret Museum */}
+      <SecretsMuseum
+        isOpen={showSecretsMuseum}
+        onClose={() => setShowSecretsMuseum(false)}
         nightMode={nightMode}
       />
       </div>

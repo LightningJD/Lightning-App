@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Heart, Share2, ExternalLink, Plus, Edit3, MapPin } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
-import { unlockEasterEgg } from '../lib/easterEggs';
+import { unlockSecret } from '../lib/easterEggs';
 
 const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -97,7 +97,7 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
 
     // Check if reached 3 taps
     if (newCount === 3) {
-      unlockEasterEgg('triple_tap_profile');
+      unlockSecret('triple_tap_profile');
       setAvatarTaps(0);
     } else {
       // Reset counter after 1.5 seconds of no taps
