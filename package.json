@@ -12,9 +12,11 @@
   "dependencies": {
     "@clerk/clerk-react": "^5.53.2",
     "@supabase/supabase-js": "^2.75.1",
+    "cloudinary-react": "^1.8.1",
     "lucide-react": "^0.263.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.9.4"
   },
   "devDependencies": {

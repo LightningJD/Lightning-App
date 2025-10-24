@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { Heart, Share2, ExternalLink, Plus } from 'lucide-react';
+import { Heart, Share2, ExternalLink, Plus, Edit3, MapPin } from 'lucide-react';
 
-const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
+const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(342);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -74,8 +74,16 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
   return (
     <div className="py-4 space-y-4">
       <div className="flex flex-col items-center -mt-12 relative z-10 px-4 pt-6">
-        <div className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0 mb-4`}>
-          {profile.avatar}
+        <div className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0 mb-4 overflow-hidden`}>
+          {profile.avatarImage ? (
+            <img
+              src={profile.avatarImage}
+              alt={profile.displayName}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            profile.avatar
+          )}
         </div>
         <div className="text-center w-full">
           <div className="flex items-center justify-center gap-2">
@@ -104,6 +112,15 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
             </button>
           </div>
           <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm ${!nightMode && 'opacity-70'} mt-1`}>{profile.displayName}</p>
+
+          {/* Location */}
+          {profile.location && (
+            <div className={`flex items-center justify-center gap-1.5 mt-2 ${nightMode ? 'text-slate-100' : 'text-black'} text-sm`}>
+              <MapPin className="w-3.5 h-3.5" />
+              <span>{profile.location}</span>
+            </div>
+          )}
+
           <p className={`${nightMode ? 'text-slate-100' : 'text-black'} mt-3 text-sm leading-relaxed break-words`}>{profile.bio}</p>
         </div>
       </div>
@@ -220,9 +237,36 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony }) => {
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
           }}
         >
-          <h2 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} mb-4 flex items-center gap-2`}>
-            <span>✨</span> {profile.story.title}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center gap-2`}>
+              <span>✨</span> {profile.story.title}
+            </h2>
+            {onEditTestimony && profile.story.content && (
+              <button
+                onClick={onEditTestimony}
+                className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${
+                  nightMode
+                    ? 'border-white/20 hover:bg-white/10'
+                    : 'border-white/30 hover:bg-white/20'
+                }`}
+                style={nightMode ? {
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)'
+                } : {
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                }}
+                title="Edit Testimony"
+              >
+                <Edit3 className={`w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-black'}`} />
+                <span className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-black'}`}>Edit</span>
+              </button>
+            )}
+          </div>
           <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>{profile.story.content}</p>
         </div>
       </div>

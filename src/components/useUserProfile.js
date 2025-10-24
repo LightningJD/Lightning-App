@@ -50,16 +50,17 @@ export const useUserProfile = () => {
   const profile = {
     supabaseId: supabaseUser?.id, // Supabase UUID for database operations
     clerkUserId: user.id,
-    username: user.username || user.emailAddresses[0]?.emailAddress.split('@')[0] || 'user',
-    displayName: user.fullName || user.firstName || user.username || 'User',
-    avatar: user.publicMetadata?.customAvatar || getDefaultAvatar(),
+    username: supabaseUser?.username || user.username || user.emailAddresses[0]?.emailAddress.split('@')[0] || 'user',
+    displayName: supabaseUser?.display_name || user.fullName || user.firstName || user.username || 'User',
+    avatar: supabaseUser?.avatar_emoji || user.publicMetadata?.customAvatar || getDefaultAvatar(),
     avatarImage: user.imageUrl, // Keep Clerk's image URL for future use
     email: user.primaryEmailAddress?.emailAddress,
     bio: supabaseUser?.bio || user.publicMetadata?.bio || 'Welcome to Lightning! Share your testimony to inspire others.',
     hasTestimony: testimony ? true : (supabaseUser?.has_testimony || false),
     testimony: testimony?.content || null,
     testimonyLesson: testimony?.lesson || null,
-    location: user.publicMetadata?.location || null,
+    location: supabaseUser?.location_city || user.publicMetadata?.location || null,
+    profileCompleted: supabaseUser?.profile_completed || false,
     music: testimony ? {
       trackName: testimony.music_track_name || "Amazing Grace",
       artist: testimony.music_artist || "Various Artists",

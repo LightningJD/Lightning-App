@@ -1,18 +1,30 @@
 import React, { useState } from 'react';
 
-const MenuItem = ({ icon: Icon, label, subtext, toggle, defaultOn, danger, nightMode }) => {
+const MenuItem = ({ icon: Icon, label, subtext, toggle, defaultOn, danger, nightMode, comingSoon, disabled }) => {
   const [isOn, setIsOn] = useState(defaultOn || false);
 
   return (
-    <button className={`w-full px-4 py-3 flex items-center justify-between transition-colors border-b last:border-b-0 ${
-      nightMode
-        ? 'hover:bg-white/5 border-white/10'
-        : 'hover:bg-slate-50 border-slate-100'
-    }`}>
+    <button
+      className={`w-full px-4 py-3 flex items-center justify-between transition-colors border-b last:border-b-0 ${
+        disabled || comingSoon
+          ? nightMode ? 'cursor-not-allowed opacity-50' : 'cursor-not-allowed opacity-60'
+          : nightMode
+          ? 'hover:bg-white/5 border-white/10'
+          : 'hover:bg-slate-50 border-slate-100'
+      }`}
+      disabled={disabled || comingSoon}
+    >
       <div className="flex items-center gap-3">
         <Icon className={`w-5 h-5 ${danger ? 'text-red-500' : nightMode ? 'text-slate-100' : 'text-slate-400'}`} />
         <div className="text-left">
-          <p className={`text-sm font-medium ${danger ? 'text-red-600' : nightMode ? 'text-slate-100' : 'text-slate-900'}`}>{label}</p>
+          <div className="flex items-center gap-2">
+            <p className={`text-sm font-medium ${danger ? 'text-red-600' : nightMode ? 'text-slate-100' : 'text-slate-900'}`}>{label}</p>
+            {comingSoon && (
+              <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${nightMode ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
+                SOON
+              </span>
+            )}
+          </div>
           {subtext && <p className={`text-xs mt-0.5 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>{subtext}</p>}
         </div>
       </div>
