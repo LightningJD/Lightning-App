@@ -180,10 +180,10 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
       setComments([...comments, {
         ...comment,
         users: {
-          username: profile.username,
-          display_name: profile.displayName,
-          avatar_emoji: profile.avatar,
-          avatar_url: profile.avatarImage
+          username: profile?.username,
+          display_name: profile?.displayName,
+          avatar_emoji: profile?.avatar,
+          avatar_url: profile?.avatarImage
         }
       }]);
       setNewComment('');
@@ -373,9 +373,9 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center gap-2`}>
-              <span>✨</span> {profile.story.title}
+              <span>✨</span> {profile?.story?.title}
             </h2>
-            {onEditTestimony && profile.story.content && (
+            {onEditTestimony && profile?.story?.content && (
               <button
                 onClick={onEditTestimony}
                 className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${
@@ -401,38 +401,47 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
               </button>
             )}
           </div>
-          <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>{profile.story.content}</p>
+
+          {/* Testimony Content */}
+          <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>{profile?.story?.content}</p>
+
+          {/* Lesson Learned - Inline with preview/expand */}
+          {profile?.story?.lesson && (
+            <div className={`mt-5 pt-5 border-t ${nightMode ? 'border-white/10' : 'border-white/20'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base">📖</span>
+                <h3 className={`text-sm font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                  A Lesson Learned
+                </h3>
+              </div>
+
+              {/* Preview (first 150 characters) */}
+              <p className={`text-sm ${nightMode ? 'text-slate-300' : 'text-gray-700'} italic leading-relaxed`}>
+                {showLesson
+                  ? profile.story.lesson
+                  : `${profile.story.lesson.slice(0, 150)}${profile.story.lesson.length > 150 ? '...' : ''}`
+                }
+              </p>
+
+              {/* Read More button if lesson is long */}
+              {profile.story.lesson.length > 150 && (
+                <button
+                  onClick={() => setShowLesson(!showLesson)}
+                  className={`mt-2 text-sm font-medium transition-colors ${
+                    nightMode
+                      ? 'text-blue-400 hover:text-blue-300'
+                      : 'text-blue-600 hover:text-blue-700'
+                  }`}
+                >
+                  {showLesson ? 'Read less' : 'Read more'}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       <div className="px-4 pb-20">
-        <button
-          onClick={() => setShowLesson(!showLesson)}
-          className={`w-full p-4 rounded-xl border text-left font-semibold transition-all flex items-center justify-between ${nightMode ? 'bg-white/5 border-white/10 text-slate-100 hover:bg-white/10' : 'border-white/25 text-black shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-          style={nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-          }}
-        >
-          <span>📖 A Lesson Learned</span>
-          <span className={`transform transition-transform ${showLesson ? 'rotate-180' : ''}`}>▼</span>
-        </button>
-
-        {showLesson && (
-          <div
-            className={`mt-2 p-4 rounded-xl border max-h-48 overflow-y-auto ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-            style={nightMode ? {} : {
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-            }}
-          >
-            <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} italic`}>{profile.story.lesson}</p>
-          </div>
-        )}
 
         {/* Comments Section - Always Visible */}
         <div
@@ -467,7 +476,7 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
                       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
                     }}
                   >
-                    {profile.avatar}
+                    {profile?.avatar || '👤'}
                   </div>
                 </div>
 
