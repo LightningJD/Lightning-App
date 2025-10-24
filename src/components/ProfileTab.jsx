@@ -2,11 +2,14 @@ import React, { useState, useRef } from 'react';
 import { Heart, Share2, ExternalLink, Plus, Edit3, MapPin } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
-import { unlockSecret } from '../lib/secrets';
+import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
+import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony } from '../lib/database';
+import { useUser } from '@clerk/clerk-react';
 
 const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => {
+  const { user } = useUser();
   const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(342);
+  const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -30,11 +33,33 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
   // Track testimony views for guests (Freemium Browse & Block)
   React.useEffect(() => {
     if (isGuest && profile?.story?.content) {
-      console.log('👁️ Guest viewing testimony - tracking...');
       trackTestimonyView();
       checkAndShowModal();
     }
   }, [profile?.story?.content, isGuest]);
+
+  // Track testimony views in database (for authenticated users)
+  React.useEffect(() => {
+    const trackView = async () => {
+      if (!isGuest && user && profile?.story?.id && profile?.supabaseId) {
+        await trackDbTestimonyView(profile.story.id, profile.supabaseId);
+        // Check if this testimony has unlocked any secrets
+        await checkTestimonyAnalyticsSecrets(profile.story.id, profile.supabaseId);
+      }
+    };
+    trackView();
+  }, [profile?.story?.id, user, isGuest]);
+
+  // Load user's like status
+  React.useEffect(() => {
+    const loadLikeStatus = async () => {
+      if (user && profile?.story?.id && profile?.supabaseId) {
+        const { liked } = await hasUserLikedTestimony(profile.story.id, profile.supabaseId);
+        setIsLiked(liked);
+      }
+    };
+    loadLikeStatus();
+  }, [profile?.story?.id, user]);
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -81,9 +106,25 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+  const handleLike = async () => {
+    if (!user || !profile?.story?.id || !profile?.supabaseId) return;
+
+    // Optimistic update
+    const newLiked = !isLiked;
+    setIsLiked(newLiked);
+    setLikeCount(newLiked ? likeCount + 1 : likeCount - 1);
+
+    // Update database
+    const { success, liked } = await toggleTestimonyLike(profile.story.id, profile.supabaseId);
+
+    if (success) {
+      // Check if testimony unlocked heart toucher secret
+      await checkTestimonyAnalyticsSecrets(profile.story.id, profile.supabaseId);
+    } else {
+      // Revert on error
+      setIsLiked(!newLiked);
+      setLikeCount(newLiked ? likeCount - 1 : likeCount + 1);
+    }
   };
 
   const handleAvatarTap = () => {

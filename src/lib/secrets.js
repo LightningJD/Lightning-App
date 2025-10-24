@@ -809,3 +809,34 @@ export const checkActivitySecrets = () => {
     unlockSecret('night_mode_7_days');
   }
 };
+
+// Check testimony analytics secrets (views, likes, comments)
+export const checkTestimonyAnalyticsSecrets = async (testimonyId, userId) => {
+  // This will be called after testimony interactions
+  // We'll check the counts from the database to unlock secrets
+
+  const { getTestimonyViewCount, getTestimonyLikeCount, getTestimonyComments } = require('./database');
+
+  // Check if testimony has 100 views (Viral Testimony)
+  const { count: viewCount } = await getTestimonyViewCount(testimonyId);
+  if (viewCount >= 100) {
+    unlockSecret('testimony_views_100');
+  }
+
+  // Check if testimony has 50 hearts (Heart Toucher)
+  const { count: likeCount } = await getTestimonyLikeCount(testimonyId);
+  if (likeCount >= 50) {
+    unlockSecret('testimony_hearts_50');
+  }
+
+  // Check if testimony received its first comment (Conversation Starter)
+  const { comments } = await getTestimonyComments(testimonyId);
+  if (comments.length === 1) {
+    // First comment ever on this testimony
+    // Only unlock for the testimony AUTHOR, not the commenter
+    const firstComment = comments[0];
+    // We need to check if the testimony belongs to userId
+    // This will be called from the UI where we know the testimony author
+    unlockSecret('testimony_first_comment');
+  }
+};

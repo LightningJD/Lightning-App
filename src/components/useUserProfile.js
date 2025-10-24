@@ -73,13 +73,19 @@ export const useUserProfile = () => {
       audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
     },
     story: testimony ? {
+      id: testimony.id,
       title: testimony.title || "My Testimony",
       content: testimony.content,
-      lesson: testimony.lesson
+      lesson: testimony.lesson,
+      viewCount: testimony.view_count || 0,
+      likeCount: testimony.like_count || 0
     } : {
+      id: null,
       title: "My Testimony",
       content: null,
-      lesson: null
+      lesson: null,
+      viewCount: 0,
+      likeCount: 0
     }
   };
 
