@@ -110,9 +110,9 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
 
   return (
     <div className="py-4 space-y-4">
-      <div className="flex flex-col items-center -mt-12 relative z-10 px-4 pt-6">
+      <div className="flex flex-col items-center -mt-8 relative z-10 px-4 pt-6">
         <div
-          className={`w-58 h-58 rounded-full flex items-center justify-center text-[11.88rem] shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0 mb-4 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95`}
+          className={`w-61 h-61 rounded-full flex items-center justify-center text-[12.47rem] shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0 mb-4 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95`}
           onClick={handleAvatarTap}
           title="Triple tap for a surprise..."
         >
