@@ -931,7 +931,10 @@ const GroupsTab = ({ nightMode }) => {
                                   {(showAllEmojis[msg.id] ? reactionEmojis : reactionEmojis.slice(0, 6)).map(emoji => (
                                     <button
                                       key={emoji}
-                                      onClick={() => handleReaction(msg.id, emoji)}
+                                      onClick={() => {
+                                        handleReaction(msg.id, emoji);
+                                        setShowReactionPicker(null);
+                                      }}
                                       className={nightMode ? 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center' : 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center'}
                                     >
                                       {emoji}
@@ -972,7 +975,10 @@ const GroupsTab = ({ nightMode }) => {
                                     {displayReactions.map(([emoji, data]) => (
                                       <button
                                         key={emoji}
-                                        onClick={() => handleReaction(msg.id, emoji)}
+                                        onClick={() => {
+                                        handleReaction(msg.id, emoji);
+                                        setShowReactionPicker(null);
+                                      }}
                                         className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
                                           data.hasReacted
                                             ? 'bg-blue-100 border-2 border-blue-400'
@@ -1144,7 +1150,10 @@ const GroupsTab = ({ nightMode }) => {
                                     {displayReactions.map(([emoji, data]) => (
                                       <button
                                         key={emoji}
-                                        onClick={() => handleReaction(msg.id, emoji)}
+                                        onClick={() => {
+                                        handleReaction(msg.id, emoji);
+                                        setShowReactionPicker(null);
+                                      }}
                                         className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
                                           data.hasReacted
                                             ? nightMode
@@ -1261,7 +1270,10 @@ const GroupsTab = ({ nightMode }) => {
                                   {(showAllEmojis[msg.id] ? reactionEmojis : reactionEmojis.slice(0, 6)).map(emoji => (
                                     <button
                                       key={emoji}
-                                      onClick={() => handleReaction(msg.id, emoji)}
+                                      onClick={() => {
+                                        handleReaction(msg.id, emoji);
+                                        setShowReactionPicker(null);
+                                      }}
                                       className={nightMode ? 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center' : 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center'}
                                     >
                                       {emoji}
@@ -1327,7 +1339,10 @@ const GroupsTab = ({ nightMode }) => {
                                     {displayReactions.map(([emoji, data]) => (
                                       <button
                                         key={emoji}
-                                        onClick={() => handleReaction(msg.id, emoji)}
+                                        onClick={() => {
+                                        handleReaction(msg.id, emoji);
+                                        setShowReactionPicker(null);
+                                      }}
                                         className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
                                           data.hasReacted
                                             ? nightMode
