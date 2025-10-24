@@ -4,6 +4,8 @@
  */
 
 import { showSuccess } from './toast';
+import { hasUsedNightModeForDays } from './activityTracker';
+import { getTestimonyViewCount, getTestimonyLikeCount, getTestimonyComments } from './database';
 
 const STORAGE_KEY = 'lightning_secrets';
 
@@ -802,8 +804,6 @@ export const checkMessageSecrets = (messageText) => {
 
 // Check activity-based secrets
 export const checkActivitySecrets = () => {
-  const { hasUsedNightModeForDays } = require('./activityTracker');
-
   // Check 7-day night mode usage
   if (hasUsedNightModeForDays(7)) {
     unlockSecret('night_mode_7_days');
@@ -814,8 +814,6 @@ export const checkActivitySecrets = () => {
 export const checkTestimonyAnalyticsSecrets = async (testimonyId, userId) => {
   // This will be called after testimony interactions
   // We'll check the counts from the database to unlock secrets
-
-  const { getTestimonyViewCount, getTestimonyLikeCount, getTestimonyComments } = require('./database');
 
   // Check if testimony has 100 views (Viral Testimony)
   const { count: viewCount } = await getTestimonyViewCount(testimonyId);
