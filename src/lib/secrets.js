@@ -799,3 +799,13 @@ export const checkMessageSecrets = (messageText) => {
   // Check for scripture references
   checkScriptureSecret(messageText);
 };
+
+// Check activity-based secrets
+export const checkActivitySecrets = () => {
+  const { hasUsedNightModeForDays } = require('./activityTracker');
+
+  // Check 7-day night mode usage
+  if (hasUsedNightModeForDays(7)) {
+    unlockSecret('night_mode_7_days');
+  }
+};

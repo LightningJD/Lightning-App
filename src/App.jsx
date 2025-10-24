@@ -19,7 +19,8 @@ import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
-import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets } from './lib/secrets';
+import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets, checkMilestoneSecret, checkActivitySecrets } from './lib/secrets';
+import { trackDailyLogin, getLoginStreak, trackThemeChange, trackNightModeUsage, trackAvatarChange, getAvatarChangeCount } from './lib/activityTracker';
 
 function App() {
   const { signOut } = useClerk();
@@ -80,6 +81,21 @@ function App() {
   React.useEffect(() => {
     startTimeBasedSecrets();
     checkHolidaySecrets(); // Check if today is a special holiday
+
+    // Track daily login and check login streaks
+    const streak = trackDailyLogin();
+    if (streak === 30) {
+      checkMilestoneSecret('daily_login', 30);
+    } else if (streak === 100) {
+      checkMilestoneSecret('daily_login', 100);
+    }
+
+    // Track night mode usage if currently in night mode
+    trackNightModeUsage(nightMode);
+
+    // Check activity-based secrets (7-day night mode, etc.)
+    checkActivitySecrets();
+
     return () => stopTimeBasedSecrets();
   }, []);
 
@@ -131,6 +147,15 @@ function App() {
     const newNightMode = !nightMode;
     setNightMode(newNightMode);
     localStorage.setItem('lightningNightMode', newNightMode.toString());
+
+    // Track theme changes
+    const changes = trackThemeChange(newNightMode ? 'night' : 'day');
+    if (changes === 10) {
+      unlockSecret('theme_switcher');
+    }
+
+    // Track night mode usage for 7-day streak
+    trackNightModeUsage(newNightMode);
   };
 
   // Use authenticated user profile, or fallback to demo profile for development
@@ -465,6 +490,14 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
         console.log('✅ Profile updated successfully!', updated);
         updateToSuccess(toastId, 'Profile updated successfully!');
         setShowProfileEdit(false);
+
+        // Check if avatar changed
+        if (profileData.avatarEmoji && profileData.avatarEmoji !== userProfile.avatar) {
+          const changes = trackAvatarChange();
+          if (changes === 5) {
+            unlockSecret('avatar_changed_5x');
+          }
+        }
 
         // Check profile secrets (completion, bio length)
         checkProfileSecrets(profileData);
