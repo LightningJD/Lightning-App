@@ -638,6 +638,17 @@ CREATE TABLE notifications (
 **Duration:** 3-4 weeks (can run parallel to MVP polish)
 **Philosophy:** SOLID principles, modular design, <500 lines per file
 
+**Modules:**
+1. **Database Layer Refactoring** (Week 1) - Break monolithic database.js into SOLID modules
+2. **TypeScript Migration** (Week 2) - Add type safety and IDE support
+3. **Testing Infrastructure** (Week 3) - Unit, integration, and E2E tests
+4. **Error Boundaries** (Week 4, Days 1-3) - Graceful failure handling
+5. **Testimony Formatting Helper** (Week 4, Days 4-5) - OPTIONAL: Basic grammar/punctuation fixes only
+6. **Caching & Performance** (Week 4, Days 4-7) - React Query for intelligent caching
+
+**Note on Testimony Integrity:**
+AI content generation for testimonies was explicitly rejected to preserve testimony authenticity. Users' exact words and experiences must never be altered, embellished, or interpreted. The optional formatting helper only fixes basic grammar/punctuation while preserving 100% of original content.
+
 ---
 
 #### Module 1: Database Layer Refactoring (Week 1)
@@ -1474,247 +1485,101 @@ src/lib/database/
 
 ---
 
-#### Module 5: API Implementation - Testimony Generation Backend (Week 4, Days 4-7)
+#### Module 5: Testimony Formatting Helper (Week 4, Days 4-5) - OPTIONAL
 
 **Current State:**
-- `/api/generate-testimony` endpoint documented but not implemented
-- Client-side fallback template in use
-- No server-side AI integration
+- Client-side template concatenates user answers
+- No grammar/spelling correction
+- No formatting assistance
 
 **Target:**
-- Production-ready testimony generation API
-- Multiple deployment options
-- Fallback handling
-- Rate limiting & security
+- Basic grammar and spelling correction ONLY
+- Proper capitalization and punctuation
+- Paragraph formatting
+- **CRITICAL: Zero content additions or embellishments**
 
-**Implementation Options:**
+**Ethical Boundary:**
+This module is OPTIONAL and only performs basic text cleanup. It does NOT:
+- ❌ Add new details or events
+- ❌ Interpret or embellish experiences
+- ❌ Change meaning or tone
+- ❌ Add emotional language user didn't write
+- ✅ ONLY fixes spelling, grammar, capitalization, punctuation
 
-**Option A: Supabase Edge Functions (Recommended)**
+**Rationale:**
+AI content generation was rejected due to testimony integrity concerns. Users' exact words must be preserved. This optional helper only cleans up basic formatting/grammar errors while maintaining 100% of the original content.
 
-**Day 4: Setup Supabase Edge Functions**
-- [ ] Install Supabase CLI: `npm install -g supabase`
-- [ ] Login: `supabase login`
-- [ ] Initialize: `supabase functions new generate-testimony`
-- [ ] Create function:
+**Implementation:**
+
+**Day 4: Create Basic Formatting Service**
+- [ ] Create utility service:
   ```typescript
-  // supabase/functions/generate-testimony/index.ts
-  import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+  // src/lib/services/testimony-formatter.service.ts
 
-  const openAIKey = Deno.env.get('OPENAI_API_KEY');
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  /**
+   * Formats user testimony with basic grammar/spelling fixes ONLY
+   * DOES NOT add content, embellish, or interpret
+   */
+  export const formatTestimony = (answers: string[]): string => {
+    // Basic formatting only
+    const formatted = answers.map(answer => {
+      // Fix common typos and capitalization
+      let text = answer.trim();
 
-  serve(async (req) => {
-    try {
-      const { answers, userId } = await req.json();
+      // Capitalize first letter
+      text = text.charAt(0).toUpperCase() + text.slice(1);
 
-      // Validate input
-      if (!answers || answers.length !== 4) {
-        return new Response(
-          JSON.stringify({ error: 'Invalid input: 4 answers required' }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
-        );
+      // Ensure proper punctuation at end
+      if (!/[.!?]$/.test(text)) {
+        text += '.';
       }
 
-      // Call OpenAI API
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openAIKey}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are a compassionate Christian testimony writer. Create a 250-350 word testimony in 4 paragraphs based on the user's answers. Be authentic, hopeful, and Christ-centered.`
-            },
-            {
-              role: 'user',
-              content: `
-                1. Background: ${answers[0]}
-                2. Turning Point: ${answers[1]}
-                3. How God worked: ${answers[2]}
-                4. Life now: ${answers[3]}
+      // Fix "i" → "I"
+      text = text.replace(/\bi\b/g, 'I');
 
-                Write a compelling testimony based on these answers.
-              `
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      });
+      // Fix "god" → "God", "jesus" → "Jesus" (proper nouns)
+      text = text.replace(/\bgod\b/gi, 'God');
+      text = text.replace(/\bjesus\b/gi, 'Jesus');
+      text = text.replace(/\bchrist\b/gi, 'Christ');
 
-      const data = await response.json();
-      const testimony = data.choices[0].message.content;
+      return text;
+    });
 
-      return new Response(
-        JSON.stringify({ testimony, success: true }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-
-    } catch (error) {
-      console.error('Error generating testimony:', error);
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate testimony', success: false }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-  });
-  ```
-- [ ] Set environment variables:
-  ```bash
-  supabase secrets set OPENAI_API_KEY=sk-...
-  ```
-- [ ] Deploy function:
-  ```bash
-  supabase functions deploy generate-testimony
-  ```
-
-**Day 5: Integrate Frontend with API**
-- [ ] Update frontend to call Supabase Edge Function:
-  ```typescript
-  // src/lib/services/testimony.service.ts
-  import { supabase } from '../database/base/client';
-
-  export const generateTestimony = async (answers: string[]): Promise<string> => {
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-testimony', {
-        body: { answers },
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        return data.testimony;
-      } else {
-        // Fallback to template
-        return generateTestimonyTemplate(answers);
-      }
-    } catch (error) {
-      console.error('API error, using fallback template:', error);
-      return generateTestimonyTemplate(answers);
-    }
-  };
-
-  // Fallback template (existing client-side logic)
-  const generateTestimonyTemplate = (answers: string[]): string => {
-    return `
-      ${answers[0]}
-
-      ${answers[1]}
-
-      ${answers[2]}
-
-      ${answers[3]}
-    `.trim();
+    // Join with paragraph breaks
+    return formatted.join('\n\n');
   };
   ```
-- [ ] Update ProfileCreationWizard to use new service:
-  ```typescript
-  // src/components/ProfileCreationWizard.jsx
-  import { generateTestimony } from '../lib/services/testimony.service';
+- [ ] Add toggle in UI (user chooses basic formatting or raw text)
+- [ ] Default: Use formatting helper
+- [ ] Option: "Use my exact text" checkbox
 
-  const handleGenerate = async () => {
-    setLoading(true);
-    try {
-      const testimony = await generateTestimony([answer1, answer2, answer3, answer4]);
-      setGeneratedTestimony(testimony);
-    } catch (error) {
-      toast.error('Failed to generate testimony. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-  ```
+**Day 5: Testing & User Control**
+- [ ] Test with various inputs (typos, missing punctuation, lowercase)
+- [ ] Verify zero content additions
+- [ ] Add preview showing before/after
+- [ ] User can accept or reject formatted version
 
-**Day 6: Add Rate Limiting & Security**
-- [ ] Implement rate limiting in Edge Function:
-  ```typescript
-  // Check rate limit (max 3 testimonies per user per day)
-  const supabase = createClient(supabaseUrl!, supabaseKey!);
-
-  const { count, error } = await supabase
-    .from('testimonies')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-
-  if (count && count >= 3) {
-    return new Response(
-      JSON.stringify({ error: 'Rate limit exceeded. Max 3 testimonies per day.' }),
-      { status: 429 }
-    );
-  }
-  ```
-- [ ] Add input validation:
-  ```typescript
-  const validateAnswers = (answers: string[]): boolean => {
-    return answers.every(answer =>
-      answer.trim().length >= 10 && answer.trim().length <= 500
-    );
-  };
-
-  if (!validateAnswers(answers)) {
-    return new Response(
-      JSON.stringify({ error: 'Each answer must be 10-500 characters' }),
-      { status: 400 }
-    );
-  }
-  ```
-- [ ] Add cost monitoring:
-  ```typescript
-  // Log API usage
-  await supabase.from('api_usage_logs').insert({
-    user_id: userId,
-    endpoint: 'generate-testimony',
-    cost_estimate: 0.002, // GPT-4o-mini cost
-    timestamp: new Date().toISOString(),
-  });
-  ```
-
-**Day 7: Testing & Monitoring**
-- [ ] Write tests for Edge Function:
-  ```bash
-  supabase functions serve generate-testimony
-  ```
-- [ ] Test with curl:
-  ```bash
-  curl -X POST https://<project-ref>.supabase.co/functions/v1/generate-testimony \
-    -H "Authorization: Bearer <anon-key>" \
-    -H "Content-Type: application/json" \
-    -d '{"answers": ["...", "...", "...", "..."]}'
-  ```
-- [ ] Add monitoring dashboard (Supabase Dashboard → Functions)
-- [ ] Set up alerts for high usage or errors
-
-**🧪 TESTING CHECKPOINT - API IMPLEMENTATION (60 min):**
-- [ ] ✅ Edge Function deploys successfully
-- [ ] ✅ API returns generated testimony (200-350 words)
-- [ ] ✅ Fallback template works when API fails
-- [ ] ✅ Rate limiting prevents abuse (max 3/day)
-- [ ] ✅ Input validation rejects invalid data
-- [ ] ✅ Cost per testimony: ~$0.002 (GPT-4o-mini)
-- [ ] ✅ Response time: <5 seconds
-- [ ] 🧪 Test with valid input → AI testimony generated
-- [ ] 🧪 Test with invalid input → error message
-- [ ] 🧪 Test exceeding rate limit → 429 error
-- [ ] 🧪 Test API failure → fallback template used
-- [ ] 📸 Screenshot of Supabase Functions dashboard
-- [ ] 📸 Screenshot of generated testimony
-- [ ] ⚠️ CRITICAL: API must be reliable and cost-effective
-- [ ] ✅ Commit changes: "Implement testimony generation API with Supabase Edge Functions"
+**🧪 TESTING CHECKPOINT - FORMATTING (30 min):**
+- [ ] ✅ Capitalization fixed (i → I, god → God)
+- [ ] ✅ Punctuation added at end of sentences
+- [ ] ✅ Paragraph breaks added between answers
+- [ ] ✅ **CRITICAL:** No new words or phrases added
+- [ ] ✅ User can toggle formatting on/off
+- [ ] ✅ Original text always preserved in database
+- [ ] 🧪 Test with intentional misspellings
+- [ ] 🧪 Test with all lowercase input
+- [ ] 🧪 Test with missing punctuation
+- [ ] 🧪 Verify output contains ONLY user's words
+- [ ] 📸 Screenshot of before/after preview
+- [ ] ⚠️ CRITICAL: Must preserve testimony integrity
+- [ ] ✅ Commit changes: "Add optional basic formatting helper for testimonies"
 
 **Success Criteria:**
-- ✅ Production API endpoint deployed
-- ✅ AI-generated testimonies working
-- ✅ Fallback template for failures
-- ✅ Rate limiting implemented
-- ✅ Cost per testimony <$0.01
-- ✅ Response time <10 seconds
+- ✅ Basic grammar/spelling corrections only
+- ✅ Zero content additions
+- ✅ User has full control (can disable)
+- ✅ Maintains testimony authenticity
+- ✅ Optional feature (not required)
 
 ---
 
@@ -1977,13 +1842,13 @@ src/lib/database/
 - ✅ TypeScript migration complete (>90% type coverage)
 - ✅ Test coverage >80% (unit, integration, E2E)
 - ✅ Error boundaries implemented (graceful failures)
-- ✅ API endpoint deployed (testimony generation)
 - ✅ Caching layer working (React Query)
 - ✅ All tests passing
 - ✅ Production build succeeds
 - ✅ Performance improved (measured with Lighthouse)
 - ✅ Code quality high (ESLint, Prettier)
 - ✅ Documentation updated
+- 🔶 (Optional) Basic testimony formatting helper
 
 **Expected Outcomes:**
 - 📦 Codebase is production-ready
@@ -1992,6 +1857,7 @@ src/lib/database/
 - 🧪 Confidence in code quality (comprehensive tests)
 - 👥 Team-ready (clear architecture, documentation)
 - 📈 Scalable foundation (SOLID principles, modular design)
+- ✨ Testimony integrity preserved (no AI content generation)
 
 ---
 
