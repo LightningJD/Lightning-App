@@ -90,6 +90,8 @@ const GroupsTab = ({ nightMode }) => {
 
   // Load group messages when opening a group
   useEffect(() => {
+    let pollInterval = null;
+
     const loadGroupMessages = async () => {
       if (activeGroup && activeView === 'chat') {
         setLoading(true);
@@ -117,7 +119,7 @@ const GroupsTab = ({ nightMode }) => {
         setLoading(false);
 
         // POLLING VERSION (FREE) - Checks for new messages every 3 seconds
-        const pollInterval = setInterval(async () => {
+        pollInterval = setInterval(async () => {
           // Load messages and pinned in parallel
           const [updatedMessages, updatedPinned] = await Promise.all([
             getGroupMessages(activeGroup),
@@ -139,27 +141,26 @@ const GroupsTab = ({ nightMode }) => {
           setMessageReactions(newReactionsMap);
         }, 3000); // Poll every 3 seconds
 
-        // Cleanup polling on unmount or group change
-        return () => {
-          clearInterval(pollInterval);
-        };
-
         /* REAL-TIME VERSION ($25/month) - Uncomment to enable instant messaging
         subscriptionRef.current = subscribeToGroupMessages(activeGroup, (payload) => {
           console.log('New group message:', payload.new);
           setGroupMessages(prev => [...prev, payload.new]);
         });
-
-        return () => {
-          if (subscriptionRef.current) {
-            unsubscribe(subscriptionRef.current);
-          }
-        };
         */
       }
     };
 
     loadGroupMessages();
+
+    // Cleanup polling on unmount or group change
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+      if (subscriptionRef.current) {
+        unsubscribe(subscriptionRef.current);
+      }
+    };
   }, [activeGroup, activeView]);
 
   // Load group members
