@@ -20,7 +20,6 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
   const { isGuest, checkAndShowModal } = useGuestModalContext();
   const [avatarTaps, setAvatarTaps] = useState(0);
   const [avatarTapTimer, setAvatarTapTimer] = useState(null);
-  const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
@@ -435,6 +434,159 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
           </div>
         )}
 
+        {/* Comments Section - Always Visible */}
+        <div
+          className={`mt-4 p-5 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+          style={nightMode ? {} : {
+            background: 'rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(30px)',
+            WebkitBackdropFilter: 'blur(30px)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+          }}
+        >
+          {/* Comments Header */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg">💬</span>
+            <h3 className={`text-base font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+              Comments
+            </h3>
+            <span className={`text-sm ${nightMode ? 'text-slate-400' : 'text-gray-500'}`}>
+              ({comments.length})
+            </span>
+          </div>
+
+          {/* Comment Input First (Instagram/LinkedIn style) */}
+          {user ? (
+            <form onSubmit={handleSubmitComment} className="mb-5">
+              <div className="flex gap-3">
+                {/* User Avatar */}
+                <div className="flex-shrink-0">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-semibold ${nightMode ? 'bg-white/10' : 'bg-white/50'}`}
+                    style={nightMode ? {} : {
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                    }}
+                  >
+                    {profile.avatar}
+                  </div>
+                </div>
+
+                {/* Input Area */}
+                <div className="flex-1">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Share your thoughts on this testimony..."
+                    className={`w-full px-4 py-3 rounded-xl border resize-none transition-all ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-400 focus:bg-white/10 focus:border-white/20'
+                        : 'bg-white/40 border-white/30 text-black placeholder-gray-500 focus:bg-white/60 focus:border-white/40'
+                    }`}
+                    style={nightMode ? {
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)'
+                    } : {
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+                    }}
+                    rows={2}
+                    disabled={isSubmittingComment}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newComment.trim() || isSubmittingComment}
+                    className={`mt-2 px-5 py-2 rounded-lg font-medium text-sm transition-all ${
+                      nightMode
+                        ? 'bg-blue-500/80 hover:bg-blue-500 text-white disabled:opacity-40 disabled:cursor-not-allowed'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-lg'
+                    }`}
+                    style={!nightMode && !isSubmittingComment && newComment.trim() ? {
+                      boxShadow: '0 2px 10px rgba(59, 130, 246, 0.3)'
+                    } : {}}
+                  >
+                    {isSubmittingComment ? '✓ Posting...' : 'Post'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            <div
+              className={`mb-5 p-4 rounded-xl border-2 border-dashed text-center ${
+                nightMode ? 'border-white/10 bg-white/5' : 'border-gray-300 bg-white/30'
+              }`}
+            >
+              <p className={`text-sm ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                <span className="font-semibold">Sign in</span> to join the conversation
+              </p>
+            </div>
+          )}
+
+          {/* Divider */}
+          {comments.length > 0 && (
+            <div className={`border-t mb-5 ${nightMode ? 'border-white/10' : 'border-white/30'}`}></div>
+          )}
+
+          {/* Comments List */}
+          {comments.length === 0 ? (
+            <div className="text-center py-8">
+              <p className={`text-base ${nightMode ? 'text-slate-400' : 'text-gray-600'} mb-1`}>
+                No comments yet
+              </p>
+              <p className={`text-sm ${nightMode ? 'text-slate-500' : 'text-gray-500'}`}>
+                Be the first to share your thoughts!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {comments.map((comment) => (
+                <div key={comment.id} className="flex gap-3">
+                  {/* Comment Avatar */}
+                  <div className="flex-shrink-0">
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm ${nightMode ? 'bg-white/10' : 'bg-white/50'}`}
+                      style={nightMode ? {} : {
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                      }}
+                    >
+                      {comment.users?.avatar_emoji || '👤'}
+                    </div>
+                  </div>
+
+                  {/* Comment Content */}
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className={`px-4 py-3 rounded-2xl ${nightMode ? 'bg-white/5' : 'bg-white/50'}`}
+                      style={nightMode ? {} : {
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.05)'
+                      }}
+                    >
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className={`text-sm font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                          {comment.users?.display_name || comment.users?.username || 'Anonymous'}
+                        </span>
+                        <span className={`text-xs ${nightMode ? 'text-slate-500' : 'text-gray-500'}`}>
+                          •
+                        </span>
+                        <span className={`text-xs ${nightMode ? 'text-slate-500' : 'text-gray-500'}`}>
+                          {new Date(comment.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: new Date(comment.created_at).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                          })}
+                        </span>
+                      </div>
+                      <p className={`text-sm leading-relaxed ${nightMode ? 'text-slate-300' : 'text-gray-800'}`}>
+                        {comment.content}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Share Button */}
         <button
           onClick={() => setShowQR(!showQR)}
@@ -468,100 +620,6 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
           <Share2 className="w-4 h-4" />
           Share Testimony
         </button>
-
-        {/* Comments Section */}
-        <div className="mt-4">
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className={`w-full p-4 rounded-xl border text-left font-semibold transition-all flex items-center justify-between ${nightMode ? 'bg-white/5 border-white/10 text-slate-100 hover:bg-white/10' : 'border-white/25 text-black shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-            style={nightMode ? {} : {
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-            }}
-          >
-            <span>💬 Comments ({comments.length})</span>
-            <span className={`transform transition-transform ${showComments ? 'rotate-180' : ''}`}>▼</span>
-          </button>
-
-          {showComments && (
-            <div
-              className={`mt-2 p-4 rounded-xl border max-h-96 overflow-y-auto ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-              style={nightMode ? {} : {
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(30px)',
-                WebkitBackdropFilter: 'blur(30px)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-              }}
-            >
-              {/* Comments List */}
-              {comments.length === 0 ? (
-                <p className={`text-sm ${nightMode ? 'text-slate-400' : 'text-gray-600'} italic text-center py-4`}>
-                  No comments yet. Be the first to share your thoughts!
-                </p>
-              ) : (
-                <div className="space-y-4 mb-4">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-3">
-                      <div className="flex-shrink-0">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${nightMode ? 'bg-white/10' : 'bg-white/40'}`}>
-                          {comment.users?.avatar_emoji || '👤'}
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-sm font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                            {comment.users?.display_name || comment.users?.username || 'Anonymous'}
-                          </span>
-                          <span className={`text-xs ${nightMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                            {new Date(comment.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className={`text-sm ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
-                          {comment.content}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Comment Input */}
-              {user ? (
-                <form onSubmit={handleSubmitComment} className="mt-4 pt-4 border-t border-white/10">
-                  <textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Share your thoughts..."
-                    className={`w-full px-3 py-2 rounded-lg border resize-none ${
-                      nightMode
-                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-400'
-                        : 'bg-white/40 border-white/30 text-black placeholder-gray-500'
-                    }`}
-                    rows={3}
-                    disabled={isSubmittingComment}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newComment.trim() || isSubmittingComment}
-                    className={`mt-2 px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                      nightMode
-                        ? 'bg-white/10 hover:bg-white/20 text-slate-100 disabled:opacity-50'
-                        : 'bg-white/40 hover:bg-white/60 text-black disabled:opacity-50'
-                    }`}
-                  >
-                    {isSubmittingComment ? 'Posting...' : 'Post Comment'}
-                  </button>
-                </form>
-              ) : (
-                <p className={`text-sm ${nightMode ? 'text-slate-400' : 'text-gray-600'} italic text-center py-4`}>
-                  Sign in to leave a comment
-                </p>
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Floating Action Button (FAB) for Add Testimony */}
