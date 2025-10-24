@@ -776,13 +776,14 @@ CREATE TABLE notifications (
 
 ### Before Beta Launch (50 users):
 - ✅ All Phase 1 tasks complete
-- ✅ Auth works perfectly
+- ✅ Auth works perfectly (Google OAuth enabled)
 - ✅ Data persists in database
 - ✅ Messaging works real-time
 - ✅ Testimonies save and display
 - ✅ No critical bugs
 - ✅ Legal pages published
 - ✅ Mobile responsive
+- [ ] **Apple Sign In** enabled (requires Apple Developer account - $99/year)
 
 ### Before Public Launch (unlimited users):
 - ✅ All Phase 2 tasks complete
@@ -849,7 +850,7 @@ CREATE TABLE notifications (
 ## 📝 DECISIONS LOG
 
 ### Decisions Made:
-- ✅ **Authentication:** Clerk
+- ✅ **Authentication:** Clerk (Google OAuth now, Apple Sign In before launch)
 - ✅ **Database:** Supabase
 - ✅ **Image Storage:** Cloudinary
 - ✅ **AI Model:** GPT-4o-mini
@@ -859,6 +860,7 @@ CREATE TABLE notifications (
 - ✅ **Default search radius:** 25 miles
 - ✅ **Max co-leaders per group:** 2
 - ✅ **Testimony framework:** 4 questions, 250-350 words, 4 paragraphs
+- ✅ **Sign-in methods:** Google OAuth (free), Apple Sign In (pre-launch)
 
 ### Questions to Resolve:
 - Mobile app timeline (React Native)?
