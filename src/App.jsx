@@ -13,6 +13,7 @@ import ProfileEditDialog from './components/ProfileEditDialog';
 import EditTestimonyDialog from './components/EditTestimonyDialog';
 import ConfirmDialog from './components/ConfirmDialog';
 import SaveTestimonyModal from './components/SaveTestimonyModal';
+import EasterEggMuseum from './components/EasterEggMuseum';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
@@ -49,6 +50,8 @@ function App() {
   const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
   const [logoClicks, setLogoClicks] = useState(0);
   const [logoClickTimer, setLogoClickTimer] = useState(null);
+  const [konamiIndex, setKonamiIndex] = useState(0);
+  const [showEasterEggMuseum, setShowEasterEggMuseum] = useState(false);
 
   // Network status detection
   React.useEffect(() => {
@@ -76,6 +79,32 @@ function App() {
     startTimeBasedEasterEggs();
     return () => stopTimeBasedEasterEggs();
   }, []);
+
+  // Konami Code easter egg
+  React.useEffect(() => {
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+
+    const handleKeyDown = (e) => {
+      const key = e.key === 'b' || e.key === 'a' ? e.key : e.code;
+
+      if (key === konamiCode[konamiIndex]) {
+        const newIndex = konamiIndex + 1;
+        setKonamiIndex(newIndex);
+
+        if (newIndex === konamiCode.length) {
+          unlockEasterEgg('konami_code');
+          setKonamiIndex(0);
+          // Show easter egg museum as a reward
+          setTimeout(() => setShowEasterEggMuseum(true), 500);
+        }
+      } else {
+        setKonamiIndex(0);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [konamiIndex]);
 
   // Logo click easter egg handler
   const handleLogoClick = () => {
@@ -1144,6 +1173,13 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         onContinueAsGuest={handleContinueAsGuest}
         nightMode={nightMode}
         testimonyPreview={generatedTestimony}
+      />
+
+      {/* Easter Egg Museum */}
+      <EasterEggMuseum
+        isOpen={showEasterEggMuseum}
+        onClose={() => setShowEasterEggMuseum(false)}
+        nightMode={nightMode}
       />
       </div>
     </GuestModalProvider>
