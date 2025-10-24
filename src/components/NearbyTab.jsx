@@ -303,7 +303,7 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
         </div>
       )}
 
-      <div className="px-4 pb-20">
+      <div className="px-4 pb-20" key={activeConnectTab}>
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
