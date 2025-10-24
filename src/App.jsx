@@ -1,20 +1,25 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useClerk } from '@clerk/clerk-react';
 import { User, MessageCircle, Users, MapPin, Zap, Plus, X, ArrowRight, ArrowLeft, Sparkles, Edit3, Camera, Mail, Lock, Eye, Ban, Flag, Bell, Globe, Palette, FileText, Shield, HelpCircle, Phone, Info, LogOut } from 'lucide-react';
+import { Toaster } from 'react-hot-toast';
+import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
 import ProfileTab from './components/ProfileTab';
 import MessagesTab from './components/MessagesTab';
 import GroupsTab from './components/GroupsTab';
 import NearbyTab from './components/NearbyTab';
 import MenuItem from './components/MenuItem';
+import ProfileCreationWizard from './components/ProfileCreationWizard';
+import ProfileEditDialog from './components/ProfileEditDialog';
+import EditTestimonyDialog from './components/EditTestimonyDialog';
+import ConfirmDialog from './components/ConfirmDialog';
 import { useUserProfile } from './components/useUserProfile';
-import { createTestimony } from './lib/database';
+import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 
 function App() {
   const { signOut } = useClerk();
   const { isLoading, isAuthenticated, profile: userProfile } = useUserProfile();
 
   const [currentTab, setCurrentTab] = useState('profile');
-  const [scrollOpacity, setScrollOpacity] = useState(1);
   const [showMenu, setShowMenu] = useState(false);
   const [showTestimonyPrompt, setShowTestimonyPrompt] = useState(false);
   const [testimonyStep, setTestimonyStep] = useState(0);
@@ -23,9 +28,19 @@ function App() {
   const [generatedTestimony, setGeneratedTestimony] = useState(null);
   const [sortBy, setSortBy] = useState('recommended');
   const [activeConnectTab, setActiveConnectTab] = useState('recommended');
-  const [groupSearchQuery, setGroupSearchQuery] = useState('');
   const [selectedTheme, setSelectedTheme] = useState(localStorage.getItem('lightningTheme') || 'periwinkle');
   const [nightMode, setNightMode] = useState(localStorage.getItem('lightningNightMode') === 'true');
+  const [showProfileWizard, setShowProfileWizard] = useState(false);
+  const [profileCompleted, setProfileCompleted] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [showTestimonyEdit, setShowTestimonyEdit] = useState(false);
+  const [testimonyData, setTestimonyData] = useState(null);
+  const [notificationCounts, setNotificationCounts] = useState({
+    messages: 3,
+    groups: 2,
+    connect: 1
+  });
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Periwinkle Theme - Blue-Purple Glossmorphic Gradient (Reduced 30% for daily use)
   const themes = {
@@ -112,25 +127,24 @@ function App() {
     }
   ];
 
+  // Check if profile needs to be completed (first-time users)
   React.useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const fadeStart = 0;
-      const fadeEnd = 200;
+    if (isAuthenticated && userProfile && userProfile.supabaseId) {
+      // Check if profile is incomplete (no custom bio or location)
+      const isProfileIncomplete = !userProfile.location ||
+                                   userProfile.bio === 'Welcome to Lightning! Share your testimony to inspire others.';
 
-      if (scrollY <= fadeStart) {
-        setScrollOpacity(1);
-      } else if (scrollY >= fadeEnd) {
-        setScrollOpacity(0);
-      } else {
-        const opacity = 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart);
-        setScrollOpacity(opacity);
+      // Only show wizard if profile is incomplete and user hasn't completed it in this session
+      if (isProfileIncomplete && !profileCompleted) {
+        // Small delay to let the app load first
+        const timer = setTimeout(() => {
+          setShowProfileWizard(true);
+        }, 500);
+        return () => clearTimeout(timer);
       }
-    };
+    }
+  }, [isAuthenticated, userProfile, profileCompleted]);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const handleTestimonyAnswer = (answer) => {
     setTestimonyAnswers({
@@ -171,6 +185,7 @@ function App() {
 
       } catch (error) {
         console.error('Error:', error);
+        showError('Could not connect to AI service. Creating testimony from your answers...');
 
         const impactOpenings = [
           `Today, I ${testimonyAnswers[3]?.substring(0, 80)}... But this wasn't always my story.`,
@@ -224,23 +239,176 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
     }
   };
 
+  const handleProfileComplete = async (profileData) => {
+    if (!userProfile || !userProfile.supabaseId) {
+      showError('No user profile found. Please try logging in again.');
+      console.error('No user profile or Supabase ID found');
+      return;
+    }
+
+    const toastId = showLoading('Setting up your profile...');
+
+    try {
+      // Update profile in Supabase
+      const updated = await updateUserProfile(userProfile.supabaseId, {
+        ...profileData,
+        profileCompleted: true
+      });
+
+      if (updated) {
+        console.log('✅ Profile updated successfully!', updated);
+        updateToSuccess(toastId, 'Profile setup complete! Welcome to Lightning!');
+        setProfileCompleted(true);
+        setShowProfileWizard(false);
+
+        // Reload the page to reflect changes
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error completing profile:', error);
+      updateToError(toastId, error.message || 'Failed to setup profile. Please try again.');
+      throw error;
+    }
+  };
+
+  const handleSkipProfileWizard = () => {
+    setShowProfileWizard(false);
+    setProfileCompleted(true); // Don't show again this session
+  };
+
+  const handleProfileEdit = async (profileData) => {
+    if (!userProfile || !userProfile.supabaseId) {
+      showError('No user profile found. Please try logging in again.');
+      console.error('No user profile or Supabase ID found');
+      return;
+    }
+
+    const toastId = showLoading('Updating profile...');
+
+    try {
+      // Update profile in Supabase
+      const updated = await updateUserProfile(userProfile.supabaseId, profileData);
+
+      if (updated) {
+        console.log('✅ Profile updated successfully!', updated);
+        updateToSuccess(toastId, 'Profile updated successfully!');
+        setShowProfileEdit(false);
+
+        // Reload the page to reflect changes
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      updateToError(toastId, error.message || 'Failed to update profile. Please try again.');
+      throw error;
+    }
+  };
+
+  const handleEditTestimony = async () => {
+    if (!userProfile || !userProfile.supabaseId) {
+      showError('No user profile found. Please try logging in again.');
+      console.error('No user profile or Supabase ID found');
+      return;
+    }
+
+    const toastId = showLoading('Loading your testimony...');
+
+    try {
+      // Load testimony data from database
+      const testimony = await getTestimonyByUserId(userProfile.supabaseId);
+      if (testimony) {
+        updateToSuccess(toastId, 'Testimony loaded!');
+        setTestimonyData(testimony);
+        setShowTestimonyEdit(true);
+      } else {
+        updateToError(toastId, 'No testimony found. Please create one first.');
+        console.error('No testimony found for user');
+      }
+    } catch (error) {
+      console.error('Error loading testimony:', error);
+      updateToError(toastId, error.message || 'Failed to load testimony. Please try again.');
+    }
+  };
+
+  const handleTestimonySave = async (formData) => {
+    if (!testimonyData || !testimonyData.id) {
+      showError('No testimony found. Please try again.');
+      console.error('No testimony ID found');
+      return;
+    }
+
+    const toastId = showLoading('Updating your testimony...');
+
+    try {
+      // Regenerate testimony content from updated answers
+      const impactOpenings = [
+        `Today, I ${formData.question4?.substring(0, 80)}... But this wasn't always my story.`,
+        `I'm currently ${formData.question4?.substring(0, 80)}... A few years ago, my life looked completely different.`,
+        `God has me ${formData.question4?.substring(0, 80)}... But my journey here began in darkness.`
+      ];
+
+      const randomOpening = impactOpenings[Math.floor(Math.random() * impactOpenings.length)];
+
+      const updatedContent = `${randomOpening}
+
+${formData.question1?.substring(0, 200)}... The weight was crushing me, and I couldn't see a way out.
+
+Then everything changed. ${formData.question2?.substring(0, 150)}... ${formData.question3?.substring(0, 200)}... In that moment, God broke through the darkness and I experienced freedom I never thought possible.
+
+Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to bring hope to others walking through what I once faced. My past pain fuels my present purpose.`;
+
+      // Update testimony in database
+      const updated = await updateTestimony(testimonyData.id, {
+        content: updatedContent,
+        lesson: formData.lesson,
+        question1_answer: formData.question1,
+        question2_answer: formData.question2,
+        question3_answer: formData.question3,
+        question4_answer: formData.question4,
+        word_count: updatedContent.split(' ').length
+      });
+
+      if (updated) {
+        console.log('✅ Testimony updated successfully!', updated);
+        updateToSuccess(toastId, 'Testimony updated successfully!');
+        setShowTestimonyEdit(false);
+
+        // Reload the page to reflect changes
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        throw new Error('Failed to update testimony');
+      }
+    } catch (error) {
+      console.error('Error updating testimony:', error);
+      updateToError(toastId, error.message || 'Failed to update testimony. Please try again.');
+      throw error;
+    }
+  };
+
   const renderContent = () => {
     switch(currentTab) {
       case 'messages':
         return <MessagesTab nightMode={nightMode} />;
       case 'groups':
-        return <GroupsTab groupSearchQuery={groupSearchQuery} setGroupSearchQuery={setGroupSearchQuery} nightMode={nightMode} />;
+        return <GroupsTab nightMode={nightMode} />;
       case 'connect':
         return <NearbyTab sortBy={sortBy} setSortBy={setSortBy} activeConnectTab={activeConnectTab} setActiveConnectTab={setActiveConnectTab} nightMode={nightMode} />;
       case 'profile':
-        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => setShowTestimonyPrompt(true)} />;
+        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => setShowTestimonyPrompt(true)} onEditTestimony={handleEditTestimony} />;
       default:
-        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => setShowTestimonyPrompt(true)} />;
+        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => setShowTestimonyPrompt(true)} onEditTestimony={handleEditTestimony} />;
     }
   };
 
   return (
     <div className="min-h-screen pb-12 relative">
+      {/* Toast Notifications */}
+      <Toaster />
+
       {/* Full-Screen Periwinkle Glossmorphic Gradient Background */}
       <div
         className="fixed inset-0"
@@ -275,6 +443,7 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
                 <button
                   onClick={() => setShowMenu(true)}
                   className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
+                  aria-label="Open settings menu"
                 >
                   <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -312,6 +481,7 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
                 <button
                   onClick={() => setShowMenu(true)}
                   className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
+                  aria-label="Open settings menu"
                 >
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -345,6 +515,7 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
                   <button
                     onClick={() => setShowMenu(false)}
                     className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100' : 'bg-black/5 hover:bg-black/10 text-black'}`}
+                    aria-label="Close settings menu"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -356,30 +527,44 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
                   <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
                     <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Account</h3>
                   </div>
-                  <MenuItem icon={Edit3} label="Edit Profile" nightMode={nightMode} />
-                  <MenuItem icon={Camera} label="Change Profile Picture" nightMode={nightMode} />
-                  <MenuItem icon={Bell} label="Link Spotify" nightMode={nightMode} />
-                  <MenuItem icon={Mail} label="Email & Password" nightMode={nightMode} />
+                  <button
+                    onClick={() => {
+                      setShowProfileEdit(true);
+                      setShowMenu(false);
+                    }}
+                    className={`w-full px-4 py-3 flex items-center justify-between transition-colors border-b ${nightMode ? 'hover:bg-white/5 border-white/10' : 'hover:bg-slate-50 border-slate-100'}`}
+                    aria-label="Edit your profile"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Edit3 className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-600'}`} />
+                      <div className="text-left">
+                        <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>Edit Profile</p>
+                      </div>
+                    </div>
+                  </button>
+                  <MenuItem icon={Camera} label="Change Profile Picture" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Bell} label="Link Spotify" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Mail} label="Email & Password" nightMode={nightMode} comingSoon />
                 </div>
 
                 <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
                   <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
                     <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Privacy & Safety</h3>
                   </div>
-                  <MenuItem icon={Lock} label="Make Profile Private" toggle nightMode={nightMode} />
-                  <MenuItem icon={Eye} label="Who Can See Testimony" nightMode={nightMode} />
-                  <MenuItem icon={MessageCircle} label="Who Can Message You" nightMode={nightMode} />
-                  <MenuItem icon={Ban} label="Blocked Users" nightMode={nightMode} />
-                  <MenuItem icon={Flag} label="Report Content" nightMode={nightMode} />
+                  <MenuItem icon={Lock} label="Make Profile Private" toggle nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Eye} label="Who Can See Testimony" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={MessageCircle} label="Who Can Message You" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Ban} label="Blocked Users" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Flag} label="Report Content" nightMode={nightMode} comingSoon />
                 </div>
 
                 <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
                   <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
                     <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Notifications</h3>
                   </div>
-                  <MenuItem icon={Bell} label="Message Notifications" toggle defaultOn nightMode={nightMode} />
-                  <MenuItem icon={Users} label="Connection Requests" toggle defaultOn nightMode={nightMode} />
-                  <MenuItem icon={MapPin} label="Nearby Users" toggle nightMode={nightMode} />
+                  <MenuItem icon={Bell} label="Message Notifications" toggle defaultOn nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Users} label="Connection Requests" toggle defaultOn nightMode={nightMode} comingSoon />
+                  <MenuItem icon={MapPin} label="Nearby Users" toggle nightMode={nightMode} comingSoon />
                 </div>
 
                 <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
@@ -414,22 +599,23 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
                     </div>
                   </div>
 
-                  <MenuItem icon={MapPin} label="Search Radius" subtext="25 miles" nightMode={nightMode} />
-                  <MenuItem icon={Globe} label="Language" subtext="English" nightMode={nightMode} />
+                  <MenuItem icon={MapPin} label="Search Radius" subtext="25 miles" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Globe} label="Language" subtext="English" nightMode={nightMode} comingSoon />
                 </div>
 
                 <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
                   <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
                     <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>About & Support</h3>
                   </div>
-                  <MenuItem icon={FileText} label="Terms of Service" nightMode={nightMode} />
-                  <MenuItem icon={Shield} label="Privacy Policy" nightMode={nightMode} />
-                  <MenuItem icon={HelpCircle} label="Help Center" nightMode={nightMode} />
-                  <MenuItem icon={Phone} label="Contact Support" nightMode={nightMode} />
+                  <MenuItem icon={FileText} label="Terms of Service" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Shield} label="Privacy Policy" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={HelpCircle} label="Help Center" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Phone} label="Contact Support" nightMode={nightMode} comingSoon />
                   <MenuItem icon={Info} label="App Version" subtext="1.0.0" nightMode={nightMode} />
                   <button
-                    onClick={() => signOut()}
+                    onClick={() => setShowLogoutConfirm(true)}
                     className={`w-full px-4 py-3 flex items-center justify-between transition-colors border-t ${nightMode ? 'hover:bg-white/5 border-white/10' : 'hover:bg-slate-50 border-slate-100'}`}
+                    aria-label="Sign out of your account"
                   >
                     <div className="flex items-center gap-3">
                       <LogOut className={`w-5 h-5 text-red-500`} />
@@ -470,6 +656,7 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)'
             } : {}}
+            aria-label="Profile"
           >
             <User className="w-5 h-5" />
             <span className="text-[10px] font-medium">Profile</span>
@@ -482,8 +669,16 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)'
             } : {}}
+            aria-label={`Messages${notificationCounts.messages > 0 ? ` (${notificationCounts.messages} unread)` : ''}`}
           >
-            <MessageCircle className="w-5 h-5" />
+            <div className="relative">
+              <MessageCircle className="w-5 h-5" />
+              {notificationCounts.messages > 0 && (
+                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
+                  <span className="text-[9px] font-bold text-white">{notificationCounts.messages}</span>
+                </div>
+              )}
+            </div>
             <span className="text-[10px] font-medium">Messages</span>
           </button>
           <button
@@ -494,8 +689,16 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)'
             } : {}}
+            aria-label={`Groups${notificationCounts.groups > 0 ? ` (${notificationCounts.groups} unread)` : ''}`}
           >
-            <Users className="w-5 h-5" />
+            <div className="relative">
+              <Users className="w-5 h-5" />
+              {notificationCounts.groups > 0 && (
+                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
+                  <span className="text-[9px] font-bold text-white">{notificationCounts.groups}</span>
+                </div>
+              )}
+            </div>
             <span className="text-[10px] font-medium">Groups</span>
           </button>
           <button
@@ -506,8 +709,16 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)'
             } : {}}
+            aria-label={`Connect${notificationCounts.connect > 0 ? ` (${notificationCounts.connect} new)` : ''}`}
           >
-            <MapPin className="w-5 h-5" />
+            <div className="relative">
+              <MapPin className="w-5 h-5" />
+              {notificationCounts.connect > 0 && (
+                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
+                  <span className="text-[9px] font-bold text-white">{notificationCounts.connect}</span>
+                </div>
+              )}
+            </div>
             <span className="text-[10px] font-medium">Connect</span>
           </button>
         </div>
@@ -732,6 +943,48 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
           </div>
         </>
       )}
+
+      {/* Profile Creation Wizard */}
+      {showProfileWizard && (
+        <ProfileCreationWizard
+          nightMode={nightMode}
+          onComplete={handleProfileComplete}
+          onSkip={handleSkipProfileWizard}
+        />
+      )}
+
+      {/* Profile Edit Dialog */}
+      {showProfileEdit && (
+        <ProfileEditDialog
+          profile={profile}
+          nightMode={nightMode}
+          onSave={handleProfileEdit}
+          onClose={() => setShowProfileEdit(false)}
+        />
+      )}
+
+      {/* Edit Testimony Dialog */}
+      {showTestimonyEdit && testimonyData && (
+        <EditTestimonyDialog
+          testimony={testimonyData}
+          nightMode={nightMode}
+          onSave={handleTestimonySave}
+          onClose={() => setShowTestimonyEdit(false)}
+        />
+      )}
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={signOut}
+        title="Sign Out"
+        message="Are you sure you want to sign out? You'll need to sign in again to access your account."
+        confirmText="Sign Out"
+        cancelText="Cancel"
+        variant="danger"
+        nightMode={nightMode}
+      />
     </div>
   );
 }
