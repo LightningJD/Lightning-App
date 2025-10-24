@@ -51,10 +51,11 @@ export const uploadImage = async (file, options = {}) => {
     formData.append('public_id', options.public_id);
   }
 
-  // Add transformation for avatars (resize to 800x800, maintain aspect ratio)
-  if (options.transformation) {
-    formData.append('transformation', JSON.stringify(options.transformation));
-  }
+  // Don't send transformations with unsigned uploads
+  // Transformations should be configured in the upload preset instead
+  // if (options.transformation) {
+  //   formData.append('transformation', JSON.stringify(options.transformation));
+  // }
 
   try {
     const response = await fetch(
