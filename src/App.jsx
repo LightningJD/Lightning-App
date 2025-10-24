@@ -14,6 +14,7 @@ import EditTestimonyDialog from './components/EditTestimonyDialog';
 import ConfirmDialog from './components/ConfirmDialog';
 import SaveTestimonyModal from './components/SaveTestimonyModal';
 import SecretsMuseum from './components/SecretsMuseum';
+import BugReportDialog from './components/BugReportDialog';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
@@ -52,6 +53,7 @@ function App() {
   const [logoClickTimer, setLogoClickTimer] = useState(null);
   const [showSecretsMuseum, setShowSecretsMuseum] = useState(false);
   const [testimonyStartTime, setTestimonyStartTime] = useState(null);
+  const [showBugReport, setShowBugReport] = useState(false);
 
   // Network status detection
   React.useEffect(() => {
@@ -797,6 +799,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                   <MenuItem icon={Shield} label="Privacy Policy" nightMode={nightMode} comingSoon />
                   <MenuItem icon={HelpCircle} label="Help Center" nightMode={nightMode} comingSoon />
                   <MenuItem icon={Phone} label="Contact Support" nightMode={nightMode} comingSoon />
+                  <MenuItem icon={Flag} label="Report a Bug" nightMode={nightMode} onClick={() => setShowBugReport(true)} />
                   <MenuItem icon={Info} label="App Version" subtext="1.0.0" nightMode={nightMode} />
                   <button
                     onClick={() => setShowLogoutConfirm(true)}
@@ -1190,6 +1193,16 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         onClose={() => setShowSecretsMuseum(false)}
         nightMode={nightMode}
       />
+
+      {/* Bug Report Dialog */}
+      {showBugReport && (
+        <BugReportDialog
+          onClose={() => setShowBugReport(false)}
+          nightMode={nightMode}
+          currentTab={currentTab}
+          userProfile={userProfile}
+        />
+      )}
       </div>
     </GuestModalProvider>
   );

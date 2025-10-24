@@ -112,7 +112,7 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
     <div className="py-4 space-y-4">
       <div className="flex flex-col items-center -mt-12 relative z-10 px-4 pt-6">
         <div
-          className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0 mb-4 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95`}
+          className={`w-72 h-72 rounded-full flex items-center justify-center text-[15rem] shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'} flex-shrink-0 mb-4 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95`}
           onClick={handleAvatarTap}
           title="Triple tap for a surprise..."
         >
@@ -128,7 +128,7 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
         </div>
         <div className="text-center w-full">
           <div className="flex items-center justify-center gap-2">
-            <h1 className={`text-2xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} break-words`}>{profile.username}</h1>
+            <h1 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} break-words`}>{profile.username}</h1>
             {/* Like Button - Beside Username */}
             <button
               onClick={handleLike}
