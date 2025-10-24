@@ -418,13 +418,13 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
               {/* Preview (first 150 characters) */}
               <p className={`text-sm ${nightMode ? 'text-slate-300' : 'text-gray-700'} italic leading-relaxed`}>
                 {showLesson
-                  ? profile.story.lesson
-                  : `${profile.story.lesson.slice(0, 150)}${profile.story.lesson.length > 150 ? '...' : ''}`
+                  ? profile?.story?.lesson
+                  : `${profile?.story?.lesson?.slice(0, 150)}${(profile?.story?.lesson?.length || 0) > 150 ? '...' : ''}`
                 }
               </p>
 
               {/* Read More button if lesson is long */}
-              {profile.story.lesson.length > 150 && (
+              {(profile?.story?.lesson?.length || 0) > 150 && (
                 <button
                   onClick={() => setShowLesson(!showLesson)}
                   className={`mt-2 text-sm font-medium transition-colors ${
