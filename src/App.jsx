@@ -42,6 +42,28 @@ function App() {
     connect: 1
   });
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  // Network status detection
+  React.useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      showSuccess('Back online!');
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      showError('No internet connection. Some features may not work.');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Periwinkle Theme - Blue-Purple Glossmorphic Gradient (Reduced 30% for daily use)
   const themes = {
