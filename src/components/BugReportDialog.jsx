@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Flag, AlertCircle, CheckCircle } from 'lucide-react';
-import { showToast } from '../lib/toast';
+import { showSuccess, showError } from '../lib/toast';
 
 export default function BugReportDialog({ onClose, nightMode, currentTab, userProfile }) {
   const [title, setTitle] = useState('');
@@ -23,7 +23,7 @@ export default function BugReportDialog({ onClose, nightMode, currentTab, userPr
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
-      showToast('error', 'Please fill in title and description');
+      showError('Please fill in title and description');
       return;
     }
 
@@ -49,7 +49,7 @@ export default function BugReportDialog({ onClose, nightMode, currentTab, userPr
       // Log to console for developers
       console.log('🐛 Bug Report Submitted:', bugReport);
 
-      showToast('success', 'Bug report submitted! Thank you for helping us improve.');
+      showSuccess('Bug report submitted! Thank you for helping us improve.');
 
       // Close dialog after short delay
       setTimeout(() => {
@@ -57,7 +57,7 @@ export default function BugReportDialog({ onClose, nightMode, currentTab, userPr
       }, 1000);
     } catch (error) {
       console.error('Error submitting bug report:', error);
-      showToast('error', 'Failed to submit bug report. Please try again.');
+      showError('Failed to submit bug report. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
