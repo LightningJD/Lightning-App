@@ -1861,6 +1861,1340 @@ AI content generation was rejected due to testimony integrity concerns. Users' e
 
 ---
 
+### PHASE 1.75: PRODUCTION HARDENING & SECURITY (Parallel with Phase 1.5 or immediately after)
+
+**Purpose:** Make the app production-ready with security, scalability, and data protection
+**Duration:** 2-3 weeks (can run parallel with Phase 1.5 modules)
+**Philosophy:** Security first, scale-ready, user-friendly errors
+
+**Why This Matters:**
+Phase 1.5 makes code maintainable. Phase 1.75 makes the app secure and scalable. Together, they create a bulletproof foundation for 10,000+ users.
+
+**Modules:**
+1. **Security Hardening** (Week 1) - RLS, rate limiting, content moderation
+2. **Performance & Scalability** (Week 2) - Indexes, query limits, image optimization
+3. **Data Protection** (Week 3) - Soft deletes, backups, monitoring
+
+---
+
+#### Module 1: Security Hardening (Week 1)
+
+**Critical security vulnerabilities that must be fixed before production launch.**
+
+---
+
+##### Day 1-2: Row Level Security (RLS)
+
+**Current State:**
+- RLS disabled or not configured
+- Any authenticated user can access/modify any data
+- Major security vulnerability
+
+**Target:**
+- RLS enabled on all tables
+- Users can only access their own data
+- Proper policies for shared data (groups, messages)
+
+**Implementation:**
+
+**Step 1: Enable RLS on All Tables**
+```sql
+-- supabase/migrations/[timestamp]_enable_rls.sql
+
+-- Enable RLS on all tables
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE testimonies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE friendships ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE group_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE group_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+```
+
+**Step 2: Create RLS Policies**
+```sql
+-- USERS TABLE POLICIES
+
+-- Users can view all profiles (for discovery)
+CREATE POLICY "Users can view all profiles"
+  ON users FOR SELECT
+  USING (true);
+
+-- Users can only update their own profile
+CREATE POLICY "Users can update own profile"
+  ON users FOR UPDATE
+  USING (auth.uid()::text = clerk_user_id);
+
+-- TESTIMONIES TABLE POLICIES
+
+-- Anyone can view public testimonies
+CREATE POLICY "Anyone can view public testimonies"
+  ON testimonies FOR SELECT
+  USING (is_public = true);
+
+-- Users can view their own testimonies (even if private)
+CREATE POLICY "Users can view own testimonies"
+  ON testimonies FOR SELECT
+  USING (auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id));
+
+-- Users can insert their own testimonies
+CREATE POLICY "Users can create own testimonies"
+  ON testimonies FOR INSERT
+  WITH CHECK (auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id));
+
+-- Users can update their own testimonies
+CREATE POLICY "Users can update own testimonies"
+  ON testimonies FOR UPDATE
+  USING (auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id));
+
+-- Users can delete their own testimonies
+CREATE POLICY "Users can delete own testimonies"
+  ON testimonies FOR DELETE
+  USING (auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id));
+
+-- MESSAGES TABLE POLICIES
+
+-- Users can view messages they sent or received
+CREATE POLICY "Users can view own messages"
+  ON messages FOR SELECT
+  USING (
+    auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = sender_id)
+    OR auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = recipient_id)
+  );
+
+-- Users can send messages
+CREATE POLICY "Users can send messages"
+  ON messages FOR INSERT
+  WITH CHECK (auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = sender_id));
+
+-- Users can update messages they sent (for read status)
+CREATE POLICY "Users can update own messages"
+  ON messages FOR UPDATE
+  USING (
+    auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = sender_id)
+    OR auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = recipient_id)
+  );
+
+-- FRIENDSHIPS TABLE POLICIES
+
+-- Users can view friendships they're part of
+CREATE POLICY "Users can view own friendships"
+  ON friendships FOR SELECT
+  USING (
+    auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id_1)
+    OR auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id_2)
+  );
+
+-- Users can create friend requests
+CREATE POLICY "Users can send friend requests"
+  ON friendships FOR INSERT
+  WITH CHECK (auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = requested_by));
+
+-- Users can update friendships they're part of
+CREATE POLICY "Users can update own friendships"
+  ON friendships FOR UPDATE
+  USING (
+    auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id_1)
+    OR auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id_2)
+  );
+
+-- GROUPS TABLE POLICIES
+
+-- Users can view groups they're members of
+CREATE POLICY "Users can view member groups"
+  ON groups FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM group_members
+      WHERE group_id = groups.id
+      AND user_id = (SELECT id FROM users WHERE clerk_user_id = auth.uid()::text)
+    )
+  );
+
+-- Users can create groups
+CREATE POLICY "Users can create groups"
+  ON groups FOR INSERT
+  WITH CHECK (auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = created_by));
+
+-- GROUP MEMBERS TABLE POLICIES
+
+-- Users can view members of groups they're in
+CREATE POLICY "Users can view group members"
+  ON group_members FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM group_members gm
+      WHERE gm.group_id = group_members.group_id
+      AND gm.user_id = (SELECT id FROM users WHERE clerk_user_id = auth.uid()::text)
+    )
+  );
+
+-- Leaders can add members
+CREATE POLICY "Leaders can add members"
+  ON group_members FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM group_members
+      WHERE group_id = group_members.group_id
+      AND user_id = (SELECT id FROM users WHERE clerk_user_id = auth.uid()::text)
+      AND role IN ('leader', 'co-leader')
+    )
+  );
+
+-- GROUP MESSAGES TABLE POLICIES
+
+-- Users can view messages in groups they're members of
+CREATE POLICY "Users can view group messages"
+  ON group_messages FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM group_members
+      WHERE group_id = group_messages.group_id
+      AND user_id = (SELECT id FROM users WHERE clerk_user_id = auth.uid()::text)
+    )
+  );
+
+-- Users can send messages to groups they're members of
+CREATE POLICY "Users can send group messages"
+  ON group_messages FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM group_members
+      WHERE group_id = group_messages.group_id
+      AND user_id = (SELECT id FROM users WHERE clerk_user_id = auth.uid()::text)
+    )
+  );
+
+-- NOTIFICATIONS TABLE POLICIES
+
+-- Users can view their own notifications
+CREATE POLICY "Users can view own notifications"
+  ON notifications FOR SELECT
+  USING (auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id));
+
+-- Users can update their own notifications (mark as read)
+CREATE POLICY "Users can update own notifications"
+  ON notifications FOR UPDATE
+  USING (auth.uid()::text = (SELECT clerk_user_id FROM users WHERE id = user_id));
+```
+
+**Step 3: Test RLS Policies**
+- [ ] Create test migration file
+- [ ] Apply migration to staging database
+- [ ] Test each policy with different user scenarios
+- [ ] Verify unauthorized access is blocked
+
+**🧪 TESTING CHECKPOINT - RLS (60 min):**
+- [ ] ✅ User A cannot read User B's private messages
+- [ ] ✅ User A cannot update User B's profile
+- [ ] ✅ User A cannot delete User B's testimony
+- [ ] ✅ User A can view User B's public testimony
+- [ ] ✅ User A can send message to User B
+- [ ] ✅ User A cannot view groups they're not in
+- [ ] ✅ User A cannot view group messages for groups they're not in
+- [ ] ✅ Group leader can add members
+- [ ] ✅ Group member cannot add other members
+- [ ] 🧪 Try accessing data via browser DevTools (should fail)
+- [ ] 🧪 Test with multiple user sessions simultaneously
+- [ ] 📸 Screenshot of blocked unauthorized access
+- [ ] ⚠️ CRITICAL: Must pass all tests before production
+- [ ] ✅ Commit changes: "Enable Row Level Security with comprehensive policies"
+
+---
+
+##### Day 3-4: Rate Limiting
+
+**Current State:**
+- No rate limiting
+- Users can spam actions infinitely
+- Vulnerable to abuse and cost bombs
+
+**Target:**
+- Generous rate limits that don't affect normal users
+- Prevents spam and abuse
+- User-friendly error messages
+
+**Implementation:**
+
+**Step 1: Database-Level Rate Limiting (RLS Policies)**
+```sql
+-- supabase/migrations/[timestamp]_add_rate_limiting.sql
+
+-- Rate limit: Max 100 messages per hour
+CREATE POLICY "Rate limit messages"
+  ON messages FOR INSERT
+  WITH CHECK (
+    (
+      SELECT COUNT(*) FROM messages
+      WHERE sender_id = (SELECT id FROM users WHERE clerk_user_id = auth.uid()::text)
+      AND created_at > NOW() - INTERVAL '1 hour'
+    ) < 100
+  );
+
+-- Rate limit: Max 20 friend requests per hour
+CREATE POLICY "Rate limit friend requests"
+  ON friendships FOR INSERT
+  WITH CHECK (
+    (
+      SELECT COUNT(*) FROM friendships
+      WHERE requested_by = (SELECT id FROM users WHERE clerk_user_id = auth.uid()::text)
+      AND created_at > NOW() - INTERVAL '1 hour'
+    ) < 20
+  );
+
+-- Rate limit: Max 5 testimony updates per hour
+CREATE POLICY "Rate limit testimony updates"
+  ON testimonies FOR UPDATE
+  USING (
+    (
+      SELECT COUNT(*) FROM testimonies
+      WHERE user_id = (SELECT id FROM users WHERE clerk_user_id = auth.uid()::text)
+      AND updated_at > NOW() - INTERVAL '1 hour'
+    ) < 5
+  );
+
+-- Rate limit: Max 10 profile updates per hour
+CREATE POLICY "Rate limit profile updates"
+  ON users FOR UPDATE
+  USING (
+    (
+      SELECT updated_at FROM users
+      WHERE clerk_user_id = auth.uid()::text
+    ) < NOW() - INTERVAL '6 minutes' -- ~10 per hour
+    OR
+    (
+      SELECT updated_at FROM users
+      WHERE clerk_user_id = auth.uid()::text
+    ) IS NULL
+  );
+```
+
+**Step 2: Client-Side Rate Limit Tracking**
+```typescript
+// src/lib/utils/rate-limiter.ts
+
+interface RateLimit {
+  count: number;
+  resetAt: number;
+}
+
+const limits = new Map<string, RateLimit>();
+
+export const checkRateLimit = (
+  action: string,
+  maxCalls: number,
+  windowMs: number
+): { allowed: boolean; retryAfter?: number } => {
+  const key = action;
+  const now = Date.now();
+  const limit = limits.get(key);
+
+  // Reset if window expired
+  if (!limit || now > limit.resetAt) {
+    limits.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true };
+  }
+
+  // Check if limit exceeded
+  if (limit.count >= maxCalls) {
+    const retryAfter = Math.ceil((limit.resetAt - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+
+  // Increment count
+  limit.count++;
+  return { allowed: true };
+};
+
+// Usage in components
+import { checkRateLimit } from '../lib/utils/rate-limiter';
+
+const handleSendMessage = async () => {
+  const rateCheck = checkRateLimit('send-message', 100, 60 * 60 * 1000); // 100 per hour
+
+  if (!rateCheck.allowed) {
+    toast.error(`Please wait ${rateCheck.retryAfter} seconds before sending more messages`);
+    return;
+  }
+
+  await sendMessage(content);
+};
+```
+
+**Step 3: User-Friendly UI for Rate Limits**
+```tsx
+// src/components/RateLimitMessage.tsx
+export const RateLimitMessage: React.FC<{ retryAfter: number }> = ({ retryAfter }) => {
+  const [secondsLeft, setSecondsLeft] = useState(retryAfter);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-2xl">⏱️</span>
+        <p className="font-semibold text-yellow-800">Slow down there!</p>
+      </div>
+      <p className="text-yellow-700 mb-3">
+        You can send more messages in {secondsLeft} seconds.
+        Take a breather and we'll be ready when you are! 😊
+      </p>
+      <div className="w-full bg-yellow-200 rounded-full h-2">
+        <div
+          className="bg-yellow-500 h-2 rounded-full transition-all duration-1000"
+          style={{ width: `${(secondsLeft / retryAfter) * 100}%` }}
+        />
+      </div>
+    </div>
+  );
+};
+```
+
+**🧪 TESTING CHECKPOINT - RATE LIMITING (30 min):**
+- [ ] ✅ Send 100 messages in 5 minutes → all succeed
+- [ ] ✅ Try to send 101st message → shows friendly error
+- [ ] ✅ Wait 1 hour → can send messages again
+- [ ] ✅ Rapid-click "Send Friend Request" 25 times → first 20 succeed, rest blocked
+- [ ] ✅ Rate limit message shows countdown timer
+- [ ] ✅ Normal usage (5-10 messages/hour) unaffected
+- [ ] 🧪 Test with rapid clicking (button mashing)
+- [ ] 🧪 Test countdown timer accuracy
+- [ ] 📸 Screenshot of rate limit UI
+- [ ] ⚠️ CRITICAL: Limits must be generous enough for real users
+- [ ] ✅ Commit changes: "Add rate limiting with user-friendly error messages"
+
+---
+
+##### Day 5-7: Content Moderation
+
+**Current State:**
+- No spam/abuse filtering
+- Users can post anything
+- Vulnerable to spam, scams, harassment
+
+**Target:**
+- Basic automated filtering for obvious spam/abuse
+- User reporting system
+- Manual review queue
+- Permissive filters (avoid false positives)
+
+**Implementation:**
+
+**Step 1: Create Basic Content Filter**
+```typescript
+// src/lib/moderation/content-filter.ts
+
+interface ModerationResult {
+  allowed: boolean;
+  reason?: string;
+  flagged?: boolean;
+  confidence?: 'low' | 'medium' | 'high';
+}
+
+// Very conservative - only block obvious spam
+const SPAM_PATTERNS = [
+  /buy.{0,15}viagra/i,
+  /click here.{0,30}https?:\/\//i,
+  /\$\$\$+/,  // Multiple dollar signs
+  /win \$?\d+,?\d* (dollars?|USD)/i,
+  /earn money (fast|quick|easy)/i,
+];
+
+// Suspicious patterns (flag for review, don't block)
+const SUSPICIOUS_PATTERNS = [
+  /https?:\/\/[^\s]{3,}/gi,  // URLs
+  /\b\d{10,}\b/,  // Long numbers (phone, crypto wallet)
+];
+
+// Words allowed in faith context
+const FAITH_CONTEXT_ALLOWED = [
+  'damn', 'hell', 'crap', // Authentic expressions
+];
+
+export const moderateContent = (text: string): ModerationResult => {
+  // Check for spam patterns
+  for (const pattern of SPAM_PATTERNS) {
+    if (pattern.test(text)) {
+      return {
+        allowed: false,
+        reason: 'This content appears to be spam. If you believe this is a mistake, please contact support.',
+        confidence: 'high'
+      };
+    }
+  }
+
+  // Check for link spam (3+ links is suspicious)
+  const linkMatches = text.match(/https?:\/\//gi);
+  if (linkMatches && linkMatches.length > 3) {
+    return {
+      allowed: false,
+      reason: 'Too many links in one message. Please limit links to 3 or fewer.',
+      confidence: 'medium'
+    };
+  }
+
+  // Check for all caps (likely spam, but flag instead of block)
+  const wordsInCaps = text.match(/\b[A-Z]{4,}\b/g);
+  if (wordsInCaps && wordsInCaps.length > 5) {
+    return {
+      allowed: true,
+      flagged: true,
+      confidence: 'low'
+    };
+  }
+
+  // Check for suspicious patterns (flag for review)
+  for (const pattern of SUSPICIOUS_PATTERNS) {
+    if (pattern.test(text)) {
+      return {
+        allowed: true,
+        flagged: true,
+        confidence: 'low'
+      };
+    }
+  }
+
+  return { allowed: true };
+};
+```
+
+**Step 2: Add Flagged Content Table**
+```sql
+-- supabase/migrations/[timestamp]_add_flagged_content.sql
+
+CREATE TABLE flagged_content (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  content_type TEXT NOT NULL CHECK (content_type IN ('testimony', 'message', 'group_message', 'profile')),
+  content_id UUID NOT NULL,
+  user_id UUID REFERENCES users(id),
+  reason TEXT,
+  confidence TEXT CHECK (confidence IN ('low', 'medium', 'high')),
+  reviewed BOOLEAN DEFAULT false,
+  reviewed_by UUID REFERENCES users(id),
+  reviewed_at TIMESTAMP,
+  action_taken TEXT CHECK (action_taken IN ('approved', 'removed', 'warned')),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_flagged_content_reviewed ON flagged_content(reviewed) WHERE reviewed = false;
+CREATE INDEX idx_flagged_content_confidence ON flagged_content(confidence);
+```
+
+**Step 3: Integrate into Components**
+```typescript
+// src/components/MessagesTab.tsx
+import { moderateContent } from '../lib/moderation/content-filter';
+
+const handleSendMessage = async () => {
+  // Moderate content before sending
+  const moderation = moderateContent(messageContent);
+
+  if (!moderation.allowed) {
+    toast.error(moderation.reason);
+    return;
+  }
+
+  // Send message
+  await sendMessage(messageContent);
+
+  // If flagged, log for review
+  if (moderation.flagged) {
+    await supabase.from('flagged_content').insert({
+      content_type: 'message',
+      content_id: messageId,
+      user_id: currentUserId,
+      reason: 'Automated flag',
+      confidence: moderation.confidence
+    });
+  }
+};
+```
+
+**Step 4: User Reporting System**
+```typescript
+// src/components/ReportButton.tsx
+export const ReportButton: React.FC<{
+  contentType: string;
+  contentId: string;
+  userId: string;
+}> = ({ contentType, contentId, userId }) => {
+  const [showDialog, setShowDialog] = useState(false);
+  const [reason, setReason] = useState('');
+
+  const handleReport = async () => {
+    await supabase.from('reports').insert({
+      content_type: contentType,
+      content_id: contentId,
+      reported_user_id: userId,
+      reported_by: currentUserId,
+      reason,
+      created_at: new Date()
+    });
+
+    toast.success('Report submitted. Thank you for keeping our community safe.');
+    setShowDialog(false);
+  };
+
+  return (
+    <>
+      <button onClick={() => setShowDialog(true)} className="text-red-500">
+        🚩 Report
+      </button>
+
+      {showDialog && (
+        <Dialog>
+          <h3>Report Content</h3>
+          <p>Help us understand what's wrong with this content:</p>
+          <select value={reason} onChange={(e) => setReason(e.target.value)}>
+            <option value="">Select a reason...</option>
+            <option value="spam">Spam or scam</option>
+            <option value="harassment">Harassment or bullying</option>
+            <option value="inappropriate">Inappropriate content</option>
+            <option value="false_info">False information</option>
+            <option value="other">Other</option>
+          </select>
+          <button onClick={handleReport}>Submit Report</button>
+        </Dialog>
+      )}
+    </>
+  );
+};
+```
+
+**🧪 TESTING CHECKPOINT - CONTENT MODERATION (45 min):**
+- [ ] ✅ Post "Buy cheap Viagra!" → blocked with clear error
+- [ ] ✅ Post with 5 links → blocked
+- [ ] ✅ Post with 1-2 links → allowed
+- [ ] ✅ Post "I was damn angry at God" → allowed (faith context)
+- [ ] ✅ Post in ALL CAPS → flagged but allowed
+- [ ] ✅ User clicks "Report" → report saved to database
+- [ ] ✅ Normal testimonies and messages → all allowed
+- [ ] 🧪 Test with 20 different message types (spam, normal, edge cases)
+- [ ] 🧪 Verify false positive rate < 1%
+- [ ] 📸 Screenshot of moderation error message
+- [ ] 📸 Screenshot of report dialog
+- [ ] ⚠️ CRITICAL: Must not block legitimate content
+- [ ] ✅ Commit changes: "Add content moderation with user reporting"
+
+**Success Criteria - Module 1:**
+- ✅ RLS enabled on all tables with proper policies
+- ✅ Rate limiting prevents abuse without affecting normal users
+- ✅ Content moderation blocks spam while allowing authentic content
+- ✅ All security tests passing
+- ✅ User experience remains smooth
+
+---
+
+#### Module 2: Performance & Scalability (Week 2)
+
+**Optimizations to handle 10,000+ users without slowdowns or crashes.**
+
+---
+
+##### Day 1-2: Database Indexes
+
+**Current State:**
+- Minimal indexes beyond primary keys
+- Slow queries on large datasets
+- Poor performance at scale
+
+**Target:**
+- Strategic indexes on frequently queried columns
+- Fast queries even with 100,000+ users
+- Optimized for common access patterns
+
+**Implementation:**
+
+```sql
+-- supabase/migrations/[timestamp]_add_performance_indexes.sql
+
+-- USERS TABLE INDEXES
+CREATE INDEX idx_users_clerk_user_id ON users(clerk_user_id);  -- Already exists as unique
+CREATE INDEX idx_users_username ON users(username);  -- Already exists as unique
+CREATE INDEX idx_users_last_seen ON users(last_seen DESC) WHERE last_seen IS NOT NULL;
+CREATE INDEX idx_users_is_online ON users(is_online) WHERE is_online = true;
+CREATE INDEX idx_users_location_point ON users USING GIST(location_point) WHERE location_point IS NOT NULL;
+CREATE INDEX idx_users_has_testimony ON users(has_testimony) WHERE has_testimony = true;
+
+-- TESTIMONIES TABLE INDEXES
+CREATE INDEX idx_testimonies_user_id ON testimonies(user_id);
+CREATE INDEX idx_testimonies_is_public ON testimonies(is_public) WHERE is_public = true;
+CREATE INDEX idx_testimonies_created_at ON testimonies(created_at DESC);
+CREATE INDEX idx_testimonies_view_count ON testimonies(view_count DESC) WHERE is_public = true;
+CREATE INDEX idx_testimonies_like_count ON testimonies(like_count DESC) WHERE is_public = true;
+
+-- MESSAGES TABLE INDEXES
+CREATE INDEX idx_messages_sender_id ON messages(sender_id, created_at DESC);
+CREATE INDEX idx_messages_recipient_id ON messages(recipient_id, created_at DESC);
+CREATE INDEX idx_messages_conversation ON messages(sender_id, recipient_id, created_at DESC);
+CREATE INDEX idx_messages_unread ON messages(recipient_id, is_read) WHERE is_read = false;
+
+-- FRIENDSHIPS TABLE INDEXES
+CREATE INDEX idx_friendships_user_id_1 ON friendships(user_id_1, status);
+CREATE INDEX idx_friendships_user_id_2 ON friendships(user_id_2, status);
+CREATE INDEX idx_friendships_status ON friendships(status, created_at DESC);
+CREATE INDEX idx_friendships_pending ON friendships(user_id_2) WHERE status = 'pending';
+
+-- GROUPS TABLE INDEXES
+CREATE INDEX idx_groups_created_by ON groups(created_by);
+CREATE INDEX idx_groups_created_at ON groups(created_at DESC);
+CREATE INDEX idx_groups_is_private ON groups(is_private);
+
+-- GROUP_MEMBERS TABLE INDEXES
+CREATE INDEX idx_group_members_group_id ON group_members(group_id, joined_at DESC);
+CREATE INDEX idx_group_members_user_id ON group_members(user_id, joined_at DESC);
+CREATE INDEX idx_group_members_role ON group_members(group_id, role);
+
+-- GROUP_MESSAGES TABLE INDEXES
+CREATE INDEX idx_group_messages_group_id ON group_messages(group_id, created_at DESC);
+CREATE INDEX idx_group_messages_sender_id ON group_messages(sender_id);
+CREATE INDEX idx_group_messages_pinned ON group_messages(group_id, is_pinned) WHERE is_pinned = true;
+
+-- NOTIFICATIONS TABLE INDEXES
+CREATE INDEX idx_notifications_user_id ON notifications(user_id, created_at DESC);
+CREATE INDEX idx_notifications_unread ON notifications(user_id, is_read) WHERE is_read = false;
+CREATE INDEX idx_notifications_type ON notifications(user_id, type, created_at DESC);
+
+-- Composite indexes for common queries
+CREATE INDEX idx_messages_conversation_unread ON messages(sender_id, recipient_id, is_read, created_at DESC);
+```
+
+**Performance Testing:**
+```sql
+-- Test query performance before/after indexes
+
+-- Query 1: Load user conversations (MessagesTab)
+EXPLAIN ANALYZE
+SELECT DISTINCT ON (LEAST(sender_id, recipient_id), GREATEST(sender_id, recipient_id))
+  *
+FROM messages
+WHERE sender_id = 'user-id' OR recipient_id = 'user-id'
+ORDER BY created_at DESC;
+
+-- Query 2: Find nearby users (NearbyTab)
+EXPLAIN ANALYZE
+SELECT * FROM users
+WHERE location_point IS NOT NULL
+AND ST_DWithin(
+  location_point,
+  ST_MakePoint(-122.4194, 37.7749)::geography,
+  40233.6  -- 25 miles in meters
+)
+ORDER BY last_seen DESC
+LIMIT 100;
+
+-- Query 3: Load group messages
+EXPLAIN ANALYZE
+SELECT * FROM group_messages
+WHERE group_id = 'group-id'
+ORDER BY created_at DESC
+LIMIT 50;
+
+-- All queries should show "Index Scan" not "Seq Scan"
+-- Execution time should be < 50ms even with 100,000 rows
+```
+
+**🧪 TESTING CHECKPOINT - INDEXES (45 min):**
+- [ ] ✅ Run EXPLAIN ANALYZE on all common queries
+- [ ] ✅ Verify all queries use indexes (no Seq Scan)
+- [ ] ✅ Query times < 50ms for common operations
+- [ ] ✅ Test with large dataset (seed 10,000+ test users)
+- [ ] ✅ MessagesTab loads in < 200ms
+- [ ] ✅ NearbyTab loads in < 300ms
+- [ ] ✅ GroupsTab loads in < 200ms
+- [ ] 🧪 Benchmark before/after index creation
+- [ ] 📸 Screenshot of EXPLAIN ANALYZE results
+- [ ] ⚠️ CRITICAL: Must improve query performance significantly
+- [ ] ✅ Commit changes: "Add comprehensive database indexes for performance"
+
+---
+
+##### Day 3-4: Image Upload Validation & Optimization
+
+**Current State:**
+- No size/type validation
+- No image optimization
+- Users can upload huge files
+
+**Target:**
+- Max 8MB file size
+- Only image types allowed
+- Auto-compression and optimization
+- Fast uploads and loads
+
+**Implementation:**
+
+**Step 1: Client-Side Validation**
+```typescript
+// src/lib/upload/image-validator.ts
+
+export interface ValidationResult {
+  valid: boolean;
+  error?: string;
+}
+
+export const validateImage = async (file: File): Promise<ValidationResult> => {
+  // Check file size (max 8MB)
+  const MAX_SIZE = 8 * 1024 * 1024; // 8MB
+  if (file.size > MAX_SIZE) {
+    return {
+      valid: false,
+      error: 'Image must be less than 8MB. Please choose a smaller file or compress it.'
+    };
+  }
+
+  // Check file type
+  const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return {
+      valid: false,
+      error: 'Only JPEG, PNG, WebP, and GIF images are allowed.'
+    };
+  }
+
+  // Check image dimensions
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX_DIMENSION = 4000;
+      if (img.width > MAX_DIMENSION || img.height > MAX_DIMENSION) {
+        resolve({
+          valid: false,
+          error: `Image dimensions too large. Maximum ${MAX_DIMENSION}x${MAX_DIMENSION}px.`
+        });
+      } else {
+        resolve({ valid: true });
+      }
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => {
+      resolve({
+        valid: false,
+        error: 'Invalid image file. Please try a different image.'
+      });
+    };
+    img.src = URL.createObjectURL(file);
+  });
+};
+```
+
+**Step 2: Image Optimization**
+```typescript
+// src/lib/upload/image-optimizer.ts
+import imageCompression from 'browser-image-compression';
+
+export const optimizeImage = async (file: File): Promise<File> => {
+  // Compression options
+  const options = {
+    maxSizeMB: 0.8,  // Target 800KB
+    maxWidthOrHeight: 1920,  // Max dimension
+    useWebWorker: true,
+    fileType: 'image/webp',  // Convert to WebP for better compression
+  };
+
+  try {
+    const compressedFile = await imageCompression(file, options);
+    return compressedFile;
+  } catch (error) {
+    console.error('Image compression failed:', error);
+    // Return original if compression fails
+    return file;
+  }
+};
+```
+
+**Step 3: Upload with Validation**
+```typescript
+// src/lib/upload/image-uploader.ts
+import { validateImage } from './image-validator';
+import { optimizeImage } from './image-optimizer';
+
+export const uploadImage = async (
+  file: File,
+  type: 'profile' | 'group' | 'message'
+): Promise<{ url: string; error?: string }> => {
+  // Validate
+  const validation = await validateImage(file);
+  if (!validation.valid) {
+    return { url: '', error: validation.error };
+  }
+
+  // Optimize
+  const optimizedFile = await optimizeImage(file);
+
+  // Upload to Cloudinary (or Supabase Storage)
+  const formData = new FormData();
+  formData.append('file', optimizedFile);
+  formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_PRESET);
+
+  try {
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+    return { url: data.secure_url };
+  } catch (error) {
+    return { url: '', error: 'Upload failed. Please try again.' };
+  }
+};
+```
+
+**Step 4: UI Integration**
+```tsx
+// src/components/ImageUpload.tsx
+export const ImageUpload: React.FC<{ onUpload: (url: string) => void }> = ({ onUpload }) => {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string>();
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError(undefined);
+    setUploading(true);
+
+    const result = await uploadImage(file, 'profile');
+
+    if (result.error) {
+      setError(result.error);
+    } else {
+      onUpload(result.url);
+    }
+
+    setUploading(false);
+  };
+
+  return (
+    <div>
+      <label className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-lg">
+        {uploading ? 'Uploading...' : 'Upload Image'}
+        <input
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+          onChange={handleFileSelect}
+          disabled={uploading}
+          className="hidden"
+        />
+      </label>
+      <p className="text-sm text-gray-600 mt-2">
+        Max 8MB • JPEG, PNG, WebP, or GIF
+      </p>
+      {error && (
+        <p className="text-red-500 mt-2">{error}</p>
+      )}
+    </div>
+  );
+};
+```
+
+**🧪 TESTING CHECKPOINT - IMAGE UPLOAD (45 min):**
+- [ ] ✅ Upload 5MB JPEG → succeeds, compressed to ~600KB
+- [ ] ✅ Upload 10MB PNG → error: "Image must be less than 8MB"
+- [ ] ✅ Upload PDF file → error: "Only JPEG, PNG, WebP, and GIF allowed"
+- [ ] ✅ Upload 8000x6000px image → error: "Dimensions too large"
+- [ ] ✅ Upload valid 2MB image → succeeds in < 5 seconds
+- [ ] ✅ Optimized images still look good (no visible quality loss)
+- [ ] ✅ Upload shows progress/loading state
+- [ ] ✅ Error messages are clear and helpful
+- [ ] 🧪 Test with various image formats (JPEG, PNG, GIF, WebP)
+- [ ] 🧪 Test with very small images (10KB) - should still work
+- [ ] 🧪 Test upload cancellation
+- [ ] 📸 Screenshot of validation error messages
+- [ ] 📸 Before/after file sizes (e.g., 5MB → 600KB)
+- [ ] ⚠️ CRITICAL: Must not degrade image quality noticeably
+- [ ] ✅ Commit changes: "Add image validation and optimization (max 8MB)"
+
+---
+
+##### Day 5-6: Geospatial Query Limits & Soft Deletes
+
+**Part A: Geospatial Query Limits**
+
+**Current State:**
+```sql
+-- Returns ALL users within radius (could be 50,000+)
+SELECT * FROM users WHERE ST_DWithin(...)
+```
+
+**Target:**
+```sql
+-- Returns max 100 users, with pagination
+SELECT * FROM users WHERE ST_DWithin(...) LIMIT 100 OFFSET 0
+```
+
+**Implementation:**
+```sql
+-- supabase/migrations/[timestamp]_update_nearby_users_function.sql
+
+CREATE OR REPLACE FUNCTION find_nearby_users(
+  user_lat DECIMAL,
+  user_lng DECIMAL,
+  radius_miles INTEGER DEFAULT 25,
+  result_limit INTEGER DEFAULT 100,
+  result_offset INTEGER DEFAULT 0
+)
+RETURNS TABLE (
+  id UUID,
+  username TEXT,
+  display_name TEXT,
+  avatar_emoji TEXT,
+  avatar_url TEXT,
+  bio TEXT,
+  location_city TEXT,
+  is_online BOOLEAN,
+  last_seen TIMESTAMP,
+  has_testimony BOOLEAN,
+  distance_miles DECIMAL
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    u.id,
+    u.username,
+    u.display_name,
+    u.avatar_emoji,
+    u.avatar_url,
+    u.bio,
+    u.location_city,
+    u.is_online,
+    u.last_seen,
+    u.has_testimony,
+    ROUND(
+      ST_Distance(
+        u.location_point,
+        ST_MakePoint(user_lng, user_lat)::geography
+      ) / 1609.34,
+      1
+    ) AS distance_miles
+  FROM users u
+  WHERE u.location_point IS NOT NULL
+  AND ST_DWithin(
+    u.location_point,
+    ST_MakePoint(user_lng, user_lat)::geography,
+    radius_miles * 1609.34
+  )
+  ORDER BY u.last_seen DESC NULLS LAST
+  LIMIT result_limit
+  OFFSET result_offset;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+**Frontend Integration:**
+```typescript
+// src/components/NearbyTab.tsx
+const [users, setUsers] = useState<User[]>([]);
+const [hasMore, setHasMore] = useState(true);
+const [offset, setOffset] = useState(0);
+
+const loadNearbyUsers = async (loadMore = false) => {
+  const currentOffset = loadMore ? offset : 0;
+
+  const { data, error } = await supabase.rpc('find_nearby_users', {
+    user_lat: myLocation.lat,
+    user_lng: myLocation.lng,
+    radius_miles: 25,
+    result_limit: 100,
+    result_offset: currentOffset
+  });
+
+  if (data) {
+    setUsers(loadMore ? [...users, ...data] : data);
+    setHasMore(data.length === 100); // If got full 100, there might be more
+    setOffset(currentOffset + 100);
+  }
+};
+
+// In UI
+{hasMore && (
+  <button onClick={() => loadNearbyUsers(true)}>
+    Load More Believers
+  </button>
+)}
+```
+
+**Part B: Soft Deletes**
+
+**Implementation:**
+```sql
+-- supabase/migrations/[timestamp]_add_soft_deletes.sql
+
+-- Add deleted_at column to all tables
+ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP;
+ALTER TABLE testimonies ADD COLUMN deleted_at TIMESTAMP;
+ALTER TABLE messages ADD COLUMN deleted_at TIMESTAMP;
+ALTER TABLE groups ADD COLUMN deleted_at TIMESTAMP;
+ALTER TABLE group_messages ADD COLUMN deleted_at TIMESTAMP;
+
+-- Create indexes for soft delete queries
+CREATE INDEX idx_users_deleted ON users(deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX idx_testimonies_deleted ON testimonies(deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX idx_messages_deleted ON messages(deleted_at) WHERE deleted_at IS NULL;
+
+-- Update RLS policies to exclude deleted items
+DROP POLICY IF EXISTS "Users can view all profiles" ON users;
+CREATE POLICY "Users can view all profiles"
+  ON users FOR SELECT
+  USING (deleted_at IS NULL);
+
+DROP POLICY IF EXISTS "Anyone can view public testimonies" ON testimonies;
+CREATE POLICY "Anyone can view public testimonies"
+  ON testimonies FOR SELECT
+  USING (is_public = true AND deleted_at IS NULL);
+
+-- Add undo delete functionality
+CREATE OR REPLACE FUNCTION undo_delete_testimony(testimony_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE testimonies
+  SET deleted_at = NULL
+  WHERE id = testimony_id
+  AND deleted_at > NOW() - INTERVAL '30 days';
+END;
+$$ LANGUAGE plpgsql;
+```
+
+**Frontend Integration:**
+```typescript
+// src/lib/database/repositories/testimonies.repository.ts
+
+export const deleteTestimony = async (testimonyId: string): Promise<void> => {
+  // Soft delete
+  const { error } = await supabase
+    .from('testimonies')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', testimonyId);
+
+  if (error) throw error;
+
+  // Show undo toast
+  toast((t) => (
+    <div className="flex gap-3 items-center">
+      <span>Testimony deleted</span>
+      <button
+        onClick={() => undoDeleteTestimony(testimonyId, t.id)}
+        className="bg-blue-500 text-white px-3 py-1 rounded"
+      >
+        Undo
+      </button>
+    </div>
+  ), { duration: 10000 });
+};
+
+export const undoDeleteTestimony = async (testimonyId: string, toastId: string): Promise<void> => {
+  const { error } = await supabase
+    .from('testimonies')
+    .update({ deleted_at: null })
+    .eq('id', testimonyId);
+
+  if (!error) {
+    toast.success('Testimony restored!');
+    toast.dismiss(toastId);
+  }
+};
+```
+
+**🧪 TESTING CHECKPOINT - QUERY LIMITS & SOFT DELETES (45 min):**
+- [ ] ✅ NearbyTab loads 100 users even if 10,000 nearby
+- [ ] ✅ "Load More" button appears when more users available
+- [ ] ✅ Clicking "Load More" loads next 100 users
+- [ ] ✅ Delete testimony → shows "Undo" toast for 10 seconds
+- [ ] ✅ Click "Undo" → testimony restored
+- [ ] ✅ Wait 10 seconds → toast disappears, testimony still deleted
+- [ ] ✅ Deleted testimonies don't appear in queries
+- [ ] ✅ Can view deleted items in "Trash" (if implemented)
+- [ ] 🧪 Test pagination with various dataset sizes
+- [ ] 🧪 Test undo within time limit and after time limit
+- [ ] 📸 Screenshot of "Load More" button
+- [ ] 📸 Screenshot of undo toast
+- [ ] ⚠️ CRITICAL: Must prevent performance issues in large cities
+- [ ] ✅ Commit changes: "Add query limits for nearby users and soft delete with undo"
+
+---
+
+##### Day 7: Database Backups & Monitoring
+
+**Part A: Database Backups**
+
+**Implementation:**
+```bash
+# Enable Supabase automated backups (do in dashboard)
+# Settings → Database → Backups → Enable daily backups
+
+# Optional: Manual backup script (for extra safety)
+# scripts/backup-database.sh
+
+#!/bin/bash
+
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="./backups"
+BACKUP_FILE="$BACKUP_DIR/lightning_db_$TIMESTAMP.sql"
+
+mkdir -p $BACKUP_DIR
+
+# Backup using pg_dump
+PGPASSWORD=$SUPABASE_DB_PASSWORD pg_dump \
+  -h $SUPABASE_DB_HOST \
+  -U postgres \
+  -d postgres \
+  --clean \
+  --if-exists \
+  > $BACKUP_FILE
+
+# Compress backup
+gzip $BACKUP_FILE
+
+# Upload to S3 or Google Cloud Storage (optional)
+# aws s3 cp "$BACKUP_FILE.gz" s3://your-backup-bucket/
+
+echo "Backup complete: $BACKUP_FILE.gz"
+
+# Delete backups older than 30 days
+find $BACKUP_DIR -name "*.sql.gz" -mtime +30 -delete
+```
+
+**Part B: Monitoring & Alerting**
+
+**Option A: Sentry (Error Tracking)**
+```typescript
+// src/main.tsx
+import * as Sentry from '@sentry/react';
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,
+  integrations: [
+    new Sentry.BrowserTracing(),
+    new Sentry.Replay(),
+  ],
+  tracesSampleRate: 1.0,
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+});
+```
+
+**Option B: Health Check Endpoint**
+```typescript
+// supabase/functions/health-check/index.ts
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+serve(async () => {
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  );
+
+  try {
+    // Test database connection
+    const { data, error } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+
+    if (error) throw error;
+
+    return new Response(
+      JSON.stringify({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        database: 'connected'
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        status: 'unhealthy',
+        error: error.message
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+});
+```
+
+**Option C: UptimeRobot or Similar**
+```
+1. Sign up for UptimeRobot (free tier)
+2. Add monitor for: https://your-app.com/api/health
+3. Set alert contacts (email, SMS)
+4. Monitor every 5 minutes
+5. Get alerted if app is down
+```
+
+**🧪 TESTING CHECKPOINT - BACKUPS & MONITORING (30 min):**
+- [ ] ✅ Supabase automated backups enabled
+- [ ] ✅ Can restore from backup successfully
+- [ ] ✅ Manual backup script runs without errors
+- [ ] ✅ Sentry catches and logs errors
+- [ ] ✅ Health check endpoint returns 200 when healthy
+- [ ] ✅ Health check endpoint returns 500 when database down (test by pausing Supabase)
+- [ ] ✅ Uptime monitoring service configured
+- [ ] 🧪 Simulate outage and verify alerts sent
+- [ ] 📸 Screenshot of Sentry dashboard
+- [ ] 📸 Screenshot of backup files
+- [ ] ⚠️ CRITICAL: Must have working backup before production
+- [ ] ✅ Commit changes: "Add database backups and monitoring infrastructure"
+
+**Success Criteria - Module 2:**
+- ✅ All database queries use indexes and run in < 100ms
+- ✅ Image uploads validated (max 8MB) and optimized
+- ✅ Geospatial queries limited to prevent crashes
+- ✅ Soft deletes with undo functionality working
+- ✅ Automated backups enabled
+- ✅ Monitoring and alerting configured
+
+---
+
+### **PHASE 1.75 COMPLETION CRITERIA**
+
+**Before Production Launch:**
+- ✅ RLS enabled on all tables with comprehensive policies
+- ✅ Rate limiting prevents abuse (generous limits for real users)
+- ✅ Content moderation blocks spam while allowing authentic content
+- ✅ Database indexes optimize all common queries
+- ✅ Image uploads validated (max 8MB) and optimized
+- ✅ Geospatial queries limited to 100 results with pagination
+- ✅ Soft deletes implemented with undo functionality
+- ✅ Automated database backups enabled
+- ✅ Monitoring and alerting configured
+- ✅ All security tests passing
+- ✅ Performance benchmarks met (queries < 100ms)
+
+**Expected Outcomes:**
+- 🔒 Security: Protected against common attacks and abuse
+- ⚡ Performance: Fast queries even with 100,000+ users
+- 💾 Data Safety: Backups and soft deletes prevent data loss
+- 📊 Visibility: Monitoring catches issues before users notice
+- 🎯 User Experience: Smooth operation, helpful error messages
+- 💰 Cost Optimized: Image optimization saves storage/bandwidth costs
+
+**Production-Ready Checklist:**
+- [ ] All Phase 1.5 modules complete (code quality)
+- [ ] All Phase 1.75 modules complete (security & scale)
+- [ ] Load testing performed (simulate 1,000 concurrent users)
+- [ ] Security audit completed
+- [ ] Backup restoration tested
+- [ ] Monitoring alerts verified
+- [ ] Rate limits tested and tuned
+- [ ] Image optimization verified
+- [ ] All tests passing (unit, integration, E2E)
+- [ ] Documentation updated
+
+---
+
 ### PHASE 2: CORE FEATURES (3-4 weeks after MVP)
 
 **Week 7-8: Groups**
