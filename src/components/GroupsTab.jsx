@@ -916,7 +916,7 @@ const GroupsTab = ({ nightMode }) => {
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={nightMode ? 'absolute bottom-full mb-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-[100]' : 'absolute bottom-full mb-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-[100]'} style={nightMode ? {
+                              <div className={nightMode ? 'absolute top-full mt-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-[100]' : 'absolute top-full mt-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-[100]'} style={nightMode ? {
                                 background: '#1a1a1a',
                                 backdropFilter: 'blur(30px)',
                                 WebkitBackdropFilter: 'blur(30px)',
@@ -1069,7 +1069,7 @@ const GroupsTab = ({ nightMode }) => {
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={nightMode ? 'absolute bottom-full mb-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-[100]' : 'absolute bottom-full mb-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-[100]'} style={nightMode ? {
+                              <div className={nightMode ? 'absolute top-full mt-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-[100]' : 'absolute top-full mt-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-[100]'} style={nightMode ? {
                                 background: '#1a1a1a',
                                 backdropFilter: 'blur(30px)',
                                 WebkitBackdropFilter: 'blur(30px)',
@@ -1255,7 +1255,7 @@ const GroupsTab = ({ nightMode }) => {
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={nightMode ? 'absolute bottom-full mb-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-[100]' : 'absolute bottom-full mb-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-[100]'} style={nightMode ? {
+                              <div className={nightMode ? 'absolute top-full mt-1 left-0 border border-white/10 rounded-xl shadow-2xl p-2 z-[100]' : 'absolute top-full mt-1 left-0 border border-white/25 rounded-xl shadow-2xl p-2 z-[100]'} style={nightMode ? {
                                 background: '#1a1a1a',
                                 backdropFilter: 'blur(30px)',
                                 WebkitBackdropFilter: 'blur(30px)',
