@@ -15,6 +15,7 @@ import {
   checkFriendshipStatus,
   getMutualFriends
 } from '../lib/database';
+import { checkMilestoneSecret } from '../lib/secrets';
 
 const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, nightMode }) => {
   const { profile } = useUserProfile();
@@ -131,6 +132,18 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
       setPendingRequests(pending || []);
       const friendsList = await getFriends(profile.supabaseId);
       setFriends(friendsList || []);
+
+      // Check friend milestone secrets (10, 25, 50, 100 friends)
+      const friendCount = friendsList?.length || 0;
+      if (friendCount === 10) {
+        checkMilestoneSecret('friends', 10);
+      } else if (friendCount === 25) {
+        checkMilestoneSecret('friends', 25);
+      } else if (friendCount === 50) {
+        checkMilestoneSecret('friends', 50);
+      } else if (friendCount === 100) {
+        checkMilestoneSecret('friends', 100);
+      }
     } catch (error) {
       console.error('Error accepting friend request:', error);
     }

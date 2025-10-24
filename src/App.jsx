@@ -18,7 +18,7 @@ import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
-import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets } from './lib/secrets';
+import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets } from './lib/secrets';
 
 function App() {
   const { signOut } = useClerk();
@@ -51,6 +51,7 @@ function App() {
   const [logoClicks, setLogoClicks] = useState(0);
   const [logoClickTimer, setLogoClickTimer] = useState(null);
   const [showSecretsMuseum, setShowSecretsMuseum] = useState(false);
+  const [testimonyStartTime, setTestimonyStartTime] = useState(null);
 
   // Network status detection
   React.useEffect(() => {
@@ -73,9 +74,10 @@ function App() {
     };
   }, []);
 
-  // Start time-based secrets (John 3:16 at 3:16)
+  // Start time-based secrets (John 3:16 at 3:16) and check holiday secrets
   React.useEffect(() => {
     startTimeBasedSecrets();
+    checkHolidaySecrets(); // Check if today is a special holiday
     return () => stopTimeBasedSecrets();
   }, []);
 
@@ -291,6 +293,14 @@ function App() {
         const data = await response.json();
         setGeneratedTestimony(data.testimony);
 
+        // Calculate time spent writing
+        const timeSpent = testimonyStartTime ? Date.now() - testimonyStartTime : null;
+
+        // Check testimony secrets (character count, word count, time of day, speed)
+        checkTestimonySecrets({
+          content: data.testimony
+        }, timeSpent);
+
       } catch (error) {
         console.error('Error:', error);
         showError('Could not connect to AI service. Creating testimony from your answers...');
@@ -312,6 +322,14 @@ Then everything changed. ${testimonyAnswers[1]?.substring(0, 150)}... ${testimon
 Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to bring hope to others walking through what I once faced. My past pain fuels my present purpose.`;
 
         setGeneratedTestimony(demoTestimony);
+
+        // Calculate time spent writing
+        const timeSpent = testimonyStartTime ? Date.now() - testimonyStartTime : null;
+
+        // Check testimony secrets (character count, word count, time of day, speed)
+        checkTestimonySecrets({
+          content: demoTestimony
+        }, timeSpent);
 
         // For authenticated users: Save to database immediately
         // For guests: Show save modal (Testimony-First Conversion)
@@ -392,6 +410,12 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
         setProfileCompleted(true);
         setShowProfileWizard(false);
 
+        // Check profile secrets (completion, bio length)
+        checkProfileSecrets({
+          ...profileData,
+          profileCompleted: true
+        });
+
         // Reload the page to reflect changes
         setTimeout(() => window.location.reload(), 1000);
       } else {
@@ -439,6 +463,9 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
         console.log('✅ Profile updated successfully!', updated);
         updateToSuccess(toastId, 'Profile updated successfully!');
         setShowProfileEdit(false);
+
+        // Check profile secrets (completion, bio length)
+        checkProfileSecrets(profileData);
 
         // Reload the page to reflect changes
         setTimeout(() => window.location.reload(), 1000);
@@ -542,9 +569,15 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       case 'connect':
         return <NearbyTab sortBy={sortBy} setSortBy={setSortBy} activeConnectTab={activeConnectTab} setActiveConnectTab={setActiveConnectTab} nightMode={nightMode} />;
       case 'profile':
-        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => setShowTestimonyPrompt(true)} onEditTestimony={handleEditTestimony} />;
+        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => {
+          setShowTestimonyPrompt(true);
+          setTestimonyStartTime(Date.now());
+        }} onEditTestimony={handleEditTestimony} />;
       default:
-        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => setShowTestimonyPrompt(true)} onEditTestimony={handleEditTestimony} />;
+        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => {
+          setShowTestimonyPrompt(true);
+          setTestimonyStartTime(Date.now());
+        }} onEditTestimony={handleEditTestimony} />;
     }
   };
 
@@ -897,7 +930,10 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       {/* Testimony Prompt Button */}
       {!profile.hasTestimony && !showTestimonyPrompt && (
         <button
-          onClick={() => setShowTestimonyPrompt(true)}
+          onClick={() => {
+            setShowTestimonyPrompt(true);
+            setTestimonyStartTime(Date.now());
+          }}
           className="fixed bottom-20 right-6 w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-110 z-40 text-slate-100 border border-white/20"
           style={{
             background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',

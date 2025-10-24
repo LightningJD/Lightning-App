@@ -5,6 +5,7 @@ import { useUserProfile } from './useUserProfile';
 import { showError } from '../lib/toast';
 import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
+import { checkMilestoneSecret } from '../lib/secrets';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp) => {
@@ -213,6 +214,25 @@ const MessagesTab = ({ nightMode }) => {
 
       if (savedMessage) {
         console.log('✅ Message sent to database!', savedMessage);
+
+        // Check message milestone secrets
+        // Count total messages sent by this user (rough estimate from all conversations)
+        const allConvos = await getUserConversations(profile.supabaseId);
+        let totalMessages = 0;
+        if (allConvos) {
+          for (const convo of allConvos) {
+            const convoMessages = await getConversation(profile.supabaseId, convo.userId);
+            totalMessages += convoMessages?.filter(m => m.senderId === profile.supabaseId).length || 0;
+          }
+        }
+
+        // Check milestones: 1st message, 100 messages
+        if (totalMessages === 1) {
+          checkMilestoneSecret('messages', 1);
+        } else if (totalMessages === 100) {
+          checkMilestoneSecret('messages', 100);
+        }
+
         // Reload messages to get the real data
         const updatedMessages = await getConversation(
           profile.supabaseId,
