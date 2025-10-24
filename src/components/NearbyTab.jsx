@@ -17,7 +17,7 @@ import {
 } from '../lib/database';
 import { checkMilestoneSecret } from '../lib/secrets';
 
-const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, nightMode }) => {
+const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, nightMode, onNavigateToMessages }) => {
   const { profile } = useUserProfile();
   const [isLoading, setIsLoading] = useState(true);
   const [viewingUser, setViewingUser] = useState(null);
@@ -98,8 +98,10 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
   };
 
   const handleMessage = (user) => {
-    // TODO: Navigate to messages tab with this user
-    console.log('Message user:', user);
+    // Navigate to messages tab
+    if (onNavigateToMessages) {
+      onNavigateToMessages(user);
+    }
   };
 
   const handleAddFriend = async (userId) => {

@@ -569,7 +569,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       case 'groups':
         return <GroupsTab nightMode={nightMode} />;
       case 'connect':
-        return <NearbyTab sortBy={sortBy} setSortBy={setSortBy} activeConnectTab={activeConnectTab} setActiveConnectTab={setActiveConnectTab} nightMode={nightMode} />;
+        return <NearbyTab sortBy={sortBy} setSortBy={setSortBy} activeConnectTab={activeConnectTab} setActiveConnectTab={setActiveConnectTab} nightMode={nightMode} onNavigateToMessages={() => setCurrentTab('messages')} />;
       case 'profile':
         return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => {
           setShowTestimonyPrompt(true);
