@@ -4,6 +4,7 @@ import { sendMessage, getConversation, getUserConversations, subscribeToMessages
 import { useUserProfile } from './useUserProfile';
 import { showError } from '../lib/toast';
 import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
+import { useGuestModalContext } from '../contexts/GuestModalContext';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp) => {
@@ -24,6 +25,7 @@ const formatTimestamp = (timestamp) => {
 
 const MessagesTab = ({ nightMode }) => {
   const { profile } = useUserProfile();
+  const { isGuest, checkAndShowModal } = useGuestModalContext();
   const [activeChat, setActiveChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [conversations, setConversations] = useState([]);
@@ -92,6 +94,14 @@ const MessagesTab = ({ nightMode }) => {
       }
     });
   };
+
+  // Block guests from accessing messages (Freemium Browse & Block)
+  useEffect(() => {
+    if (isGuest) {
+      console.log('🚫 Guest attempted to access Messages - blocking');
+      checkAndShowModal();
+    }
+  }, [isGuest]);
 
   // Load conversations from database
   useEffect(() => {

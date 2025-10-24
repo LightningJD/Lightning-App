@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Heart, Share2, ExternalLink, Plus, Edit3, MapPin } from 'lucide-react';
+import { useGuestModalContext } from '../contexts/GuestModalContext';
+import { trackTestimonyView } from '../lib/guestSession';
 
 const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -11,6 +13,7 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
   const [showQR, setShowQR] = useState(false);
   const [showLesson, setShowLesson] = useState(false);
   const audioRef = useRef(null);
+  const { isGuest, checkAndShowModal } = useGuestModalContext();
 
   React.useEffect(() => {
     if (audioRef.current) {
@@ -20,6 +23,15 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
       });
     }
   }, []);
+
+  // Track testimony views for guests (Freemium Browse & Block)
+  React.useEffect(() => {
+    if (isGuest && profile?.story?.content) {
+      console.log('👁️ Guest viewing testimony - tracking...');
+      trackTestimonyView();
+      checkAndShowModal();
+    }
+  }, [profile?.story?.content, isGuest]);
 
   const togglePlay = () => {
     if (audioRef.current) {

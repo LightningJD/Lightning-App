@@ -23,9 +23,11 @@ import {
 } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { GroupCardSkeleton } from './SkeletonLoader';
+import { useGuestModalContext } from '../contexts/GuestModalContext';
 
 const GroupsTab = ({ nightMode }) => {
   const { profile } = useUserProfile();
+  const { isGuest, checkAndShowModal } = useGuestModalContext();
   const [activeGroup, setActiveGroup] = useState(null);
   const [activeView, setActiveView] = useState('list'); // 'list', 'chat', 'settings', 'members'
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -57,6 +59,14 @@ const GroupsTab = ({ nightMode }) => {
     '🤲', '😇', '😊', '😢', '😮', '🎉',  // Row 3: Support & Prayer
     '🫂', '✋', '🥰', '😌', '✅', '💯'   // Row 4: Connection & Agreement
   ];
+
+  // Block guests from accessing groups (Freemium Browse & Block)
+  useEffect(() => {
+    if (isGuest) {
+      console.log('🚫 Guest attempted to access Groups - blocking');
+      checkAndShowModal();
+    }
+  }, [isGuest]);
 
   // Load user's groups
   useEffect(() => {
