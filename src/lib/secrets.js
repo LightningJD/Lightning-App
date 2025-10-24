@@ -72,15 +72,6 @@ export const secrets = {
     rarity: 'common',
     funFact: 'Iron sharpens iron - keep connecting!'
   },
-  konami_code: {
-    id: 'konami_code',
-    name: 'OG Believer',
-    description: 'Entered the secret Konami code',
-    icon: '🎮',
-    unlockMessage: 'You found the legendary Konami code!',
-    rarity: 'legendary',
-    funFact: 'Up Up Down Down Left Right Left Right - a gaming legend!'
-  },
   night_mode_7_days: {
     id: 'night_mode_7_days',
     name: 'Night Owl',

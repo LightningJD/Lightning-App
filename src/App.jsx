@@ -50,7 +50,6 @@ function App() {
   const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
   const [logoClicks, setLogoClicks] = useState(0);
   const [logoClickTimer, setLogoClickTimer] = useState(null);
-  const [konamiIndex, setKonamiIndex] = useState(0);
   const [showSecretsMuseum, setShowSecretsMuseum] = useState(false);
 
   // Network status detection
@@ -79,32 +78,6 @@ function App() {
     startTimeBasedSecrets();
     return () => stopTimeBasedSecrets();
   }, []);
-
-  // Konami Code secret
-  React.useEffect(() => {
-    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-
-    const handleKeyDown = (e) => {
-      const key = e.key === 'b' || e.key === 'a' ? e.key : e.code;
-
-      if (key === konamiCode[konamiIndex]) {
-        const newIndex = konamiIndex + 1;
-        setKonamiIndex(newIndex);
-
-        if (newIndex === konamiCode.length) {
-          unlockSecret('konami_code');
-          setKonamiIndex(0);
-          // Show secret museum as a reward
-          setTimeout(() => setShowSecretsMuseum(true), 500);
-        }
-      } else {
-        setKonamiIndex(0);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [konamiIndex]);
 
   // Logo click secret handler
   const handleLogoClick = () => {
