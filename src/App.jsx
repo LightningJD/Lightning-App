@@ -14,6 +14,7 @@ import EditTestimonyDialog from './components/EditTestimonyDialog';
 import ConfirmDialog from './components/ConfirmDialog';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
+import { GuestModalProvider } from './contexts/GuestModalContext';
 
 function App() {
   const { signOut } = useClerk();
@@ -405,7 +406,8 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
   };
 
   return (
-    <div className="min-h-screen pb-12 relative">
+    <GuestModalProvider nightMode={nightMode}>
+      <div className="min-h-screen pb-12 relative">
       {/* Toast Notifications */}
       <Toaster />
 
@@ -985,7 +987,8 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         variant="danger"
         nightMode={nightMode}
       />
-    </div>
+      </div>
+    </GuestModalProvider>
   );
 }
 
