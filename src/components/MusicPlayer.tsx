@@ -56,10 +56,10 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
         </div>
 
         {/* YouTube Player (small and embedded) */}
-        <div className="rounded overflow-hidden" style={{ height: '60px' }}>
+        <div className="rounded overflow-hidden" style={{ height: '80px' }}>
           <iframe
             width="100%"
-            height="60"
+            height="80"
             src={getYouTubeEmbedUrl(videoId)}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
