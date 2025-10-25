@@ -4,8 +4,46 @@
  * Handles image uploads to Cloudinary with automatic optimization
  */
 
+import { logError, logWarning } from './errorLogging';
+
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+// Rate limiting for uploads (prevent abuse)
+const uploadAttempts = new Map<string, { count: number; resetTime: number }>();
+const MAX_UPLOADS_PER_HOUR = 20;
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
+
+/**
+ * Check if user has exceeded upload rate limit
+ */
+const checkUploadRateLimit = (userId: string = 'anonymous'): void => {
+  const now = Date.now();
+  const userAttempts = uploadAttempts.get(userId);
+
+  if (!userAttempts || now > userAttempts.resetTime) {
+    // First upload or window expired - reset counter
+    uploadAttempts.set(userId, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW
+    });
+    return;
+  }
+
+  if (userAttempts.count >= MAX_UPLOADS_PER_HOUR) {
+    const minutesRemaining = Math.ceil((userAttempts.resetTime - now) / (60 * 1000));
+    logWarning('Cloudinary Rate Limit', 'Upload rate limit exceeded', {
+      userId,
+      attempts: userAttempts.count,
+      minutesRemaining
+    });
+    throw new Error(`Upload limit reached. Please try again in ${minutesRemaining} minutes.`);
+  }
+
+  // Increment counter
+  userAttempts.count++;
+  uploadAttempts.set(userId, userAttempts);
+};
 
 /**
  * Upload image to Cloudinary
@@ -17,6 +55,7 @@ export const uploadImage = async (file: File, options: {
   folder?: string;
   public_id?: string;
   transformation?: any;
+  userId?: string; // For rate limiting
 } = {}): Promise<{
   url: string;
   publicId: string;
@@ -25,8 +64,14 @@ export const uploadImage = async (file: File, options: {
   format: string;
   bytes: number;
 }> => {
+  // Check rate limit first (before any processing)
+  checkUploadRateLimit(options.userId);
+
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
-    console.error('❌ Cloudinary not configured. Check .env.local file.');
+    logError('Cloudinary Upload', new Error('Cloudinary not configured'), {
+      cloudName: !!CLOUD_NAME,
+      uploadPreset: !!UPLOAD_PRESET
+    });
     throw new Error('Cloudinary credentials missing. Please check your environment variables.');
   }
 
@@ -41,10 +86,35 @@ export const uploadImage = async (file: File, options: {
     throw new Error('Image too large. Please choose an image under 10MB.');
   }
 
-  // Check file type
+  // Minimum file size check (prevent 0-byte files and DoS)
+  const MIN_SIZE = 100; // 100 bytes
+  if (file.size < MIN_SIZE) {
+    throw new Error('File is too small or corrupted.');
+  }
+
+  // Check file type (MIME type)
   const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
   if (!validTypes.includes(file.type)) {
     throw new Error('Invalid file type. Please upload a JPG, PNG, GIF, or WebP image.');
+  }
+
+  // Validate file extension (prevent MIME type spoofing)
+  const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+  const fileName = file.name.toLowerCase();
+  const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+  if (!hasValidExtension) {
+    throw new Error('Invalid file extension. Please use .jpg, .png, .gif, or .webp files.');
+  }
+
+  // Check for dangerous characters in filename
+  const dangerousChars = /[<>:"\/\\|?*\x00-\x1F]/g;
+  if (dangerousChars.test(file.name)) {
+    throw new Error('File name contains invalid characters.');
+  }
+
+  // Prevent directory traversal attacks
+  if (file.name.includes('..') || file.name.includes('/') || file.name.includes('\\')) {
+    throw new Error('Invalid file name.');
   }
 
   // Create form data
@@ -79,11 +149,26 @@ export const uploadImage = async (file: File, options: {
 
     if (!response.ok) {
       const error = await response.json();
-      console.error('❌ Cloudinary upload error:', error);
+      logError('Cloudinary Upload', new Error('Upload failed'), {
+        status: response.status,
+        statusText: response.statusText,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type
+      });
       throw new Error(error.error?.message || 'Upload failed');
     }
 
     const data = await response.json();
+
+    // Log successful upload (without sensitive data)
+    if (import.meta.env.DEV) {
+      console.log('✅ Image uploaded successfully:', {
+        fileName: file.name,
+        size: `${(file.size / 1024).toFixed(2)}KB`,
+        format: data.format
+      });
+    }
 
     return {
       url: data.secure_url,
@@ -94,7 +179,12 @@ export const uploadImage = async (file: File, options: {
       bytes: data.bytes
     };
   } catch (error) {
-    console.error('❌ Error uploading to Cloudinary:', error);
+    logError('Cloudinary Upload', error, {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      folder: options.folder
+    });
     if (error instanceof Error) {
       throw error;
     }
