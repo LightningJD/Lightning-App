@@ -1,0 +1,18 @@
+# Cloudflare Pages Configuration
+# This file is optional but recommended for advanced configuration
+
+name = "lightning"
+compatibility_date = "2024-10-25"
+
+# Pages configuration
+pages_build_output_dir = "dist"
+
+# Environment variables are configured in the Cloudflare dashboard
+# DO NOT put sensitive values here - this file is committed to git
+
+[build]
+command = "npm run build"
+cwd = "."
+
+[build.upload]
+format = "service-worker"
