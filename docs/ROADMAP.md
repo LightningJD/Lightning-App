@@ -954,11 +954,295 @@ CREATE TABLE notifications (
 ### PHASE 4: ADVANCED (Ongoing)
 - [ ] Voice messages
 - [ ] Video calls
-- [ ] Multi-language support
 - [ ] AI content moderation
 - [ ] Premium features
 - [ ] Church dashboard
 - [ ] Mobile app (React Native)
+
+---
+
+## 🌍 PHASE 5: GLOBAL EXPANSION - MULTILINGUAL SUPPORT
+
+**Status:** Post-Launch, Phase 2+ (After product-market fit in US)
+**Timeline:** 6-12 months after successful US launch
+**Target:** International Christian communities, starting with Brazil
+
+### Why Brazil First?
+
+**Market Opportunity:**
+- 🇧🇷 **123 million Christians** (58% of population)
+- 📈 **Fastest-growing evangelical population** in Latin America
+- 💰 **Large middle class** with smartphone adoption (85%+)
+- 🌐 **Limited English proficiency** - genuine need for Portuguese
+- 🔥 **High social media engagement** - viral potential
+- ⛪ **Strong church culture** - perfect for faith-based social app
+
+**Technical Advantages:**
+- Single language to start (Portuguese)
+- Similar time zones to US East Coast (easier support)
+- Strong DevOps/tech community for hiring
+- Lower customer acquisition costs than US/Europe
+
+### Multilingual Support Implementation
+
+#### **Phase 5.1: Text Translation (2-3 weeks)**
+
+**Infrastructure Setup:**
+- [ ] Integrate translation service (Google Translate API or DeepL)
+- [ ] Create translation key system (i18n/react-i18next)
+- [ ] Database schema for multi-language content
+- [ ] Language preference in user profile
+
+**UI Translation:**
+- [ ] Extract all hardcoded English strings
+- [ ] Create translation files (en.json, pt-BR.json)
+- [ ] Translate UI elements:
+  - Navigation labels (Profile, Messages, Groups, Connect)
+  - Button text (Send, Save, Cancel, etc.)
+  - Form labels and placeholders
+  - Error messages and toasts
+  - Settings menu items
+  - Legal pages (Terms, Privacy)
+
+**User-Generated Content:**
+- [ ] Auto-translate testimonies (with "See Original" option)
+- [ ] Auto-translate messages (optional, user-controlled)
+- [ ] Auto-translate group descriptions
+- [ ] Language indicator badges ("Translated from English")
+
+**Smart Translation:**
+- [ ] Detect user's browser language
+- [ ] Auto-suggest language on signup
+- [ ] Remember language preference
+- [ ] Easy language switcher in Settings
+
+**Cost Estimate:**
+- Google Translate API: $20 per 1M characters
+- Average testimony: 1,500 characters
+- 10,000 testimonies = 15M characters = **$300**
+- Monthly (with messages): ~$50-100/month
+
+#### **Phase 5.2: Audio Translation (3-4 weeks)**
+
+**Text-to-Speech (TTS):**
+- [ ] Integrate TTS service (Google Cloud TTS or ElevenLabs)
+- [ ] Add "Listen" button to testimonies
+- [ ] Voice selection (male/female, regional accents)
+- [ ] Playback controls (play, pause, speed)
+- [ ] Audio caching to reduce costs
+
+**Speech-to-Text (STT) for Input:**
+- [ ] Voice input for messages
+- [ ] Voice recording for testimonies
+- [ ] Auto-transcription + translation
+- [ ] "Speak instead of type" option
+
+**Portuguese-Specific Features:**
+- [ ] Brazilian Portuguese (pt-BR) accent/dialect
+- [ ] Common Christian terminology in Portuguese
+- [ ] Culturally appropriate greetings
+- [ ] Brazilian date/time formats
+
+**Cost Estimate:**
+- Google Cloud TTS: $4 per 1M characters
+- 10,000 testimonies × 1,500 chars = 15M = **$60**
+- Monthly (active listening): ~$20-40/month
+
+#### **Phase 5.3: AI Testimony Generation in Portuguese (2-3 weeks)**
+
+**GPT-4 Multilingual:**
+- [ ] Update testimony prompts for Portuguese
+- [ ] Maintain cultural sensitivity
+- [ ] Brazilian Christian context/expressions
+- [ ] Quality assurance testing with native speakers
+
+**Localized Questions:**
+- [ ] Translate 4 testimony questions
+- [ ] Adapt questions to Brazilian culture
+- [ ] Test emotional resonance with focus group
+
+**Writing Style:**
+- [ ] Brazilian Portuguese writing framework
+- [ ] Culturally appropriate metaphors
+- [ ] Local Christian terminology
+- [ ] Respect for regional differences (North vs South Brazil)
+
+#### **Phase 5.4: Launch Strategy - Brazil (4-6 weeks)**
+
+**Pre-Launch:**
+- [ ] Partner with 5-10 Brazilian churches
+- [ ] Recruit Portuguese-speaking beta testers (50 users)
+- [ ] Create Portuguese marketing materials
+- [ ] Localize app store listings
+- [ ] Set up Portuguese customer support
+
+**Marketing Channels:**
+- [ ] Instagram/Facebook ads (Portuguese)
+- [ ] Brazilian Christian influencers
+- [ ] WhatsApp group partnerships (huge in Brazil)
+- [ ] Church bulletin boards
+- [ ] Christian radio stations
+
+**Support Infrastructure:**
+- [ ] Portuguese FAQ / Help Center
+- [ ] Portuguese email templates
+- [ ] Brazilian holidays in content calendar
+- [ ] Local payment methods (Pix, Boleto)
+
+**Legal Compliance:**
+- [ ] LGPD compliance (Brazil's GDPR)
+- [ ] Portuguese Terms of Service
+- [ ] Portuguese Privacy Policy
+- [ ] Local data storage requirements (if needed)
+
+### Technical Architecture
+
+**Language Detection & Routing:**
+```javascript
+// User language preference
+const userLanguage = userProfile.language || navigator.language || 'en';
+
+// Load appropriate translation
+import translations from `./i18n/${userLanguage}.json`;
+
+// Translation helper
+const t = (key) => translations[key] || key;
+
+// Example usage
+<button>{t('send_message')}</button> // "Send Message" or "Enviar Mensagem"
+```
+
+**Database Schema Updates:**
+```sql
+-- Add language preference to users
+ALTER TABLE users ADD COLUMN preferred_language VARCHAR(5) DEFAULT 'en';
+
+-- Multilingual content table
+CREATE TABLE content_translations (
+  id UUID PRIMARY KEY,
+  content_id UUID NOT NULL,
+  content_type VARCHAR(50), -- 'testimony', 'message', 'group'
+  language VARCHAR(5),
+  translated_text TEXT,
+  original_language VARCHAR(5),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+**Auto-Translation Feature:**
+```javascript
+// On testimony view
+const translateTestimony = async (testimony, targetLanguage) => {
+  // Check cache first
+  const cached = await getCachedTranslation(testimony.id, targetLanguage);
+  if (cached) return cached;
+
+  // Translate via API
+  const translated = await googleTranslate(testimony.text, targetLanguage);
+
+  // Cache for future
+  await cacheTranslation(testimony.id, targetLanguage, translated);
+
+  return translated;
+};
+```
+
+### Future Languages (Phase 5.5+)
+
+**Priority Order Based on Christian Population:**
+
+1. **Spanish** (540M Christians globally)
+   - Mexico, Colombia, Spain, Argentina
+   - Very similar to Portuguese (shared infrastructure)
+
+2. **French** (280M Christians)
+   - France, DR Congo, Haiti, Canada (Quebec)
+
+3. **Swahili** (100M+ Christians in East Africa)
+   - Kenya, Tanzania, Uganda
+   - Rapidly growing smartphone adoption
+
+4. **Korean** (30M Christians, 29% of population)
+   - High tech adoption
+   - Strong church culture
+   - High revenue potential
+
+5. **Tagalog** (86M Christians in Philippines, 80% Catholic)
+   - English-speaking but prefer native language
+   - Very social media active
+
+6. **Mandarin Chinese** (67M Christians, growing fast)
+   - Underground church movement
+   - Massive market potential
+
+### Cost Summary - Multilingual Phase
+
+**One-Time Costs:**
+- Translation service integration: 1 week dev time
+- UI string extraction and translation: $500-1,000 per language
+- Legal document translation: $300-500 per language
+- Beta testing with native speakers: $1,000-2,000
+
+**Monthly Recurring (per language):**
+- Text translation API: $50-100/month
+- Audio TTS/STT: $20-40/month
+- Customer support (part-time): $500-1,000/month
+- Marketing/ads: $1,000-5,000/month
+
+**Total to Launch in Brazil:**
+- Development: 8-10 weeks
+- Cost: $5,000-10,000 (one-time) + $2,000-5,000/month
+
+**ROI Estimate:**
+- Brazil: 123M Christians × 10% smartphone users = 12.3M potential users
+- Even 0.1% adoption = 12,300 users
+- At $2-5/user lifetime value = $24,600-61,500 revenue
+- Payback: 2-6 months if successful
+
+### Success Metrics - International
+
+**Adoption:**
+- Portuguese-speaking signups per week
+- % of users who switch language from English
+- Testimony creation rate (vs English users)
+
+**Engagement:**
+- Messages sent in Portuguese
+- Audio playback usage (TTS)
+- Voice input adoption (STT)
+
+**Quality:**
+- Translation accuracy ratings
+- User satisfaction with Portuguese UI
+- Support ticket volume (language-related)
+
+**Growth:**
+- Viral coefficient in Brazil
+- Church partnerships secured
+- Cross-language connections (English ↔ Portuguese)
+
+### Why Not Phase 1?
+
+**Focus on Product-Market Fit First:**
+- ✅ Prove the concept works in English
+- ✅ Achieve 1,000+ active users in US
+- ✅ Validate business model
+- ✅ Build strong engineering team
+- ✅ Establish customer support processes
+
+**Then Expand:**
+- Translation is easier after product is stable
+- Better understanding of what features resonate
+- More resources (revenue from US users)
+- Proven playbook to replicate
+
+**Timeline:**
+- Phase 1: US Launch → 1,000 users (6 months)
+- Phase 2: US Growth → 10,000 users (6-12 months)
+- Phase 3: Profitability & Team Building (6-12 months)
+- **Phase 5: Brazil Launch** (18-24 months from now)
+
+This ensures we're translating a **successful product**, not a prototype.
 
 ---
 
