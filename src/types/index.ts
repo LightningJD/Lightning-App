@@ -143,7 +143,7 @@ export interface Friend {
   id: string;
   user_id: string;
   friend_id: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'pending' | 'accepted' | 'declined' | 'rejected'; // 'declined' is used in database
   created_at: string;
   updated_at: string;
 }
