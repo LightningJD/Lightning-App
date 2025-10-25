@@ -5,6 +5,7 @@ import { trackTestimonyView } from '../lib/guestSession';
 import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
 import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony } from '../lib/database';
 import { useUser } from '@clerk/clerk-react';
+import { sanitizeUserContent } from '../lib/sanitization';
 
 interface ProfileTabProps {
   profile: any;
@@ -281,7 +282,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
             </div>
           )}
 
-          <p className={`${nightMode ? 'text-slate-100' : 'text-black'} mt-3 text-sm leading-relaxed break-words`}>{profile.bio}</p>
+          <p
+            className={`${nightMode ? 'text-slate-100' : 'text-black'} mt-3 text-sm leading-relaxed break-words`}
+            dangerouslySetInnerHTML={{ __html: sanitizeUserContent(profile.bio || '') }}
+          />
         </div>
       </div>
 
@@ -437,7 +441,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           {/* Testimony Content - Privacy Protected */}
           {canView ? (
             <>
-              <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>{profile?.story?.content}</p>
+              <p
+                className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}
+                dangerouslySetInnerHTML={{ __html: sanitizeUserContent(profile?.story?.content || '') }}
+              />
 
               {/* Lesson Learned - Inline with preview/expand */}
               {profile?.story?.lesson && (
@@ -450,12 +457,16 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
               </div>
 
               {/* Preview (first 150 characters) */}
-              <p className={`text-sm ${nightMode ? 'text-slate-300' : 'text-gray-700'} italic leading-relaxed`}>
-                {showLesson
-                  ? profile?.story?.lesson
-                  : `${profile?.story?.lesson?.slice(0, 150)}${(profile?.story?.lesson?.length || 0) > 150 ? '...' : ''}`
-                }
-              </p>
+              <p
+                className={`text-sm ${nightMode ? 'text-slate-300' : 'text-gray-700'} italic leading-relaxed`}
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeUserContent(
+                    showLesson
+                      ? (profile?.story?.lesson || '')
+                      : `${(profile?.story?.lesson || '').slice(0, 150)}${(profile?.story?.lesson?.length || 0) > 150 ? '...' : ''}`
+                  )
+                }}
+              />
 
               {/* Read More button if lesson is long */}
               {(profile?.story?.lesson?.length || 0) > 150 && (

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, MapPin, Heart, MessageCircle, Flag } from 'lucide-react';
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
+import { sanitizeUserContent } from '../lib/sanitization';
 
 interface UserStory {
   id: string;
@@ -133,9 +134,10 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
 
               {/* Bio */}
               {user.bio && (
-                <p className={`${nightMode ? 'text-slate-100' : 'text-black'} mt-4 text-sm leading-relaxed max-w-md`}>
-                  {user.bio}
-                </p>
+                <p
+                  className={`${nightMode ? 'text-slate-100' : 'text-black'} mt-4 text-sm leading-relaxed max-w-md`}
+                  dangerouslySetInnerHTML={{ __html: sanitizeUserContent(user.bio) }}
+                />
               )}
             </div>
 
@@ -225,16 +227,20 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                     <Flag className="w-4 h-4" />
                   </button>
                 </div>
-                <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>
-                  {user.story.content}
-                </p>
+                <p
+                  className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}
+                  dangerouslySetInnerHTML={{ __html: sanitizeUserContent(user.story.content) }}
+                />
 
                 {user.story.lesson && (
                   <div className={`mt-4 p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
                     <p className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-700'} mb-2 uppercase tracking-wider`}>
                       A Lesson Learned
                     </p>
-                    <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} italic`}>{user.story.lesson}</p>
+                    <p
+                      className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} italic`}
+                      dangerouslySetInnerHTML={{ __html: sanitizeUserContent(user.story.lesson) }}
+                    />
                   </div>
                 )}
               </div>

@@ -86,9 +86,28 @@ export const getTestimonyByUserId = async (userId: string): Promise<any> => {
 
 /**
  * Update testimony
+ * @param testimonyId - ID of testimony to update
+ * @param userId - ID of user making the update (for authorization)
+ * @param updates - Fields to update
  */
-export const updateTestimony = async (testimonyId: string, updates: Record<string, any>): Promise<any> => {
+export const updateTestimony = async (
+  testimonyId: string,
+  userId: string,
+  updates: Record<string, any>
+): Promise<any> => {
   if (!supabase) return null;
+
+  // First verify the testimony belongs to this user
+  const { data: testimony } = await supabase
+    .from('testimonies')
+    .select('user_id')
+    .eq('id', testimonyId)
+    .single();
+
+  if (!testimony || (testimony as any).user_id !== userId) {
+    console.warn(`Unauthorized testimony update attempt: testimony=${testimonyId}, user=${userId}`);
+    throw new Error('Unauthorized: You can only update your own testimonies');
+  }
 
   const { data, error } = await supabase
     .from('testimonies')
@@ -98,6 +117,7 @@ export const updateTestimony = async (testimonyId: string, updates: Record<strin
       updated_at: new Date().toISOString()
     })
     .eq('id', testimonyId)
+    .eq('user_id', userId) // Double-check authorization in query
     .select()
     .single();
 

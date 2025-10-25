@@ -602,8 +602,8 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
         console.log('✅ Profile updated successfully!', updated);
 
         // If testimony was edited, update it separately
-        if (profileData.testimonyContent && userProfile.story?.id) {
-          await updateTestimony(userProfile.story.id, {
+        if (profileData.testimonyContent && userProfile.story?.id && userProfile.supabaseId) {
+          await updateTestimony(userProfile.story.id, userProfile.supabaseId, {
             content: profileData.testimonyContent,
             lesson: profileData.testimonyLesson
           });
@@ -691,7 +691,12 @@ Then everything changed. ${formData.question2?.substring(0, 150)}... ${formData.
 Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to bring hope to others walking through what I once faced. My past pain fuels my present purpose.`;
 
       // Update testimony in database
-      const updated = await updateTestimony(testimonyData.id, {
+      if (!userProfile?.supabaseId) {
+        showError('Authentication required');
+        return;
+      }
+
+      const updated = await updateTestimony(testimonyData.id, userProfile.supabaseId, {
         content: updatedContent,
         lesson: formData.lesson,
         question1_answer: formData.question1,
