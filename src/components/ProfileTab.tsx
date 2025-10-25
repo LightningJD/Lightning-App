@@ -6,7 +6,15 @@ import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
 import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony } from '../lib/database';
 import { useUser } from '@clerk/clerk-react';
 
-const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony, currentUserProfile }) => {
+interface ProfileTabProps {
+  profile: any;
+  nightMode: boolean;
+  onAddTestimony?: () => void;
+  onEditTestimony?: () => void;
+  currentUserProfile?: any;
+}
+
+const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestimony, onEditTestimony, currentUserProfile }) => {
   const { user } = useUser();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);

@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, Check, Sparkles } from 'lucide-react';
 import { SignIn } from '@clerk/clerk-react';
 
@@ -14,7 +13,15 @@ import { SignIn } from '@clerk/clerk-react';
  * - Emotional connection (personal story)
  */
 
-const SaveTestimonyModal = ({ isOpen, onClose, onContinueAsGuest, nightMode, testimonyPreview }) => {
+interface SaveTestimonyModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onContinueAsGuest: () => void;
+  nightMode: boolean;
+  testimonyPreview: string;
+}
+
+const SaveTestimonyModal: React.FC<SaveTestimonyModalProps> = ({ isOpen, onClose, onContinueAsGuest, nightMode, testimonyPreview }) => {
   if (!isOpen) return null;
 
   return (

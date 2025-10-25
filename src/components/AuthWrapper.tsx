@@ -1,12 +1,15 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
 import SignInPage from './SignInPage';
 import SignUpPage from './SignUpPage';
 
-const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
-const AuthWrapper = ({ children }) => {
+interface AuthWrapperProps {
+  children: React.ReactNode;
+}
+
+const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
   if (!CLERK_PUBLISHABLE_KEY) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center p-4">

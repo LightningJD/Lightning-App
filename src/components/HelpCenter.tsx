@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, HelpCircle, Search, ChevronRight, ChevronDown, MessageCircle, Shield, Users, MapPin, Heart, Bell, Zap, Mail } from 'lucide-react';
 
-const HelpCenter = ({ isOpen, onClose, nightMode, onContactSupport }) => {
+interface HelpCenterProps {
+  isOpen: boolean;
+  onClose: () => void;
+  nightMode: boolean;
+  onContactSupport?: () => void;
+}
+
+const HelpCenter: React.FC<HelpCenterProps> = ({ isOpen, onClose, nightMode, onContactSupport }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFAQ, setExpandedFAQ] = useState(null);
 
@@ -143,7 +150,7 @@ const HelpCenter = ({ isOpen, onClose, nightMode, onContactSupport }) => {
       })).filter(category => category.faqs.length > 0)
     : faqCategories;
 
-  const toggleFAQ = (categoryIndex, faqIndex) => {
+  const toggleFAQ = (categoryIndex: number, faqIndex: number) => {
     const key = `${categoryIndex}-${faqIndex}`;
     setExpandedFAQ(expandedFAQ === key ? null : key);
   };

@@ -19,7 +19,16 @@ import {
 } from '../lib/database';
 import { checkMilestoneSecret } from '../lib/secrets';
 
-const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, nightMode, onNavigateToMessages }) => {
+interface NearbyTabProps {
+  sortBy: string;
+  setSortBy: (sortBy: string) => void;
+  activeConnectTab: string;
+  setActiveConnectTab: (tab: string) => void;
+  nightMode: boolean;
+  onNavigateToMessages?: (user: any) => void;
+}
+
+const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, nightMode, onNavigateToMessages }) => {
   const { profile } = useUserProfile();
   const [isLoading, setIsLoading] = useState(true);
   const [viewingUser, setViewingUser] = useState(null);

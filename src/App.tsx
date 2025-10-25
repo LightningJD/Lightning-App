@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useClerk } from '@clerk/clerk-react';
-import { User, MessageCircle, Users, MapPin, Zap, Plus, X, ArrowRight, ArrowLeft, Sparkles, Edit3, Camera, Mail, Lock, Eye, Ban, Flag, Bell, Globe, Palette, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
+import { User, MessageCircle, Users, MapPin, Zap, Plus, X, ArrowRight, ArrowLeft, Sparkles, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
@@ -28,8 +28,9 @@ import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUser
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
 import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets, checkMilestoneSecret, checkActivitySecrets } from './lib/secrets';
-import { trackDailyLogin, getLoginStreak, trackThemeChange, trackNightModeUsage, trackAvatarChange, getAvatarChangeCount } from './lib/activityTracker';
+import { trackDailyLogin, trackThemeChange, trackNightModeUsage, trackAvatarChange } from './lib/activityTracker';
 import { initSentry, setUser as setSentryUser } from './lib/sentry';
+import type { UserUpdate } from './types';
 
 function App() {
   const { signOut } = useClerk();
@@ -39,30 +40,29 @@ function App() {
   const [showMenu, setShowMenu] = useState(false);
   const [showTestimonyPrompt, setShowTestimonyPrompt] = useState(false);
   const [testimonyStep, setTestimonyStep] = useState(0);
-  const [testimonyAnswers, setTestimonyAnswers] = useState({});
+  const [testimonyAnswers, setTestimonyAnswers] = useState<Record<number, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedTestimony, setGeneratedTestimony] = useState(null);
+  const [generatedTestimony, setGeneratedTestimony] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('recommended');
   const [activeConnectTab, setActiveConnectTab] = useState('recommended');
-  const [selectedTheme, setSelectedTheme] = useState(localStorage.getItem('lightningTheme') || 'periwinkle');
+  const selectedTheme = localStorage.getItem('lightningTheme') || 'periwinkle';
   const [nightMode, setNightMode] = useState(localStorage.getItem('lightningNightMode') === 'true');
   const [showProfileWizard, setShowProfileWizard] = useState(false);
   const [profileCompleted, setProfileCompleted] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showTestimonyEdit, setShowTestimonyEdit] = useState(false);
-  const [testimonyData, setTestimonyData] = useState(null);
-  const [notificationCounts, setNotificationCounts] = useState({
+  const [testimonyData, setTestimonyData] = useState<any>(null);
+  const notificationCounts = {
     messages: 3,
     groups: 2,
     connect: 1
-  });
+  };
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
   const [logoClicks, setLogoClicks] = useState(0);
-  const [logoClickTimer, setLogoClickTimer] = useState(null);
+  const [logoClickTimer, setLogoClickTimer] = useState<NodeJS.Timeout | null>(null);
   const [showSecretsMuseum, setShowSecretsMuseum] = useState(false);
-  const [testimonyStartTime, setTestimonyStartTime] = useState(null);
+  const [testimonyStartTime, setTestimonyStartTime] = useState<number | null>(null);
   const [showBugReport, setShowBugReport] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -104,7 +104,9 @@ function App() {
   }, [userProfile]);
 
   // Handlers for privacy settings
-  const handlePrivacyToggle = async (setting, value) => {
+  const handlePrivacyToggle = async (setting: string, value: boolean | string): Promise<void> => {
+    if (!userProfile) return;
+
     const newSettings = { ...privacySettings, [setting]: value };
     setPrivacySettings(newSettings);
 
@@ -121,7 +123,9 @@ function App() {
   };
 
   // Handlers for notification settings
-  const handleNotificationToggle = async (setting, value) => {
+  const handleNotificationToggle = async (setting: string, value: boolean): Promise<void> => {
+    if (!userProfile) return;
+
     const newSettings = { ...notificationSettings, [setting]: value };
     setNotificationSettings(newSettings);
 
@@ -138,17 +142,14 @@ function App() {
   };
 
   // Handler for opening report dialog
-  const openReportDialog = (type, content) => {
-    setReportData({ type, content });
-    setShowReportContent(true);
-  };
-
   // Handler for search radius change
-  const handleSearchRadiusChange = async (newRadius) => {
+  const handleSearchRadiusChange = async (newRadius: number): Promise<void> => {
+    if (!userProfile) return;
+
     setSearchRadius(newRadius);
 
     try {
-      await updateUserProfile(userProfile.supabaseId, { searchRadius: newRadius });
+      await updateUserProfile(userProfile.supabaseId, { search_radius: newRadius });
       showSuccess(`Search radius updated to ${newRadius} miles`);
     } catch (error) {
       console.error('Error updating search radius:', error);
@@ -157,27 +158,6 @@ function App() {
       setSearchRadius(userProfile.searchRadius || 25);
     }
   };
-
-  // Network status detection
-  React.useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      showSuccess('Back online!');
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-      showError('No internet connection. Some features may not work.');
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
 
   // Initialize Sentry error monitoring on app mount
   React.useEffect(() => {
@@ -244,7 +224,7 @@ function App() {
   };
 
   // Periwinkle Theme - Blue-Purple Glossmorphic Gradient (Reduced 30% for daily use)
-  const themes = {
+  const themes: Record<string, { name: string; lightGradient: string; darkGradient: string; description: string }> = {
     periwinkle: {
       name: 'Periwinkle',
       lightGradient: `linear-gradient(135deg, rgba(219, 234, 254, 0.63) 0%, transparent 100%),
@@ -255,12 +235,6 @@ function App() {
                      linear-gradient(45deg, #0a0a0a 0%, #15121c 50%, #191e27 100%)`,
       description: 'Periwinkle blue with purple accents'
     }
-  };
-
-  // Save theme preference
-  const handleThemeChange = (themeKey) => {
-    setSelectedTheme(themeKey);
-    localStorage.setItem('lightningTheme', themeKey);
   };
 
   // Toggle night mode
@@ -420,7 +394,7 @@ function App() {
   }, [isAuthenticated, userProfile, profileCompleted]);
 
 
-  const handleTestimonyAnswer = (answer) => {
+  const handleTestimonyAnswer = (answer: string): void => {
     setTestimonyAnswers({
       ...testimonyAnswers,
       [testimonyStep]: answer
@@ -552,7 +526,7 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
     }
   };
 
-  const handleProfileComplete = async (profileData) => {
+  const handleProfileComplete = async (profileData: UserUpdate): Promise<void> => {
     if (!userProfile || !userProfile.supabaseId) {
       showError('No user profile found. Please try logging in again.');
       console.error('No user profile or Supabase ID found');
@@ -587,7 +561,8 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
       }
     } catch (error) {
       console.error('Error completing profile:', error);
-      updateToError(toastId, error.message || 'Failed to setup profile. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to setup profile. Please try again.';
+      updateToError(toastId, errorMessage);
       throw error;
     }
   };
@@ -610,7 +585,7 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
     console.log('⚠️ User tried to close save testimony modal');
   };
 
-  const handleProfileEdit = async (profileData) => {
+  const handleProfileEdit = async (profileData: any): Promise<void> => {
     if (!userProfile || !userProfile.supabaseId) {
       showError('No user profile found. Please try logging in again.');
       console.error('No user profile or Supabase ID found');
@@ -655,7 +630,8 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      updateToError(toastId, error.message || 'Failed to update profile. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile. Please try again.';
+      updateToError(toastId, errorMessage);
       throw error;
     }
   };
@@ -682,11 +658,12 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
       }
     } catch (error) {
       console.error('Error loading testimony:', error);
-      updateToError(toastId, error.message || 'Failed to load testimony. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load testimony. Please try again.';
+      updateToError(toastId, errorMessage);
     }
   };
 
-  const handleTestimonySave = async (formData) => {
+  const handleTestimonySave = async (formData: any): Promise<void> => {
     if (!testimonyData || !testimonyData.id) {
       showError('No testimony found. Please try again.');
       console.error('No testimony ID found');
@@ -736,7 +713,8 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       }
     } catch (error) {
       console.error('Error updating testimony:', error);
-      updateToError(toastId, error.message || 'Failed to update testimony. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update testimony. Please try again.';
+      updateToError(toastId, errorMessage);
       throw error;
     }
   };

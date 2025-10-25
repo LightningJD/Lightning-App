@@ -11,7 +11,7 @@ import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
 import { validateMessage, sanitizeInput } from '../lib/inputValidation';
 
 // Helper function to format timestamp
-const formatTimestamp = (timestamp) => {
+const formatTimestamp = (timestamp: any): string => {
   const now = new Date();
   const messageDate = new Date(timestamp);
   const diffMs = now - messageDate;
@@ -27,7 +27,11 @@ const formatTimestamp = (timestamp) => {
   return messageDate.toLocaleDateString();
 };
 
-const MessagesTab = ({ nightMode }) => {
+interface MessagesTabProps {
+  nightMode: boolean;
+}
+
+const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext();
   const [activeChat, setActiveChat] = useState(null);

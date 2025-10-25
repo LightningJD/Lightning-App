@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, X, Check } from 'lucide-react';
 
-const ProfileCreationWizard = ({ nightMode, onComplete, onSkip }) => {
+interface ProfileCreationWizardProps {
+  nightMode: boolean;
+  onComplete: (formData: any) => Promise<void>;
+  onSkip?: () => void;
+}
+
+const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode, onComplete, onSkip }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     displayName: '',

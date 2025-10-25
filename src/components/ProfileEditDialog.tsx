@@ -4,7 +4,14 @@ import ImageUploadButton from './ImageUploadButton';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from '../lib/toast';
 import { validateProfile, sanitizeInput } from '../lib/inputValidation';
 
-const ProfileEditDialog = ({ profile, nightMode, onSave, onClose }) => {
+interface ProfileEditDialogProps {
+  profile: any;
+  nightMode: boolean;
+  onSave: (formData: any) => Promise<void>;
+  onClose: () => void;
+}
+
+const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMode, onSave, onClose }) => {
   const [formData, setFormData] = useState({
     displayName: profile?.displayName || '',
     username: profile?.username || '',

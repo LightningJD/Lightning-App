@@ -1,7 +1,12 @@
-import React from 'react';
 import { X, FileText } from 'lucide-react';
 
-const TermsOfService = ({ isOpen, onClose, nightMode }) => {
+interface TermsOfServiceProps {
+  isOpen: boolean;
+  onClose: () => void;
+  nightMode: boolean;
+}
+
+const TermsOfService: React.FC<TermsOfServiceProps> = ({ isOpen, onClose, nightMode }) => {
   if (!isOpen) return null;
 
   return (

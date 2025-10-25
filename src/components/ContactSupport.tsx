@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Phone, Mail, Send, CheckCircle } from 'lucide-react';
 import { showError, showSuccess } from '../lib/toast';
 import { validateMessage, sanitizeInput } from '../lib/inputValidation';
 
-const ContactSupport = ({ isOpen, onClose, nightMode, userProfile }) => {
+interface ContactSupportProps {
+  isOpen: boolean;
+  onClose: () => void;
+  nightMode: boolean;
+  userProfile: any;
+}
+
+const ContactSupport: React.FC<ContactSupportProps> = ({ isOpen, onClose, nightMode, userProfile }) => {
   const [formData, setFormData] = useState({
     subject: '',
     message: '',
@@ -12,7 +19,7 @@ const ContactSupport = ({ isOpen, onClose, nightMode, userProfile }) => {
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate inputs
@@ -69,7 +76,7 @@ const ContactSupport = ({ isOpen, onClose, nightMode, userProfile }) => {
     }
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 

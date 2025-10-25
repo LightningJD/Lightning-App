@@ -4,7 +4,6 @@
  * Wrapper around react-hot-toast with custom styling
  */
 
-import React from 'react';
 import toast from 'react-hot-toast';
 
 /**
@@ -12,7 +11,7 @@ import toast from 'react-hot-toast';
  * @param {string} message - Success message to display
  * @param {Object} options - Additional toast options
  */
-export const showSuccess = (message, options = {}) => {
+export const showSuccess = (message: string, options: any = {}) => {
   return toast.success(message, {
     duration: 4000,
     position: 'top-center',
@@ -38,7 +37,7 @@ export const showSuccess = (message, options = {}) => {
  * @param {string} message - Error message to display
  * @param {Object} options - Additional toast options
  */
-export const showError = (message, options = {}) => {
+export const showError = (message: string, options: any = {}) => {
   return toast.error(message, {
     duration: 5000,
     position: 'top-center',
@@ -65,7 +64,7 @@ export const showError = (message, options = {}) => {
  * @param {Object} options - Additional toast options
  * @returns {string} Toast ID for updating later
  */
-export const showLoading = (message, options = {}) => {
+export const showLoading = (message: string, options: any = {}) => {
   return toast.loading(message, {
     position: 'top-center',
     style: {
@@ -86,7 +85,7 @@ export const showLoading = (message, options = {}) => {
  * @param {string} message - Info message to display
  * @param {Object} options - Additional toast options
  */
-export const showInfo = (message, options = {}) => {
+export const showInfo = (message: string, options: any = {}) => {
   return toast(message, {
     duration: 4000,
     position: 'top-center',
@@ -109,7 +108,7 @@ export const showInfo = (message, options = {}) => {
  * @param {string} message - Error message
  * @param {Function} onRetry - Function to call when retry is clicked
  */
-export const showErrorWithRetry = (message, onRetry) => {
+export const showErrorWithRetry = (message: string, onRetry: () => void) => {
   return toast.error(
     (t) => (
       <div className="flex items-center gap-3">
@@ -147,7 +146,7 @@ export const showErrorWithRetry = (message, onRetry) => {
  * @param {string} toastId - ID of loading toast
  * @param {string} message - Success message
  */
-export const updateToSuccess = (toastId, message) => {
+export const updateToSuccess = (toastId: string, message: string) => {
   toast.success(message, {
     id: toastId,
     duration: 3000,
@@ -159,7 +158,7 @@ export const updateToSuccess = (toastId, message) => {
  * @param {string} toastId - ID of loading toast
  * @param {string} message - Error message
  */
-export const updateToError = (toastId, message) => {
+export const updateToError = (toastId: string, message: string) => {
   toast.error(message, {
     id: toastId,
     duration: 4000,
@@ -170,7 +169,7 @@ export const updateToError = (toastId, message) => {
  * Dismiss a specific toast
  * @param {string} toastId - ID of toast to dismiss
  */
-export const dismissToast = (toastId) => {
+export const dismissToast = (toastId: string) => {
   toast.dismiss(toastId);
 };
 
@@ -201,7 +200,7 @@ export const showGenericError = () => {
  * @param {Object} messages - Toast messages { loading, success, error }
  * @returns {Promise} Result of operation
  */
-export const withToast = async (operation, messages = {}) => {
+export const withToast = async (operation: () => Promise<any>, messages: { loading?: string; success?: string; error?: string } = {}) => {
   const {
     loading = 'Processing...',
     success = 'Success!',
@@ -215,7 +214,7 @@ export const withToast = async (operation, messages = {}) => {
     updateToSuccess(toastId, success);
     return result;
   } catch (err) {
-    const errorMessage = err.message || error;
+    const errorMessage = err instanceof Error ? err.message : error;
     updateToError(toastId, errorMessage);
     throw err;
   }

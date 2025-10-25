@@ -391,3 +391,6 @@ export type Database = {
     };
   };
 };
+
+// Helper type aliases for common operations
+export type UserUpdate = Database['public']['Tables']['users']['Update'];

@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, Lock, CheckCircle, Trophy, Sparkles } from 'lucide-react';
 import { getAllSecretsWithStatus, getSecretProgress } from '../lib/secrets';
 
@@ -9,7 +8,13 @@ import { getAllSecretsWithStatus, getSecretProgress } from '../lib/secrets';
  * Access: Settings menu → scroll to bottom → "Secret Museum"
  */
 
-const SecretsMuseum = ({ isOpen, onClose, nightMode }) => {
+interface SecretsMuseumProps {
+  isOpen: boolean;
+  onClose: () => void;
+  nightMode: boolean;
+}
+
+const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMode }) => {
   if (!isOpen) return null;
 
   const secrets = getAllSecretsWithStatus();

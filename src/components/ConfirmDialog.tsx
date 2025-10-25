@@ -1,7 +1,18 @@
-import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 
-const ConfirmDialog = ({
+interface ConfirmDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: 'default' | 'danger';
+  nightMode: boolean;
+}
+
+const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isOpen,
   onClose,
   onConfirm,
@@ -9,7 +20,7 @@ const ConfirmDialog = ({
   message,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  variant = 'default', // 'default' or 'danger'
+  variant = 'default',
   nightMode
 }) => {
   if (!isOpen) return null;

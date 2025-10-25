@@ -1,12 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, UserX, AlertCircle, Loader } from 'lucide-react';
 import { getBlockedUsers, unblockUser } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
 
-const BlockedUsers = ({ isOpen, onClose, nightMode, userProfile }) => {
-  const [blockedUsers, setBlockedUsers] = useState([]);
+interface BlockedUser {
+  blockId: string;
+  blockedAt: string;
+  reason?: string;
+  user: {
+    id: string;
+    username?: string;
+    full_name?: string;
+    avatar_url?: string;
+  };
+}
+
+interface BlockedUsersProps {
+  isOpen: boolean;
+  onClose: () => void;
+  nightMode: boolean;
+  userProfile: any;
+}
+
+const BlockedUsers: React.FC<BlockedUsersProps> = ({ isOpen, onClose, nightMode, userProfile }) => {
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [unblocking, setUnblocking] = useState(null);
+  const [unblocking, setUnblocking] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && userProfile) {
@@ -29,7 +48,7 @@ const BlockedUsers = ({ isOpen, onClose, nightMode, userProfile }) => {
     }
   };
 
-  const handleUnblock = async (blockedUser) => {
+  const handleUnblock = async (blockedUser: BlockedUser) => {
     if (!userProfile?.supabaseId || !blockedUser.user?.id) return;
 
     setUnblocking(blockedUser.user.id);
@@ -48,10 +67,10 @@ const BlockedUsers = ({ isOpen, onClose, nightMode, userProfile }) => {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInMs = now - date;
+    const diffInMs = now.getTime() - date.getTime();
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
     if (diffInDays === 0) return 'Today';

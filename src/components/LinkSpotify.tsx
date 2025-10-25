@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Music, ExternalLink, Check } from 'lucide-react';
 import { updateUserProfile } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
 
-const LinkSpotify = ({ isOpen, onClose, nightMode, userProfile }) => {
+interface LinkSpotifyProps {
+  isOpen: boolean;
+  onClose: () => void;
+  nightMode: boolean;
+  userProfile: any;
+}
+
+const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, userProfile }) => {
   const [spotifyUrl, setSpotifyUrl] = useState(userProfile?.spotifyUrl || '');
   const [saving, setSaving] = useState(false);
 
-  const handleSave = async (e) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate URL if provided

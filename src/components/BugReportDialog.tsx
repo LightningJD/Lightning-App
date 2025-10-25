@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Flag, AlertCircle, CheckCircle } from 'lucide-react';
 import { showSuccess, showError } from '../lib/toast';
 
-export default function BugReportDialog({ onClose, nightMode, currentTab, userProfile }) {
+interface BugReportDialogProps {
+  onClose: () => void;
+  nightMode: boolean;
+  currentTab: string;
+  userProfile: any;
+}
+
+export default function BugReportDialog({ onClose, nightMode, currentTab, userProfile }: BugReportDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [steps, setSteps] = useState('');
@@ -19,7 +26,7 @@ export default function BugReportDialog({ onClose, nightMode, currentTab, userPr
     nightMode: nightMode,
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {

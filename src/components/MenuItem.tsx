@@ -1,6 +1,25 @@
 import React, { useState, useEffect } from 'react';
 
-const MenuItem = ({
+interface MenuItemProps {
+  icon: React.ComponentType<any>;
+  label: string;
+  subtext?: string;
+  toggle?: boolean;
+  defaultOn?: boolean;
+  danger?: boolean;
+  nightMode?: boolean;
+  comingSoon?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+  onToggle?: (value: boolean) => void | Promise<void>;
+  isOn?: boolean;
+  dropdown?: boolean;
+  dropdownOptions?: string[];
+  selectedValue?: string;
+  onDropdownChange?: (value: string) => void | Promise<void>;
+}
+
+const MenuItem: React.FC<MenuItemProps> = ({
   icon: Icon,
   label,
   subtext,
@@ -35,7 +54,7 @@ const MenuItem = ({
     }
   };
 
-  const handleToggle = (e) => {
+  const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (disabled || comingSoon) return;
 

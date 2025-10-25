@@ -1,7 +1,12 @@
-import React from 'react';
 import { X, Shield } from 'lucide-react';
 
-const PrivacyPolicy = ({ isOpen, onClose, nightMode }) => {
+interface PrivacyPolicyProps {
+  isOpen: boolean;
+  onClose: () => void;
+  nightMode: boolean;
+}
+
+const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ isOpen, onClose, nightMode }) => {
   if (!isOpen) return null;
 
   return (

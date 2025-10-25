@@ -29,7 +29,11 @@ import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { checkMessageSecrets, unlockSecret } from '../lib/secrets';
 import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
 
-const GroupsTab = ({ nightMode }) => {
+interface GroupsTabProps {
+  nightMode: boolean;
+}
+
+const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext();
   const [activeGroup, setActiveGroup] = useState(null);

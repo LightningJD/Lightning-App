@@ -1,13 +1,30 @@
-import React, { Component } from 'react';
+import React, { Component, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react';
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: ReactNode;
+  showDetails?: boolean;
+  nightMode?: boolean;
+  message?: string;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  onReset?: () => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: React.ErrorInfo | null;
+  errorCount: number;
+}
 
 /**
  * Main Error Boundary Component
  * Catches JavaScript errors anywhere in the component tree
  * Prevents white screen of death
  */
-class ErrorBoundary extends Component {
-  constructor(props) {
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
       hasError: false,
@@ -211,8 +228,18 @@ class ErrorBoundary extends Component {
  * Component-specific Error Boundary
  * Use this for individual components that might fail
  */
-export class ComponentErrorBoundary extends Component {
-  constructor(props) {
+interface ComponentErrorBoundaryProps {
+  children: ReactNode;
+  name?: string;
+  nightMode?: boolean;
+}
+
+interface ComponentErrorBoundaryState {
+  hasError: boolean;
+}
+
+export class ComponentErrorBoundary extends Component<ComponentErrorBoundaryProps, ComponentErrorBoundaryState> {
+  constructor(props: ComponentErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
@@ -221,7 +248,7 @@ export class ComponentErrorBoundary extends Component {
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error(`Error in ${this.props.name || 'Component'}:`, error, errorInfo);
 
     // Report to Sentry with component context

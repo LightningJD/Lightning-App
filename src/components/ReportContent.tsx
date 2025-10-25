@@ -1,22 +1,35 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Flag, AlertTriangle } from 'lucide-react';
 import { reportUser, reportTestimony, reportMessage, reportGroup, REPORT_REASONS } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
 import { validateMessage } from '../lib/inputValidation';
 
-const ReportContent = ({
+interface ReportContentProps {
+  isOpen: boolean;
+  onClose: () => void;
+  nightMode: boolean;
+  userProfile: any;
+  reportType: 'user' | 'testimony' | 'message' | 'group';
+  reportedContent: {
+    id: string;
+    ownerId?: string;
+    name?: string;
+  };
+}
+
+const ReportContent: React.FC<ReportContentProps> = ({
   isOpen,
   onClose,
   nightMode,
   userProfile,
-  reportType, // 'user', 'testimony', 'message', 'group'
-  reportedContent // { id, ownerId, name } - content being reported
+  reportType,
+  reportedContent
 }) => {
   const [reason, setReason] = useState('');
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!userProfile?.supabaseId) {

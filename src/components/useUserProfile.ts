@@ -61,6 +61,17 @@ export const useUserProfile = () => {
     testimonyLesson: testimony?.lesson || null,
     location: supabaseUser?.location_city || user.publicMetadata?.location || null,
     profileCompleted: supabaseUser?.profile_completed || false,
+    // Privacy settings
+    isPrivate: supabaseUser?.is_private || false,
+    testimonyVisibility: supabaseUser?.testimony_visibility || 'everyone',
+    messagePrivacy: supabaseUser?.message_privacy || 'everyone',
+    // Notification settings
+    notifyMessages: supabaseUser?.notify_messages !== false,
+    notifyFriendRequests: supabaseUser?.notify_friend_requests !== false,
+    notifyNearby: supabaseUser?.notify_nearby !== false,
+    // Search settings
+    searchRadius: supabaseUser?.search_radius || 25,
+    spotifyUrl: supabaseUser?.spotify_url || null,
     music: testimony ? {
       trackName: testimony.music_track_name || "Amazing Grace",
       artist: testimony.music_artist || "Various Artists",

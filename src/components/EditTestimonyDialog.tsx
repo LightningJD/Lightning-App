@@ -1,16 +1,31 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X, Save, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
 
-const EditTestimonyDialog = ({ testimony, nightMode, onSave, onClose }) => {
+interface EditTestimonyDialogProps {
+  testimony: any;
+  nightMode: boolean;
+  onSave: (formData: any) => void;
+  onClose: () => void;
+}
+
+interface FormData {
+  question1: string;
+  question2: string;
+  question3: string;
+  question4: string;
+  lesson: string;
+}
+
+const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, nightMode, onSave, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     question1: testimony?.question1_answer || '',
     question2: testimony?.question2_answer || '',
     question3: testimony?.question3_answer || '',
     question4: testimony?.question4_answer || '',
     lesson: testimony?.lesson || ''
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
   const testimonyQuestions = [
@@ -44,7 +59,7 @@ const EditTestimonyDialog = ({ testimony, nightMode, onSave, onClose }) => {
     }
   ];
 
-  const textareaRef = useRef(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-focus on textarea when step changes
   useEffect(() => {
@@ -53,12 +68,13 @@ const EditTestimonyDialog = ({ testimony, nightMode, onSave, onClose }) => {
     }
   }, [currentStep]);
 
-  const validateStep = (stepIndex) => {
-    const newErrors = {};
+  const validateStep = (stepIndex: number) => {
+    const newErrors: Record<string, string> = {};
     const question = testimonyQuestions[stepIndex];
+    const fieldName = question.field as keyof FormData;
 
-    if (!formData[question.field]?.trim()) {
-      newErrors[question.field] = 'This answer is required';
+    if (!formData[fieldName]?.trim()) {
+      newErrors[fieldName] = 'This answer is required';
     }
 
     setErrors(newErrors);
@@ -98,7 +114,7 @@ const EditTestimonyDialog = ({ testimony, nightMode, onSave, onClose }) => {
     }
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData({ ...formData, [field]: value });
     // Clear error for this field when user starts typing
     if (errors[field]) {
