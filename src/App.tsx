@@ -985,6 +985,45 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                     subtext={userProfile?.spotifyUrl ? 'Connected' : 'Add your profile'}
                     onClick={() => setShowLinkSpotify(true)}
                   />
+
+                  {/* Music Start Time Input */}
+                  {userProfile?.story?.id && (
+                    <div className={`px-4 py-4 border-b transition-colors ${
+                      nightMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'
+                    }`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <Music className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-400'}`} />
+                        <div className="flex-1">
+                          <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                            Music Start Time
+                          </p>
+                          <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                            Skip to timestamp (e.g., 3:12)
+                          </p>
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        value={musicStartTime}
+                        onChange={(e) => setMusicStartTime(e.target.value)}
+                        onBlur={(e) => handleMusicStartTimeChange(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                        placeholder="0:00"
+                        className={`w-full px-4 py-2 rounded-lg border text-center ${
+                          nightMode
+                            ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500'
+                            : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
+                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      />
+                      <p className={`text-xs mt-2 text-center ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                        Format: M:SS or MM:SS (e.g., 0:30, 3:12, 12:45)
+                      </p>
+                    </div>
+                  )}
                   {/* Email & Password removed - using Google OAuth only per roadmap */}
                 </div>
 
@@ -1147,47 +1186,6 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                       <span className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>100 mi</span>
                     </div>
                   </div>
-
-                  {/* Music Start Time Input */}
-                  {userProfile?.story?.id && (
-                    <div className={`px-4 py-4 border-b transition-colors ${
-                      nightMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'
-                    }`}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <Music className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-400'}`} />
-                          <div>
-                            <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                              Music Start Time
-                            </p>
-                            <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                              Skip to timestamp (e.g., 3:12)
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <input
-                        type="text"
-                        value={musicStartTime}
-                        onChange={(e) => setMusicStartTime(e.target.value)}
-                        onBlur={(e) => handleMusicStartTimeChange(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.currentTarget.blur();
-                          }
-                        }}
-                        placeholder="0:00"
-                        className={`w-full px-4 py-2 rounded-lg border text-center ${
-                          nightMode
-                            ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500'
-                            : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
-                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                      />
-                      <p className={`text-xs mt-2 ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                        Format: M:SS or MM:SS (e.g., 0:30, 3:12, 12:45)
-                      </p>
-                    </div>
-                  )}
                   <MenuItem icon={Globe} label="Language" subtext="English" nightMode={nightMode} comingSoon />
                 </div>
 
