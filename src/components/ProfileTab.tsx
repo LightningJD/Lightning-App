@@ -280,8 +280,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
             trackName={profile.music.trackName}
             artist={profile.music.artist}
             nightMode={nightMode}
-            autoplay={true}
-            startTime={profile.music.startTime}
           />
         </div>
       )}

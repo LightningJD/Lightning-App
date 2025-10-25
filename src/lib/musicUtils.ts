@@ -94,23 +94,16 @@ export const isValidMusicUrl = (url: string): boolean => {
 /**
  * Get embed URL for YouTube
  * @param videoId - YouTube video ID
- * @param options - Embed options (autoplay, start time in seconds)
  */
-export const getYouTubeEmbedUrl = (videoId: string, options?: { autoplay?: boolean; startTime?: number }): string => {
+export const getYouTubeEmbedUrl = (videoId: string): string => {
   // Build params object
   const paramsObj: Record<string, string> = {
     autoplay: '1',
-    mute: '1', // Mute to bypass browser autoplay restrictions
     controls: '1',
     modestbranding: '1',
     rel: '0',
     enablejsapi: '1' // Enable JS API for better control
   };
-
-  // Add start time if specified (in seconds)
-  if (options?.startTime && options.startTime > 0) {
-    paramsObj.start = Math.floor(options.startTime).toString();
-  }
 
   const params = new URLSearchParams(paramsObj);
   return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;

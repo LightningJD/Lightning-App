@@ -8,11 +8,9 @@ interface MusicPlayerProps {
   trackName?: string;
   artist?: string;
   nightMode: boolean;
-  autoplay?: boolean;
-  startTime?: number; // Start time in seconds
 }
 
-const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, artist, nightMode, autoplay = true, startTime }) => {
+const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, artist, nightMode }) => {
   if (platform === 'youtube') {
     const videoId = getYouTubeVideoId(url);
     if (!videoId) return null;
@@ -59,7 +57,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
           <iframe
             width="100%"
             height="100%"
-            src={getYouTubeEmbedUrl(videoId, { autoplay, startTime })}
+            src={getYouTubeEmbedUrl(videoId)}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
