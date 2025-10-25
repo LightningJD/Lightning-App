@@ -13,7 +13,9 @@ import {
   declineFriendRequest,
   unfriend,
   checkFriendshipStatus,
-  getMutualFriends
+  getMutualFriends,
+  isUserBlocked,
+  isBlockedBy
 } from '../lib/database';
 import { checkMilestoneSecret } from '../lib/secrets';
 
@@ -64,9 +66,19 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
             u.id !== profile.supabaseId && !friendIds.has(u.id)
           ) || [];
 
+          // Filter out blocked users and users who blocked current user
+          const unblockedUsers = [];
+          for (const user of filteredUsers) {
+            const blocked = await isUserBlocked(profile.supabaseId, user.id);
+            const blockedBy = await isBlockedBy(profile.supabaseId, user.id);
+            if (!blocked && !blockedBy) {
+              unblockedUsers.push(user);
+            }
+          }
+
           // Add mutual friends count and friendship status
           const enrichedUsers = await Promise.all(
-            filteredUsers.map(async (user) => {
+            unblockedUsers.map(async (user) => {
               const mutualFriends = await getMutualFriends(profile.supabaseId, user.id);
               const friendshipStatus = await checkFriendshipStatus(profile.supabaseId, user.id);
 

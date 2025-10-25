@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Smile, Plus, X, Search } from 'lucide-react';
-import { sendMessage, getConversation, getUserConversations, subscribeToMessages, unsubscribe, canSendMessage } from '../lib/database';
+import { sendMessage, getConversation, getUserConversations, subscribeToMessages, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { showError } from '../lib/toast';
 import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
@@ -125,7 +125,18 @@ const MessagesTab = ({ nightMode }) => {
     const loadConversations = async () => {
       if (profile?.supabaseId) {
         const userConversations = await getUserConversations(profile.supabaseId);
-        setConversations(userConversations);
+
+        // Filter out conversations with blocked users
+        const unblockedConversations = [];
+        for (const convo of userConversations) {
+          const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
+          const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
+          if (!blocked && !blockedBy) {
+            unblockedConversations.push(convo);
+          }
+        }
+
+        setConversations(unblockedConversations);
         setIsInitialLoad(false);
       }
     };
