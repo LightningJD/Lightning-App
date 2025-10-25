@@ -123,6 +123,7 @@ export interface Database {
           question4_answer: string | null
           word_count: number
           is_public: boolean
+          music_platform: 'spotify' | 'youtube' | null
           music_spotify_url: string | null
           music_track_name: string | null
           music_artist: string | null
@@ -142,6 +143,7 @@ export interface Database {
           question4_answer?: string | null
           word_count?: number
           is_public?: boolean
+          music_platform?: 'spotify' | 'youtube' | null
           music_spotify_url?: string | null
           music_track_name?: string | null
           music_artist?: string | null
@@ -161,6 +163,7 @@ export interface Database {
           question4_answer?: string | null
           word_count?: number
           is_public?: boolean
+          music_platform?: 'spotify' | 'youtube' | null
           music_spotify_url?: string | null
           music_track_name?: string | null
           music_artist?: string | null
