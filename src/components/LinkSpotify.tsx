@@ -17,20 +17,20 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate URL if provided (accept Spotify or YouTube)
-    if (spotifyUrl && !(spotifyUrl.includes('spotify.com') || spotifyUrl.includes('youtube.com'))) {
-      showError('Please enter a valid Spotify or YouTube URL');
+    // Validate URL if provided (YouTube only)
+    if (spotifyUrl && !spotifyUrl.includes('youtube.com')) {
+      showError('Please enter a valid YouTube URL');
       return;
     }
 
     setSaving(true);
     try {
       await updateUserProfile(userProfile.supabaseId, { spotify_url: spotifyUrl } as any);
-      showSuccess(spotifyUrl ? 'Music profile linked!' : 'Music profile unlinked');
+      showSuccess(spotifyUrl ? 'YouTube channel linked!' : 'YouTube channel unlinked');
       onClose();
     } catch (error) {
-      console.error('Error updating music profile URL:', error);
-      showError('Failed to update music profile');
+      console.error('Error updating YouTube channel URL:', error);
+      showError('Failed to update YouTube channel');
     } finally {
       setSaving(false);
     }
@@ -41,11 +41,11 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
     setSaving(true);
     try {
       await updateUserProfile(userProfile.supabaseId, { spotify_url: null } as any);
-      showSuccess('Spotify profile unlinked');
+      showSuccess('YouTube channel unlinked');
       onClose();
     } catch (error) {
-      console.error('Error removing Spotify URL:', error);
-      showError('Failed to remove Spotify profile');
+      console.error('Error removing YouTube URL:', error);
+      showError('Failed to remove YouTube channel');
     } finally {
       setSaving(false);
     }
@@ -76,9 +76,9 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
             nightMode ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'
           }`}>
             <div className="flex items-center gap-3">
-              <Music className={`w-5 h-5 ${nightMode ? 'text-green-400' : 'text-green-600'}`} />
+              <Music className={`w-5 h-5 ${nightMode ? 'text-red-400' : 'text-red-600'}`} />
               <h2 className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                Link Music Profile
+                Link YouTube Channel
               </h2>
             </div>
             <button
@@ -97,60 +97,49 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
           <form onSubmit={handleSave} className="p-6 space-y-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Music Profile URL
+                YouTube Channel URL
               </label>
               <input
                 type="url"
                 value={spotifyUrl}
                 onChange={(e) => setSpotifyUrl(e.target.value)}
-                placeholder="https://open.spotify.com/user/... or https://youtube.com/@..."
+                placeholder="https://youtube.com/@yourchannel"
                 className={`w-full px-4 py-3 rounded-lg border transition-colors ${
                   nightMode
-                    ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500 focus:border-green-500'
-                    : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-green-500'
-                } focus:outline-none focus:ring-2 focus:ring-green-500/20`}
+                    ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500 focus:border-red-500'
+                    : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-red-500'
+                } focus:outline-none focus:ring-2 focus:ring-red-500/20`}
               />
             </div>
 
             {/* Instructions */}
             <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-slate-50'}`}>
               <p className={`text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                How to find your profile URL:
+                How to find your YouTube channel URL:
               </p>
-              <div className={`text-xs space-y-2 ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                <div>
-                  <p className="font-medium mb-1">Spotify:</p>
-                  <ol className="list-decimal list-inside ml-2 space-y-0.5">
-                    <li>Open Spotify and go to your profile</li>
-                    <li>Click "..." → "Share" → "Copy link to profile"</li>
-                  </ol>
-                </div>
-                <div>
-                  <p className="font-medium mb-1">YouTube:</p>
-                  <ol className="list-decimal list-inside ml-2 space-y-0.5">
-                    <li>Go to youtube.com and sign in</li>
-                    <li>Click your profile icon → "Your channel"</li>
-                    <li>Copy the URL from your browser</li>
-                  </ol>
-                </div>
-              </div>
+              <ol className={`text-xs space-y-1 list-decimal list-inside ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                <li>Go to youtube.com and sign in</li>
+                <li>Click your profile icon → "Your channel"</li>
+                <li>Copy the URL from your browser (e.g., youtube.com/@yourname)</li>
+                <li>Paste the link here</li>
+              </ol>
             </div>
 
             {/* Preview if URL exists */}
             {spotifyUrl && (
               <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                nightMode ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'
+                nightMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-200'
               }`}>
-                <Check className={`w-5 h-5 ${nightMode ? 'text-green-400' : 'text-green-600'}`} />
+                <Check className={`w-5 h-5 ${nightMode ? 'text-red-400' : 'text-red-600'}`} />
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium ${nightMode ? 'text-green-300' : 'text-green-900'}`}>
-                    Music profile will be visible
+                  <p className={`text-sm font-medium ${nightMode ? 'text-red-300' : 'text-red-900'}`}>
+                    YouTube channel will be visible
                   </p>
                   <a
                     href={spotifyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`text-xs flex items-center gap-1 hover:underline ${nightMode ? 'text-green-400' : 'text-green-700'}`}
+                    className={`text-xs flex items-center gap-1 hover:underline ${nightMode ? 'text-red-400' : 'text-red-700'}`}
                   >
                     Preview
                     <ExternalLink className="w-3 h-3" />
@@ -196,8 +185,8 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
                       ? 'bg-white/5 text-slate-500 cursor-not-allowed'
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                     : nightMode
-                    ? 'bg-green-600 hover:bg-green-700 text-white'
-                    : 'bg-green-500 hover:bg-green-600 text-white'
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : 'bg-red-500 hover:bg-red-600 text-white'
                 }`}
               >
                 {saving ? 'Saving...' : 'Save'}
