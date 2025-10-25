@@ -74,7 +74,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
     }
   };
 
-  const handleDropdownChange = (e) => {
+  const handleDropdownChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     e.stopPropagation();
     if (disabled || comingSoon) return;
 
@@ -129,11 +129,15 @@ const MenuItem: React.FC<MenuItemProps> = ({
           }`}
           disabled={disabled || comingSoon}
         >
-          {dropdownOptions.map((option) => (
-            <option key={option.value} value={option.value} className={nightMode ? 'bg-slate-800 text-slate-100' : 'bg-white text-slate-700'}>
-              {option.label}
-            </option>
-          ))}
+          {dropdownOptions.map((option) => {
+            const optionValue = typeof option === 'string' ? option : option.value;
+            const optionLabel = typeof option === 'string' ? option : option.label;
+            return (
+              <option key={optionValue} value={optionValue} className={nightMode ? 'bg-slate-800 text-slate-100' : 'bg-white text-slate-700'}>
+                {optionLabel}
+              </option>
+            );
+          })}
         </select>
       )}
       {!toggle && !dropdown && !subtext && (

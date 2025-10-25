@@ -384,10 +384,10 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
       {/* Other User Profile Dialog */}
       {viewingUser && (
         <OtherUserProfileDialog
-          user={viewingUser}
+          user={viewingUser as any}
           onClose={() => setViewingUser(null)}
           nightMode={nightMode}
-          onMessage={handleMessage}
+          onMessage={handleMessage as any}
         />
       )}
     </div>

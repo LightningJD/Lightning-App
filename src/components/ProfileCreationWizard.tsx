@@ -1,22 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, X, Check } from 'lucide-react';
+import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, Check } from 'lucide-react';
+
+interface FormData {
+  displayName: string;
+  username: string;
+  bio: string;
+  location: string;
+  avatar: string;
+}
 
 interface ProfileCreationWizardProps {
   nightMode: boolean;
-  onComplete: (formData: any) => Promise<void>;
+  onComplete: (formData: FormData) => Promise<void>;
   onSkip?: () => void;
 }
 
 const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode, onComplete, onSkip }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     displayName: '',
     username: '',
     bio: '',
     location: '',
     avatar: '👤'
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Avatar options (emojis)
@@ -57,7 +65,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     }
   ];
 
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   // Auto-focus on first input when step changes
   useEffect(() => {
@@ -66,8 +74,8 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     }
   }, [currentStep]);
 
-  const validateStep = (stepIndex) => {
-    const newErrors = {};
+  const validateStep = (stepIndex: number) => {
+    const newErrors: Record<string, string> = {};
     const step = steps[stepIndex];
 
     step.fields.forEach(field => {
@@ -125,11 +133,12 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     }
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData({ ...formData, [field]: value });
     // Clear error for this field when user starts typing
     if (errors[field]) {
-      setErrors({ ...errors, [field]: undefined });
+      const { [field]: _, ...remainingErrors } = errors;
+      setErrors(remainingErrors);
     }
   };
 
@@ -143,7 +152,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
-                ref={inputRef}
+                ref={inputRef as React.RefObject<HTMLInputElement>}
                 type="text"
                 value={formData.displayName}
                 onChange={(e) => handleInputChange('displayName', e.target.value)}
@@ -195,7 +204,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                 Bio <span className="text-red-500">*</span>
               </label>
               <textarea
-                ref={inputRef}
+                ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                 value={formData.bio}
                 onChange={(e) => handleInputChange('bio', e.target.value)}
                 placeholder="Tell us about yourself and your faith journey..."

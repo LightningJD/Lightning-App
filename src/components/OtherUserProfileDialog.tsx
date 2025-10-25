@@ -1,12 +1,54 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, MapPin, Heart, MessageCircle, Flag } from 'lucide-react';
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
 
-const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
+interface UserStory {
+  id: string;
+  title?: string;
+  content: string;
+  lesson?: string;
+}
+
+interface User {
+  id: string;
+  displayName?: string;
+  username?: string;
+  avatar?: string;
+  avatarImage?: string;
+  location?: string;
+  distance?: string;
+  online?: boolean;
+  bio?: string;
+  story?: UserStory;
+  mutualFriends?: number;
+}
+
+interface ReportData {
+  type: 'user' | 'testimony';
+  content: {
+    id: string;
+    ownerId?: string;
+    name?: string;
+  };
+}
+
+interface OtherUserProfileDialogProps {
+  user: User | null;
+  onClose: () => void;
+  nightMode: boolean;
+  onMessage: (user: User) => void;
+}
+
+const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
+  user,
+  onClose,
+  nightMode,
+  onMessage
+}) => {
   const { profile: currentUserProfile } = useUserProfile();
-  const [showReport, setShowReport] = useState(false);
-  const [reportData, setReportData] = useState(null);
+  const [showReport, setShowReport] = useState<boolean>(false);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
 
   if (!user) return null;
 
@@ -161,15 +203,17 @@ const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
                   </h3>
                   <button
                     onClick={() => {
-                      setReportData({
-                        type: 'testimony',
-                        content: {
-                          id: user.story.id,
-                          ownerId: user.id,
-                          name: user.story.title || 'Testimony'
-                        }
-                      });
-                      setShowReport(true);
+                      if (user.story) {
+                        setReportData({
+                          type: 'testimony',
+                          content: {
+                            id: user.story.id,
+                            ownerId: user.id,
+                            name: user.story.title || 'Testimony'
+                          }
+                        });
+                        setShowReport(true);
+                      }
                     }}
                     className={`p-2 rounded-lg transition-colors ${
                       nightMode
@@ -197,7 +241,7 @@ const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
             )}
 
             {/* Mutual Friends */}
-            {user.mutualFriends > 0 && (
+            {user.mutualFriends !== undefined && user.mutualFriends > 0 && (
               <div
                 className={`p-4 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'bg-white/50 border-white/30'}`}
                 style={

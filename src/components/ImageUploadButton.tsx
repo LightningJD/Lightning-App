@@ -1,7 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { Camera, Upload, X, Check } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Camera, X, Check } from 'lucide-react';
 import { uploadProfilePicture, isCloudinaryConfigured } from '../lib/cloudinary';
-import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from '../lib/toast';
+import { showError, showLoading, updateToSuccess, updateToError } from '../lib/toast';
+
+interface ImageUploadButtonProps {
+  onUploadComplete?: (imageUrl: string) => void;
+  currentImage?: string | null;
+  nightMode?: boolean;
+  buttonText?: string;
+}
 
 /**
  * ImageUploadButton Component
@@ -9,14 +16,19 @@ import { showError, showSuccess, showLoading, updateToSuccess, updateToError } f
  * Handles image selection, preview, and upload to Cloudinary
  * Used for profile pictures, group avatars, etc.
  */
-const ImageUploadButton = ({ onUploadComplete, currentImage, nightMode, buttonText = "Upload Picture" }) => {
-  const [isUploading, setIsUploading] = useState(false);
-  const [preview, setPreview] = useState(null);
-  const [error, setError] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const fileInputRef = useRef(null);
+const ImageUploadButton: React.FC<ImageUploadButtonProps> = ({
+  onUploadComplete,
+  currentImage,
+  nightMode = false,
+  buttonText = "Upload Picture"
+}) => {
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (event) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -41,7 +53,7 @@ const ImageUploadButton = ({ onUploadComplete, currentImage, nightMode, buttonTe
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPreview(reader.result);
+      setPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
 
@@ -49,7 +61,7 @@ const ImageUploadButton = ({ onUploadComplete, currentImage, nightMode, buttonTe
     handleUpload(file);
   };
 
-  const handleUpload = async (file) => {
+  const handleUpload = async (file: File) => {
     // Check Cloudinary configuration
     if (!isCloudinaryConfigured()) {
       showError('Image upload not configured. Please check your environment variables.');
@@ -93,7 +105,7 @@ const ImageUploadButton = ({ onUploadComplete, currentImage, nightMode, buttonTe
 
     } catch (err) {
       console.error('❌ Upload error:', err);
-      const errorMessage = err.message || 'Failed to upload image. Please try again.';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to upload image. Please try again.';
       updateToError(toastId, errorMessage);
       setError(errorMessage);
       setIsUploading(false);

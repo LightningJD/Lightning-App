@@ -471,9 +471,9 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
 
         // For authenticated users: Save to database immediately
         // For guests: Show save modal (Testimony-First Conversion)
-        if (isAuthenticated && profile?.supabaseId) {
+        if (isAuthenticated && userProfile?.supabaseId) {
           console.log('Authenticated user - saving testimony to database');
-          const saved = await createTestimony(profile.supabaseId, {
+          const saved = await createTestimony(userProfile.supabaseId, {
             content: demoTestimony,
             question1: testimonyAnswers[0],
             question2: testimonyAnswers[1],

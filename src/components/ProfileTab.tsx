@@ -21,14 +21,13 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [showQR, setShowQR] = useState(false);
   const [showLesson, setShowLesson] = useState(false);
-  const audioRef = useRef(null);
-  const { isGuest, checkAndShowModal } = useGuestModalContext();
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const [avatarTaps, setAvatarTaps] = useState(0);
-  const [avatarTapTimer, setAvatarTapTimer] = useState(null);
-  const [comments, setComments] = useState([]);
+  const [avatarTapTimer, setAvatarTapTimer] = useState<NodeJS.Timeout | null>(null);
+  const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [canView, setCanView] = useState(true); // Can view testimony based on privacy settings
@@ -57,7 +56,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         if (!isGuest && user && profile?.story?.id && profile?.supabaseId) {
           await trackDbTestimonyView(profile.story.id, profile.supabaseId);
           // Check if this testimony has unlocked any secrets
-          await checkTestimonyAnalyticsSecrets(profile.story.id, profile.supabaseId);
+          await checkTestimonyAnalyticsSecrets(profile.story.id);
         }
       } catch (error) {
         console.error('Error tracking testimony view:', error);
@@ -76,7 +75,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
       }
     };
     loadLikeStatus();
-  }, [profile?.story?.id, user]);
+  }, [profile?.story?.id, profile?.supabaseId, user]);
 
   // Check testimony visibility based on privacy settings
   React.useEffect(() => {
@@ -128,12 +127,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   };
 
   const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
+    // Metadata loaded
   };
 
-  const handleProgressClick = (e) => {
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
     if (audioRef.current) {
@@ -141,7 +138,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     }
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -157,11 +154,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     setLikeCount(newLiked ? likeCount + 1 : likeCount - 1);
 
     // Update database
-    const { success, liked } = await toggleTestimonyLike(profile.story.id, profile.supabaseId);
+    const { success } = await toggleTestimonyLike(profile.story.id, profile.supabaseId);
 
     if (success) {
       // Check if testimony unlocked heart toucher secret
-      await checkTestimonyAnalyticsSecrets(profile.story.id, profile.supabaseId);
+      await checkTestimonyAnalyticsSecrets(profile.story.id);
     } else {
       // Revert on error
       setIsLiked(!newLiked);
@@ -191,7 +188,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     }
   };
 
-  const handleSubmitComment = async (e) => {
+  const handleSubmitComment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newComment.trim() || !user || !profile?.story?.id || !profile?.supabaseId) return;
 
@@ -213,7 +210,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
 
       // Add comment to local state
       setComments([...comments, {
-        ...comment,
+        ...(comment as any),
         users: {
           username: profile.username,
           display_name: profile.displayName,
@@ -224,7 +221,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
       setNewComment('');
 
       // Check if this unlocked the first comment secret
-      await checkTestimonyAnalyticsSecrets(profile.story.id, profile.supabaseId);
+      await checkTestimonyAnalyticsSecrets(profile.story.id);
     }
 
     setIsSubmittingComment(false);
@@ -363,7 +360,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                     </div>
                   </div>
                   <span className={`text-[10px] ${nightMode ? 'text-slate-400' : 'text-slate-500'} flex-shrink-0`}>
-                    {formatTime(audioRef.current?.currentTime)}
+                    {formatTime(audioRef.current?.currentTime || 0)}
                   </span>
                 </div>
 
@@ -668,14 +665,14 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
             WebkitBackdropFilter: 'blur(30px)',
             boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
             if (nightMode) {
               e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)';
             } else {
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.35)';
             }
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
             if (nightMode) {
               e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)';
             } else {
@@ -699,12 +696,12 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
               ? '0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
               : '0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.currentTarget.style.boxShadow = nightMode
               ? '0 8px 24px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
               : '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.currentTarget.style.boxShadow = nightMode
               ? '0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
               : '0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)';

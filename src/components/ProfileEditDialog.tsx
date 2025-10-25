@@ -1,8 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { X, Save, User, MapPin, FileText, Book } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { X, Save, User, MapPin, Book } from 'lucide-react';
 import ImageUploadButton from './ImageUploadButton';
-import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from '../lib/toast';
+import { showError, showLoading, updateToSuccess, updateToError } from '../lib/toast';
 import { validateProfile, sanitizeInput } from '../lib/inputValidation';
+
+interface FormData {
+  displayName: string;
+  username: string;
+  bio: string;
+  location: string;
+  avatar: string;
+  avatarUrl: string | null;
+  testimonyContent: string;
+  testimonyLesson: string;
+}
 
 interface ProfileEditDialogProps {
   profile: any;
@@ -12,7 +23,7 @@ interface ProfileEditDialogProps {
 }
 
 const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMode, onSave, onClose }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     displayName: profile?.displayName || '',
     username: profile?.username || '',
     bio: profile?.bio || '',
@@ -22,7 +33,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
     testimonyContent: profile?.testimony || '',
     testimonyLesson: profile?.testimonyLesson || ''
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -33,7 +44,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
     '🦁', '🦅', '🐺', '🦋', '🌺', '🌸', '🌻', '🌹'
   ];
 
-  const nameInputRef = useRef(null);
+  const nameInputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   // Auto-focus on name input when dialog opens
   useEffect(() => {
@@ -112,13 +123,13 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
       updateToSuccess(toastId, 'Profile updated successfully!');
     } catch (error) {
       console.error('Error saving profile:', error);
-      updateToError(toastId, error.message || 'Failed to save profile. Please try again.');
+      updateToError(toastId, error instanceof Error ? error.message : 'Failed to save profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof FormData, value: string | null) => {
     setFormData({ ...formData, [field]: value });
     // Clear error for this field when user starts typing
     if (errors[field]) {
