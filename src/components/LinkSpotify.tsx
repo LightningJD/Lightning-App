@@ -25,7 +25,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
 
     setSaving(true);
     try {
-      await updateUserProfile(userProfile.supabaseId, { spotifyUrl });
+      await updateUserProfile(userProfile.supabaseId, { spotify_url: spotifyUrl } as any);
       showSuccess(spotifyUrl ? 'Spotify profile linked!' : 'Spotify profile unlinked');
       onClose();
     } catch (error) {
@@ -40,7 +40,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
     setSpotifyUrl('');
     setSaving(true);
     try {
-      await updateUserProfile(userProfile.supabaseId, { spotifyUrl: null });
+      await updateUserProfile(userProfile.supabaseId, { spotify_url: null } as any);
       showSuccess('Spotify profile unlinked');
       onClose();
     } catch (error) {

@@ -70,7 +70,7 @@ function App() {
   const [showContactSupport, setShowContactSupport] = useState(false);
   const [showBlockedUsers, setShowBlockedUsers] = useState(false);
   const [showReportContent, setShowReportContent] = useState(false);
-  const [reportData, setReportData] = useState({ type: null, content: null });
+  const [reportData, setReportData] = useState<{ type: 'user' | 'testimony' | 'message' | 'group' | null; content: { id: string; ownerId?: string; name?: string; } | null }>({ type: null, content: null });
   const [showLinkSpotify, setShowLinkSpotify] = useState(false);
 
   // Privacy & Notification Settings
@@ -149,7 +149,7 @@ function App() {
     setSearchRadius(newRadius);
 
     try {
-      await updateUserProfile(userProfile.supabaseId, { search_radius: newRadius });
+      await updateUserProfile(userProfile.supabaseId, { search_radius: newRadius } as any);
       showSuccess(`Search radius updated to ${newRadius} miles`);
     } catch (error) {
       console.error('Error updating search radius:', error);
@@ -437,7 +437,7 @@ function App() {
         // Check testimony secrets (character count, word count, time of day, speed)
         checkTestimonySecrets({
           content: data.testimony
-        }, timeSpent);
+        }, timeSpent ?? undefined);
 
       } catch (error) {
         console.error('Error:', error);
@@ -467,7 +467,7 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
         // Check testimony secrets (character count, word count, time of day, speed)
         checkTestimonySecrets({
           content: demoTestimony
-        }, timeSpent);
+        }, timeSpent ?? undefined);
 
         // For authenticated users: Save to database immediately
         // For guests: Show save modal (Testimony-First Conversion)
@@ -1521,7 +1521,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         onClose={handleSaveTestimonyModalClose}
         onContinueAsGuest={handleContinueAsGuest}
         nightMode={nightMode}
-        testimonyPreview={generatedTestimony}
+        testimonyPreview={generatedTestimony || ''}
       />
 
       {/* Secret Museum */}
@@ -1588,8 +1588,8 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         }}
         nightMode={nightMode}
         userProfile={userProfile}
-        reportType={reportData.type}
-        reportedContent={reportData.content}
+        reportType={reportData.type || 'user'}
+        reportedContent={reportData.content || { id: '' }}
       />
 
       {/* Link Spotify Dialog */}

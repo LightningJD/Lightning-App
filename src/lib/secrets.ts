@@ -502,14 +502,14 @@ export const getDiscoveredSecrets = () => {
 };
 
 // Check if a secret has been discovered
-export const isSecretDiscovered = (secretId) => {
+export const isSecretDiscovered = (secretId: string): boolean => {
   const discovered = getDiscoveredSecrets();
   return discovered.includes(secretId);
 };
 
 // Unlock a secret
-export const unlockSecret = (secretId) => {
-  const secret = secrets[secretId];
+export const unlockSecret = (secretId: string): boolean => {
+  const secret = secrets[secretId as keyof typeof secrets];
   if (!secret) {
     return false;
   }
@@ -542,8 +542,8 @@ export const unlockSecret = (secretId) => {
 };
 
 // Show secret toast notification
-const showSecretToast = (secret) => {
-  const rarityColors = {
+const showSecretToast = (secret: any): void => {
+  const rarityColors: Record<string, string> = {
     common: '#10b981',
     rare: '#3b82f6',
     epic: '#8b5cf6',
@@ -602,8 +602,8 @@ export const checkTimeBasedSecrets = () => {
 };
 
 // Check for milestone-based secrets
-export const checkMilestoneSecret = (type, count) => {
-  const milestones = {
+export const checkMilestoneSecret = (type: string, count: number): void => {
+  const milestones: Record<string, Record<number, string>> = {
     messages: { 1: 'first_message_sent', 100: 'messages_100' },
     friends: { 10: 'friends_10', 25: 'friends_25', 50: 'friends_50', 100: 'friends_100' },
     profile_views: { 40: 'profile_views_40' },
@@ -644,14 +644,14 @@ export const checkMasterHunter = () => {
 };
 
 // Check bio for "hallelujah"
-export const checkBioSecret = (bio) => {
+export const checkBioSecret = (bio: string): void => {
   if (bio && bio.toLowerCase().includes('hallelujah')) {
     unlockSecret('hallelujah_bio');
   }
 };
 
 // Start checking for time-based secrets every minute
-let timeCheckInterval = null;
+let timeCheckInterval: NodeJS.Timeout | null = null;
 
 export const startTimeBasedSecrets = () => {
   if (timeCheckInterval) return; // Already running
@@ -697,7 +697,7 @@ export const checkHolidaySecrets = () => {
 };
 
 // Check testimony-specific secrets
-export const checkTestimonySecrets = (testimony, timeSpent) => {
+export const checkTestimonySecrets = (testimony: any, timeSpent?: number): void => {
   const content = testimony.content || '';
   const charCount = content.length;
   const wordCount = content.trim().split(/\s+/).length;
@@ -731,7 +731,7 @@ export const checkTestimonySecrets = (testimony, timeSpent) => {
 };
 
 // Check profile completion secrets
-export const checkProfileSecrets = (profile) => {
+export const checkProfileSecrets = (profile: any): void => {
   // Check if profile is 100% complete
   const requiredFields = ['username', 'displayName', 'bio', 'location', 'avatarEmoji'];
   const completedFields = requiredFields.filter(field => profile[field] && profile[field].trim() !== '');
@@ -750,7 +750,7 @@ export const checkProfileSecrets = (profile) => {
 };
 
 // Check scripture sharing secrets
-export const checkScriptureSecret = (text) => {
+export const checkScriptureSecret = (text: string): void => {
   const lowerText = text.toLowerCase();
 
   // Check for Psalm 23
@@ -765,7 +765,7 @@ export const checkScriptureSecret = (text) => {
 };
 
 // Check user anniversary
-export const checkAnniversarySecret = (userCreatedDate) => {
+export const checkAnniversarySecret = (userCreatedDate: string | Date): void => {
   const now = new Date();
   const created = new Date(userCreatedDate);
   const yearsDiff = now.getFullYear() - created.getFullYear();
@@ -779,7 +779,7 @@ export const checkAnniversarySecret = (userCreatedDate) => {
 };
 
 // Check early adopter status
-export const checkEarlyAdopterSecret = (userId, userNumber) => {
+export const checkEarlyAdopterSecret = (userNumber: number): void => {
   // If user is in first 1000 users
   if (userNumber <= 1000) {
     unlockSecret('early_adopter');
@@ -787,7 +787,7 @@ export const checkEarlyAdopterSecret = (userId, userNumber) => {
 };
 
 // Check message content for secrets
-export const checkMessageSecrets = (messageText) => {
+export const checkMessageSecrets = (messageText: string): void => {
   if (!messageText) return;
 
   const lowerText = messageText.toLowerCase();
@@ -811,7 +811,7 @@ export const checkActivitySecrets = () => {
 };
 
 // Check testimony analytics secrets (views, likes, comments)
-export const checkTestimonyAnalyticsSecrets = async (testimonyId, userId) => {
+export const checkTestimonyAnalyticsSecrets = async (testimonyId: string): Promise<void> => {
   // This will be called after testimony interactions
   // We'll check the counts from the database to unlock secrets
 
@@ -832,8 +832,6 @@ export const checkTestimonyAnalyticsSecrets = async (testimonyId, userId) => {
   if (comments.length === 1) {
     // First comment ever on this testimony
     // Only unlock for the testimony AUTHOR, not the commenter
-    const firstComment = comments[0];
-    // We need to check if the testimony belongs to userId
     // This will be called from the UI where we know the testimony author
     unlockSecret('testimony_first_comment');
   }

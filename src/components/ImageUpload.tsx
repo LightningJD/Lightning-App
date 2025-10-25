@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Camera } from 'lucide-react';
 
 /**
@@ -27,9 +27,25 @@ import { Camera } from 'lucide-react';
  *    VITE_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
  */
 
-const ImageUpload = ({ onUploadSuccess, currentImage, nightMode, buttonText = 'Upload Photo' }) => {
-  const cloudinaryRef = useRef();
-  const widgetRef = useRef();
+interface ImageUploadProps {
+  onUploadSuccess?: (imageUrl: string) => void;
+  nightMode: boolean;
+  buttonText?: string;
+}
+
+declare global {
+  interface Window {
+    cloudinary: any;
+  }
+}
+
+const ImageUpload: React.FC<ImageUploadProps> = ({
+  onUploadSuccess,
+  nightMode,
+  buttonText = 'Upload Photo'
+}) => {
+  const cloudinaryRef = useRef<any>(null);
+  const widgetRef = useRef<any>(null);
 
   useEffect(() => {
     // Load Cloudinary widget script
@@ -112,7 +128,7 @@ const ImageUpload = ({ onUploadSuccess, currentImage, nightMode, buttonText = 'U
           }
         }
       },
-      (error, result) => {
+      (error: any, result: any) => {
         if (error) {
           console.error('Upload error:', error);
           return;

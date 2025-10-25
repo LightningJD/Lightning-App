@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, HelpCircle, Search, ChevronRight, ChevronDown, MessageCircle, Shield, Users, MapPin, Heart, Bell, Zap, Mail } from 'lucide-react';
+import { X, HelpCircle, Search, ChevronRight, ChevronDown, MessageCircle, Shield, Users, Heart, Bell, Zap, Mail } from 'lucide-react';
 
 interface HelpCenterProps {
   isOpen: boolean;
@@ -10,7 +10,7 @@ interface HelpCenterProps {
 
 const HelpCenter: React.FC<HelpCenterProps> = ({ isOpen, onClose, nightMode, onContactSupport }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedFAQ, setExpandedFAQ] = useState(null);
+  const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
 
   const faqCategories = [
     {

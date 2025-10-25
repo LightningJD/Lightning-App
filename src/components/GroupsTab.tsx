@@ -11,10 +11,8 @@ import {
   deleteGroup,
   leaveGroup,
   getGroupMembers,
-  inviteToGroup,
   removeMemberFromGroup,
   promoteMemberToLeader,
-  subscribeToGroupMessages,
   unsubscribe,
   addReaction,
   removeReaction,
@@ -33,21 +31,64 @@ interface GroupsTabProps {
   nightMode: boolean;
 }
 
+interface GroupMessage {
+  id: number | string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  sender: {
+    display_name: string;
+    avatar_emoji: string;
+  };
+}
+
+interface GroupData {
+  id: string;
+  name: string;
+  description?: string;
+  avatar_emoji: string;
+  member_count: number;
+  userRole: string;
+}
+
+interface GroupMember {
+  id: string;
+  role: string;
+  user: {
+    id: string;
+    display_name: string;
+    username: string;
+    avatar_emoji: string;
+    is_online: boolean;
+  };
+}
+
+interface MessageReaction {
+  id: string;
+  message_id: string | number;
+  user_id: string;
+  emoji: string;
+  user: {
+    id: string;
+    display_name: string;
+    avatar_emoji: string;
+  };
+}
+
 const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
   const { profile } = useUserProfile();
-  const { isGuest, checkAndShowModal } = useGuestModalContext();
-  const [activeGroup, setActiveGroup] = useState(null);
-  const [activeView, setActiveView] = useState('list'); // 'list', 'chat', 'settings', 'members'
+  const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState<'list' | 'chat' | 'settings' | 'members'>('list');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [myGroups, setMyGroups] = useState([]);
-  const [groupMessages, setGroupMessages] = useState([]);
-  const [pinnedMessages, setPinnedMessages] = useState([]);
-  const [groupMembers, setGroupMembers] = useState([]);
-  const [messageReactions, setMessageReactions] = useState({});
-  const [showReactionPicker, setShowReactionPicker] = useState(null);
-  const [expandedReactions, setExpandedReactions] = useState({});
-  const [showMessageMenu, setShowMessageMenu] = useState(null);
-  const [showAllEmojis, setShowAllEmojis] = useState({});
+  const [myGroups, setMyGroups] = useState<GroupData[]>([]);
+  const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+  const [pinnedMessages, setPinnedMessages] = useState<GroupMessage[]>([]);
+  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+  const [messageReactions, setMessageReactions] = useState<Record<string | number, MessageReaction[]>>({});
+  const [showReactionPicker, setShowReactionPicker] = useState<string | number | null>(null);
+  const [expandedReactions, setExpandedReactions] = useState<Record<string | number, boolean>>({});
+  const [showAllEmojis, setShowAllEmojis] = useState<Record<string | number, boolean>>({});
   const [showGroupBio, setShowGroupBio] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
@@ -56,13 +97,13 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
   const [editGroupDescription, setEditGroupDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [isGroupsLoading, setIsGroupsLoading] = useState(true);
-  const messagesEndRef = useRef(null);
-  const pinnedSectionRef = useRef(null);
-  const subscriptionRef = useRef(null);
-  const messageRefs = useRef({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const pinnedSectionRef = useRef<HTMLDivElement>(null);
+  const subscriptionRef = useRef<any>(null);
+  const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
 
   // Helper function to check if message is in bottom half of viewport
-  const isMessageInBottomHalf = (messageId) => {
+  const isMessageInBottomHalf = (messageId: string | number): boolean => {
     const messageEl = messageRefs.current[messageId];
     if (!messageEl) return false;
 
@@ -87,7 +128,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       console.log('🚫 Guest attempted to access Groups - blocking');
       checkAndShowModal();
     }
-  }, [isGuest]);
+  }, [isGuest, checkAndShowModal]);
 
   // Load user's groups
   useEffect(() => {
@@ -111,7 +152,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
 
   // Load group messages when opening a group
   useEffect(() => {
-    let pollInterval = null;
+    let pollInterval: NodeJS.Timeout | null = null;
 
     const loadGroupMessages = async () => {
       if (activeGroup && activeView === 'chat') {
@@ -127,11 +168,11 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
         setPinnedMessages(pinned || []);
 
         // Load reactions for all messages (including pinned) in parallel
-        const allMessages = [...(pinned || []), ...(messages || [])];
+        const allMessages: GroupMessage[] = [...(pinned || []), ...(messages || [])];
         const reactionsPromises = allMessages.map(msg => getMessageReactions(msg.id));
         const reactionsResults = await Promise.all(reactionsPromises);
 
-        const reactionsMap = {};
+        const reactionsMap: Record<string | number, MessageReaction[]> = {};
         reactionsResults.forEach((reactions, index) => {
           if (allMessages[index] && reactions !== undefined) {
             reactionsMap[allMessages[index].id] = reactions;
@@ -153,11 +194,11 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
           setPinnedMessages(updatedPinned || []);
 
           // Reload reactions for all messages in parallel
-          const allMessages = [...(updatedPinned || []), ...(updatedMessages || [])];
+          const allMessages: GroupMessage[] = [...(updatedPinned || []), ...(updatedMessages || [])];
           const reactionsPromises = allMessages.map(msg => getMessageReactions(msg.id));
           const reactionsResults = await Promise.all(reactionsPromises);
 
-          const newReactionsMap = {};
+          const newReactionsMap: Record<string | number, MessageReaction[]> = {};
           allMessages.forEach((msg, index) => {
             newReactionsMap[msg.id] = reactionsResults[index];
           });
@@ -203,7 +244,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [groupMessages]);
 
-  const handleCreateGroup = async (e) => {
+  const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newGroupName.trim() || !profile?.supabaseId) return;
 
@@ -214,7 +255,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     });
 
     if (!validation.valid) {
-      const firstError = Object.values(validation.errors)[0];
+      const firstError = Object.values(validation.errors)[0] as string;
       showError(firstError);
       return;
     }
@@ -247,7 +288,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     setLoading(false);
   };
 
-  const handleSendGroupMessage = async (e) => {
+  const handleSendGroupMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !profile?.supabaseId || !activeGroup) return;
 
@@ -309,7 +350,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     }
   };
 
-  const handleUpdateGroup = async (e) => {
+  const handleUpdateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editGroupName.trim() || !activeGroup) return;
 
@@ -323,7 +364,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     if (updated) {
       console.log('✅ Group updated!', updated);
       // Reload groups
-      const groups = await getUserGroups(profile.supabaseId);
+      const groups = await getUserGroups(profile!.supabaseId);
       setMyGroups(groups || []);
       setActiveView('chat');
     }
@@ -341,7 +382,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     if (deleted) {
       console.log('✅ Group deleted!');
       // Reload groups
-      const groups = await getUserGroups(profile.supabaseId);
+      const groups = await getUserGroups(profile!.supabaseId);
       setMyGroups(groups || []);
       setActiveGroup(null);
       setActiveView('list');
@@ -355,12 +396,12 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
 
     setLoading(true);
 
-    const left = await leaveGroup(activeGroup, profile.supabaseId);
+    const left = await leaveGroup(activeGroup, profile!.supabaseId);
 
     if (left) {
       console.log('✅ Left group!');
       // Reload groups
-      const groups = await getUserGroups(profile.supabaseId);
+      const groups = await getUserGroups(profile!.supabaseId);
       setMyGroups(groups || []);
       setActiveGroup(null);
       setActiveView('list');
@@ -369,7 +410,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     setLoading(false);
   };
 
-  const handleRemoveMember = async (userId) => {
+  const handleRemoveMember = async (userId: string) => {
     if (!window.confirm('Are you sure you want to remove this member?')) return;
 
     const removed = await removeMemberFromGroup(activeGroup, userId);
@@ -382,7 +423,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     }
   };
 
-  const handlePromoteMember = async (userId) => {
+  const handlePromoteMember = async (userId: string) => {
     if (!window.confirm('Promote this member to leader?')) return;
 
     const promoted = await promoteMemberToLeader(activeGroup, userId);
@@ -395,12 +436,12 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     }
   };
 
-  const handleReaction = async (messageId, emoji) => {
+  const handleReaction = async (messageId: string | number, emoji: string) => {
     if (!profile?.supabaseId) return;
 
     const reactions = messageReactions[messageId] || [];
     const existingReaction = reactions.find(
-      r => r.user_id === profile.supabaseId && r.emoji === emoji
+      r => r.user_id === profile!.supabaseId && r.emoji === emoji
     );
 
     if (existingReaction) {
@@ -411,7 +452,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       }));
 
       // Then remove from database in background
-      removeReaction(messageId, profile.supabaseId, emoji).catch(() => {
+      removeReaction(messageId, profile!.supabaseId, emoji).catch(() => {
         // Rollback on error
         setMessageReactions(prev => ({
           ...prev,
@@ -423,12 +464,12 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       const tempReaction = {
         id: `temp-${Date.now()}`,
         message_id: messageId,
-        user_id: profile.supabaseId,
+        user_id: profile!.supabaseId,
         emoji: emoji,
         user: {
-          id: profile.supabaseId,
-          display_name: profile.displayName,
-          avatar_emoji: profile.avatar
+          id: profile!.supabaseId,
+          display_name: profile!.displayName,
+          avatar_emoji: profile!.avatar
         }
       };
 
@@ -438,7 +479,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       }));
 
       // Then add to database in background
-      addReaction(messageId, profile.supabaseId, emoji).then(newReaction => {
+      addReaction(messageId, profile!.supabaseId, emoji).then(newReaction => {
         if (newReaction) {
           // Replace temp with real reaction
           setMessageReactions(prev => ({
@@ -446,11 +487,11 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
             [messageId]: [
               ...(prev[messageId] || []).filter(r => r.id !== tempReaction.id),
               {
-                ...newReaction,
+                ...(newReaction as Omit<MessageReaction, 'user'>),
                 user: {
-                  id: profile.supabaseId,
-                  display_name: profile.displayName,
-                  avatar_emoji: profile.avatar
+                  id: profile!.supabaseId,
+                  display_name: profile!.displayName,
+                  avatar_emoji: profile!.avatar
                 }
               }
             ]
@@ -471,20 +512,19 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     setShowReactionPicker(null);
   };
 
-  const handlePinMessage = async (messageId) => {
+  const handlePinMessage = async (messageId: string | number) => {
     if (!profile?.supabaseId) return;
 
-    const result = await pinMessage(messageId, profile.supabaseId);
+    const result = await pinMessage(messageId, profile!.supabaseId);
     if (result) {
       console.log('✅ Message pinned!');
       // Reload pinned messages
       const pinned = await getPinnedMessages(activeGroup);
       setPinnedMessages(pinned || []);
     }
-    setShowMessageMenu(null);
   };
 
-  const handleUnpinMessage = async (messageId) => {
+  const handleUnpinMessage = async (messageId: string | number) => {
     const result = await unpinMessage(messageId);
     if (result) {
       console.log('✅ Message unpinned!');
@@ -492,7 +532,6 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       const pinned = await getPinnedMessages(activeGroup);
       setPinnedMessages(pinned || []);
     }
-    setShowMessageMenu(null);
   };
 
   // Create Group Modal
@@ -539,7 +578,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                 value={newGroupDescription}
                 onChange={(e) => setNewGroupDescription(e.target.value)}
                 placeholder="What's this group about?"
-                rows="3"
+                rows={3}
                 className={nightMode ? 'w-full px-4 py-3 bg-white/5 border border-white/10 text-slate-100 placeholder-white/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all' : 'w-full px-4 py-3 bg-white/80 border border-white/30 text-black placeholder-black/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md transition-all'}
               />
             </div>
@@ -639,7 +678,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                   value={editGroupDescription}
                   onChange={(e) => setEditGroupDescription(e.target.value)}
                   placeholder={group.description || 'Add a description'}
-                  rows="3"
+                  rows={3}
                   className={nightMode ? 'w-full px-4 py-2 bg-white/5 border border-white/10 text-slate-100 placeholder-white/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2 bg-white/80 border border-white/30 text-black placeholder-black/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md'}
                 />
               </div>
@@ -770,7 +809,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                   </div>
                 </div>
 
-                {isLeader && member.user.id !== profile.supabaseId && (
+                {isLeader && member.user.id !== profile!.supabaseId && (
                   <div className="flex gap-2">
                     {member.role !== 'leader' && (
                       <button
@@ -936,15 +975,14 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                     <span className={nightMode ? 'text-xs font-semibold text-slate-100' : 'text-xs font-semibold text-black'}>Pinned Message</span>
                   </div>
                   {pinnedMessages.map((msg) => {
-                    const isMe = msg.sender_id === profile.supabaseId;
                     const reactions = messageReactions[msg.id] || [];
                     const reactionCounts = reactions.reduce((acc, r) => {
                       acc[r.emoji] = acc[r.emoji] || { count: 0, users: [], hasReacted: false };
                       acc[r.emoji].count++;
                       acc[r.emoji].users.push(r.user.display_name);
-                      if (r.user_id === profile.supabaseId) acc[r.emoji].hasReacted = true;
+                      if (r.user_id === profile!.supabaseId) acc[r.emoji].hasReacted = true;
                       return acc;
-                    }, {});
+                    }, {} as Record<string, { count: number; users: string[]; hasReacted: boolean }>);
 
                     return (
                       <div key={msg.id} className="mt-2">
@@ -956,7 +994,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                         </div>
                         <div className="flex flex-col items-start ml-1">
                           <div
-                            ref={el => messageRefs.current[msg.id] = el}
+                            ref={(el) => { messageRefs.current[msg.id] = el; }}
                             className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md inline-block relative group border border-blue-400 transition-colors' : 'bg-slate-100 text-black px-2 py-1 rounded-lg max-w-[80%] sm:max-w-md inline-block relative group border border-blue-200'}>
                             <div className="flex items-start gap-1.5">
                               <Pin className="w-3 h-3 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -1102,8 +1140,8 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                   <p className="text-sm mt-2">Start the conversation!</p>
                 </div>
               ) : (
-                groupMessages.map((msg, index) => {
-              const isMe = msg.sender_id === profile.supabaseId;
+                groupMessages.map((msg) => {
+              const isMe = msg.sender_id === profile!.supabaseId;
               const reactions = messageReactions[msg.id] || [];
 
               // Group reactions by emoji
@@ -1111,9 +1149,9 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                 acc[r.emoji] = acc[r.emoji] || { count: 0, users: [], hasReacted: false };
                 acc[r.emoji].count++;
                 acc[r.emoji].users.push(r.user.display_name);
-                if (r.user_id === profile.supabaseId) acc[r.emoji].hasReacted = true;
+                if (r.user_id === profile!.supabaseId) acc[r.emoji].hasReacted = true;
                 return acc;
-              }, {});
+              }, {} as Record<string, { count: number; users: string[]; hasReacted: boolean }>);
 
               return (
                 <div key={msg.id} className="mt-3">
@@ -1122,7 +1160,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                     <div className="flex gap-2 items-start">
                       {/* Avatar (always show) */}
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
-                        {profile.avatar}
+                        {profile!.avatar}
                       </div>
 
                       {/* Content column */}
@@ -1130,7 +1168,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                         {/* Name and timestamp (always show) */}
                         <div className="flex items-baseline gap-2 mb-1">
                           <span className={nightMode ? 'text-sm font-semibold text-slate-100' : 'text-sm font-semibold text-black'}>
-                            {profile.displayName}
+                            {profile!.displayName}
                           </span>
                           <span className={nightMode ? 'text-[10px] text-slate-100' : 'text-[10px] text-black'}>
                             {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1140,7 +1178,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                         {/* Message bubble with reactions */}
                         <div className="flex items-center gap-2 group">
                       <div
-                        ref={el => messageRefs.current[msg.id] = el}
+                        ref={(el) => { messageRefs.current[msg.id] = el; }}
                         className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
                             <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
 
@@ -1309,7 +1347,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                         {/* Message bubble with reactions */}
                         <div className="flex flex-col items-start">
                           <div
-                            ref={el => messageRefs.current[msg.id] = el}
+                            ref={(el) => { messageRefs.current[msg.id] = el; }}
                             className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors'}>
                             <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
                             <div className="flex gap-1 absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1519,9 +1557,10 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)'
             }}
-            onInput={(e) => {
-              e.target.style.height = 'auto';
-              e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
+            onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = Math.min(target.scrollHeight, 100) + 'px';
             }}
           />
           <button

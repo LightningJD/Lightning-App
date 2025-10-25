@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
 interface MenuItemProps {
   icon: React.ComponentType<any>;
   label: string;
@@ -14,7 +19,7 @@ interface MenuItemProps {
   onToggle?: (value: boolean) => void | Promise<void>;
   isOn?: boolean;
   dropdown?: boolean;
-  dropdownOptions?: string[];
+  dropdownOptions?: (string | DropdownOption)[];
   selectedValue?: string;
   onDropdownChange?: (value: string) => void | Promise<void>;
 }

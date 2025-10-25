@@ -6,18 +6,31 @@ import { useUserProfile } from './useUserProfile';
 import {
   getFriends,
   findNearbyUsers,
-  getPendingFriendRequests,
-  getSentFriendRequests,
   sendFriendRequest,
-  acceptFriendRequest,
-  declineFriendRequest,
   unfriend,
   checkFriendshipStatus,
   getMutualFriends,
   isUserBlocked,
   isBlockedBy
 } from '../lib/database';
-import { checkMilestoneSecret } from '../lib/secrets';
+
+interface User {
+  id: string;
+  display_name: string;
+  displayName?: string;
+  avatar_url?: string;
+  avatarImage?: string;
+  avatar_emoji: string;
+  avatar?: string;
+  is_online: boolean;
+  online?: boolean;
+  location_city?: string;
+  location?: string;
+  mutualFriends?: number;
+  reason?: string;
+  friendshipStatus?: string | null;
+  distance?: string;
+}
 
 interface NearbyTabProps {
   sortBy: string;
@@ -30,12 +43,10 @@ interface NearbyTabProps {
 
 const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, nightMode, onNavigateToMessages }) => {
   const { profile } = useUserProfile();
-  const [isLoading, setIsLoading] = useState(true);
-  const [viewingUser, setViewingUser] = useState(null);
-  const [recommendedUsers, setRecommendedUsers] = useState([]);
-  const [friends, setFriends] = useState([]);
-  const [pendingRequests, setPendingRequests] = useState([]);
-  const [sentRequests, setSentRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
+  const [recommendedUsers, setRecommendedUsers] = useState<User[]>([]);
+  const [friends, setFriends] = useState<User[]>([]);
 
   // Load users and friends from database
   useEffect(() => {
@@ -52,19 +63,11 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
         const friendsList = await getFriends(profile.supabaseId);
         setFriends(friendsList || []);
 
-        // Load pending friend requests
-        const pending = await getPendingFriendRequests(profile.supabaseId);
-        setPendingRequests(pending || []);
-
-        // Load sent requests
-        const sent = await getSentFriendRequests(profile.supabaseId);
-        setSentRequests(sent || []);
-
         // Load nearby users (if location available)
-        if (profile.locationLat && profile.locationLng) {
+        if (profile.location?.lat && profile.location?.lng) {
           const nearby = await findNearbyUsers(
-            profile.locationLat,
-            profile.locationLng,
+            profile.location.lat,
+            profile.location.lng,
             profile.searchRadius || 25,
             profile.supabaseId
           );
@@ -95,8 +98,10 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
                 ...user,
                 displayName: user.display_name,
                 avatarImage: user.avatar_url,
-                avatar: user.avatar_emoji,
-                online: user.is_online,
+                avatar: '👤',
+                avatar_emoji: '👤',
+                online: user.online || false,
+                is_online: user.online || false,
                 location: user.location_city || 'Unknown',
                 mutualFriends: mutualFriends?.length || 0,
                 reason: mutualFriends?.length > 0
@@ -107,7 +112,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
             })
           );
 
-          setRecommendedUsers(enrichedUsers);
+          setRecommendedUsers(enrichedUsers as User[]);
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -117,27 +122,24 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     };
 
     loadData();
-  }, [profile?.supabaseId, profile?.locationLat, profile?.locationLng]);
+  }, [profile?.supabaseId, profile?.location?.lat, profile?.location?.lng]);
 
-  const handleViewProfile = (user) => {
+  const handleViewProfile = (user: User): void => {
     setViewingUser(user);
   };
 
-  const handleMessage = (user) => {
+  const handleMessage = (user: User): void => {
     // Navigate to messages tab
     if (onNavigateToMessages) {
       onNavigateToMessages(user);
     }
   };
 
-  const handleAddFriend = async (userId) => {
+  const handleAddFriend = async (userId: string): Promise<void> => {
     if (!profile?.supabaseId) return;
 
     try {
       await sendFriendRequest(profile.supabaseId, userId);
-      // Reload data to update UI
-      const sent = await getSentFriendRequests(profile.supabaseId);
-      setSentRequests(sent || []);
 
       // Update recommended users to show pending status
       setRecommendedUsers(prev =>
@@ -150,47 +152,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     }
   };
 
-  const handleAcceptRequest = async (requestId) => {
-    if (!profile?.supabaseId) return;
-
-    try {
-      await acceptFriendRequest(requestId);
-      // Reload data
-      const pending = await getPendingFriendRequests(profile.supabaseId);
-      setPendingRequests(pending || []);
-      const friendsList = await getFriends(profile.supabaseId);
-      setFriends(friendsList || []);
-
-      // Check friend milestone secrets (10, 25, 50, 100 friends)
-      const friendCount = friendsList?.length || 0;
-      if (friendCount === 10) {
-        checkMilestoneSecret('friends', 10);
-      } else if (friendCount === 25) {
-        checkMilestoneSecret('friends', 25);
-      } else if (friendCount === 50) {
-        checkMilestoneSecret('friends', 50);
-      } else if (friendCount === 100) {
-        checkMilestoneSecret('friends', 100);
-      }
-    } catch (error) {
-      console.error('Error accepting friend request:', error);
-    }
-  };
-
-  const handleDeclineRequest = async (requestId) => {
-    if (!profile?.supabaseId) return;
-
-    try {
-      await declineFriendRequest(requestId);
-      // Reload data
-      const pending = await getPendingFriendRequests(profile.supabaseId);
-      setPendingRequests(pending || []);
-    } catch (error) {
-      console.error('Error declining friend request:', error);
-    }
-  };
-
-  const handleUnfriend = async (friendId) => {
+  const handleUnfriend = async (friendId: string): Promise<void> => {
     if (!profile?.supabaseId) return;
 
     try {
@@ -203,20 +165,20 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     }
   };
 
-  const getSortedUsers = (usersList) => {
+  const getSortedUsers = (usersList: User[]): User[] => {
     return [...usersList].sort((a, b) => {
       if (sortBy === 'online') {
-        return b.online - a.online;
+        return (b.online ? 1 : 0) - (a.online ? 1 : 0);
       } else if (sortBy === 'mutual') {
-        return b.mutualFriends - a.mutualFriends;
+        return (b.mutualFriends || 0) - (a.mutualFriends || 0);
       } else if (sortBy === 'nearby') {
-        return parseFloat(a.distance) - parseFloat(b.distance);
+        return parseFloat(a.distance || '0') - parseFloat(b.distance || '0');
       }
       return 0;
     });
   };
 
-  const sortWithOnlineFirst = (usersList) => {
+  const sortWithOnlineFirst = (usersList: User[]): User[] => {
     const sorted = getSortedUsers(usersList);
     const online = sorted.filter(u => u.online);
     const offline = sorted.filter(u => !u.online);
@@ -366,11 +328,13 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
                 <UserCard
                   key={user.id}
                   user={user}
-                  showReason
+                  showReason={true}
+                  isFriend={false}
                   nightMode={nightMode}
                   onViewProfile={handleViewProfile}
                   onMessage={handleMessage}
                   onAddFriend={handleAddFriend}
+                  onUnfriend={handleUnfriend}
                 />
               ))}
             </div>
@@ -403,10 +367,12 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
                 <UserCard
                   key={user.id}
                   user={user}
-                  isFriend
+                  showReason={false}
+                  isFriend={true}
                   nightMode={nightMode}
                   onViewProfile={handleViewProfile}
                   onMessage={handleMessage}
+                  onAddFriend={handleAddFriend}
                   onUnfriend={handleUnfriend}
                 />
               ))}

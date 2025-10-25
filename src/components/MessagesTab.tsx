@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Smile, Plus, X, Search } from 'lucide-react';
+import { Smile, Plus, X } from 'lucide-react';
 import { sendMessage, getConversation, getUserConversations, subscribeToMessages, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy, createGroup, sendGroupMessage } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { showError, showSuccess } from '../lib/toast';
-import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
+import { ConversationSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/secrets';
-import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak, getMessageStreak } from '../lib/activityTracker';
+import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
 import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
 import { validateMessage, sanitizeInput } from '../lib/inputValidation';
 
@@ -14,7 +14,7 @@ import { validateMessage, sanitizeInput } from '../lib/inputValidation';
 const formatTimestamp = (timestamp: any): string => {
   const now = new Date();
   const messageDate = new Date(timestamp);
-  const diffMs = now - messageDate;
+  const diffMs = now.getTime() - messageDate.getTime();
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
@@ -27,34 +27,70 @@ const formatTimestamp = (timestamp: any): string => {
   return messageDate.toLocaleDateString();
 };
 
+interface Message {
+  id: number | string;
+  sender_id: string;
+  recipient_id: string;
+  content: string;
+  created_at: string;
+  sender?: {
+    username: string;
+    display_name: string;
+    avatar_emoji: string;
+  };
+}
+
+interface Conversation {
+  id: number | string;
+  userId: string;
+  name: string;
+  avatar: string;
+  avatarImage?: string;
+  lastMessage: string;
+  timestamp: string;
+  online?: boolean;
+}
+
+interface Connection {
+  id: number;
+  name: string;
+  avatar: string;
+  status: string;
+}
+
+interface Reaction {
+  emoji: string;
+  userId: string;
+}
+
 interface MessagesTabProps {
   nightMode: boolean;
 }
 
 const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
   const { profile } = useUserProfile();
-  const { isGuest, checkAndShowModal } = useGuestModalContext();
-  const [activeChat, setActiveChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [conversations, setConversations] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [showReactionPicker, setShowReactionPicker] = useState(null);
-  const [messageReactions, setMessageReactions] = useState({});
-  const [showAllEmojis, setShowAllEmojis] = useState({});
-  const [expandedReactions, setExpandedReactions] = useState({});
-  const [showNewChatDialog, setShowNewChatDialog] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [newChatMessage, setNewChatMessage] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedConnections, setSelectedConnections] = useState([]);
-  const messagesEndRef = useRef(null);
-  const recipientInputRef = useRef(null);
-  const messageRefs = useRef({});
+  const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
+  const [activeChat, setActiveChat] = useState<number | string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [newMessage, setNewMessage] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+  const [showReactionPicker, setShowReactionPicker] = useState<number | string | null>(null);
+  const [messageReactions, setMessageReactions] = useState<Record<string | number, Reaction[]>>({});
+  const [showAllEmojis, setShowAllEmojis] = useState<Record<string | number, boolean>>({});
+  const [expandedReactions, setExpandedReactions] = useState<Record<string | number, boolean>>({});
+  const [showNewChatDialog, setShowNewChatDialog] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [newChatMessage, setNewChatMessage] = useState<string>('');
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [selectedConnections, setSelectedConnections] = useState<Connection[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recipientInputRef = useRef<HTMLInputElement>(null);
+  const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
 
   // Helper function to check if message is in bottom half of viewport
-  const isMessageInBottomHalf = (messageId) => {
+  const isMessageInBottomHalf = (messageId: string | number): boolean => {
     const messageEl = messageRefs.current[messageId];
     if (!messageEl) return false;
 
@@ -95,22 +131,22 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
   ];
 
   // Handle reaction toggle
-  const handleReaction = (messageId, emoji) => {
+  const handleReaction = (messageId: string | number, emoji: string): void => {
     setMessageReactions(prev => {
       const current = prev[messageId] || [];
-      const hasReacted = current.some(r => r.emoji === emoji && r.userId === profile.supabaseId);
+      const hasReacted = current.some(r => r.emoji === emoji && r.userId === profile?.supabaseId);
 
       if (hasReacted) {
         // Remove reaction
         return {
           ...prev,
-          [messageId]: current.filter(r => !(r.emoji === emoji && r.userId === profile.supabaseId))
+          [messageId]: current.filter(r => !(r.emoji === emoji && r.userId === profile?.supabaseId))
         };
       } else {
         // Add reaction
         return {
           ...prev,
-          [messageId]: [...current, { emoji, userId: profile.supabaseId }]
+          [messageId]: [...current, { emoji, userId: profile?.supabaseId || '' }]
         };
       }
     });
@@ -155,7 +191,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
     let isMounted = true;
     console.log('📡 Setting up real-time message subscription...');
 
-    const subscription = subscribeToMessages(profile.supabaseId, (payload) => {
+    const subscription = subscribeToMessages(profile.supabaseId, (payload: any) => {
       if (!isMounted) return; // Prevent state updates after unmount
       console.log('📨 New message received!', payload);
 
@@ -212,7 +248,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!newMessage.trim() || !profile?.supabaseId) return;
 
@@ -286,7 +322,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
         if (allConvos) {
           for (const convo of allConvos) {
             try {
-              const convoMessages = await getConversation(profile.supabaseId, convo.userId);
+              const convoMessages = await getConversation(profile.supabaseId, convo.userId) as Message[];
               totalMessages += convoMessages?.filter(m => m.sender_id === profile.supabaseId).length || 0;
             } catch (error) {
               console.error(`Failed to load messages for conversation ${convo.id}:`, error);
@@ -333,9 +369,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
       } else {
         throw new Error('Failed to send message');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to send message:', error);
-      showError(error.message || 'Failed to send message. Please try again.');
+      showError(error?.message || 'Failed to send message. Please try again.');
       // Revert to previous messages (remove optimistic message)
       setMessages(previousMessages);
       // Restore the message text so user can try again
@@ -345,6 +381,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
 
   if (activeChat) {
     const conversation = conversations.find(c => c.id === activeChat);
+
+    if (!conversation) {
+      return null;
+    }
 
     return (
       <div className="flex flex-col h-[calc(100vh-140px)]">
@@ -402,17 +442,17 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
             </div>
           ) : (
             messages.map((msg) => {
-              const isMe = msg.sender_id === profile.supabaseId;
+              const isMe = msg.sender_id === profile?.supabaseId;
               return (
                 <div key={msg.id} className="mt-3">
                   <div className="flex gap-2 items-start">
                     {/* Avatar */}
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0 overflow-hidden ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
                       {isMe ? (
-                        profile.avatarImage ? (
+                        profile?.avatarImage ? (
                           <img src={profile.avatarImage} alt={profile.displayName} className="w-full h-full object-cover" />
                         ) : (
-                          profile.avatar
+                          profile?.avatar
                         )
                       ) : (
                         conversation.avatarImage ? (
@@ -427,7 +467,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
                       {/* Name and timestamp */}
                       <div className="flex items-baseline gap-2 mb-1">
                         <span className={`text-sm font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                          {isMe ? profile.displayName : conversation.name}
+                          {isMe ? profile?.displayName : conversation.name}
                         </span>
                         <span className={`text-[10px] ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -438,7 +478,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
                       <div className="flex flex-col items-start">
                         <div className="flex items-center gap-2 group">
                           <div
-                            ref={el => messageRefs.current[msg.id] = el}
+                            ref={(el: HTMLDivElement | null) => { messageRefs.current[msg.id] = el; }}
                             className={nightMode ? 'bg-transparent hover:bg-white/5 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
                             <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
 
@@ -510,13 +550,13 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
                           <div className="flex flex-wrap gap-1 mt-1">
                             {(() => {
                               const reactions = messageReactions[msg.id];
-                              const reactionCounts = reactions.reduce((acc, r) => {
+                              const reactionCounts = reactions.reduce((acc: Record<string, { count: number; hasReacted: boolean; users: string[] }>, r) => {
                                 if (!acc[r.emoji]) {
                                   acc[r.emoji] = { count: 0, hasReacted: false, users: [] };
                                 }
                                 acc[r.emoji].count++;
                                 acc[r.emoji].users.push(r.userId);
-                                if (r.userId === profile.supabaseId) {
+                                if (r.userId === profile?.supabaseId) {
                                   acc[r.emoji].hasReacted = true;
                                 }
                                 return acc;
@@ -607,10 +647,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
           <textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) => {
+            onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                handleSendMessage(e);
+                handleSendMessage(e as any);
               }
             }}
             placeholder="Message..."
@@ -626,9 +666,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)'
             }}
-            onInput={(e) => {
-              e.target.style.height = 'auto';
-              e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
+            onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = Math.min(target.scrollHeight, 100) + 'px';
             }}
           />
           <button
@@ -640,12 +681,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
               backdropFilter: 'blur(30px)',
               WebkitBackdropFilter: 'blur(30px)'
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
               if (newMessage.trim()) {
                 e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
               }
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
             }}
           >
@@ -943,18 +984,19 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
                     const groupName = selectedConnections.map(c => c.name.split(' ')[0]).join(', ');
 
                     try {
-                      const newGroup = await createGroup({
-                        name: `Chat with ${groupName}`,
-                        description: `Group chat created on ${new Date().toLocaleDateString()}`,
-                        creatorId: profile.supabaseId,
-                        memberIds: selectedConnections.map(c => c.id),
-                        isPrivate: true
-                      });
+                      if (profile?.supabaseId) {
+                        const newGroup = await createGroup(profile.supabaseId, {
+                          name: `Chat with ${groupName}`,
+                          description: `Group chat created on ${new Date().toLocaleDateString()}`,
+                          memberIds: selectedConnections.map(c => String(c.id)),
+                          isPrivate: true
+                        });
 
-                      // Send the initial message to the group
-                      if (newGroup) {
-                        await sendGroupMessage(newGroup.id, profile.supabaseId, newChatMessage.trim());
-                        showSuccess('Group chat created! Check the Groups tab.');
+                        // Send the initial message to the group
+                        if (newGroup && (newGroup as any).id) {
+                          await sendGroupMessage((newGroup as any).id, profile.supabaseId, newChatMessage.trim());
+                          showSuccess('Group chat created! Check the Groups tab.');
+                        }
                       }
                     } catch (error) {
                       console.error('Error creating group:', error);
@@ -963,19 +1005,21 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
                   } else {
                     // Send direct message
                     try {
-                      await sendMessage(profile.supabaseId, selectedConnections[0].id, newChatMessage.trim());
-                      showSuccess('Message sent!');
-                      // Reload conversations to show new conversation
-                      const userConversations = await getUserConversations(profile.supabaseId);
-                      const unblockedConversations = [];
-                      for (const convo of userConversations) {
-                        const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
-                        const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
-                        if (!blocked && !blockedBy) {
-                          unblockedConversations.push(convo);
+                      if (profile?.supabaseId) {
+                        await sendMessage(profile.supabaseId, String(selectedConnections[0].id), newChatMessage.trim());
+                        showSuccess('Message sent!');
+                        // Reload conversations to show new conversation
+                        const userConversations = await getUserConversations(profile.supabaseId);
+                        const unblockedConversations = [];
+                        for (const convo of userConversations) {
+                          const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
+                          const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
+                          if (!blocked && !blockedBy) {
+                            unblockedConversations.push(convo);
+                          }
                         }
+                        setConversations(unblockedConversations);
                       }
-                      setConversations(unblockedConversations);
                     } catch (error) {
                       console.error('Error sending message:', error);
                       showError('Failed to send message');
@@ -999,7 +1043,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
                     : '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
                   : 'none'
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
                 if (selectedConnections.length > 0 && newChatMessage.trim()) {
                   e.currentTarget.style.background = 'linear-gradient(135deg, #5BA3FF 0%, #4F96FF 50%, #3b82f6 100%)';
                   e.currentTarget.style.transform = 'translateY(-1px)';
@@ -1008,7 +1052,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
                     : '0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
                 }
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
                 if (selectedConnections.length > 0 && newChatMessage.trim()) {
                   e.currentTarget.style.background = 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)';
                   e.currentTarget.style.transform = 'translateY(0)';
@@ -1035,12 +1079,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
               ? '0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
               : '0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.currentTarget.style.boxShadow = nightMode
               ? '0 8px 24px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
               : '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.currentTarget.style.boxShadow = nightMode
               ? '0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
               : '0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)';

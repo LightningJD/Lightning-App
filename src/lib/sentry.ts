@@ -52,7 +52,7 @@ export const initSentry = () => {
       }
 
       // Filter out non-critical errors
-      const error = hint.originalException;
+      const error = hint.originalException as any;
 
       // Ignore network errors (user's internet issue, not our bug)
       if (error?.message?.includes('NetworkError') ||
@@ -75,7 +75,7 @@ export const initSentry = () => {
 /**
  * Manually capture an error
  */
-export const captureError = (error, context = {}) => {
+export const captureError = (error: any, context: Record<string, any> = {}) => {
   Sentry.captureException(error, {
     extra: context,
   });
@@ -84,14 +84,14 @@ export const captureError = (error, context = {}) => {
 /**
  * Manually capture a message
  */
-export const captureMessage = (message, level = 'info') => {
+export const captureMessage = (message: string, level: Sentry.SeverityLevel = 'info') => {
   Sentry.captureMessage(message, level);
 };
 
 /**
  * Set user context (for better error tracking)
  */
-export const setUser = (user) => {
+export const setUser = (user: any) => {
   if (!user) {
     Sentry.setUser(null);
     return;
@@ -107,7 +107,7 @@ export const setUser = (user) => {
 /**
  * Add breadcrumb (track user actions leading to errors)
  */
-export const addBreadcrumb = (message, category = 'action') => {
+export const addBreadcrumb = (message: string, category: string = 'action') => {
   Sentry.addBreadcrumb({
     message,
     category,

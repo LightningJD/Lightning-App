@@ -34,12 +34,12 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error: Error) {
     // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error to console in development
     console.error('Error caught by boundary:', error, errorInfo);
 
@@ -314,9 +314,9 @@ export class ComponentErrorBoundary extends Component<ComponentErrorBoundaryProp
  * Use this to catch errors in async operations
  */
 export const useAsyncError = () => {
-  const [, setError] = React.useState();
+  const [, setError] = React.useState<Error>();
   return React.useCallback(
-    (error) => {
+    (error: Error) => {
       setError(() => {
         throw error;
       });
@@ -329,8 +329,11 @@ export const useAsyncError = () => {
  * withErrorBoundary HOC
  * Wrap any component to add error boundary protection
  */
-export const withErrorBoundary = (Component, errorBoundaryProps) => {
-  const WrappedComponent = (props) => (
+export const withErrorBoundary = <P extends object>(
+  Component: React.ComponentType<P>,
+  errorBoundaryProps?: Omit<ErrorBoundaryProps, 'children'>
+) => {
+  const WrappedComponent = (props: P) => (
     <ErrorBoundary {...errorBoundaryProps}>
       <Component {...props} />
     </ErrorBoundary>

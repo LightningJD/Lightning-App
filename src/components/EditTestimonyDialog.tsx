@@ -118,7 +118,9 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
     setFormData({ ...formData, [field]: value });
     // Clear error for this field when user starts typing
     if (errors[field]) {
-      setErrors({ ...errors, [field]: undefined });
+      const newErrors = { ...errors };
+      delete newErrors[field];
+      setErrors(newErrors);
     }
   };
 
@@ -142,8 +144,8 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
 
           <textarea
             ref={textareaRef}
-            value={formData[question.field]}
-            onChange={(e) => handleInputChange(question.field, e.target.value)}
+            value={formData[question.field as keyof FormData]}
+            onChange={(e) => handleInputChange(question.field as keyof FormData, e.target.value)}
             placeholder={question.placeholder}
             className={`w-full h-40 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm ${
               nightMode
