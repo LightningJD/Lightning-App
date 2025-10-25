@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, X, Settings, Crown, Users, Trash2, LogOut, Smile, Pin, Info, ChevronRight } from 'lucide-react';
+import { showError } from '../lib/toast';
 import {
   createGroup,
   getUserGroups,
@@ -126,8 +127,10 @@ const GroupsTab = ({ nightMode }) => {
         const reactionsResults = await Promise.all(reactionsPromises);
 
         const reactionsMap = {};
-        allMessages.forEach((msg, index) => {
-          reactionsMap[msg.id] = reactionsResults[index];
+        reactionsResults.forEach((reactions, index) => {
+          if (allMessages[index] && reactions !== undefined) {
+            reactionsMap[allMessages[index].id] = reactions;
+          }
         });
         setMessageReactions(reactionsMap);
 
@@ -429,12 +432,15 @@ const GroupsTab = ({ nightMode }) => {
             ]
           }));
         }
-      }).catch(() => {
+      }).catch((error) => {
+        console.error('Failed to add reaction:', error);
         // Rollback on error
         setMessageReactions(prev => ({
           ...prev,
           [messageId]: (prev[messageId] || []).filter(r => r.id !== tempReaction.id)
         }));
+        // Show error toast to user
+        showError('Failed to add reaction. Please try again.');
       });
     }
 

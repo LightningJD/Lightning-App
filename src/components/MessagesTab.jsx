@@ -135,22 +135,33 @@ const MessagesTab = ({ nightMode }) => {
   useEffect(() => {
     if (!profile?.supabaseId) return;
 
+    let isMounted = true;
     console.log('📡 Setting up real-time message subscription...');
 
     const subscription = subscribeToMessages(profile.supabaseId, (payload) => {
+      if (!isMounted) return; // Prevent state updates after unmount
       console.log('📨 New message received!', payload);
 
       // Reload conversations to update the list
-      getUserConversations(profile.supabaseId).then(setConversations);
+      getUserConversations(profile.supabaseId)
+        .then(data => {
+          if (isMounted) setConversations(data);
+        })
+        .catch(error => console.error('Failed to load conversations:', error));
 
       // If the message is for the active chat, reload messages
       if (activeChat && payload.new.sender_id === activeChat) {
-        getConversation(profile.supabaseId, activeChat).then(setMessages);
+        getConversation(profile.supabaseId, activeChat)
+          .then(data => {
+            if (isMounted) setMessages(data);
+          })
+          .catch(error => console.error('Failed to load messages:', error));
       }
     });
 
     // Cleanup subscription on unmount
     return () => {
+      isMounted = false;
       console.log('🔌 Cleaning up message subscription...');
       if (subscription) {
         unsubscribe(subscription);
@@ -235,8 +246,13 @@ const MessagesTab = ({ nightMode }) => {
         let totalMessages = 0;
         if (allConvos) {
           for (const convo of allConvos) {
-            const convoMessages = await getConversation(profile.supabaseId, convo.userId);
-            totalMessages += convoMessages?.filter(m => m.senderId === profile.supabaseId).length || 0;
+            try {
+              const convoMessages = await getConversation(profile.supabaseId, convo.userId);
+              totalMessages += convoMessages?.filter(m => m.sender_id === profile.supabaseId).length || 0;
+            } catch (error) {
+              console.error(`Failed to load messages for conversation ${convo.id}:`, error);
+              // Continue to next conversation
+            }
           }
         }
 

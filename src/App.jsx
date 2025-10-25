@@ -218,7 +218,11 @@ function App() {
 
   // Auto-save guest testimony when user signs up
   React.useEffect(() => {
+    let isMounted = true; // Track if component is still mounted
+
     const autoSaveGuestTestimony = async () => {
+      if (!isMounted) return; // Exit early if unmounted
+
       if (isAuthenticated && userProfile?.supabaseId) {
         const guestTestimony = getGuestTestimony();
 
@@ -237,6 +241,8 @@ function App() {
               isPublic: true
             });
 
+            if (!isMounted) return; // Check again before setState
+
             if (saved) {
               clearGuestTestimony();
               updateToSuccess(toastId, 'Your testimony has been published!');
@@ -246,22 +252,32 @@ function App() {
               unlockSecret('first_testimony');
 
               // Close the save testimony modal if it's open
-              setShowSaveTestimonyModal(false);
+              if (isMounted) {
+                setShowSaveTestimonyModal(false);
+              }
 
-              // Reload to show the testimony on profile
-              setTimeout(() => window.location.reload(), 1500);
+              // Reload to show the testimony on profile (only if still mounted)
+              if (isMounted) {
+                setTimeout(() => window.location.reload(), 1500);
+              }
             } else {
               throw new Error('Failed to save testimony');
             }
           } catch (error) {
             console.error('❌ Failed to auto-save guest testimony:', error);
-            updateToError(toastId, 'Testimony saved locally. You can publish it from your profile.');
+            if (isMounted) {
+              updateToError(toastId, 'Testimony saved locally. You can publish it from your profile.');
+            }
           }
         }
       }
     };
 
     autoSaveGuestTestimony();
+
+    return () => {
+      isMounted = false; // Cleanup
+    };
   }, [isAuthenticated, userProfile?.supabaseId]);
 
   // Check if profile needs to be completed (first-time users)

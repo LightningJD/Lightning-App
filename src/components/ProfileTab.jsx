@@ -44,10 +44,15 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
   // Track testimony views in database (for authenticated users)
   React.useEffect(() => {
     const trackView = async () => {
-      if (!isGuest && user && profile?.story?.id && profile?.supabaseId) {
-        await trackDbTestimonyView(profile.story.id, profile.supabaseId);
-        // Check if this testimony has unlocked any secrets
-        await checkTestimonyAnalyticsSecrets(profile.story.id, profile.supabaseId);
+      try {
+        if (!isGuest && user && profile?.story?.id && profile?.supabaseId) {
+          await trackDbTestimonyView(profile.story.id, profile.supabaseId);
+          // Check if this testimony has unlocked any secrets
+          await checkTestimonyAnalyticsSecrets(profile.story.id, profile.supabaseId);
+        }
+      } catch (error) {
+        console.error('Error tracking testimony view:', error);
+        // Don't fail silently - log but continue gracefully
       }
     };
     trackView();
@@ -176,14 +181,21 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
     );
 
     if (success && comment) {
+      // Verify profile exists and has required fields
+      if (!profile || !profile.username) {
+        console.error('Cannot add comment: profile data incomplete');
+        setIsSubmittingComment(false);
+        return;
+      }
+
       // Add comment to local state
       setComments([...comments, {
         ...comment,
         users: {
-          username: profile?.username,
-          display_name: profile?.displayName,
-          avatar_emoji: profile?.avatar,
-          avatar_url: profile?.avatarImage
+          username: profile.username,
+          display_name: profile.displayName,
+          avatar_emoji: profile.avatar,
+          avatar_url: profile.avatarImage
         }
       }]);
       setNewComment('');
