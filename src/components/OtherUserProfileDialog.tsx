@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { X, MapPin, Heart, MessageCircle, Flag } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, MapPin, MessageCircle, Flag, UserPlus } from 'lucide-react';
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
 import { sanitizeUserContent } from '../lib/sanitization';
+import { sendFriendRequest, checkFriendshipStatus } from '../lib/database';
+import { showSuccess, showError } from '../lib/toast';
+import MusicPlayer from './MusicPlayer';
 
 interface UserStory {
   id: string;
@@ -23,6 +26,12 @@ interface User {
   bio?: string;
   story?: UserStory;
   mutualFriends?: number;
+  music?: {
+    platform?: 'spotify' | 'youtube';
+    spotifyUrl?: string;
+    trackName?: string;
+    artist?: string;
+  };
 }
 
 interface ReportData {
@@ -50,6 +59,35 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
   const { profile: currentUserProfile } = useUserProfile();
   const [showReport, setShowReport] = useState<boolean>(false);
   const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [friendStatus, setFriendStatus] = useState<'none' | 'pending' | 'accepted' | 'rejected'>('none');
+  const [sendingRequest, setSendingRequest] = useState(false);
+
+  // Check friendship status
+  React.useEffect(() => {
+    const checkStatus = async () => {
+      if (currentUserProfile?.supabaseId && user?.id) {
+        const status = await checkFriendshipStatus(currentUserProfile.supabaseId, user.id);
+        setFriendStatus(status || 'none');
+      }
+    };
+    checkStatus();
+  }, [currentUserProfile?.supabaseId, user?.id]);
+
+  const handleSendFriendRequest = async () => {
+    if (!currentUserProfile?.supabaseId || !user?.id) return;
+
+    setSendingRequest(true);
+    try {
+      await sendFriendRequest(currentUserProfile.supabaseId, user.id);
+      setFriendStatus('pending');
+      showSuccess(`Friend request sent to ${user.displayName}!`);
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      showError('Failed to send friend request');
+    } finally {
+      setSendingRequest(false);
+    }
+  };
 
   if (!user) return null;
 
@@ -161,13 +199,15 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               </button>
 
               <button
+                onClick={handleSendFriendRequest}
+                disabled={friendStatus !== 'none' || sendingRequest}
                 className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 border ${
                   nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100 border-white/10' : 'bg-white/80 text-black border-white/30 shadow-md'
-                }`}
-                aria-label={`Like ${user.displayName}'s profile`}
+                } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                aria-label={`Add ${user.displayName} as friend`}
               >
-                <Heart className="w-5 h-5" />
-                Like
+                <UserPlus className="w-5 h-5" />
+                {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
               </button>
 
               <button
@@ -183,6 +223,19 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                 <Flag className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Music Player */}
+            {user.music && user.music.spotifyUrl && (
+              <div className="flex justify-center mt-6">
+                <MusicPlayer
+                  platform={user.music.platform || 'youtube'}
+                  url={user.music.spotifyUrl}
+                  trackName={user.music.trackName}
+                  artist={user.music.artist}
+                  nightMode={nightMode}
+                />
+              </div>
+            )}
 
             {/* Testimony Section */}
             {user.story && user.story.content && (

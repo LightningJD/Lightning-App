@@ -17,35 +17,41 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
 
     return (
       <div
-        className={`relative p-3 rounded-lg ${nightMode ? 'bg-slate-800/90 border-slate-700' : 'bg-white border-slate-200'} border max-w-sm`}
+        className={`relative p-2 rounded-lg border max-w-sm ${nightMode ? 'border-white/10' : 'border-white/30'}`}
+        style={nightMode ? {
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+          boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)'
+        } : {
+          background: 'rgba(255, 255, 255, 0.25)',
+          backdropFilter: 'blur(30px)',
+          WebkitBackdropFilter: 'blur(30px)',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+        }}
       >
-        {/* Track Info Header */}
-        <div className="flex items-center gap-2 mb-2">
-          <div className={`w-8 h-8 rounded flex items-center justify-center ${nightMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
-            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+        {/* Track Info Header - Compact */}
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <div className={`w-6 h-6 rounded flex items-center justify-center ${nightMode ? 'bg-slate-700/50' : 'bg-slate-100/70'}`}>
+            <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 24 24">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'} truncate`}>
+            <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'} truncate`}>
               {trackName || 'Music'}
             </p>
-            {artist && (
-              <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'} truncate`}>
-                {artist}
-              </p>
-            )}
           </div>
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex-shrink-0 p-1.5 rounded-md transition-colors ${
-              nightMode ? 'hover:bg-slate-700 text-slate-400 hover:text-slate-200' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-700'
+            className={`flex-shrink-0 p-1 rounded-md transition-colors ${
+              nightMode ? 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200' : 'hover:bg-slate-100/70 text-slate-500 hover:text-slate-700'
             }`}
             title="Open in YouTube"
           >
-            <ExternalLink className="w-3.5 h-3.5" />
+            <ExternalLink className="w-3 h-3" />
           </a>
         </div>
 
