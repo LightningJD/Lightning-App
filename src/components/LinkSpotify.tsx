@@ -17,20 +17,20 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate URL if provided
-    if (spotifyUrl && !spotifyUrl.includes('spotify.com')) {
-      showError('Please enter a valid Spotify URL');
+    // Validate URL if provided (accept Spotify or YouTube)
+    if (spotifyUrl && !(spotifyUrl.includes('spotify.com') || spotifyUrl.includes('youtube.com'))) {
+      showError('Please enter a valid Spotify or YouTube URL');
       return;
     }
 
     setSaving(true);
     try {
       await updateUserProfile(userProfile.supabaseId, { spotify_url: spotifyUrl } as any);
-      showSuccess(spotifyUrl ? 'Spotify profile linked!' : 'Spotify profile unlinked');
+      showSuccess(spotifyUrl ? 'Music profile linked!' : 'Music profile unlinked');
       onClose();
     } catch (error) {
-      console.error('Error updating Spotify URL:', error);
-      showError('Failed to update Spotify profile');
+      console.error('Error updating music profile URL:', error);
+      showError('Failed to update music profile');
     } finally {
       setSaving(false);
     }
@@ -78,7 +78,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
             <div className="flex items-center gap-3">
               <Music className={`w-5 h-5 ${nightMode ? 'text-green-400' : 'text-green-600'}`} />
               <h2 className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                Link Spotify Profile
+                Link Music Profile
               </h2>
             </div>
             <button
@@ -97,13 +97,13 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
           <form onSubmit={handleSave} className="p-6 space-y-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Spotify Profile URL
+                Music Profile URL
               </label>
               <input
                 type="url"
                 value={spotifyUrl}
                 onChange={(e) => setSpotifyUrl(e.target.value)}
-                placeholder="https://open.spotify.com/user/yourprofile"
+                placeholder="https://open.spotify.com/user/... or https://youtube.com/@..."
                 className={`w-full px-4 py-3 rounded-lg border transition-colors ${
                   nightMode
                     ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500 focus:border-green-500'
@@ -115,14 +115,25 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
             {/* Instructions */}
             <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-slate-50'}`}>
               <p className={`text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                How to find your Spotify URL:
+                How to find your profile URL:
               </p>
-              <ol className={`text-xs space-y-1 list-decimal list-inside ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                <li>Open Spotify and go to your profile</li>
-                <li>Click the "..." (three dots)</li>
-                <li>Select "Share" → "Copy link to profile"</li>
-                <li>Paste the link here</li>
-              </ol>
+              <div className={`text-xs space-y-2 ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                <div>
+                  <p className="font-medium mb-1">Spotify:</p>
+                  <ol className="list-decimal list-inside ml-2 space-y-0.5">
+                    <li>Open Spotify and go to your profile</li>
+                    <li>Click "..." → "Share" → "Copy link to profile"</li>
+                  </ol>
+                </div>
+                <div>
+                  <p className="font-medium mb-1">YouTube:</p>
+                  <ol className="list-decimal list-inside ml-2 space-y-0.5">
+                    <li>Go to youtube.com and sign in</li>
+                    <li>Click your profile icon → "Your channel"</li>
+                    <li>Copy the URL from your browser</li>
+                  </ol>
+                </div>
+              </div>
             </div>
 
             {/* Preview if URL exists */}
@@ -133,7 +144,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
                 <Check className={`w-5 h-5 ${nightMode ? 'text-green-400' : 'text-green-600'}`} />
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-medium ${nightMode ? 'text-green-300' : 'text-green-900'}`}>
-                    Spotify profile will be visible
+                    Music profile will be visible
                   </p>
                   <a
                     href={spotifyUrl}
@@ -161,7 +172,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
                       : 'bg-red-50 hover:bg-red-100 text-red-600'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  Remove
+                  Unlink
                 </button>
               )}
               <button
