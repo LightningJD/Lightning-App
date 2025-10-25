@@ -429,11 +429,13 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony, curre
             )}
           </div>
 
-          {/* Testimony Content */}
-          <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>{profile?.story?.content}</p>
+          {/* Testimony Content - Privacy Protected */}
+          {canView ? (
+            <>
+              <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>{profile?.story?.content}</p>
 
-          {/* Lesson Learned - Inline with preview/expand */}
-          {profile?.story?.lesson && (
+              {/* Lesson Learned - Inline with preview/expand */}
+              {profile?.story?.lesson && (
             <div className={`mt-5 pt-5 border-t ${nightMode ? 'border-white/10' : 'border-white/20'}`}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-base">📖</span>
@@ -463,6 +465,26 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony, curre
                   {showLesson ? 'Read less' : 'Read more'}
                 </button>
               )}
+            </div>
+          )}
+            </>
+          ) : (
+            <div className={`text-center py-8 ${nightMode ? 'bg-white/5' : 'bg-slate-50'} rounded-lg`}>
+              <div className="flex flex-col items-center gap-3">
+                <div className={`p-3 rounded-full ${nightMode ? 'bg-white/10' : 'bg-white/50'}`}>
+                  <svg className={`w-6 h-6 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                    This testimony is private
+                  </p>
+                  <p className={`text-xs mt-1 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Only friends can view this testimony
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -764,7 +764,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       case 'profile':
         return (
           <ComponentErrorBoundary name="Profile" nightMode={nightMode}>
-            <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => {
+            <ProfileTab profile={profile} nightMode={nightMode} currentUserProfile={profile} onAddTestimony={() => {
               setShowTestimonyPrompt(true);
               setTestimonyStartTime(Date.now());
             }} onEditTestimony={handleEditTestimony} />
@@ -773,7 +773,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       default:
         return (
           <ComponentErrorBoundary name="Profile" nightMode={nightMode}>
-            <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => {
+            <ProfileTab profile={profile} nightMode={nightMode} currentUserProfile={profile} onAddTestimony={() => {
               setShowTestimonyPrompt(true);
               setTestimonyStartTime(Date.now());
             }} onEditTestimony={handleEditTestimony} />

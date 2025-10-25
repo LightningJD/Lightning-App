@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Smile, Plus, X, Search } from 'lucide-react';
-import { sendMessage, getConversation, getUserConversations, subscribeToMessages, unsubscribe } from '../lib/database';
+import { sendMessage, getConversation, getUserConversations, subscribeToMessages, unsubscribe, canSendMessage } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { showError } from '../lib/toast';
 import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
@@ -215,6 +215,13 @@ const MessagesTab = ({ nightMode }) => {
 
     const conversation = conversations.find(c => c.id === activeChat);
     if (!conversation) return;
+
+    // Check message privacy settings
+    const { allowed, reason } = await canSendMessage(conversation.userId, profile.supabaseId);
+    if (!allowed) {
+      showError(reason || 'Unable to send message');
+      return;
+    }
 
     // Sanitize and save the original message content and previous messages
     const messageContent = sanitizeInput(newMessage);
