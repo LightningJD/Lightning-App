@@ -6,6 +6,7 @@ import { useUserProfile } from './useUserProfile';
 const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
   const { profile: currentUserProfile } = useUserProfile();
   const [showReport, setShowReport] = useState(false);
+  const [reportData, setReportData] = useState(null);
 
   if (!user) return null;
 
@@ -126,7 +127,10 @@ const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
               </button>
 
               <button
-                onClick={() => setShowReport(true)}
+                onClick={() => {
+                  setReportData({ type: 'user', content: { id: user.id, name: user.displayName || user.username } });
+                  setShowReport(true);
+                }}
                 className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${
                   nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10' : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
                 }`}
@@ -151,9 +155,32 @@ const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
                       }
                 }
               >
-                <h3 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center gap-2 mb-3`}>
-                  <span>✨</span> {user.story.title || 'My Testimony'}
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center gap-2`}>
+                    <span>✨</span> {user.story.title || 'My Testimony'}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setReportData({
+                        type: 'testimony',
+                        content: {
+                          id: user.story.id,
+                          ownerId: user.id,
+                          name: user.story.title || 'Testimony'
+                        }
+                      });
+                      setShowReport(true);
+                    }}
+                    className={`p-2 rounded-lg transition-colors ${
+                      nightMode
+                        ? 'hover:bg-white/10 text-slate-400 hover:text-red-400'
+                        : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
+                    }`}
+                    aria-label="Report testimony"
+                  >
+                    <Flag className="w-4 h-4" />
+                  </button>
+                </div>
                 <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}>
                   {user.story.content}
                 </p>
@@ -192,17 +219,19 @@ const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
       </div>
 
       {/* Report Content Dialog */}
-      <ReportContent
-        isOpen={showReport}
-        onClose={() => setShowReport(false)}
-        nightMode={nightMode}
-        userProfile={currentUserProfile}
-        reportType="user"
-        reportedContent={{
-          id: user.id,
-          name: user.displayName || user.username
-        }}
-      />
+      {reportData && (
+        <ReportContent
+          isOpen={showReport}
+          onClose={() => {
+            setShowReport(false);
+            setReportData(null);
+          }}
+          nightMode={nightMode}
+          userProfile={currentUserProfile}
+          reportType={reportData.type}
+          reportedContent={reportData.content}
+        />
+      )}
     </>
   );
 };
