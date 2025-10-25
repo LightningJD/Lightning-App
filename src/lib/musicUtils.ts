@@ -98,9 +98,10 @@ export const isValidMusicUrl = (url: string): boolean => {
  */
 export const getYouTubeEmbedUrl = (videoId: string, options?: { autoplay?: boolean; startTime?: number }): string => {
   const params = new URLSearchParams({
-    autoplay: options?.autoplay ? '1' : '0',
+    autoplay: '1', // Always autoplay for profile music
     controls: '1',
-    modestbranding: '1'
+    modestbranding: '1',
+    rel: '0' // Don't show related videos
   });
 
   // Add start time if specified (in seconds)
