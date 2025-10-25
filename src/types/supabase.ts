@@ -522,6 +522,43 @@ export interface Database {
           }
         ]
       }
+      message_reactions: {
+        Row: {
+          id: string
+          message_id: string
+          user_id: string
+          emoji: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          user_id: string
+          emoji: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          user_id?: string
+          emoji?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       blocked_users: {
         Row: {
           id: string
@@ -562,7 +599,7 @@ export interface Database {
           reporter_id: string
           reported_user_id: string | null
           testimony_id: string | null
-          report_type: 'user' | 'testimony'
+          report_type: 'user' | 'testimony' | 'message' | 'group'
           reason: string
           details: string | null
           status: 'pending' | 'reviewed' | 'resolved'
@@ -573,7 +610,7 @@ export interface Database {
           reporter_id: string
           reported_user_id?: string | null
           testimony_id?: string | null
-          report_type: 'user' | 'testimony'
+          report_type: 'user' | 'testimony' | 'message' | 'group'
           reason: string
           details?: string | null
           status?: 'pending' | 'reviewed' | 'resolved'
@@ -584,7 +621,7 @@ export interface Database {
           reporter_id?: string
           reported_user_id?: string | null
           testimony_id?: string | null
-          report_type?: 'user' | 'testimony'
+          report_type?: 'user' | 'testimony' | 'message' | 'group'
           reason?: string
           details?: string | null
           status?: 'pending' | 'reviewed' | 'resolved'

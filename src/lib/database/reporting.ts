@@ -170,7 +170,7 @@ export const hasUserReported = async (reporterId: string, reportType: string, co
       .from('reports')
       .select('id')
       .eq('reporter_id', reporterId)
-      .eq('report_type', reportType);
+      .eq('report_type', reportType as 'user' | 'testimony' | 'message' | 'group');
 
     // Add appropriate content ID filter based on type
     if (reportType === 'user') {

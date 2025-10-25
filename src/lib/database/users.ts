@@ -55,7 +55,7 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
     return null;
   }
 
-  return data;
+  return data as unknown as User;
 };
 
 /**
@@ -75,7 +75,7 @@ export const getUserByClerkId = async (clerkUserId: string): Promise<User | null
     return null;
   }
 
-  return data;
+  return data as unknown as User;
 };
 
 /**
@@ -110,7 +110,7 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
     return null;
   }
 
-  return data;
+  return data as unknown as User;
 };
 
 /**
@@ -138,7 +138,7 @@ export const updateUserLocation = async (userId: string, latitude: number, longi
     return null;
   }
 
-  return data;
+  return data as unknown as User;
 };
 
 /**
@@ -166,7 +166,7 @@ export const findNearbyUsers = async (
     return [];
   }
 
-  return data || [];
+  return (data || []) as unknown as NearbyUser[];
 };
 
 /**

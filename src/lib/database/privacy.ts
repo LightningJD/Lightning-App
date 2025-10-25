@@ -41,7 +41,7 @@ export const canViewTestimony = async (testimonyOwnerId: string, currentUserId: 
       if (!currentUserId) return false;
 
       const { data: friendship, error: friendError } = await supabase
-        .from('friends')
+        .from('friendships')
         .select('id')
         .or(`user_id.eq.${currentUserId},user_id.eq.${testimonyOwnerId}`)
         .or(`friend_id.eq.${currentUserId},friend_id.eq.${testimonyOwnerId}`)
@@ -99,7 +99,7 @@ export const canSendMessage = async (recipientId: string, senderId: string): Pro
     case 'friends':
       // Check if users are friends
       const { data: friendship, error: friendError } = await supabase
-        .from('friends')
+        .from('friendships')
         .select('id')
         .or(`user_id.eq.${senderId},user_id.eq.${recipientId}`)
         .or(`friend_id.eq.${senderId},friend_id.eq.${recipientId}`)
@@ -153,7 +153,7 @@ export const isUserVisible = async (userId: string, currentUserId: string): Prom
   if (!currentUserId) return false;
 
   const { data: friendship, error: friendError } = await supabase
-    .from('friends')
+    .from('friendships')
     .select('id')
     .or(`user_id.eq.${currentUserId},user_id.eq.${userId}`)
     .or(`friend_id.eq.${currentUserId},friend_id.eq.${userId}`)
