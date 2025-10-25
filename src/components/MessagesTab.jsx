@@ -8,6 +8,7 @@ import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/secrets';
 import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak, getMessageStreak } from '../lib/activityTracker';
 import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
+import { validateMessage, sanitizeInput } from '../lib/inputValidation';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp) => {
@@ -200,6 +201,13 @@ const MessagesTab = ({ nightMode }) => {
     e.preventDefault();
     if (!newMessage.trim() || !profile?.supabaseId) return;
 
+    // Validate message content
+    const validation = validateMessage(newMessage, 'message');
+    if (!validation.valid) {
+      showError(validation.errors[0] || 'Invalid message');
+      return;
+    }
+
     // Check rate limit
     if (!checkAndNotify('send_message', showError)) {
       return;
@@ -208,8 +216,8 @@ const MessagesTab = ({ nightMode }) => {
     const conversation = conversations.find(c => c.id === activeChat);
     if (!conversation) return;
 
-    // Save the original message content and previous messages
-    const messageContent = newMessage;
+    // Sanitize and save the original message content and previous messages
+    const messageContent = sanitizeInput(newMessage);
     const previousMessages = [...messages];
 
     // Optimistically add message to UI

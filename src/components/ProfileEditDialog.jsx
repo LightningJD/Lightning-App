@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Save, User, MapPin, FileText, Book } from 'lucide-react';
 import ImageUploadButton from './ImageUploadButton';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from '../lib/toast';
+import { validateProfile, sanitizeInput } from '../lib/inputValidation';
 
 const ProfileEditDialog = ({ profile, nightMode, onSave, onClose }) => {
   const [formData, setFormData] = useState({
@@ -49,7 +50,11 @@ const ProfileEditDialog = ({ profile, nightMode, onSave, onClose }) => {
   }, [formData, profile]);
 
   const validateForm = () => {
-    const newErrors = {};
+    // Use comprehensive validation from inputValidation.js
+    const validation = validateProfile(formData);
+
+    // Add required field checks
+    const newErrors = { ...validation.errors };
 
     if (!formData.displayName.trim()) {
       newErrors.displayName = 'Name is required';
@@ -59,14 +64,12 @@ const ProfileEditDialog = ({ profile, nightMode, onSave, onClose }) => {
       newErrors.username = 'Username is required';
     } else if (formData.username.length < 3) {
       newErrors.username = 'Username must be at least 3 characters';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-      newErrors.username = 'Username can only contain letters, numbers, and underscores';
+    } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
+      newErrors.username = 'Username can only contain letters, numbers, underscores, and hyphens';
     }
 
     if (!formData.bio.trim()) {
       newErrors.bio = 'Bio is required';
-    } else if (formData.bio.length > 500) {
-      newErrors.bio = 'Bio cannot exceed 500 characters';
     }
 
     if (!formData.location.trim()) {
@@ -79,7 +82,7 @@ const ProfileEditDialog = ({ profile, nightMode, onSave, onClose }) => {
 
   const handleSave = async () => {
     if (!validateForm()) {
-      showError('Please fill in all required fields');
+      showError('Please fill in all required fields correctly');
       return;
     }
 
@@ -87,7 +90,18 @@ const ProfileEditDialog = ({ profile, nightMode, onSave, onClose }) => {
     setIsSaving(true);
 
     try {
-      await onSave(formData);
+      // Sanitize all text inputs before saving
+      const sanitizedData = {
+        ...formData,
+        displayName: sanitizeInput(formData.displayName),
+        username: sanitizeInput(formData.username),
+        bio: sanitizeInput(formData.bio),
+        location: sanitizeInput(formData.location),
+        testimonyContent: sanitizeInput(formData.testimonyContent),
+        testimonyLesson: sanitizeInput(formData.testimonyLesson)
+      };
+
+      await onSave(sanitizedData);
       updateToSuccess(toastId, 'Profile updated successfully!');
     } catch (error) {
       console.error('Error saving profile:', error);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, X, Settings, Crown, Users, Trash2, LogOut, Smile, Pin, Info, ChevronRight } from 'lucide-react';
 import { showError } from '../lib/toast';
+import { validateGroup, validateMessage, sanitizeInput } from '../lib/inputValidation';
 import {
   createGroup,
   getUserGroups,
@@ -202,11 +203,23 @@ const GroupsTab = ({ nightMode }) => {
     e.preventDefault();
     if (!newGroupName.trim() || !profile?.supabaseId) return;
 
+    // Validate group data
+    const validation = validateGroup({
+      name: newGroupName,
+      description: newGroupDescription
+    });
+
+    if (!validation.valid) {
+      const firstError = Object.values(validation.errors)[0];
+      showError(firstError);
+      return;
+    }
+
     setLoading(true);
 
     const newGroup = await createGroup(profile.supabaseId, {
-      name: newGroupName,
-      description: newGroupDescription,
+      name: sanitizeInput(newGroupName),
+      description: sanitizeInput(newGroupDescription),
       avatarEmoji: '✨',
       isPrivate: false
     });
@@ -234,8 +247,15 @@ const GroupsTab = ({ nightMode }) => {
     e.preventDefault();
     if (!newMessage.trim() || !profile?.supabaseId || !activeGroup) return;
 
-    // Save message content for secret checking
-    const messageContent = newMessage;
+    // Validate message content
+    const validation = validateMessage(newMessage, 'message');
+    if (!validation.valid) {
+      showError(validation.errors[0] || 'Invalid message');
+      return;
+    }
+
+    // Save and sanitize message content for secret checking
+    const messageContent = sanitizeInput(newMessage);
 
     // Optimistically add message
     const tempMessage = {
