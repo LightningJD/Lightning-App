@@ -237,16 +237,16 @@ export const hasUserLikedTestimony = async (testimonyId: string, userId: string)
   if (!supabase) return { liked: false };
 
   try {
+    // Use array query to avoid 406 errors from duplicates
     const { data, error } = await supabase
       .from('testimony_likes')
       .select('id')
       .eq('testimony_id', testimonyId)
-      .eq('user_id', userId)
-      .single();
+      .eq('user_id', userId);
 
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error) throw error;
 
-    return { liked: !!data };
+    return { liked: data && data.length > 0 };
   } catch (error) {
     console.error('Error checking testimony like:', error);
     return { liked: false };
