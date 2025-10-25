@@ -1,7 +1,12 @@
-import React from 'react';
-import { X, MapPin, Heart, MessageCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, MapPin, Heart, MessageCircle, Flag } from 'lucide-react';
+import ReportContent from './ReportContent';
+import { useUserProfile } from './useUserProfile';
 
 const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
+  const { profile: currentUserProfile } = useUserProfile();
+  const [showReport, setShowReport] = useState(false);
+
   if (!user) return null;
 
   return (
@@ -119,6 +124,16 @@ const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
                 <Heart className="w-5 h-5" />
                 Like
               </button>
+
+              <button
+                onClick={() => setShowReport(true)}
+                className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${
+                  nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10' : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
+                }`}
+                aria-label={`Report ${user.displayName}`}
+              >
+                <Flag className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Testimony Section */}
@@ -175,6 +190,19 @@ const OtherUserProfileDialog = ({ user, onClose, nightMode, onMessage }) => {
           </div>
         </div>
       </div>
+
+      {/* Report Content Dialog */}
+      <ReportContent
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        nightMode={nightMode}
+        userProfile={currentUserProfile}
+        reportType="user"
+        reportedContent={{
+          id: user.id,
+          name: user.displayName || user.username
+        }}
+      />
     </>
   );
 };
