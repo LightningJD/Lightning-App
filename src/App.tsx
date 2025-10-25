@@ -147,9 +147,14 @@ function App() {
     setSearchRadius(newRadius);
   };
 
+  // Ref to track if we're already saving to prevent duplicate calls
+  const isSavingRadiusRef = React.useRef(false);
+
   // Handler for when user releases the slider (updates database)
   const handleSearchRadiusCommit = async (): Promise<void> => {
-    if (!userProfile) return;
+    if (!userProfile || isSavingRadiusRef.current) return;
+
+    isSavingRadiusRef.current = true;
 
     try {
       await updateUserProfile(userProfile.supabaseId, { search_radius: searchRadius });
@@ -158,6 +163,11 @@ function App() {
       showError('Failed to update search radius');
       // Revert on error
       setSearchRadius(userProfile.searchRadius || 25);
+    } finally {
+      // Reset the flag after a short delay to prevent rapid-fire saves
+      setTimeout(() => {
+        isSavingRadiusRef.current = false;
+      }, 500);
     }
   };
 
@@ -1079,36 +1089,6 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                         {searchRadius}
                       </span>
                     </div>
-                    <style>{`
-                      .search-radius-slider::-webkit-slider-thumb {
-                        -webkit-appearance: none;
-                        appearance: none;
-                        width: 20px;
-                        height: 20px;
-                        border-radius: 50%;
-                        background: ${nightMode ? 'rgb(37 99 235)' : 'rgb(59 130 246)'};
-                        cursor: pointer;
-                        border: 3px solid white;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                      }
-                      .search-radius-slider::-moz-range-thumb {
-                        width: 20px;
-                        height: 20px;
-                        border-radius: 50%;
-                        background: ${nightMode ? 'rgb(37 99 235)' : 'rgb(59 130 246)'};
-                        cursor: pointer;
-                        border: 3px solid white;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                      }
-                      .search-radius-slider::-webkit-slider-thumb:hover {
-                        background: ${nightMode ? 'rgb(29 78 216)' : 'rgb(37 99 235)'};
-                        transform: scale(1.1);
-                      }
-                      .search-radius-slider::-moz-range-thumb:hover {
-                        background: ${nightMode ? 'rgb(29 78 216)' : 'rgb(37 99 235)'};
-                        transform: scale(1.1);
-                      }
-                    `}</style>
                     <input
                       type="range"
                       min="5"
@@ -1118,10 +1098,10 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                       onChange={(e) => handleSearchRadiusChange(parseInt(e.target.value))}
                       onMouseUp={handleSearchRadiusCommit}
                       onTouchEnd={handleSearchRadiusCommit}
-                      className={`search-radius-slider w-full h-2 rounded-lg appearance-none cursor-pointer ${
-                        nightMode ? 'bg-white/10' : 'bg-slate-200'
-                      }`}
+                      className="w-full h-2 rounded-lg cursor-pointer"
                       style={{
+                        WebkitAppearance: 'none',
+                        appearance: 'none',
                         background: nightMode
                           ? `linear-gradient(to right, rgb(37 99 235) 0%, rgb(37 99 235) ${((searchRadius - 5) / 95) * 100}%, rgba(255,255,255,0.1) ${((searchRadius - 5) / 95) * 100}%, rgba(255,255,255,0.1) 100%)`
                           : `linear-gradient(to right, rgb(59 130 246) 0%, rgb(59 130 246) ${((searchRadius - 5) / 95) * 100}%, rgb(226 232 240) ${((searchRadius - 5) / 95) * 100}%, rgb(226 232 240) 100%)`
