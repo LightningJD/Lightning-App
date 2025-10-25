@@ -1113,6 +1113,15 @@ CREATE TABLE notifications (
 - ✅ Performance optimized
 - ✅ Analytics tracking
 - ✅ 7-day retention > 40%
+- [ ] **🚨 CRITICAL: Switch Clerk to Production Keys** (15 mins)
+  - Go to Clerk Dashboard → Switch to Production mode
+  - Copy production publishable key (pk_live_...)
+  - Update VITE_CLERK_PUBLISHABLE_KEY in Netlify environment variables
+  - Add lightningtech.netlify.app to Clerk allowed domains
+  - Configure branding: Set app name to "Lightning"
+  - Trigger new Netlify deploy
+  - Test signup/login works with production keys
+  - ⚠️ **DO NOT SKIP**: Development keys have strict rate limits and show "Clerk" branding
 
 ---
 
