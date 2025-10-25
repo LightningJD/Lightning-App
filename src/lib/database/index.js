@@ -92,5 +92,16 @@ export {
   isBlockedBy
 } from './blocking.js';
 
+// Reporting / Content Moderation
+export {
+  reportUser,
+  reportTestimony,
+  reportMessage,
+  reportGroup,
+  getReportsByUser,
+  hasUserReported,
+  REPORT_REASONS
+} from './reporting.js';
+
 // Re-export Supabase client for backward compatibility
 export { supabase } from '../supabase.js';

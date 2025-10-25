@@ -21,6 +21,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import HelpCenter from './components/HelpCenter';
 import ContactSupport from './components/ContactSupport';
 import BlockedUsers from './components/BlockedUsers';
+import ReportContent from './components/ReportContent';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
@@ -67,6 +68,8 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [showContactSupport, setShowContactSupport] = useState(false);
   const [showBlockedUsers, setShowBlockedUsers] = useState(false);
+  const [showReportContent, setShowReportContent] = useState(false);
+  const [reportData, setReportData] = useState({ type: null, content: null });
 
   // Privacy & Notification Settings
   const [privacySettings, setPrivacySettings] = useState({
@@ -128,6 +131,12 @@ function App() {
       // Revert on error
       setNotificationSettings(notificationSettings);
     }
+  };
+
+  // Handler for opening report dialog
+  const openReportDialog = (type, content) => {
+    setReportData({ type, content });
+    setShowReportContent(true);
   };
 
   // Network status detection
@@ -966,7 +975,16 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                     nightMode={nightMode}
                     onClick={() => setShowBlockedUsers(true)}
                   />
-                  <MenuItem icon={Flag} label="Report Content" nightMode={nightMode} comingSoon />
+                  <MenuItem
+                    icon={Flag}
+                    label="Report Content"
+                    nightMode={nightMode}
+                    subtext="Report users, messages, or inappropriate content"
+                    onClick={() => {
+                      // Open a simple info dialog explaining how to report
+                      alert('To report content:\n\n• Tap the 3-dot menu on any profile, testimony, message, or group\n• Select "Report"\n• Choose a reason and submit\n\nOur team reviews all reports within 24-48 hours.');
+                    }}
+                  />
                 </div>
 
                 <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
@@ -1516,6 +1534,19 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         onClose={() => setShowBlockedUsers(false)}
         nightMode={nightMode}
         userProfile={userProfile}
+      />
+
+      {/* Report Content Dialog */}
+      <ReportContent
+        isOpen={showReportContent}
+        onClose={() => {
+          setShowReportContent(false);
+          setReportData({ type: null, content: null });
+        }}
+        nightMode={nightMode}
+        userProfile={userProfile}
+        reportType={reportData.type}
+        reportedContent={reportData.content}
       />
       </div>
     </GuestModalProvider>
