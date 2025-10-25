@@ -194,15 +194,15 @@ export const toggleTestimonyLike = async (testimonyId: string, userId: string): 
   if (!supabase) return { success: false, error: 'Database not initialized' };
 
   try {
-    // Check if already liked
-    const { data: existing } = await supabase
+    // Check if already liked - use array query to avoid 406 errors from duplicates
+    const { data: existingLikes } = await supabase
       .from('testimony_likes')
       .select('id')
       .eq('testimony_id', testimonyId)
-      .eq('user_id', userId)
-      .maybeSingle();
+      .eq('user_id', userId);
 
-    if (existing) {
+    if (existingLikes && existingLikes.length > 0) {
+      const existing = existingLikes[0];
       // Unlike - remove the like
       const { error } = await supabase
         .from('testimony_likes')
