@@ -1,11 +1,12 @@
-import React, { useState, useRef } from 'react';
-import { Heart, Share2, ExternalLink, Plus, Edit3, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, Share2, Plus, Edit3, MapPin } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
 import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
 import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony } from '../lib/database';
 import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
+import MusicPlayer from './MusicPlayer';
 
 interface ProfileTabProps {
   profile: any;
@@ -19,12 +20,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   const { user } = useUser();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
-  const [progress, setProgress] = useState(0);
   const [showQR, setShowQR] = useState(false);
   const [showLesson, setShowLesson] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const [avatarTaps, setAvatarTaps] = useState(0);
   const [avatarTapTimer, setAvatarTapTimer] = useState<NodeJS.Timeout | null>(null);
@@ -32,15 +29,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [canView, setCanView] = useState(true); // Can view testimony based on privacy settings
-
-  React.useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.muted = true;
-      audioRef.current.play().catch(() => {
-        setIsPlaying(false);
-      });
-    }
-  }, []);
 
   // Track testimony views for guests (Freemium Browse & Block)
   React.useEffect(() => {
@@ -102,49 +90,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     };
     loadComments();
   }, [profile?.story?.id, canView]);
-
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const toggleMute = () => {
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setProgress((audioRef.current.currentTime / audioRef.current.duration) * 100);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    // Metadata loaded
-  };
-
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    if (audioRef.current) {
-      audioRef.current.currentTime = percent * audioRef.current.duration;
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    if (!seconds || isNaN(seconds)) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
 
   const handleLike = async () => {
     if (!user || !profile?.story?.id || !profile?.supabaseId) return;
@@ -327,94 +272,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         </div>
       )}
 
-      {profile.music && (
+      {profile.music && profile.music.spotifyUrl && (
         <div className="px-4">
-          <div
-            className={`p-2 rounded-lg border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_2px_10px_rgba(0,0,0,0.03)]'}`}
-            style={nightMode ? {} : {
-              background: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.3)'
-            }}
-          >
-            <audio
-              ref={audioRef}
-              src={profile.music.audioUrl}
-              onTimeUpdate={handleTimeUpdate}
-              onLoadedMetadata={handleLoadedMetadata}
-              onEnded={() => setIsPlaying(false)}
-              autoPlay
-            />
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={togglePlay}
-                className={`w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0 text-slate-100 transition-all`}
-                style={isPlaying ? {
-                  background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
-                  boxShadow: '0 1px 4px rgba(59, 130, 246, 0.2)'
-                } : nightMode ? {
-                  background: 'rgba(255, 255, 255, 0.1)'
-                } : {
-                  background: 'rgba(203, 213, 225, 0.6)'
-                }}
-              >
-                {isPlaying ? (
-                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                    <rect x="5" y="3" width="3" height="14" />
-                    <rect x="12" y="3" width="3" height="14" />
-                  </svg>
-                ) : (
-                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                  </svg>
-                )}
-              </button>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 min-w-0 overflow-hidden">
-                    <div className="inline-flex animate-scroll">
-                      <p className={`text-xs font-medium whitespace-nowrap ${nightMode ? 'text-slate-100' : 'text-black'} pr-8`}>
-                        {profile.music.trackName} <span className={`${nightMode ? 'text-slate-300' : 'text-black/60'}`}>• {profile.music.artist}</span>
-                      </p>
-                      <p className={`text-xs font-medium whitespace-nowrap ${nightMode ? 'text-slate-100' : 'text-black'} pr-8`}>
-                        {profile.music.trackName} <span className={`${nightMode ? 'text-slate-300' : 'text-black/60'}`}>• {profile.music.artist}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <span className={`text-[10px] ${nightMode ? 'text-slate-400' : 'text-slate-500'} flex-shrink-0`}>
-                    {formatTime(audioRef.current?.currentTime || 0)}
-                  </span>
-                </div>
-
-                <div className={`mt-1 h-1 ${nightMode ? 'bg-white/10' : 'bg-slate-200'} rounded-full cursor-pointer`} onClick={handleProgressClick}>
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${progress}%`,
-                      background: nightMode ? '#3b82f6' : 'linear-gradient(90deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)'
-                    }}
-                  />
-                </div>
-              </div>
-
-              <button onClick={toggleMute} className={`flex-shrink-0 p-1 ${isMuted ? nightMode ? 'text-slate-400' : 'text-slate-400' : nightMode ? 'text-blue-500' : 'text-blue-600'}`}>
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  {isMuted ? (
-                    <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM13.293 8.293a1 1 0 011.414 0L16 9.586l1.293-1.293a1 1 0 111.414 1.414L17.414 11l1.293 1.293a1 1 0 01-1.414 1.414L16 12.414l-1.293 1.293a1 1 0 01-1.414-1.414L14.586 11l-1.293-1.293a1 1 0 010-1.414z"/>
-                  ) : (
-                    <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"/>
-                  )}
-                </svg>
-              </button>
-
-              <a href={profile.music.spotifyUrl} target="_blank" rel="noopener noreferrer" className={`flex-shrink-0 p-1 ${nightMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
+          <MusicPlayer
+            platform={profile.music.platform || 'spotify'}
+            url={profile.music.spotifyUrl}
+            trackName={profile.music.trackName}
+            artist={profile.music.artist}
+            nightMode={nightMode}
+          />
         </div>
       )}
 

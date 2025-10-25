@@ -74,11 +74,13 @@ export const useUserProfile = () => {
     searchRadius: supabaseUser?.search_radius || 25,
     spotifyUrl: supabaseUser?.spotify_url || null,
     music: testimony ? {
+      platform: testimony.music_platform || 'spotify',
       trackName: testimony.music_track_name || "Amazing Grace",
       artist: testimony.music_artist || "Various Artists",
       spotifyUrl: testimony.music_spotify_url || "https://open.spotify.com/track/1AWQoqb9bSvzTjaLralEka",
       audioUrl: testimony.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
     } : {
+      platform: 'spotify' as const,
       trackName: "Amazing Grace",
       artist: "Various Artists",
       spotifyUrl: "https://open.spotify.com/track/1AWQoqb9bSvzTjaLralEka",
