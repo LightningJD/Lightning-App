@@ -82,6 +82,7 @@ function App() {
     notifyFriendRequests: userProfile?.notifyFriendRequests !== false,
     notifyNearby: userProfile?.notifyNearby !== false
   });
+  const [searchRadius, setSearchRadius] = useState(userProfile?.searchRadius || 25);
 
   // Update settings when user profile loads
   React.useEffect(() => {
@@ -96,6 +97,7 @@ function App() {
         notifyFriendRequests: userProfile.notifyFriendRequests !== false,
         notifyNearby: userProfile.notifyNearby !== false
       });
+      setSearchRadius(userProfile.searchRadius || 25);
     }
   }, [userProfile]);
 
@@ -137,6 +139,21 @@ function App() {
   const openReportDialog = (type, content) => {
     setReportData({ type, content });
     setShowReportContent(true);
+  };
+
+  // Handler for search radius change
+  const handleSearchRadiusChange = async (newRadius) => {
+    setSearchRadius(newRadius);
+
+    try {
+      await updateUserProfile(userProfile.supabaseId, { searchRadius: newRadius });
+      showSuccess(`Search radius updated to ${newRadius} miles`);
+    } catch (error) {
+      console.error('Error updating search radius:', error);
+      showError('Failed to update search radius');
+      // Revert on error
+      setSearchRadius(userProfile.searchRadius || 25);
+    }
   };
 
   // Network status detection
@@ -1049,7 +1066,47 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                     </div>
                   </div>
 
-                  <MenuItem icon={MapPin} label="Search Radius" subtext="25 miles" nightMode={nightMode} comingSoon />
+                  {/* Search Radius Slider */}
+                  <div className={`px-4 py-4 border-b transition-colors ${
+                    nightMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'
+                  }`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <MapPin className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-400'}`} />
+                        <div>
+                          <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                            Search Radius
+                          </p>
+                          <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                            {searchRadius} miles
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`text-lg font-bold ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                        {searchRadius}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="5"
+                      max="100"
+                      step="5"
+                      value={searchRadius}
+                      onChange={(e) => handleSearchRadiusChange(parseInt(e.target.value))}
+                      className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+                        nightMode ? 'bg-white/10' : 'bg-slate-200'
+                      }`}
+                      style={{
+                        background: nightMode
+                          ? `linear-gradient(to right, rgb(37 99 235) 0%, rgb(37 99 235) ${((searchRadius - 5) / 95) * 100}%, rgba(255,255,255,0.1) ${((searchRadius - 5) / 95) * 100}%, rgba(255,255,255,0.1) 100%)`
+                          : `linear-gradient(to right, rgb(59 130 246) 0%, rgb(59 130 246) ${((searchRadius - 5) / 95) * 100}%, rgb(226 232 240) ${((searchRadius - 5) / 95) * 100}%, rgb(226 232 240) 100%)`
+                      }}
+                    />
+                    <div className="flex justify-between mt-1">
+                      <span className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>5 mi</span>
+                      <span className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>100 mi</span>
+                    </div>
+                  </div>
                   <MenuItem icon={Globe} label="Language" subtext="English" nightMode={nightMode} comingSoon />
                 </div>
 
