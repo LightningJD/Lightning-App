@@ -100,6 +100,7 @@ export const getYouTubeEmbedUrl = (videoId: string, options?: { autoplay?: boole
   // Build params object
   const paramsObj: Record<string, string> = {
     autoplay: '1',
+    mute: '1', // Mute to bypass browser autoplay restrictions
     controls: '1',
     modestbranding: '1',
     rel: '0',
