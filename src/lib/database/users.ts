@@ -26,6 +26,7 @@ interface ProfileUpdateData {
   avatar?: string;
   avatarUrl?: string | null;
   profileCompleted?: boolean;
+  search_radius?: number;
 }
 
 /**
@@ -96,6 +97,7 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   if (profileData.avatar) updates.avatar_emoji = profileData.avatar;
   if (profileData.avatarUrl !== undefined) updates.avatar_url = profileData.avatarUrl;
   if (profileData.profileCompleted !== undefined) updates.profile_completed = profileData.profileCompleted;
+  if (profileData.search_radius !== undefined) updates.search_radius = profileData.search_radius;
 
   const { data, error} = await supabase
     .from('users')

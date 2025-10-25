@@ -142,15 +142,17 @@ function App() {
   };
 
   // Handler for opening report dialog
-  // Handler for search radius change
-  const handleSearchRadiusChange = async (newRadius: number): Promise<void> => {
+  // Handler for search radius change (only updates UI, not database)
+  const handleSearchRadiusChange = (newRadius: number): void => {
+    setSearchRadius(newRadius);
+  };
+
+  // Handler for when user releases the slider (updates database)
+  const handleSearchRadiusCommit = async (): Promise<void> => {
     if (!userProfile) return;
 
-    setSearchRadius(newRadius);
-
     try {
-      await updateUserProfile(userProfile.supabaseId, { search_radius: newRadius } as any);
-      showSuccess(`Search radius updated to ${newRadius} miles`);
+      await updateUserProfile(userProfile.supabaseId, { search_radius: searchRadius });
     } catch (error) {
       console.error('Error updating search radius:', error);
       showError('Failed to update search radius');
@@ -1114,6 +1116,8 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                       step="5"
                       value={searchRadius}
                       onChange={(e) => handleSearchRadiusChange(parseInt(e.target.value))}
+                      onMouseUp={handleSearchRadiusCommit}
+                      onTouchEnd={handleSearchRadiusCommit}
                       className={`search-radius-slider w-full h-2 rounded-lg appearance-none cursor-pointer ${
                         nightMode ? 'bg-white/10' : 'bg-slate-200'
                       }`}
