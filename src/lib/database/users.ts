@@ -1,13 +1,37 @@
 import { supabase } from '../supabase';
+import type { User, NearbyUser } from '../../types';
 
 // ============================================
 // USER OPERATIONS
 // ============================================
 
+interface ClerkUser {
+  id: string;
+  username?: string;
+  emailAddresses: Array<{ emailAddress: string }>;
+  fullName?: string;
+  firstName?: string;
+  primaryEmailAddress?: { emailAddress: string };
+  publicMetadata?: {
+    customAvatar?: string;
+    bio?: string;
+  };
+}
+
+interface ProfileUpdateData {
+  displayName?: string;
+  username?: string;
+  bio?: string;
+  location?: string;
+  avatar?: string;
+  avatarUrl?: string | null;
+  profileCompleted?: boolean;
+}
+
 /**
  * Create or update user in Supabase when they sign up with Clerk
  */
-export const syncUserToSupabase = async (clerkUser) => {
+export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | null> => {
   if (!supabase) return null;
 
   const userData = {
@@ -37,7 +61,7 @@ export const syncUserToSupabase = async (clerkUser) => {
 /**
  * Get user profile by Clerk ID
  */
-export const getUserByClerkId = async (clerkUserId) => {
+export const getUserByClerkId = async (clerkUserId: string): Promise<User | null> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
@@ -57,10 +81,10 @@ export const getUserByClerkId = async (clerkUserId) => {
 /**
  * Update user profile
  */
-export const updateUserProfile = async (userId, profileData) => {
+export const updateUserProfile = async (userId: string, profileData: ProfileUpdateData): Promise<User | null> => {
   if (!supabase) return null;
 
-  const updates = {
+  const updates: Record<string, any> = {
     updated_at: new Date().toISOString()
   };
 
@@ -91,7 +115,7 @@ export const updateUserProfile = async (userId, profileData) => {
 /**
  * Update user location
  */
-export const updateUserLocation = async (userId, latitude, longitude) => {
+export const updateUserLocation = async (userId: string, latitude: number, longitude: number): Promise<User | null> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
@@ -117,7 +141,12 @@ export const updateUserLocation = async (userId, latitude, longitude) => {
  * Find nearby users within radius
  * Now respects privacy settings (is_private, notify_nearby)
  */
-export const findNearbyUsers = async (latitude, longitude, radiusMiles = 25, currentUserId = null) => {
+export const findNearbyUsers = async (
+  latitude: number,
+  longitude: number,
+  radiusMiles: number = 25,
+  currentUserId: string | null = null
+): Promise<NearbyUser[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
@@ -133,13 +162,13 @@ export const findNearbyUsers = async (latitude, longitude, radiusMiles = 25, cur
     return [];
   }
 
-  return data;
+  return data || [];
 };
 
 /**
  * Update user online status
  */
-export const updateOnlineStatus = async (userId, isOnline) => {
+export const updateOnlineStatus = async (userId: string, isOnline: boolean): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
