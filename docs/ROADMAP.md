@@ -632,6 +632,128 @@ CREATE TABLE notifications (
 
 ---
 
+### WEEK 6.5: SETTINGS MENU COMPLETION (Complete all "Coming Soon" features)
+
+**Current Status:** 17 features marked "SOON" in Settings menu
+
+#### **Quick Wins (Remove "Coming Soon" - Already Works):**
+- [ ] ✅ Remove "comingSoon" from "Change Profile Picture" (Cloudinary already set up!)
+- [ ] ✅ Wire up "Report a Bug" to BugReportDialog (already built)
+
+#### **Critical for Launch (Week 6 - Legal):**
+- [ ] ✅ Create Terms of Service page component
+- [ ] ✅ Create Privacy Policy page component
+- [ ] ✅ Link Terms in Settings → opens dialog/page
+- [ ] ✅ Link Privacy Policy in Settings → opens dialog/page
+- [ ] ✅ Add Help Center page (FAQ + contact)
+- [ ] ✅ Add Contact Support (email/form)
+
+#### **Privacy & Safety Features (High Priority):**
+- [ ] Make Profile Private toggle
+  - Add `is_private` column to users table
+  - Hide from Connect tab if private
+  - Only show to friends
+  - ~1-2 hours
+
+- [ ] Who Can See Testimony setting
+  - Options: Everyone, Friends Only, Just Me
+  - Add `testimony_visibility` column to users table
+  - Filter testimony views based on setting
+  - ~1-2 hours
+
+- [ ] Who Can Message You setting
+  - Options: Everyone, Friends Only, No One
+  - Add `message_privacy` column to users table
+  - Check before allowing message send
+  - ~1-2 hours
+
+- [ ] Blocked Users page
+  - Create blocked_users table
+  - List of blocked users
+  - Unblock button
+  - Filter blocked users from Connect/Messages
+  - ~2-3 hours
+
+- [ ] Report Content functionality
+  - Create reports table
+  - Report button on testimonies/messages/profiles
+  - Report reasons dropdown
+  - Save to database for admin review
+  - ~2-3 hours
+
+#### **Notification Settings (Medium Priority):**
+- [ ] Message Notifications toggle
+  - Store preference in users table
+  - Wire up to notification system
+  - ~1 hour
+
+- [ ] Connection Requests toggle
+  - Store preference in users table
+  - Wire up to friend request notifications
+  - ~1 hour
+
+- [ ] Nearby Users toggle
+  - Store preference in users table
+  - Control if user appears in Connect tab
+  - ~1 hour
+
+#### **Nice-to-Have Features (Low Priority / Phase 2):**
+- [ ] Link Spotify
+  - Spotify OAuth integration
+  - Store spotify_url in users table
+  - Automatically pull user's top worship songs
+  - ~3-4 hours
+  - **OR** mark as Phase 2/3
+
+- [ ] Email & Password login
+  - **NOTE:** Roadmap says "Google OAuth only"
+  - **Decision needed:** Keep or remove this option?
+  - If keep: Add Clerk email/password auth (~1 hour)
+
+- [ ] Search Radius customizer
+  - Currently hardcoded to 25 miles
+  - Add slider in settings (5-100 miles)
+  - Store preference in users table
+  - ~1-2 hours
+
+- [ ] Language selector
+  - Multi-language support (Phase 4)
+  - Requires translation infrastructure
+  - **Recommend:** Remove or mark Phase 4
+
+**🧪 TESTING CHECKPOINT - SETTINGS COMPLETION:**
+- [ ] ✅ All settings that should work, work
+- [ ] ✅ All "Coming Soon" labels removed or justified
+- [ ] ✅ Privacy settings tested (private profile, blocked users)
+- [ ] ✅ Legal pages load and are accessible
+- [ ] ✅ Report functionality saves to database
+- [ ] ✅ Notification toggles persist across sessions
+- [ ] 📸 Screenshot of Settings menu (all working)
+- [ ] ⚠️ Users will click every Settings option - they ALL need to work or be removed
+
+**Time Estimate:** 12-18 hours total for all features
+
+**Priority Order:**
+1. Legal pages (Terms, Privacy, Help) - **2 hours** ⚠️ CRITICAL
+2. Privacy settings (Private profile, visibility) - **4-6 hours** ⚠️ HIGH
+3. Report/Block functionality - **4-6 hours** ⚠️ HIGH
+4. Notification toggles - **2-3 hours** MEDIUM
+5. Nice-to-haves (Spotify, Search radius) - **4-6 hours** LOW
+
+#### **Additional Incomplete Features Found:**
+- [ ] Multi-recipient chat → Group creation (MessagesTab.jsx:890)
+  - Currently shows alert() instead of creating group
+  - Need to: Create group, navigate to Groups tab, start conversation
+  - ~1-2 hours
+
+- [ ] Cloudinary image deletion (cloudinary.js:186)
+  - Currently just warns, doesn't delete
+  - Requires server-side API key
+  - **Decision:** Keep as-is or implement server function
+  - ~2-3 hours if implementing
+
+---
+
 ### PHASE 2: CORE FEATURES (3-4 weeks after MVP)
 
 **Week 7-8: Groups**
