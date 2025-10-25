@@ -3,6 +3,7 @@ import { useClerk } from '@clerk/clerk-react';
 import { User, MessageCircle, Users, MapPin, Zap, Plus, X, ArrowRight, ArrowLeft, Sparkles, Edit3, Camera, Mail, Lock, Eye, Ban, Flag, Bell, Globe, Palette, FileText, Shield, HelpCircle, Phone, Info, LogOut } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
+import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
 import ProfileTab from './components/ProfileTab';
 import MessagesTab from './components/MessagesTab';
 import GroupsTab from './components/GroupsTab';
@@ -643,29 +644,57 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
   const renderContent = () => {
     switch(currentTab) {
       case 'messages':
-        return <MessagesTab nightMode={nightMode} />;
+        return (
+          <ComponentErrorBoundary name="Messages" nightMode={nightMode}>
+            <MessagesTab nightMode={nightMode} />
+          </ComponentErrorBoundary>
+        );
       case 'groups':
-        return <GroupsTab nightMode={nightMode} />;
+        return (
+          <ComponentErrorBoundary name="Groups" nightMode={nightMode}>
+            <GroupsTab nightMode={nightMode} />
+          </ComponentErrorBoundary>
+        );
       case 'connect':
-        return <NearbyTab sortBy={sortBy} setSortBy={setSortBy} activeConnectTab={activeConnectTab} setActiveConnectTab={setActiveConnectTab} nightMode={nightMode} onNavigateToMessages={() => setCurrentTab('messages')} />;
+        return (
+          <ComponentErrorBoundary name="Connect" nightMode={nightMode}>
+            <NearbyTab sortBy={sortBy} setSortBy={setSortBy} activeConnectTab={activeConnectTab} setActiveConnectTab={setActiveConnectTab} nightMode={nightMode} onNavigateToMessages={() => setCurrentTab('messages')} />
+          </ComponentErrorBoundary>
+        );
       case 'profile':
-        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => {
-          setShowTestimonyPrompt(true);
-          setTestimonyStartTime(Date.now());
-        }} onEditTestimony={handleEditTestimony} />;
+        return (
+          <ComponentErrorBoundary name="Profile" nightMode={nightMode}>
+            <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => {
+              setShowTestimonyPrompt(true);
+              setTestimonyStartTime(Date.now());
+            }} onEditTestimony={handleEditTestimony} />
+          </ComponentErrorBoundary>
+        );
       default:
-        return <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => {
-          setShowTestimonyPrompt(true);
-          setTestimonyStartTime(Date.now());
-        }} onEditTestimony={handleEditTestimony} />;
+        return (
+          <ComponentErrorBoundary name="Profile" nightMode={nightMode}>
+            <ProfileTab profile={profile} nightMode={nightMode} onAddTestimony={() => {
+              setShowTestimonyPrompt(true);
+              setTestimonyStartTime(Date.now());
+            }} onEditTestimony={handleEditTestimony} />
+          </ComponentErrorBoundary>
+        );
     }
   };
 
   return (
-    <GuestModalProvider nightMode={nightMode}>
-      <div className="min-h-screen pb-12 relative">
-      {/* Toast Notifications */}
-      <Toaster />
+    <ErrorBoundary
+      nightMode={nightMode}
+      showDetails={process.env.NODE_ENV === 'development'}
+      message="Something went wrong in the Lightning app. Please refresh to try again."
+      onError={(error, errorInfo) => {
+        console.error('App Error:', error, errorInfo);
+      }}
+    >
+      <GuestModalProvider nightMode={nightMode}>
+        <div className="min-h-screen pb-12 relative">
+        {/* Toast Notifications */}
+        <Toaster />
 
       {/* Full-Screen Periwinkle Glossmorphic Gradient Background */}
       <div
@@ -1283,6 +1312,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       )}
       </div>
     </GuestModalProvider>
+    </ErrorBoundary>
   );
 }
 
