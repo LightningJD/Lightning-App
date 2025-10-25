@@ -1,6 +1,0 @@
-# Cloudflare Pages Configuration
-# This file is optional - build settings are configured in the dashboard
-
-name = "lightning"
-compatibility_date = "2024-10-25"
-pages_build_output_dir = "dist"
