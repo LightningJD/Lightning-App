@@ -7,6 +7,7 @@ import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/secrets';
 import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak, getMessageStreak } from '../lib/activityTracker';
+import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp) => {
@@ -199,6 +200,11 @@ const MessagesTab = ({ nightMode }) => {
     e.preventDefault();
     if (!newMessage.trim() || !profile?.supabaseId) return;
 
+    // Check rate limit
+    if (!checkAndNotify('send_message', showError)) {
+      return;
+    }
+
     const conversation = conversations.find(c => c.id === activeChat);
     if (!conversation) return;
 
@@ -239,6 +245,9 @@ const MessagesTab = ({ nightMode }) => {
 
       if (savedMessage) {
         console.log('✅ Message sent to database!', savedMessage);
+
+        // Record rate limit attempt (after successful send)
+        recordAttempt('send_message');
 
         // Check message milestone secrets
         // Count total messages sent by this user (rough estimate from all conversations)
