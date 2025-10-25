@@ -16,17 +16,17 @@ export const showSuccess = (message: string, options: any = {}) => {
     duration: 4000,
     position: 'top-center',
     style: {
-      background: '#10b981',
+      background: 'rgb(59 130 246)',
       color: '#fff',
       padding: '12px 20px',
       borderRadius: '8px',
       fontSize: '14px',
       fontWeight: '500',
-      boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
     },
     iconTheme: {
       primary: '#fff',
-      secondary: '#10b981',
+      secondary: 'rgb(59 130 246)',
     },
     ...options,
   });

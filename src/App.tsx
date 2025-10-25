@@ -1077,6 +1077,36 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                         {searchRadius}
                       </span>
                     </div>
+                    <style>{`
+                      .search-radius-slider::-webkit-slider-thumb {
+                        -webkit-appearance: none;
+                        appearance: none;
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        background: ${nightMode ? 'rgb(37 99 235)' : 'rgb(59 130 246)'};
+                        cursor: pointer;
+                        border: 3px solid white;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                      }
+                      .search-radius-slider::-moz-range-thumb {
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        background: ${nightMode ? 'rgb(37 99 235)' : 'rgb(59 130 246)'};
+                        cursor: pointer;
+                        border: 3px solid white;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                      }
+                      .search-radius-slider::-webkit-slider-thumb:hover {
+                        background: ${nightMode ? 'rgb(29 78 216)' : 'rgb(37 99 235)'};
+                        transform: scale(1.1);
+                      }
+                      .search-radius-slider::-moz-range-thumb:hover {
+                        background: ${nightMode ? 'rgb(29 78 216)' : 'rgb(37 99 235)'};
+                        transform: scale(1.1);
+                      }
+                    `}</style>
                     <input
                       type="range"
                       min="5"
@@ -1084,7 +1114,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                       step="5"
                       value={searchRadius}
                       onChange={(e) => handleSearchRadiusChange(parseInt(e.target.value))}
-                      className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${
+                      className={`search-radius-slider w-full h-2 rounded-lg appearance-none cursor-pointer ${
                         nightMode ? 'bg-white/10' : 'bg-slate-200'
                       }`}
                       style={{
