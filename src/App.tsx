@@ -142,33 +142,30 @@ function App() {
   };
 
   // Handler for opening report dialog
-  // Handler for search radius change (only updates UI, not database)
+  // Ref to store the timeout for debouncing
+  const searchRadiusTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Handler for search radius change with debouncing
   const handleSearchRadiusChange = (newRadius: number): void => {
     setSearchRadius(newRadius);
-  };
 
-  // Ref to track if we're already saving to prevent duplicate calls
-  const isSavingRadiusRef = React.useRef(false);
-
-  // Handler for when user releases the slider (updates database)
-  const handleSearchRadiusCommit = async (): Promise<void> => {
-    if (!userProfile || isSavingRadiusRef.current) return;
-
-    isSavingRadiusRef.current = true;
-
-    try {
-      await updateUserProfile(userProfile.supabaseId, { search_radius: searchRadius });
-    } catch (error) {
-      console.error('Error updating search radius:', error);
-      showError('Failed to update search radius');
-      // Revert on error
-      setSearchRadius(userProfile.searchRadius || 25);
-    } finally {
-      // Reset the flag after a short delay to prevent rapid-fire saves
-      setTimeout(() => {
-        isSavingRadiusRef.current = false;
-      }, 500);
+    // Clear existing timeout
+    if (searchRadiusTimeoutRef.current) {
+      clearTimeout(searchRadiusTimeoutRef.current);
     }
+
+    // Set new timeout to save after 1 second of no changes
+    searchRadiusTimeoutRef.current = setTimeout(async () => {
+      if (!userProfile) return;
+
+      try {
+        await updateUserProfile(userProfile.supabaseId, { search_radius: newRadius });
+      } catch (error) {
+        console.error('Error updating search radius:', error);
+        showError('Failed to update search radius');
+        setSearchRadius(userProfile.searchRadius || 25);
+      }
+    }, 1000);
   };
 
   // Initialize Sentry error monitoring on app mount
@@ -1096,8 +1093,6 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                       step="5"
                       value={searchRadius}
                       onChange={(e) => handleSearchRadiusChange(parseInt(e.target.value))}
-                      onMouseUp={handleSearchRadiusCommit}
-                      onTouchEnd={handleSearchRadiusCommit}
                       className="w-full h-2 rounded-lg cursor-pointer"
                       style={{
                         WebkitAppearance: 'none',
