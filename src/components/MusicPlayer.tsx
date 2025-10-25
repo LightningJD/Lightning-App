@@ -17,51 +17,41 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
 
     return (
       <div
-        className={`p-4 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/30 shadow-md'}`}
-        style={nightMode ? {} : {
-          background: 'rgba(255, 255, 255, 0.2)',
-          backdropFilter: 'blur(30px)',
-          WebkitBackdropFilter: 'blur(30px)',
-        }}
+        className={`p-2 rounded-lg ${nightMode ? 'bg-white/[0.02] border-white/5' : 'bg-black/[0.02] border-slate-200/50'} border opacity-60 hover:opacity-100 transition-opacity`}
       >
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5 text-red-500/70" fill="currentColor" viewBox="0 0 24 24">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
             </svg>
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-black'} truncate`}>
-                {trackName || 'YouTube Video'}
+              <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'} truncate`}>
+                {trackName || 'Music'}
               </p>
-              {artist && (
-                <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'} truncate`}>
-                  {artist}
-                </p>
-              )}
             </div>
           </div>
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
-              nightMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-600'
+            className={`flex-shrink-0 p-1 rounded transition-colors ${
+              nightMode ? 'hover:bg-white/10 text-slate-500' : 'hover:bg-slate-100 text-slate-400'
             }`}
             title="Open in YouTube"
           >
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="w-3 h-3" />
           </a>
         </div>
 
-        <div className="aspect-video rounded-lg overflow-hidden">
+        <div className="rounded overflow-hidden" style={{ height: '80px' }}>
           <iframe
             width="100%"
-            height="100%"
+            height="80"
             src={getYouTubeEmbedUrl(videoId)}
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            className="w-full h-full"
+            className="w-full"
           />
         </div>
       </div>
