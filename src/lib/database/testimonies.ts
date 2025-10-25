@@ -149,7 +149,7 @@ export const trackTestimonyView = async (testimonyId: string, viewerId: string):
       });
 
     if (error) {
-      // Ignore duplicate view errors (already viewed)
+      // Ignore duplicate view errors (already viewed) - this is expected behavior
       if (error.code === '23505') {
         return { success: true, alreadyViewed: true };
       }
@@ -158,7 +158,10 @@ export const trackTestimonyView = async (testimonyId: string, viewerId: string):
 
     return { success: true, alreadyViewed: false };
   } catch (error) {
-    console.error('Error tracking testimony view:', error);
+    // Don't log duplicate view errors - they're expected
+    if (error instanceof Error && !error.message.includes('23505') && !error.message.includes('duplicate')) {
+      console.error('Error tracking testimony view:', error);
+    }
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
@@ -197,7 +200,7 @@ export const toggleTestimonyLike = async (testimonyId: string, userId: string): 
       .select('id')
       .eq('testimony_id', testimonyId)
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       // Unlike - remove the like
