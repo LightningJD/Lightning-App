@@ -3,10 +3,10 @@ import { Heart, Share2, ExternalLink, Plus, Edit3, MapPin } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
 import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
-import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment } from '../lib/database';
+import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony } from '../lib/database';
 import { useUser } from '@clerk/clerk-react';
 
-const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => {
+const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony, currentUserProfile }) => {
   const { user } = useUser();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);
@@ -23,6 +23,7 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [canView, setCanView] = useState(true); // Can view testimony based on privacy settings
 
   React.useEffect(() => {
     if (audioRef.current) {
@@ -69,16 +70,30 @@ const ProfileTab = ({ profile, nightMode, onAddTestimony, onEditTestimony }) => 
     loadLikeStatus();
   }, [profile?.story?.id, user]);
 
+  // Check testimony visibility based on privacy settings
+  React.useEffect(() => {
+    const checkVisibility = async () => {
+      if (profile?.supabaseId && profile?.story?.content && currentUserProfile?.supabaseId) {
+        const allowed = await canViewTestimony(profile.supabaseId, currentUserProfile.supabaseId);
+        setCanView(allowed);
+      } else {
+        // If viewing own profile or no privacy settings, allow
+        setCanView(true);
+      }
+    };
+    checkVisibility();
+  }, [profile?.supabaseId, profile?.story?.content, currentUserProfile?.supabaseId]);
+
   // Load comments
   React.useEffect(() => {
     const loadComments = async () => {
-      if (profile?.story?.id) {
+      if (profile?.story?.id && canView) {
         const { comments: testimonyComments } = await getTestimonyComments(profile.story.id);
         setComments(testimonyComments || []);
       }
     };
     loadComments();
-  }, [profile?.story?.id]);
+  }, [profile?.story?.id, canView]);
 
   const togglePlay = () => {
     if (audioRef.current) {

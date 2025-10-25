@@ -115,15 +115,17 @@ export const updateUserLocation = async (userId, latitude, longitude) => {
 
 /**
  * Find nearby users within radius
+ * Now respects privacy settings (is_private, notify_nearby)
  */
-export const findNearbyUsers = async (latitude, longitude, radiusMiles = 25) => {
+export const findNearbyUsers = async (latitude, longitude, radiusMiles = 25, currentUserId = null) => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .rpc('find_nearby_users', {
       user_lat: latitude,
       user_lng: longitude,
-      radius_miles: radiusMiles
+      radius_miles: radiusMiles,
+      current_user_id: currentUserId
     });
 
   if (error) {

@@ -51,7 +51,12 @@ const NearbyTab = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, n
 
         // Load nearby users (if location available)
         if (profile.locationLat && profile.locationLng) {
-          const nearby = await findNearbyUsers(profile.locationLat, profile.locationLng, 25);
+          const nearby = await findNearbyUsers(
+            profile.locationLat,
+            profile.locationLng,
+            profile.searchRadius || 25,
+            profile.supabaseId
+          );
 
           // Filter out current user and existing friends
           const friendIds = new Set(friendsList?.map(f => f.id) || []);

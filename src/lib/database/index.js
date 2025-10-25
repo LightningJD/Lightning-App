@@ -103,5 +103,12 @@ export {
   REPORT_REASONS
 } from './reporting.js';
 
+// Privacy & Permissions
+export {
+  canViewTestimony,
+  canSendMessage,
+  isUserVisible
+} from './privacy.js';
+
 // Re-export Supabase client for backward compatibility
 export { supabase } from '../supabase.js';
