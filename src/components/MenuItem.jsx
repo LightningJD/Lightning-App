@@ -12,7 +12,12 @@ const MenuItem = ({
   disabled,
   onClick,
   onToggle,
-  isOn: controlledIsOn
+  isOn: controlledIsOn,
+  // New: dropdown support
+  dropdown,
+  dropdownOptions,
+  selectedValue,
+  onDropdownChange
 }) => {
   // Use controlled state if provided, otherwise use internal state
   const [internalIsOn, setInternalIsOn] = useState(defaultOn || false);
@@ -25,7 +30,7 @@ const MenuItem = ({
   }, [defaultOn, controlledIsOn]);
 
   const handleClick = () => {
-    if (!disabled && !comingSoon && onClick && !toggle) {
+    if (!disabled && !comingSoon && onClick && !toggle && !dropdown) {
       onClick();
     }
   };
@@ -42,6 +47,15 @@ const MenuItem = ({
     } else {
       // Otherwise update internal state
       setInternalIsOn(newValue);
+    }
+  };
+
+  const handleDropdownChange = (e) => {
+    e.stopPropagation();
+    if (disabled || comingSoon) return;
+
+    if (onDropdownChange) {
+      onDropdownChange(e.target.value);
     }
   };
 
@@ -79,7 +93,26 @@ const MenuItem = ({
           <div className={`w-5 h-5 bg-white rounded-full m-0.5 transition-transform shadow-sm ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
         </div>
       )}
-      {!toggle && !subtext && (
+      {dropdown && dropdownOptions && (
+        <select
+          value={selectedValue}
+          onChange={handleDropdownChange}
+          onClick={(e) => e.stopPropagation()}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer flex-shrink-0 ${
+            nightMode
+              ? 'bg-white/10 text-slate-100 border border-white/20 hover:bg-white/15'
+              : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+          }`}
+          disabled={disabled || comingSoon}
+        >
+          {dropdownOptions.map((option) => (
+            <option key={option.value} value={option.value} className={nightMode ? 'bg-slate-800 text-slate-100' : 'bg-white text-slate-700'}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      )}
+      {!toggle && !dropdown && !subtext && (
         <svg className={`w-4 h-4 flex-shrink-0 ${nightMode ? 'text-slate-100' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>

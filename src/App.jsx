@@ -932,8 +932,32 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                     isOn={privacySettings.isPrivate}
                     onToggle={(value) => handlePrivacyToggle('isPrivate', value)}
                   />
-                  <MenuItem icon={Eye} label="Who Can See Testimony" nightMode={nightMode} comingSoon />
-                  <MenuItem icon={MessageCircle} label="Who Can Message You" nightMode={nightMode} comingSoon />
+                  <MenuItem
+                    icon={Eye}
+                    label="Who Can See Testimony"
+                    nightMode={nightMode}
+                    dropdown
+                    dropdownOptions={[
+                      { value: 'everyone', label: 'Everyone' },
+                      { value: 'friends', label: 'Friends Only' },
+                      { value: 'private', label: 'Just Me' }
+                    ]}
+                    selectedValue={privacySettings.testimonyVisibility}
+                    onDropdownChange={(value) => handlePrivacyToggle('testimonyVisibility', value)}
+                  />
+                  <MenuItem
+                    icon={MessageCircle}
+                    label="Who Can Message You"
+                    nightMode={nightMode}
+                    dropdown
+                    dropdownOptions={[
+                      { value: 'everyone', label: 'Everyone' },
+                      { value: 'friends', label: 'Friends Only' },
+                      { value: 'none', label: 'No One' }
+                    ]}
+                    selectedValue={privacySettings.messagePrivacy}
+                    onDropdownChange={(value) => handlePrivacyToggle('messagePrivacy', value)}
+                  />
                   <MenuItem icon={Ban} label="Blocked Users" nightMode={nightMode} comingSoon />
                   <MenuItem icon={Flag} label="Report Content" nightMode={nightMode} comingSoon />
                 </div>
