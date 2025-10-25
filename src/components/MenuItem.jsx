@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 
-const MenuItem = ({ icon: Icon, label, subtext, toggle, defaultOn, danger, nightMode, comingSoon, disabled }) => {
+const MenuItem = ({ icon: Icon, label, subtext, toggle, defaultOn, danger, nightMode, comingSoon, disabled, onClick }) => {
   const [isOn, setIsOn] = useState(defaultOn || false);
+
+  const handleClick = () => {
+    if (!disabled && !comingSoon && onClick) {
+      onClick();
+    }
+  };
 
   return (
     <button
@@ -13,6 +19,7 @@ const MenuItem = ({ icon: Icon, label, subtext, toggle, defaultOn, danger, night
           : 'hover:bg-slate-50 border-slate-100'
       }`}
       disabled={disabled || comingSoon}
+      onClick={handleClick}
     >
       <div className="flex items-center gap-3">
         <Icon className={`w-5 h-5 ${danger ? 'text-red-500' : nightMode ? 'text-slate-100' : 'text-slate-400'}`} />

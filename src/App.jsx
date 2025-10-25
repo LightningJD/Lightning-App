@@ -16,6 +16,10 @@ import ConfirmDialog from './components/ConfirmDialog';
 import SaveTestimonyModal from './components/SaveTestimonyModal';
 import SecretsMuseum from './components/SecretsMuseum';
 import BugReportDialog from './components/BugReportDialog';
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import HelpCenter from './components/HelpCenter';
+import ContactSupport from './components/ContactSupport';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
@@ -57,6 +61,10 @@ function App() {
   const [showSecretsMuseum, setShowSecretsMuseum] = useState(false);
   const [testimonyStartTime, setTestimonyStartTime] = useState(null);
   const [showBugReport, setShowBugReport] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showContactSupport, setShowContactSupport] = useState(false);
 
   // Network status detection
   React.useEffect(() => {
@@ -837,7 +845,15 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                       </div>
                     </div>
                   </button>
-                  <MenuItem icon={Camera} label="Change Profile Picture" nightMode={nightMode} comingSoon />
+                  <MenuItem
+                    icon={Camera}
+                    label="Change Profile Picture"
+                    nightMode={nightMode}
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowProfileEdit(true);
+                    }}
+                  />
                   <MenuItem icon={Bell} label="Link Spotify" nightMode={nightMode} comingSoon />
                   <MenuItem icon={Mail} label="Email & Password" nightMode={nightMode} comingSoon />
                 </div>
@@ -902,10 +918,42 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                   <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
                     <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>About & Support</h3>
                   </div>
-                  <MenuItem icon={FileText} label="Terms of Service" nightMode={nightMode} comingSoon />
-                  <MenuItem icon={Shield} label="Privacy Policy" nightMode={nightMode} comingSoon />
-                  <MenuItem icon={HelpCircle} label="Help Center" nightMode={nightMode} comingSoon />
-                  <MenuItem icon={Phone} label="Contact Support" nightMode={nightMode} comingSoon />
+                  <MenuItem
+                    icon={FileText}
+                    label="Terms of Service"
+                    nightMode={nightMode}
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowTerms(true);
+                    }}
+                  />
+                  <MenuItem
+                    icon={Shield}
+                    label="Privacy Policy"
+                    nightMode={nightMode}
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowPrivacy(true);
+                    }}
+                  />
+                  <MenuItem
+                    icon={HelpCircle}
+                    label="Help Center"
+                    nightMode={nightMode}
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowHelp(true);
+                    }}
+                  />
+                  <MenuItem
+                    icon={Phone}
+                    label="Contact Support"
+                    nightMode={nightMode}
+                    onClick={() => {
+                      setShowMenu(false);
+                      setShowContactSupport(true);
+                    }}
+                  />
                   <MenuItem icon={Flag} label="Report a Bug" nightMode={nightMode} onClick={() => setShowBugReport(true)} />
                   <MenuItem icon={Info} label="App Version" subtext="1.0.0" nightMode={nightMode} />
                   <button
@@ -1310,6 +1358,36 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
           userProfile={userProfile}
         />
       )}
+
+      {/* Terms of Service Dialog */}
+      <TermsOfService
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
+        nightMode={nightMode}
+      />
+
+      {/* Privacy Policy Dialog */}
+      <PrivacyPolicy
+        isOpen={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+        nightMode={nightMode}
+      />
+
+      {/* Help Center Dialog */}
+      <HelpCenter
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+        nightMode={nightMode}
+        onContactSupport={() => setShowContactSupport(true)}
+      />
+
+      {/* Contact Support Dialog */}
+      <ContactSupport
+        isOpen={showContactSupport}
+        onClose={() => setShowContactSupport(false)}
+        nightMode={nightMode}
+        userProfile={userProfile}
+      />
       </div>
     </GuestModalProvider>
     </ErrorBoundary>
