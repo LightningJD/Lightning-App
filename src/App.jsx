@@ -66,6 +66,68 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [showContactSupport, setShowContactSupport] = useState(false);
 
+  // Privacy & Notification Settings
+  const [privacySettings, setPrivacySettings] = useState({
+    isPrivate: userProfile?.isPrivate || false,
+    testimonyVisibility: userProfile?.testimonyVisibility || 'everyone',
+    messagePrivacy: userProfile?.messagePrivacy || 'everyone'
+  });
+  const [notificationSettings, setNotificationSettings] = useState({
+    notifyMessages: userProfile?.notifyMessages !== false,
+    notifyFriendRequests: userProfile?.notifyFriendRequests !== false,
+    notifyNearby: userProfile?.notifyNearby !== false
+  });
+
+  // Update settings when user profile loads
+  React.useEffect(() => {
+    if (userProfile) {
+      setPrivacySettings({
+        isPrivate: userProfile.isPrivate || false,
+        testimonyVisibility: userProfile.testimonyVisibility || 'everyone',
+        messagePrivacy: userProfile.messagePrivacy || 'everyone'
+      });
+      setNotificationSettings({
+        notifyMessages: userProfile.notifyMessages !== false,
+        notifyFriendRequests: userProfile.notifyFriendRequests !== false,
+        notifyNearby: userProfile.notifyNearby !== false
+      });
+    }
+  }, [userProfile]);
+
+  // Handlers for privacy settings
+  const handlePrivacyToggle = async (setting, value) => {
+    const newSettings = { ...privacySettings, [setting]: value };
+    setPrivacySettings(newSettings);
+
+    // Save to database
+    try {
+      await updateUserProfile(userProfile.supabaseId, { [setting]: value });
+      showSuccess('Privacy setting updated');
+    } catch (error) {
+      console.error('Error updating privacy setting:', error);
+      showError('Failed to update setting');
+      // Revert on error
+      setPrivacySettings(privacySettings);
+    }
+  };
+
+  // Handlers for notification settings
+  const handleNotificationToggle = async (setting, value) => {
+    const newSettings = { ...notificationSettings, [setting]: value };
+    setNotificationSettings(newSettings);
+
+    // Save to database
+    try {
+      await updateUserProfile(userProfile.supabaseId, { [setting]: value });
+      showSuccess('Notification setting updated');
+    } catch (error) {
+      console.error('Error updating notification setting:', error);
+      showError('Failed to update setting');
+      // Revert on error
+      setNotificationSettings(notificationSettings);
+    }
+  };
+
   // Network status detection
   React.useEffect(() => {
     const handleOnline = () => {
@@ -862,7 +924,14 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                   <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
                     <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Privacy & Safety</h3>
                   </div>
-                  <MenuItem icon={Lock} label="Make Profile Private" toggle nightMode={nightMode} comingSoon />
+                  <MenuItem
+                    icon={Lock}
+                    label="Make Profile Private"
+                    toggle
+                    nightMode={nightMode}
+                    isOn={privacySettings.isPrivate}
+                    onToggle={(value) => handlePrivacyToggle('isPrivate', value)}
+                  />
                   <MenuItem icon={Eye} label="Who Can See Testimony" nightMode={nightMode} comingSoon />
                   <MenuItem icon={MessageCircle} label="Who Can Message You" nightMode={nightMode} comingSoon />
                   <MenuItem icon={Ban} label="Blocked Users" nightMode={nightMode} comingSoon />
@@ -873,9 +942,30 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                   <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
                     <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Notifications</h3>
                   </div>
-                  <MenuItem icon={Bell} label="Message Notifications" toggle defaultOn nightMode={nightMode} comingSoon />
-                  <MenuItem icon={Users} label="Connection Requests" toggle defaultOn nightMode={nightMode} comingSoon />
-                  <MenuItem icon={MapPin} label="Nearby Users" toggle nightMode={nightMode} comingSoon />
+                  <MenuItem
+                    icon={Bell}
+                    label="Message Notifications"
+                    toggle
+                    nightMode={nightMode}
+                    isOn={notificationSettings.notifyMessages}
+                    onToggle={(value) => handleNotificationToggle('notifyMessages', value)}
+                  />
+                  <MenuItem
+                    icon={Users}
+                    label="Connection Requests"
+                    toggle
+                    nightMode={nightMode}
+                    isOn={notificationSettings.notifyFriendRequests}
+                    onToggle={(value) => handleNotificationToggle('notifyFriendRequests', value)}
+                  />
+                  <MenuItem
+                    icon={MapPin}
+                    label="Nearby Users"
+                    toggle
+                    nightMode={nightMode}
+                    isOn={notificationSettings.notifyNearby}
+                    onToggle={(value) => handleNotificationToggle('notifyNearby', value)}
+                  />
                 </div>
 
                 <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>

@@ -1,11 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const MenuItem = ({ icon: Icon, label, subtext, toggle, defaultOn, danger, nightMode, comingSoon, disabled, onClick }) => {
-  const [isOn, setIsOn] = useState(defaultOn || false);
+const MenuItem = ({
+  icon: Icon,
+  label,
+  subtext,
+  toggle,
+  defaultOn,
+  danger,
+  nightMode,
+  comingSoon,
+  disabled,
+  onClick,
+  onToggle,
+  isOn: controlledIsOn
+}) => {
+  // Use controlled state if provided, otherwise use internal state
+  const [internalIsOn, setInternalIsOn] = useState(defaultOn || false);
+  const isOn = controlledIsOn !== undefined ? controlledIsOn : internalIsOn;
+
+  useEffect(() => {
+    if (controlledIsOn === undefined && defaultOn !== undefined) {
+      setInternalIsOn(defaultOn);
+    }
+  }, [defaultOn, controlledIsOn]);
 
   const handleClick = () => {
-    if (!disabled && !comingSoon && onClick) {
+    if (!disabled && !comingSoon && onClick && !toggle) {
       onClick();
+    }
+  };
+
+  const handleToggle = (e) => {
+    e.stopPropagation();
+    if (disabled || comingSoon) return;
+
+    const newValue = !isOn;
+
+    // If controlled, call onToggle
+    if (onToggle) {
+      onToggle(newValue);
+    } else {
+      // Otherwise update internal state
+      setInternalIsOn(newValue);
     }
   };
 
@@ -37,10 +73,7 @@ const MenuItem = ({ icon: Icon, label, subtext, toggle, defaultOn, danger, night
       </div>
       {toggle && (
         <div
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOn(!isOn);
-          }}
+          onClick={handleToggle}
           className={`w-11 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${isOn ? 'bg-blue-600' : nightMode ? 'bg-white/10' : 'bg-slate-300'}`}
         >
           <div className={`w-5 h-5 bg-white rounded-full m-0.5 transition-transform shadow-sm ${isOn ? 'translate-x-5' : 'translate-x-0'}`} />
