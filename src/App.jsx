@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useClerk } from '@clerk/clerk-react';
-import { User, MessageCircle, Users, MapPin, Zap, Plus, X, ArrowRight, ArrowLeft, Sparkles, Edit3, Camera, Mail, Lock, Eye, Ban, Flag, Bell, Globe, Palette, FileText, Shield, HelpCircle, Phone, Info, LogOut } from 'lucide-react';
+import { User, MessageCircle, Users, MapPin, Zap, Plus, X, ArrowRight, ArrowLeft, Sparkles, Edit3, Camera, Mail, Lock, Eye, Ban, Flag, Bell, Globe, Palette, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
@@ -22,6 +22,7 @@ import HelpCenter from './components/HelpCenter';
 import ContactSupport from './components/ContactSupport';
 import BlockedUsers from './components/BlockedUsers';
 import ReportContent from './components/ReportContent';
+import LinkSpotify from './components/LinkSpotify';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
@@ -70,6 +71,7 @@ function App() {
   const [showBlockedUsers, setShowBlockedUsers] = useState(false);
   const [showReportContent, setShowReportContent] = useState(false);
   const [reportData, setReportData] = useState({ type: null, content: null });
+  const [showLinkSpotify, setShowLinkSpotify] = useState(false);
 
   // Privacy & Notification Settings
   const [privacySettings, setPrivacySettings] = useState({
@@ -944,8 +946,14 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                       setShowProfileEdit(true);
                     }}
                   />
-                  <MenuItem icon={Bell} label="Link Spotify" nightMode={nightMode} comingSoon />
-                  <MenuItem icon={Mail} label="Email & Password" nightMode={nightMode} comingSoon />
+                  <MenuItem
+                    icon={Music}
+                    label="Link Spotify"
+                    nightMode={nightMode}
+                    subtext={userProfile?.spotifyUrl ? 'Connected' : 'Add your profile'}
+                    onClick={() => setShowLinkSpotify(true)}
+                  />
+                  {/* Email & Password removed - using Google OAuth only per roadmap */}
                 </div>
 
                 <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
@@ -1604,6 +1612,14 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         userProfile={userProfile}
         reportType={reportData.type}
         reportedContent={reportData.content}
+      />
+
+      {/* Link Spotify Dialog */}
+      <LinkSpotify
+        isOpen={showLinkSpotify}
+        onClose={() => setShowLinkSpotify(false)}
+        nightMode={nightMode}
+        userProfile={userProfile}
       />
       </div>
     </GuestModalProvider>
