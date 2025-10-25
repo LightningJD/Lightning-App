@@ -99,6 +99,7 @@ export const getYouTubeEmbedUrl = (videoId: string): string => {
   // Build params object
   const paramsObj: Record<string, string> = {
     autoplay: '1',
+    mute: '1', // Required for autoplay to work (browser restriction)
     controls: '1',
     modestbranding: '1',
     rel: '0',
