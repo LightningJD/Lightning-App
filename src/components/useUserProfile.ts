@@ -75,15 +75,15 @@ export const useUserProfile = () => {
     spotifyUrl: supabaseUser?.spotify_url || null,
     music: testimony ? {
       platform: testimony.music_platform || 'spotify',
-      trackName: testimony.music_track_name || "Amazing Grace",
-      artist: testimony.music_artist || "Various Artists",
-      spotifyUrl: testimony.music_spotify_url || "https://open.spotify.com/track/1AWQoqb9bSvzTjaLralEka",
+      trackName: testimony.music_track_name || "GOOD GOOD FATHER",
+      artist: testimony.music_artist || "Forrest Frank",
+      spotifyUrl: testimony.music_spotify_url || "https://open.spotify.com/track/0VE4kBnHJUgtMf0dy6DRmW",
       audioUrl: testimony.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
     } : {
       platform: 'spotify' as const,
-      trackName: "Amazing Grace",
-      artist: "Various Artists",
-      spotifyUrl: "https://open.spotify.com/track/1AWQoqb9bSvzTjaLralEka",
+      trackName: "GOOD GOOD FATHER",
+      artist: "Forrest Frank",
+      spotifyUrl: "https://open.spotify.com/track/0VE4kBnHJUgtMf0dy6DRmW",
       audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
     },
     story: testimony ? {
