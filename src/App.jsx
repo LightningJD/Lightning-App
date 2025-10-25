@@ -20,6 +20,7 @@ import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import HelpCenter from './components/HelpCenter';
 import ContactSupport from './components/ContactSupport';
+import BlockedUsers from './components/BlockedUsers';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
@@ -65,6 +66,7 @@ function App() {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showContactSupport, setShowContactSupport] = useState(false);
+  const [showBlockedUsers, setShowBlockedUsers] = useState(false);
 
   // Privacy & Notification Settings
   const [privacySettings, setPrivacySettings] = useState({
@@ -958,7 +960,12 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                     selectedValue={privacySettings.messagePrivacy}
                     onDropdownChange={(value) => handlePrivacyToggle('messagePrivacy', value)}
                   />
-                  <MenuItem icon={Ban} label="Blocked Users" nightMode={nightMode} comingSoon />
+                  <MenuItem
+                    icon={Ban}
+                    label="Blocked Users"
+                    nightMode={nightMode}
+                    onClick={() => setShowBlockedUsers(true)}
+                  />
                   <MenuItem icon={Flag} label="Report Content" nightMode={nightMode} comingSoon />
                 </div>
 
@@ -1499,6 +1506,14 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       <ContactSupport
         isOpen={showContactSupport}
         onClose={() => setShowContactSupport(false)}
+        nightMode={nightMode}
+        userProfile={userProfile}
+      />
+
+      {/* Blocked Users Dialog */}
+      <BlockedUsers
+        isOpen={showBlockedUsers}
+        onClose={() => setShowBlockedUsers(false)}
         nightMode={nightMode}
         userProfile={userProfile}
       />

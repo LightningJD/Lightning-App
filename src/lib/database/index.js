@@ -83,5 +83,14 @@ export {
   unsubscribe
 } from './subscriptions.js';
 
+// Blocking / Privacy
+export {
+  blockUser,
+  unblockUser,
+  getBlockedUsers,
+  isUserBlocked,
+  isBlockedBy
+} from './blocking.js';
+
 // Re-export Supabase client for backward compatibility
 export { supabase } from '../supabase.js';
