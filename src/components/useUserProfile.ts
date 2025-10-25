@@ -78,13 +78,15 @@ export const useUserProfile = () => {
       trackName: testimony.music_track_name || "YOUR WAY'S BETTER",
       artist: testimony.music_artist || "Forrest Frank",
       spotifyUrl: testimony.music_spotify_url || "https://www.youtube.com/watch?v=T1LRsp8qBY0",
-      audioUrl: testimony.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+      audioUrl: testimony.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+      startTime: testimony.music_start_time || 0
     } : {
       platform: 'youtube' as const,
       trackName: "YOUR WAY'S BETTER",
       artist: "Forrest Frank",
       spotifyUrl: "https://www.youtube.com/watch?v=T1LRsp8qBY0",
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+      startTime: 0
     },
     story: testimony ? {
       id: testimony.id,

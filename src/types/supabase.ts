@@ -128,6 +128,7 @@ export interface Database {
           music_track_name: string | null
           music_artist: string | null
           music_audio_url: string | null
+          music_start_time: number
           created_at: string
           updated_at: string
         }
@@ -148,6 +149,7 @@ export interface Database {
           music_track_name?: string | null
           music_artist?: string | null
           music_audio_url?: string | null
+          music_start_time?: number
           created_at?: string
           updated_at?: string
         }
@@ -168,6 +170,7 @@ export interface Database {
           music_track_name?: string | null
           music_artist?: string | null
           music_audio_url?: string | null
+          music_start_time?: number
           created_at?: string
           updated_at?: string
         }
