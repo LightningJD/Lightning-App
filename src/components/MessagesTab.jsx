@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Smile, Plus, X, Search } from 'lucide-react';
-import { sendMessage, getConversation, getUserConversations, subscribeToMessages, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy } from '../lib/database';
+import { sendMessage, getConversation, getUserConversations, subscribeToMessages, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy, createGroup, sendGroupMessage } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
-import { showError } from '../lib/toast';
+import { showError, showSuccess } from '../lib/toast';
 import { ConversationSkeleton, MessageSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/secrets';
@@ -932,16 +932,50 @@ const MessagesTab = ({ nightMode }) => {
 
             {/* Send Button */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (selectedConnections.length > 0 && newChatMessage.trim()) {
                   if (selectedConnections.length > 1) {
                     // Create group chat
                     const groupName = selectedConnections.map(c => c.name.split(' ')[0]).join(', ');
-                    alert(`Creating group chat with ${selectedConnections.length} people:\n${groupName}\n\nMessage: ${newChatMessage}\n\nThis will redirect you to the Groups tab.`);
-                    // TODO: Implement actual group creation and navigation to Groups tab
+
+                    try {
+                      const newGroup = await createGroup({
+                        name: `Chat with ${groupName}`,
+                        description: `Group chat created on ${new Date().toLocaleDateString()}`,
+                        creatorId: profile.supabaseId,
+                        memberIds: selectedConnections.map(c => c.id),
+                        isPrivate: true
+                      });
+
+                      // Send the initial message to the group
+                      if (newGroup) {
+                        await sendGroupMessage(newGroup.id, profile.supabaseId, newChatMessage.trim());
+                        showSuccess('Group chat created! Check the Groups tab.');
+                      }
+                    } catch (error) {
+                      console.error('Error creating group:', error);
+                      showError('Failed to create group chat');
+                    }
                   } else {
                     // Send direct message
-                    alert(`Sending message to ${selectedConnections[0].name}: ${newChatMessage}`);
+                    try {
+                      await sendMessage(profile.supabaseId, selectedConnections[0].id, newChatMessage.trim());
+                      showSuccess('Message sent!');
+                      // Reload conversations to show new conversation
+                      const userConversations = await getUserConversations(profile.supabaseId);
+                      const unblockedConversations = [];
+                      for (const convo of userConversations) {
+                        const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
+                        const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
+                        if (!blocked && !blockedBy) {
+                          unblockedConversations.push(convo);
+                        }
+                      }
+                      setConversations(unblockedConversations);
+                    } catch (error) {
+                      console.error('Error sending message:', error);
+                      showError('Failed to send message');
+                    }
                   }
                   setShowNewChatDialog(false);
                   setSearchQuery('');
