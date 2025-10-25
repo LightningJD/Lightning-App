@@ -20,13 +20,26 @@
 - ⏳ **Estimated time to Beta Launch:** 2-3 weeks (12-25 hours of work)
 - 🎯 **Goal:** Beta launch with 50 users
 
-### 🚨 CRITICAL PATH TO LAUNCH (Must Complete):
-1. **Week 6.5 - Settings Menu** (12-18 hours) ⚠️ BLOCKING
-2. **Phase 1.75 Critical Items** (4-6 hours) ⚠️ BLOCKING
-3. **Clerk Production Keys** (15 mins) ⚠️ BLOCKING
-4. **Final Testing** (2-3 hours) ⚠️ BLOCKING
+### 🚨 CRITICAL PATH TO LAUNCH (HYBRID APPROACH - Must Complete):
+1. **Phase 1.75 Critical Infrastructure** (4 hours) ⚠️ DO FIRST
+   - Error monitoring (Sentry setup)
+   - Database backups
+   - Basic rate limiting
+   - Input validation
+2. **Phase 1.5 Quick Wins** (10 hours) ⚠️ DO SECOND
+   - Error boundaries
+   - Database refactoring (split into modules)
+3. **Week 6.5 - Settings Menu** (12-18 hours) ⚠️ BLOCKING
+4. **Clerk Production Keys** (15 mins) ⚠️ BLOCKING
+5. **Final Testing** (2-3 hours) ⚠️ BLOCKING
 
-**TOTAL REMAINING: 18-28 hours before beta launch**
+**TOTAL REMAINING: 30-38 hours before beta launch**
+
+**Why Hybrid Approach:**
+- ✅ Prevents catastrophic failures (monitoring, backups, rate limiting)
+- ✅ Improves code maintainability (error boundaries, database modules)
+- ⏳ Defers nice-to-haves (TypeScript, full testing, advanced optimization)
+- 🎯 Balances speed with production-readiness
 
 ### Key Features:
 1. AI-powered testimony generation (using custom framework)
@@ -791,10 +804,26 @@ CREATE TABLE notifications (
 
 **Phase 1.75 Time Estimate:** 3-4 hours (CRITICAL items only)
 
-**Phase 1.5 Status:** DEFERRED to post-launch
-- Code refactoring can wait until after beta testing
-- TypeScript migration = Phase 2
-- Testing infrastructure = Phase 2
+**Phase 1.5 Status:** HYBRID APPROACH (Critical Now, Advanced Later)
+
+**DOING NOW (10 hours - before beta launch):**
+- ✅ Error boundaries (4 hours) - Prevents white screens
+- ✅ Database refactoring (6 hours) - Split database.js into modules
+  - users.js (user operations)
+  - testimonies.js (testimony operations)
+  - messages.js (messaging operations)
+  - groups.js (group operations)
+
+**DEFERRED to post-launch (4-5 weeks):**
+- ⏳ Full TypeScript migration (2 weeks)
+- ⏳ Comprehensive testing infrastructure (2 weeks)
+- ⏳ React Query caching layer (1 week)
+- ⏳ Advanced code refactoring (SOLID principles, <500 lines per file)
+
+**Why This Hybrid:**
+- Error boundaries = Must-have (prevents catastrophic UI failures)
+- Database modules = Makes code maintainable (prevents 3,000+ line files)
+- TypeScript/Tests = Nice-to-have (can add after validating product-market fit)
 
 ---
 
