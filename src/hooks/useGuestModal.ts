@@ -41,7 +41,7 @@ export const useGuestModal = () => {
 
     if (limit.blocked) {
       console.log(`🚫 Guest limit reached: ${limit.reason} - showing modal v${limit.version}`);
-      setModalVersion(limit.version);
+      setModalVersion(limit.version || 1);
       setShowModal(true);
       return true;
     }

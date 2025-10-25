@@ -78,6 +78,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
           throw new Error('Invalid report type');
       }
 
+      // @ts-ignore - reportArgs spread type compatibility
       await reportFunction(...reportArgs);
 
       showSuccess('Report submitted successfully. Our team will review it shortly.');

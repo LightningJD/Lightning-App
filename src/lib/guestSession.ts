@@ -13,14 +13,27 @@ const HYBRID_LIMITS = {
   timeLimit: 180000,           // 3 minutes (down from 5)
 };
 
+interface GuestSession {
+  testimoniesViewed: number;
+  profilesViewed: number;
+  profilePreviewsViewed: number;
+  usersScrolled: number;
+  firstVisit: string;
+  lastVisit: string;
+  modalDismissCount: number;
+  hasSeenModal: boolean;
+  modalVersion: number | null;
+  isReturningVisitor: boolean;
+}
+
 /**
  * Initialize or retrieve guest session from localStorage
  */
-export const initGuestSession = () => {
+export const initGuestSession = (): GuestSession => {
   const session = localStorage.getItem(GUEST_SESSION_KEY);
 
   if (!session) {
-    const newSession = {
+    const newSession: GuestSession = {
       testimoniesViewed: 0,
       profilesViewed: 0,
       profilePreviewsViewed: 0,
@@ -50,7 +63,7 @@ export const initGuestSession = () => {
 /**
  * Update guest session with new data
  */
-export const updateGuestSession = (updates) => {
+export const updateGuestSession = (updates: Partial<GuestSession>): GuestSession => {
   const session = initGuestSession();
   const updated = {
     ...session,
@@ -65,7 +78,11 @@ export const updateGuestSession = (updates) => {
  * Check if guest has exceeded any limits
  * Returns { blocked: boolean, reason: string, version: number }
  */
-export const checkGuestLimit = () => {
+export const checkGuestLimit = (): {
+  blocked: boolean;
+  reason?: string;
+  version?: number;
+} => {
   const session = initGuestSession();
 
   // Returning visitors get blocked immediately
@@ -105,7 +122,7 @@ export const checkGuestLimit = () => {
 /**
  * Increment testimony view count
  */
-export const trackTestimonyView = () => {
+export const trackTestimonyView = (): GuestSession => {
   const session = initGuestSession();
   return updateGuestSession({
     testimoniesViewed: session.testimoniesViewed + 1
@@ -115,7 +132,7 @@ export const trackTestimonyView = () => {
 /**
  * Increment profile preview count
  */
-export const trackProfilePreview = () => {
+export const trackProfilePreview = (): GuestSession => {
   const session = initGuestSession();
   return updateGuestSession({
     profilePreviewsViewed: session.profilePreviewsViewed + 1
@@ -125,7 +142,7 @@ export const trackProfilePreview = () => {
 /**
  * Increment profile view count (full profile)
  */
-export const trackProfileView = () => {
+export const trackProfileView = (): GuestSession => {
   const session = initGuestSession();
   return updateGuestSession({
     profilesViewed: session.profilesViewed + 1
@@ -135,7 +152,7 @@ export const trackProfileView = () => {
 /**
  * Increment users scrolled count
  */
-export const trackUserScroll = () => {
+export const trackUserScroll = (): GuestSession => {
   const session = initGuestSession();
   return updateGuestSession({
     usersScrolled: session.usersScrolled + 1
@@ -145,7 +162,7 @@ export const trackUserScroll = () => {
 /**
  * Record modal dismissal
  */
-export const trackModalDismiss = () => {
+export const trackModalDismiss = (): GuestSession => {
   const session = initGuestSession();
   return updateGuestSession({
     modalDismissCount: session.modalDismissCount + 1,
@@ -156,14 +173,19 @@ export const trackModalDismiss = () => {
 /**
  * Clear guest session (e.g., when user signs up)
  */
-export const clearGuestSession = () => {
+export const clearGuestSession = (): void => {
   localStorage.removeItem(GUEST_SESSION_KEY);
 };
 
 /**
  * Get remaining views for display
  */
-export const getRemainingViews = () => {
+export const getRemainingViews = (): {
+  testimonies: number;
+  profiles: number;
+  users: number;
+  dismissals: number;
+} => {
   const session = initGuestSession();
   return {
     testimonies: Math.max(0, HYBRID_LIMITS.testimoniesViewed - session.testimoniesViewed),

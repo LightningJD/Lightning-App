@@ -44,7 +44,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
     '🦁', '🦅', '🐺', '🦋', '🌺', '🌸', '🌻', '🌹'
   ];
 
-  const nameInputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus on name input when dialog opens
   useEffect(() => {
@@ -133,7 +133,9 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
     setFormData({ ...formData, [field]: value });
     // Clear error for this field when user starts typing
     if (errors[field]) {
-      setErrors({ ...errors, [field]: undefined });
+      const newErrors = { ...errors };
+      delete newErrors[field];
+      setErrors(newErrors);
     }
   };
 

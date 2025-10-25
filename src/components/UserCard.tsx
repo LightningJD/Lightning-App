@@ -1,7 +1,18 @@
 import React from 'react';
 import { MapPin, Heart, UserPlus, Clock } from 'lucide-react';
 
-const UserCard = ({ user, showReason, isFriend, nightMode, onViewProfile, onMessage, onAddFriend, onUnfriend }) => {
+interface UserCardProps {
+  user: any;
+  showReason: boolean;
+  isFriend: boolean;
+  nightMode: boolean;
+  onViewProfile?: (user: any) => void;
+  onMessage?: (user: any) => void;
+  onAddFriend?: (userId: string) => void;
+  onUnfriend?: (userId: string) => void;
+}
+
+const UserCard: React.FC<UserCardProps> = ({ user, showReason, isFriend, nightMode, onViewProfile, onMessage, onAddFriend, onUnfriend }) => {
   return (
     <div
       className={`p-4 rounded-xl border transition-all duration-300 hover:-translate-y-1 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]'}`}

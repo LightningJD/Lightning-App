@@ -7,11 +7,11 @@ import { supabase } from '../supabase';
 
 /**
  * Check if current user can view another user's testimony
- * @param {string} testimonyOwnerId - UUID of testimony owner
- * @param {string} currentUserId - UUID of current viewing user
- * @returns {Promise<boolean>}
+ * @param testimonyOwnerId - UUID of testimony owner
+ * @param currentUserId - UUID of current viewing user
+ * @returns Promise<boolean>
  */
-export const canViewTestimony = async (testimonyOwnerId, currentUserId) => {
+export const canViewTestimony = async (testimonyOwnerId: string, currentUserId: string): Promise<boolean> => {
   if (!supabase) return false;
 
   // Can always view own testimony
@@ -29,7 +29,7 @@ export const canViewTestimony = async (testimonyOwnerId, currentUserId) => {
     return false;
   }
 
-  const visibility = owner.testimony_visibility || 'everyone';
+  const visibility = (owner as any).testimony_visibility || 'everyone';
 
   // Check visibility setting
   switch (visibility) {
@@ -65,11 +65,11 @@ export const canViewTestimony = async (testimonyOwnerId, currentUserId) => {
 
 /**
  * Check if current user can send a message to another user
- * @param {string} recipientId - UUID of message recipient
- * @param {string} senderId - UUID of message sender
- * @returns {Promise<{allowed: boolean, reason?: string}>}
+ * @param recipientId - UUID of message recipient
+ * @param senderId - UUID of message sender
+ * @returns Promise<{allowed: boolean, reason?: string}>
  */
-export const canSendMessage = async (recipientId, senderId) => {
+export const canSendMessage = async (recipientId: string, senderId: string): Promise<{ allowed: boolean; reason?: string }> => {
   if (!supabase) return { allowed: false, reason: 'Database unavailable' };
 
   // Can't message yourself
@@ -89,7 +89,7 @@ export const canSendMessage = async (recipientId, senderId) => {
     return { allowed: false, reason: 'Unable to verify permissions' };
   }
 
-  const privacy = recipient.message_privacy || 'everyone';
+  const privacy = (recipient as any).message_privacy || 'everyone';
 
   // Check privacy setting
   switch (privacy) {
@@ -127,11 +127,11 @@ export const canSendMessage = async (recipientId, senderId) => {
 
 /**
  * Check if a user is visible (not private or is a friend)
- * @param {string} userId - UUID of user to check
- * @param {string} currentUserId - UUID of current viewing user
- * @returns {Promise<boolean>}
+ * @param userId - UUID of user to check
+ * @param currentUserId - UUID of current viewing user
+ * @returns Promise<boolean>
  */
-export const isUserVisible = async (userId, currentUserId) => {
+export const isUserVisible = async (userId: string, currentUserId: string): Promise<boolean> => {
   if (!supabase) return false;
 
   // Get user's privacy settings
@@ -147,7 +147,7 @@ export const isUserVisible = async (userId, currentUserId) => {
   }
 
   // If not private, visible to everyone
-  if (!user.is_private) return true;
+  if (!(user as any).is_private) return true;
 
   // If private, check if current user is a friend
   if (!currentUserId) return false;

@@ -5,8 +5,24 @@
 
 const STORAGE_KEY = 'lightning_activity';
 
+interface ActivityData {
+  dailyLogins: string[];
+  lastLogin: string | null;
+  loginStreak: number;
+  avatarChanges: number;
+  themeChanges: number;
+  lastTheme: string | null;
+  nightModeUsage: string[];
+  messagesByHour: Record<number, number>;
+  lastMessageTime: number | null;
+  messageStreak: {
+    current: number;
+    lastDate: string | null;
+  };
+}
+
 // Initialize or get activity data
-const getActivityData = () => {
+const getActivityData = (): ActivityData => {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) {
@@ -34,7 +50,7 @@ const getActivityData = () => {
 };
 
 // Save activity data
-const saveActivityData = (data) => {
+const saveActivityData = (data: ActivityData): boolean => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     return true;
@@ -45,7 +61,7 @@ const saveActivityData = (data) => {
 };
 
 // Track daily login
-export const trackDailyLogin = () => {
+export const trackDailyLogin = (): number => {
   const data = getActivityData();
   const today = new Date().toDateString();
 
@@ -85,19 +101,19 @@ export const trackDailyLogin = () => {
 };
 
 // Get current login streak
-export const getLoginStreak = () => {
+export const getLoginStreak = (): number => {
   const data = getActivityData();
   return data.loginStreak || 0;
 };
 
 // Get total days logged in
-export const getTotalLoginDays = () => {
+export const getTotalLoginDays = (): number => {
   const data = getActivityData();
   return data.dailyLogins.length;
 };
 
 // Track avatar change
-export const trackAvatarChange = () => {
+export const trackAvatarChange = (): number => {
   const data = getActivityData();
   data.avatarChanges = (data.avatarChanges || 0) + 1;
   saveActivityData(data);
@@ -105,13 +121,13 @@ export const trackAvatarChange = () => {
 };
 
 // Get avatar change count
-export const getAvatarChangeCount = () => {
+export const getAvatarChangeCount = (): number => {
   const data = getActivityData();
   return data.avatarChanges || 0;
 };
 
 // Track theme change
-export const trackThemeChange = (newTheme) => {
+export const trackThemeChange = (newTheme: string): number => {
   const data = getActivityData();
 
   // Only count if theme actually changed
@@ -125,13 +141,13 @@ export const trackThemeChange = (newTheme) => {
 };
 
 // Get theme change count
-export const getThemeChangeCount = () => {
+export const getThemeChangeCount = (): number => {
   const data = getActivityData();
   return data.themeChanges || 0;
 };
 
 // Track night mode usage (for 7-day tracking)
-export const trackNightModeUsage = (isNightMode) => {
+export const trackNightModeUsage = (isNightMode: boolean): void => {
   if (!isNightMode) return;
 
   const data = getActivityData();
@@ -150,7 +166,7 @@ export const trackNightModeUsage = (isNightMode) => {
 };
 
 // Check if used night mode for N consecutive days
-export const hasUsedNightModeForDays = (days) => {
+export const hasUsedNightModeForDays = (days: number): boolean => {
   const data = getActivityData();
 
   if (!data.nightModeUsage || data.nightModeUsage.length < days) {
@@ -165,11 +181,11 @@ export const hasUsedNightModeForDays = (days) => {
     dates.push(date.toDateString());
   }
 
-  return dates.every(date => data.nightModeUsage.includes(date));
+  return dates.every((date: string) => data.nightModeUsage.includes(date));
 };
 
 // Track message by hour (for early bird / night owl secrets)
-export const trackMessageByHour = () => {
+export const trackMessageByHour = (): number => {
   const data = getActivityData();
   const hour = new Date().getHours();
 
@@ -180,13 +196,13 @@ export const trackMessageByHour = () => {
 };
 
 // Get message count by hour
-export const getMessageCountByHour = (hour) => {
+export const getMessageCountByHour = (hour: number): number => {
   const data = getActivityData();
   return data.messagesByHour[hour] || 0;
 };
 
 // Get early bird messages (6-8 AM)
-export const getEarlyBirdMessages = () => {
+export const getEarlyBirdMessages = (): number => {
   const data = getActivityData();
   let count = 0;
   for (let hour = 6; hour < 8; hour++) {
@@ -196,7 +212,7 @@ export const getEarlyBirdMessages = () => {
 };
 
 // Get night owl messages (10 PM - midnight)
-export const getNightOwlMessages = () => {
+export const getNightOwlMessages = (): number => {
   const data = getActivityData();
   let count = 0;
   for (let hour = 22; hour < 24; hour++) {
@@ -206,7 +222,7 @@ export const getNightOwlMessages = () => {
 };
 
 // Track message streak (7 consecutive days)
-export const trackMessageStreak = () => {
+export const trackMessageStreak = (): number => {
   const data = getActivityData();
   const today = new Date().toDateString();
 
@@ -234,13 +250,13 @@ export const trackMessageStreak = () => {
 };
 
 // Get current message streak
-export const getMessageStreak = () => {
+export const getMessageStreak = (): number => {
   const data = getActivityData();
   return data.messageStreak.current || 0;
 };
 
 // Track quick response time (for response speed secret)
-export const trackQuickResponse = (responseTimeMs) => {
+export const trackQuickResponse = (responseTimeMs: number): boolean => {
   // Response time tracking would need to be implemented
   // For now, just return true if under 1 minute
   return responseTimeMs < 60000;

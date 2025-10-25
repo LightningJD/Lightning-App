@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Base Skeleton component with shimmer animation
  */

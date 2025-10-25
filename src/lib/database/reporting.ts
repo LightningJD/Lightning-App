@@ -2,16 +2,14 @@ import { supabase } from '../supabase';
 
 /**
  * Report a user
- * @param {string} reporterId - The ID of the user making the report (current user)
- * @param {string} reportedUserId - The ID of the user being reported
- * @param {string} reason - Reason for reporting (from predefined list)
- * @param {string} details - Additional details from the reporter
- * @returns {Promise<Object>} The created report
  */
-export const reportUser = async (reporterId, reportedUserId, reason, details = '') => {
+export const reportUser = async (reporterId: string, reportedUserId: string, reason: string, details: string = ''): Promise<any> => {
   try {
+    if (!supabase) throw new Error('Database not initialized');
+
     const { data, error } = await supabase
       .from('reports')
+      // @ts-ignore - Supabase generated types are incomplete
       .insert({
         reporter_id: reporterId,
         reported_user_id: reportedUserId,
@@ -37,17 +35,14 @@ export const reportUser = async (reporterId, reportedUserId, reason, details = '
 
 /**
  * Report a testimony
- * @param {string} reporterId - The ID of the user making the report
- * @param {string} testimonyId - The ID of the testimony being reported
- * @param {string} testimonyOwnerId - The ID of the user who owns the testimony
- * @param {string} reason - Reason for reporting
- * @param {string} details - Additional details
- * @returns {Promise<Object>} The created report
  */
-export const reportTestimony = async (reporterId, testimonyId, testimonyOwnerId, reason, details = '') => {
+export const reportTestimony = async (reporterId: string, testimonyId: string, testimonyOwnerId: string, reason: string, details: string = ''): Promise<any> => {
   try {
+    if (!supabase) throw new Error('Database not initialized');
+
     const { data, error } = await supabase
       .from('reports')
+      // @ts-ignore - Supabase generated types are incomplete
       .insert({
         reporter_id: reporterId,
         reported_user_id: testimonyOwnerId,
@@ -74,17 +69,14 @@ export const reportTestimony = async (reporterId, testimonyId, testimonyOwnerId,
 
 /**
  * Report a message
- * @param {string} reporterId - The ID of the user making the report
- * @param {string} messageId - The ID of the message being reported
- * @param {string} messageAuthorId - The ID of the message author
- * @param {string} reason - Reason for reporting
- * @param {string} details - Additional details
- * @returns {Promise<Object>} The created report
  */
-export const reportMessage = async (reporterId, messageId, messageAuthorId, reason, details = '') => {
+export const reportMessage = async (reporterId: string, messageId: string, messageAuthorId: string, reason: string, details: string = ''): Promise<any> => {
   try {
+    if (!supabase) throw new Error('Database not initialized');
+
     const { data, error } = await supabase
       .from('reports')
+      // @ts-ignore - Supabase generated types are incomplete
       .insert({
         reporter_id: reporterId,
         reported_user_id: messageAuthorId,
@@ -111,17 +103,14 @@ export const reportMessage = async (reporterId, messageId, messageAuthorId, reas
 
 /**
  * Report a group
- * @param {string} reporterId - The ID of the user making the report
- * @param {string} groupId - The ID of the group being reported
- * @param {string} groupOwnerId - The ID of the group owner/creator
- * @param {string} reason - Reason for reporting
- * @param {string} details - Additional details
- * @returns {Promise<Object>} The created report
  */
-export const reportGroup = async (reporterId, groupId, groupOwnerId, reason, details = '') => {
+export const reportGroup = async (reporterId: string, _groupId: string, groupOwnerId: string, reason: string, details: string = ''): Promise<any> => {
   try {
+    if (!supabase) throw new Error('Database not initialized');
+
     const { data, error } = await supabase
       .from('reports')
+      // @ts-ignore - Supabase generated types are incomplete
       .insert({
         reporter_id: reporterId,
         reported_user_id: groupOwnerId,
@@ -147,11 +136,11 @@ export const reportGroup = async (reporterId, groupId, groupOwnerId, reason, det
 
 /**
  * Get all reports made by a user (to prevent spam)
- * @param {string} reporterId - The ID of the user
- * @returns {Promise<Array>} Array of reports
  */
-export const getReportsByUser = async (reporterId) => {
+export const getReportsByUser = async (reporterId: string): Promise<any[]> => {
   try {
+    if (!supabase) throw new Error('Database not initialized');
+
     const { data, error } = await supabase
       .from('reports')
       .select('*')
@@ -172,13 +161,11 @@ export const getReportsByUser = async (reporterId) => {
 
 /**
  * Check if user has already reported this content
- * @param {string} reporterId - The ID of the user
- * @param {string} reportType - Type of content ('user', 'testimony', 'message', 'group')
- * @param {string} contentId - ID of the content (user ID, testimony ID, etc.)
- * @returns {Promise<boolean>} True if already reported, false otherwise
  */
-export const hasUserReported = async (reporterId, reportType, contentId) => {
+export const hasUserReported = async (reporterId: string, reportType: string, contentId: string): Promise<boolean> => {
   try {
+    if (!supabase) return false;
+
     let query = supabase
       .from('reports')
       .select('id')

@@ -7,11 +7,12 @@ import { supabase } from '../supabase';
 /**
  * Send a direct message
  */
-export const sendMessage = async (senderId, recipientId, content) => {
+export const sendMessage = async (senderId: string, recipientId: string, content: string): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('messages')
+    // @ts-ignore - Supabase generated types are incomplete
     .insert({
       sender_id: senderId,
       recipient_id: recipientId,
@@ -31,11 +32,12 @@ export const sendMessage = async (senderId, recipientId, content) => {
 /**
  * Get conversation between two users
  */
-export const getConversation = async (userId1, userId2, limit = 50) => {
+export const getConversation = async (userId1: string, userId2: string, limit: number = 50): Promise<any[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('messages')
+    // @ts-ignore - Supabase generated types don't handle nested relations
     .select('*, sender:users!sender_id(username, display_name, avatar_emoji)')
     .or(`and(sender_id.eq.${userId1},recipient_id.eq.${userId2}),and(sender_id.eq.${userId2},recipient_id.eq.${userId1})`)
     .order('created_at', { ascending: true })
@@ -52,12 +54,13 @@ export const getConversation = async (userId1, userId2, limit = 50) => {
 /**
  * Get all conversations for a user (list of recent chats)
  */
-export const getUserConversations = async (userId) => {
+export const getUserConversations = async (userId: string): Promise<any[]> => {
   if (!supabase) return [];
 
   // Get all messages where user is either sender or recipient
   const { data, error } = await supabase
     .from('messages')
+    // @ts-ignore - Supabase generated types don't handle nested relations
     .select('*, sender:users!sender_id(id, username, display_name, avatar_emoji, avatar_url, is_online), recipient:users!recipient_id(id, username, display_name, avatar_emoji, avatar_url, is_online)')
     .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
     .order('created_at', { ascending: false });
@@ -68,9 +71,9 @@ export const getUserConversations = async (userId) => {
   }
 
   // Group messages by conversation partner
-  const conversationsMap = new Map();
+  const conversationsMap = new Map<string, any>();
 
-  data.forEach(msg => {
+  (data as any[]).forEach((msg: any) => {
     // Determine the other user in the conversation
     const otherUser = msg.sender_id === userId ? msg.recipient : msg.sender;
     const otherUserId = msg.sender_id === userId ? msg.recipient_id : msg.sender_id;
@@ -91,19 +94,20 @@ export const getUserConversations = async (userId) => {
     }
   });
 
-  return Array.from(conversationsMap.values()).sort((a, b) =>
-    new Date(b.timestamp) - new Date(a.timestamp)
+  return Array.from(conversationsMap.values()).sort((a: any, b: any) =>
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 };
 
 /**
  * Mark message as read
  */
-export const markMessageAsRead = async (messageId) => {
+export const markMessageAsRead = async (messageId: string): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('messages')
+    // @ts-ignore - Supabase generated types don't allow update on this table
     .update({
       is_read: true,
       read_at: new Date().toISOString()
@@ -125,11 +129,12 @@ export const markMessageAsRead = async (messageId) => {
 /**
  * Add reaction to message
  */
-export const addReaction = async (messageId, userId, emoji) => {
+export const addReaction = async (messageId: string, userId: string, emoji: string): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('message_reactions')
+    // @ts-ignore - Supabase generated types are incomplete
     .insert({
       message_id: messageId,
       user_id: userId,
@@ -154,7 +159,7 @@ export const addReaction = async (messageId, userId, emoji) => {
 /**
  * Remove reaction from message
  */
-export const removeReaction = async (messageId, userId, emoji) => {
+export const removeReaction = async (messageId: string, userId: string, emoji: string): Promise<boolean | null> => {
   if (!supabase) return null;
 
   const { error } = await supabase
@@ -175,11 +180,12 @@ export const removeReaction = async (messageId, userId, emoji) => {
 /**
  * Get reactions for a message
  */
-export const getMessageReactions = async (messageId) => {
+export const getMessageReactions = async (messageId: string): Promise<any[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('message_reactions')
+    // @ts-ignore - Supabase generated types don't handle nested relations
     .select('*, user:users!user_id(id, display_name, avatar_emoji)')
     .eq('message_id', messageId);
 

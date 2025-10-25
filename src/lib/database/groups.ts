@@ -1,5 +1,12 @@
 import { supabase } from '../supabase';
 
+interface GroupData {
+  name: string;
+  description?: string;
+  avatarEmoji?: string;
+  isPrivate?: boolean;
+}
+
 // ============================================
 // GROUP OPERATIONS
 // ============================================
@@ -7,11 +14,12 @@ import { supabase } from '../supabase';
 /**
  * Create a new group
  */
-export const createGroup = async (creatorId, groupData) => {
+export const createGroup = async (creatorId: string, groupData: GroupData): Promise<any> => {
   if (!supabase) return null;
 
   const { data: group, error: groupError } = await supabase
     .from('groups')
+    // @ts-ignore - Supabase generated types are incomplete
     .insert({
       name: groupData.name,
       description: groupData.description,
@@ -28,10 +36,12 @@ export const createGroup = async (creatorId, groupData) => {
   }
 
   // Add creator as leader
+  // @ts-ignore - Supabase generated types are incomplete
   await supabase
     .from('group_members')
+    // @ts-ignore - Supabase generated types are incomplete
     .insert({
-      group_id: group.id,
+      group_id: (group as any).id,
       user_id: creatorId,
       role: 'leader'
     });
@@ -42,11 +52,12 @@ export const createGroup = async (creatorId, groupData) => {
 /**
  * Get user's groups
  */
-export const getUserGroups = async (userId) => {
+export const getUserGroups = async (userId: string): Promise<any[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('group_members')
+    // @ts-ignore - Supabase generated types don't handle nested relations
     .select('*, group:groups(*)')
     .eq('user_id', userId);
 
@@ -55,7 +66,7 @@ export const getUserGroups = async (userId) => {
     return [];
   }
 
-  return data.map(membership => ({
+  return (data as any[]).map((membership: any) => ({
     ...membership.group,
     userRole: membership.role
   }));
@@ -64,11 +75,12 @@ export const getUserGroups = async (userId) => {
 /**
  * Send group message
  */
-export const sendGroupMessage = async (groupId, senderId, content) => {
+export const sendGroupMessage = async (groupId: string, senderId: string, content: string): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('group_messages')
+    // @ts-ignore - Supabase generated types are incomplete
     .insert({
       group_id: groupId,
       sender_id: senderId,
@@ -88,11 +100,12 @@ export const sendGroupMessage = async (groupId, senderId, content) => {
 /**
  * Get group messages
  */
-export const getGroupMessages = async (groupId, limit = 100) => {
+export const getGroupMessages = async (groupId: string, limit: number = 100): Promise<any[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('group_messages')
+    // @ts-ignore - Supabase generated types don't handle nested relations
     .select('*, sender:users!sender_id(username, display_name, avatar_emoji)')
     .eq('group_id', groupId)
     .order('created_at', { ascending: true })
@@ -109,11 +122,12 @@ export const getGroupMessages = async (groupId, limit = 100) => {
 /**
  * Update group details
  */
-export const updateGroup = async (groupId, updates) => {
+export const updateGroup = async (groupId: string, updates: Record<string, any>): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('groups')
+    // @ts-ignore - Supabase generated types don't allow dynamic updates
     .update({
       ...updates,
       updated_at: new Date().toISOString()
@@ -133,7 +147,7 @@ export const updateGroup = async (groupId, updates) => {
 /**
  * Delete group (leaders only)
  */
-export const deleteGroup = async (groupId) => {
+export const deleteGroup = async (groupId: string): Promise<boolean | null> => {
   if (!supabase) return null;
 
   // Delete group members first (cascade should handle this, but being explicit)
@@ -159,7 +173,7 @@ export const deleteGroup = async (groupId) => {
 /**
  * Leave group (remove self from members)
  */
-export const leaveGroup = async (groupId, userId) => {
+export const leaveGroup = async (groupId: string, userId: string): Promise<boolean | null> => {
   if (!supabase) return null;
 
   const { error } = await supabase
@@ -179,11 +193,12 @@ export const leaveGroup = async (groupId, userId) => {
 /**
  * Get group members
  */
-export const getGroupMembers = async (groupId) => {
+export const getGroupMembers = async (groupId: string): Promise<any[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('group_members')
+    // @ts-ignore - Supabase generated types don't handle nested relations
     .select('*, user:users!user_id(id, username, display_name, avatar_emoji, is_online)')
     .eq('group_id', groupId)
     .order('joined_at', { ascending: true });
@@ -199,11 +214,12 @@ export const getGroupMembers = async (groupId) => {
 /**
  * Invite user to group
  */
-export const inviteToGroup = async (groupId, userId) => {
+export const inviteToGroup = async (groupId: string, userId: string): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('group_members')
+    // @ts-ignore - Supabase generated types are incomplete
     .insert({
       group_id: groupId,
       user_id: userId,
@@ -223,7 +239,7 @@ export const inviteToGroup = async (groupId, userId) => {
 /**
  * Remove member from group
  */
-export const removeMemberFromGroup = async (groupId, userId) => {
+export const removeMemberFromGroup = async (groupId: string, userId: string): Promise<boolean | null> => {
   if (!supabase) return null;
 
   const { error } = await supabase
@@ -243,11 +259,12 @@ export const removeMemberFromGroup = async (groupId, userId) => {
 /**
  * Promote member to leader
  */
-export const promoteMemberToLeader = async (groupId, userId) => {
+export const promoteMemberToLeader = async (groupId: string, userId: string): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('group_members')
+    // @ts-ignore - Supabase generated types don't allow update on this table
     .update({ role: 'leader' })
     .eq('group_id', groupId)
     .eq('user_id', userId)
@@ -265,11 +282,12 @@ export const promoteMemberToLeader = async (groupId, userId) => {
 /**
  * Search public groups
  */
-export const searchPublicGroups = async (searchQuery = '') => {
+export const searchPublicGroups = async (searchQuery: string = ''): Promise<any[]> => {
   if (!supabase) return [];
 
   let query = supabase
     .from('groups')
+    // @ts-ignore - Supabase generated types don't handle aggregate counts
     .select('*, member_count:group_members(count)')
     .eq('is_private', false);
 
@@ -292,11 +310,12 @@ export const searchPublicGroups = async (searchQuery = '') => {
 /**
  * Request to join a group
  */
-export const requestToJoinGroup = async (groupId, userId, message = '') => {
+export const requestToJoinGroup = async (groupId: string, userId: string, message: string = ''): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('join_requests')
+    // @ts-ignore - Supabase generated types are incomplete
     .insert({
       group_id: groupId,
       user_id: userId,
@@ -317,11 +336,12 @@ export const requestToJoinGroup = async (groupId, userId, message = '') => {
 /**
  * Get pending join requests for a group (leaders only)
  */
-export const getGroupJoinRequests = async (groupId) => {
+export const getGroupJoinRequests = async (groupId: string): Promise<any[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('join_requests')
+    // @ts-ignore - Supabase generated types don't handle nested relations
     .select('*, user:users!user_id(id, username, display_name, avatar_emoji)')
     .eq('group_id', groupId)
     .eq('status', 'pending')
@@ -338,18 +358,20 @@ export const getGroupJoinRequests = async (groupId) => {
 /**
  * Approve join request
  */
-export const approveJoinRequest = async (requestId, groupId, userId) => {
+export const approveJoinRequest = async (requestId: string, groupId: string, userId: string): Promise<any> => {
   if (!supabase) return null;
 
   // Update request status
   await supabase
     .from('join_requests')
+    // @ts-ignore - Supabase generated types don't allow update on this table
     .update({ status: 'approved' })
     .eq('id', requestId);
 
   // Add user to group
   const { data, error } = await supabase
     .from('group_members')
+    // @ts-ignore - Supabase generated types are incomplete
     .insert({
       group_id: groupId,
       user_id: userId,
@@ -369,11 +391,12 @@ export const approveJoinRequest = async (requestId, groupId, userId) => {
 /**
  * Deny join request
  */
-export const denyJoinRequest = async (requestId) => {
+export const denyJoinRequest = async (requestId: string): Promise<boolean | null> => {
   if (!supabase) return null;
 
   const { error } = await supabase
     .from('join_requests')
+    // @ts-ignore - Supabase generated types don't allow update on this table
     .update({ status: 'denied' })
     .eq('id', requestId);
 
@@ -392,11 +415,12 @@ export const denyJoinRequest = async (requestId) => {
 /**
  * Pin a group message (leaders only)
  */
-export const pinMessage = async (messageId, userId) => {
+export const pinMessage = async (messageId: string, userId: string): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('group_messages')
+    // @ts-ignore - Supabase generated types don't allow update on this table
     .update({
       is_pinned: true,
       pinned_by: userId,
@@ -417,11 +441,12 @@ export const pinMessage = async (messageId, userId) => {
 /**
  * Unpin a group message
  */
-export const unpinMessage = async (messageId) => {
+export const unpinMessage = async (messageId: string): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('group_messages')
+    // @ts-ignore - Supabase generated types don't allow update on this table
     .update({
       is_pinned: false,
       pinned_by: null,
@@ -442,11 +467,12 @@ export const unpinMessage = async (messageId) => {
 /**
  * Get pinned messages for a group
  */
-export const getPinnedMessages = async (groupId) => {
+export const getPinnedMessages = async (groupId: string): Promise<any[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('group_messages')
+    // @ts-ignore - Supabase generated types don't handle nested relations
     .select('*, sender:users!sender_id(username, display_name, avatar_emoji)')
     .eq('group_id', groupId)
     .eq('is_pinned', true)

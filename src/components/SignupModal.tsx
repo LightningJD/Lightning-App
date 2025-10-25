@@ -2,7 +2,13 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { SignIn } from '@clerk/clerk-react';
 
-const SignupModal = ({ version = 1, onDismiss, nightMode }) => {
+interface SignupModalProps {
+  version?: 1 | 2;
+  onDismiss?: () => void;
+  nightMode: boolean;
+}
+
+const SignupModal: React.FC<SignupModalProps> = ({ version = 1, onDismiss, nightMode }) => {
   // Modal content based on version
   const modalContent = {
     1: {
@@ -48,7 +54,7 @@ const SignupModal = ({ version = 1, onDismiss, nightMode }) => {
           backdropFilter: content.blurIntensity,
           WebkitBackdropFilter: content.blurIntensity
         }}
-        onClick={content.canDismiss ? onDismiss : null}
+        onClick={content.canDismiss && onDismiss ? onDismiss : undefined}
       />
 
       {/* Modal */}

@@ -10,10 +10,12 @@
 export interface User {
   id: string;
   clerk_id: string;
+  clerk_user_id?: string; // Alternative field name
   email: string;
   username: string;
   display_name: string;
   avatar_url?: string;
+  avatar_emoji?: string;
   bio?: string;
   location_city?: string;
   location_lat?: number;
@@ -29,6 +31,7 @@ export interface User {
   spotify_url?: string;
   last_seen?: string;
   is_online?: boolean;
+  profile_completed?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -372,6 +375,16 @@ export type Database = {
         Row: Group;
         Insert: Omit<Group, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Group, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      group_messages: {
+        Row: GroupMessage;
+        Insert: Omit<GroupMessage, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<GroupMessage, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      friendships: {
+        Row: Friend;
+        Insert: Omit<Friend, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Friend, 'id' | 'created_at' | 'updated_at'>>;
       };
       friends: {
         Row: Friend;

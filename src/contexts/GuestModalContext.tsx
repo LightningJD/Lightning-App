@@ -2,20 +2,33 @@ import React, { createContext, useContext } from 'react';
 import { useGuestModal } from '../hooks/useGuestModal';
 import SignupModal from '../components/SignupModal';
 
-const GuestModalContext = createContext();
+interface GuestModalContextType {
+  isGuest: boolean;
+  showModal: boolean;
+  modalVersion: 1 | 2;
+  checkAndShowModal: () => void;
+  handleDismiss: () => void;
+}
 
-export const GuestModalProvider = ({ children, nightMode }) => {
+interface GuestModalProviderProps {
+  children: React.ReactNode;
+  nightMode: boolean;
+}
+
+const GuestModalContext = createContext<GuestModalContextType | undefined>(undefined);
+
+export const GuestModalProvider: React.FC<GuestModalProviderProps> = ({ children, nightMode }) => {
   const guestModal = useGuestModal();
 
   return (
-    <GuestModalContext.Provider value={guestModal}>
+    <GuestModalContext.Provider value={guestModal as GuestModalContextType}>
       {children}
 
       {/* Global Guest Modal */}
       {guestModal.showModal && (
         <SignupModal
-          version={guestModal.modalVersion}
-          onDismiss={guestModal.modalVersion === 1 ? guestModal.handleDismiss : null}
+          version={guestModal.modalVersion as 1 | 2}
+          onDismiss={guestModal.modalVersion === 1 ? guestModal.handleDismiss : undefined}
           nightMode={nightMode}
         />
       )}

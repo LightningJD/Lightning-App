@@ -1,4 +1,22 @@
 import { supabase } from '../supabase';
+import type { Friend } from '../../types';
+
+interface FriendWithUser {
+  id: string;
+  username: string;
+  display_name: string;
+  avatar_emoji?: string;
+  avatar_url?: string;
+  is_online?: boolean;
+  bio?: string;
+  location_city?: string;
+}
+
+interface FriendRequest extends Friend {
+  sender?: FriendWithUser;
+  recipient?: FriendWithUser;
+  friend?: FriendWithUser;
+}
 
 // ============================================
 // FRIENDSHIP OPERATIONS
@@ -7,16 +25,18 @@ import { supabase } from '../supabase';
 /**
  * Send a friend request
  */
-export const sendFriendRequest = async (fromUserId, toUserId) => {
+export const sendFriendRequest = async (fromUserId: string, toUserId: string): Promise<Friend | null> => {
   if (!supabase) return null;
+
+  const insertData: any = {
+    user_id: fromUserId,
+    friend_id: toUserId,
+    status: 'pending'
+  };
 
   const { data, error } = await supabase
     .from('friendships')
-    .insert({
-      user_id: fromUserId,
-      friend_id: toUserId,
-      status: 'pending'
-    })
+    .insert(insertData)
     .select()
     .single();
 
@@ -31,11 +51,12 @@ export const sendFriendRequest = async (fromUserId, toUserId) => {
 /**
  * Accept a friend request
  */
-export const acceptFriendRequest = async (requestId) => {
+export const acceptFriendRequest = async (requestId: string): Promise<Friend | null> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('friendships')
+    // @ts-ignore - Supabase generated types don't allow update on this table
     .update({ status: 'accepted' })
     .eq('id', requestId)
     .select()
@@ -48,13 +69,15 @@ export const acceptFriendRequest = async (requestId) => {
 
   // Create reverse friendship (so both users are friends)
   const { user_id, friend_id } = data;
+  const insertData: any = {
+    user_id: friend_id,
+    friend_id: user_id,
+    status: 'accepted'
+  };
+
   await supabase
     .from('friendships')
-    .insert({
-      user_id: friend_id,
-      friend_id: user_id,
-      status: 'accepted'
-    });
+    .insert(insertData);
 
   return data;
 };
@@ -62,11 +85,12 @@ export const acceptFriendRequest = async (requestId) => {
 /**
  * Decline a friend request
  */
-export const declineFriendRequest = async (requestId) => {
+export const declineFriendRequest = async (requestId: string): Promise<boolean | null> => {
   if (!supabase) return null;
 
   const { error } = await supabase
     .from('friendships')
+    // @ts-ignore - Supabase generated types don't allow update on this table
     .update({ status: 'declined' })
     .eq('id', requestId);
 
@@ -81,7 +105,7 @@ export const declineFriendRequest = async (requestId) => {
 /**
  * Get user's friends (accepted friendships)
  */
-export const getFriends = async (userId) => {
+export const getFriends = async (userId: string): Promise<FriendWithUser[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
@@ -95,13 +119,13 @@ export const getFriends = async (userId) => {
     return [];
   }
 
-  return data.map(friendship => friendship.friend);
+  return (data as any[]).map((friendship: any) => friendship.friend).filter(Boolean);
 };
 
 /**
  * Get pending friend requests received by user
  */
-export const getPendingFriendRequests = async (userId) => {
+export const getPendingFriendRequests = async (userId: string): Promise<FriendRequest[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
@@ -116,13 +140,13 @@ export const getPendingFriendRequests = async (userId) => {
     return [];
   }
 
-  return data;
+  return data as FriendRequest[];
 };
 
 /**
  * Get friend requests sent by user
  */
-export const getSentFriendRequests = async (userId) => {
+export const getSentFriendRequests = async (userId: string): Promise<FriendRequest[]> => {
   if (!supabase) return [];
 
   const { data, error } = await supabase
@@ -137,13 +161,13 @@ export const getSentFriendRequests = async (userId) => {
     return [];
   }
 
-  return data;
+  return data as FriendRequest[];
 };
 
 /**
  * Unfriend a user (remove both sides of friendship)
  */
-export const unfriend = async (userId, friendId) => {
+export const unfriend = async (userId: string, friendId: string): Promise<boolean | null> => {
   if (!supabase) return null;
 
   // Delete both directions of the friendship
@@ -157,9 +181,9 @@ export const unfriend = async (userId, friendId) => {
 
 /**
  * Check friendship status between two users
- * Returns: null (no friendship), 'pending', 'accepted', 'declined'
+ * Returns: null (no friendship), 'pending', 'accepted', 'rejected'
  */
-export const checkFriendshipStatus = async (userId, friendId) => {
+export const checkFriendshipStatus = async (userId: string, friendId: string): Promise<'pending' | 'accepted' | 'rejected' | null> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
@@ -174,13 +198,13 @@ export const checkFriendshipStatus = async (userId, friendId) => {
     return null;
   }
 
-  return data.status;
+  return (data as any).status as 'pending' | 'accepted' | 'rejected';
 };
 
 /**
  * Get mutual friends between two users
  */
-export const getMutualFriends = async (userId1, userId2) => {
+export const getMutualFriends = async (userId1: string, userId2: string): Promise<FriendWithUser[]> => {
   if (!supabase) return [];
 
   // Get user1's friends
@@ -202,10 +226,10 @@ export const getMutualFriends = async (userId1, userId2) => {
   if (error2) return [];
 
   // Find intersection
-  const user1FriendIds = new Set(user1Friends.map(f => f.friend_id));
-  const mutualFriendIds = user2Friends
-    .filter(f => user1FriendIds.has(f.friend_id))
-    .map(f => f.friend_id);
+  const user1FriendIds = new Set((user1Friends as any[]).map((f: any) => f.friend_id));
+  const mutualFriendIds = (user2Friends as any[])
+    .filter((f: any) => user1FriendIds.has(f.friend_id))
+    .map((f: any) => f.friend_id);
 
   if (mutualFriendIds.length === 0) return [];
 
@@ -217,5 +241,5 @@ export const getMutualFriends = async (userId1, userId2) => {
 
   if (error3) return [];
 
-  return mutualFriends;
+  return mutualFriends as FriendWithUser[];
 };

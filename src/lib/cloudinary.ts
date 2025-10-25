@@ -13,7 +13,18 @@ const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
  * @param {Object} options - Upload options
  * @returns {Promise<Object>} - Upload result with secure_url
  */
-export const uploadImage = async (file, options = {}) => {
+export const uploadImage = async (file: File, options: {
+  folder?: string;
+  public_id?: string;
+  transformation?: any;
+} = {}): Promise<{
+  url: string;
+  publicId: string;
+  width: number;
+  height: number;
+  format: string;
+  bytes: number;
+}> => {
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
     console.error('❌ Cloudinary not configured. Check .env.local file.');
     throw new Error('Cloudinary credentials missing. Please check your environment variables.');
@@ -84,7 +95,10 @@ export const uploadImage = async (file, options = {}) => {
     };
   } catch (error) {
     console.error('❌ Error uploading to Cloudinary:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Upload failed');
   }
 };
 
@@ -93,7 +107,7 @@ export const uploadImage = async (file, options = {}) => {
  * @param {File} file - Image file
  * @returns {Promise<string>} - Image URL
  */
-export const uploadProfilePicture = async (file) => {
+export const uploadProfilePicture = async (file: File): Promise<string> => {
   const result = await uploadImage(file, {
     folder: 'lightning/avatars',
     transformation: {
@@ -113,7 +127,7 @@ export const uploadProfilePicture = async (file) => {
  * @param {File} file - Image file
  * @returns {Promise<string>} - Image URL
  */
-export const uploadGroupAvatar = async (file) => {
+export const uploadGroupAvatar = async (file: File): Promise<string> => {
   const result = await uploadImage(file, {
     folder: 'lightning/groups',
     transformation: {
@@ -133,7 +147,7 @@ export const uploadGroupAvatar = async (file) => {
  * @param {File} file - Image file
  * @returns {Promise<string>} - Image URL
  */
-export const uploadMessageImage = async (file) => {
+export const uploadMessageImage = async (file: File): Promise<string> => {
   const result = await uploadImage(file, {
     folder: 'lightning/messages',
     transformation: {
@@ -154,7 +168,13 @@ export const uploadMessageImage = async (file) => {
  * @param {Object} options - Transformation options
  * @returns {string} - Optimized URL
  */
-export const getOptimizedUrl = (url, options = {}) => {
+export const getOptimizedUrl = (url: string, options: {
+  width?: number;
+  height?: number;
+  crop?: string;
+  quality?: string;
+  format?: string;
+} = {}): string => {
   if (!url || !url.includes('cloudinary.com')) {
     return url;
   }
@@ -181,14 +201,14 @@ export const getOptimizedUrl = (url, options = {}) => {
  * For now, images remain in Cloudinary (within free tier limits)
  * @param {string} publicId - Public ID of image to delete
  */
-export const deleteImage = async (publicId) => {
+export const deleteImage = async (_publicId: string): Promise<boolean> => {
   console.warn('⚠️ Image deletion requires server-side API. Image will remain in Cloudinary.');
   // TODO: Implement server-side deletion with API secret
   return false;
 };
 
 // Export configuration checker
-export const isCloudinaryConfigured = () => {
+export const isCloudinaryConfigured = (): boolean => {
   return !!(CLOUD_NAME && UPLOAD_PRESET);
 };
 

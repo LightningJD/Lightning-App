@@ -1,21 +1,45 @@
 import { supabase } from '../supabase';
+import type { BlockedUser } from '../../types';
+
+interface BlockedUserWithProfile {
+  blockId: string;
+  blockedAt: string;
+  reason: string | null;
+  user: {
+    id: string;
+    clerk_id: string;
+    username: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    location_city: string | null;
+  } | null;
+}
 
 /**
  * Block a user
- * @param {string} blockerId - The ID of the user doing the blocking (current user)
- * @param {string} blockedId - The ID of the user being blocked
- * @param {string} reason - Optional reason for blocking
- * @returns {Promise<Object>} The created block record
+ * @param blockerId - The ID of the user doing the blocking (current user)
+ * @param blockedId - The ID of the user being blocked
+ * @param reason - Optional reason for blocking
+ * @returns The created block record
  */
-export const blockUser = async (blockerId, blockedId, reason = null) => {
+export const blockUser = async (blockerId: string, blockedId: string, reason: string | null = null): Promise<BlockedUser> => {
   try {
+    if (!supabase) {
+      throw new Error('Database unavailable');
+    }
+
+    const insertData: any = {
+      blocker_id: blockerId,
+      blocked_id: blockedId,
+    };
+
+    if (reason) {
+      insertData.reason = reason;
+    }
+
     const { data, error } = await supabase
       .from('blocked_users')
-      .insert({
-        blocker_id: blockerId,
-        blocked_id: blockedId,
-        reason: reason
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -26,19 +50,22 @@ export const blockUser = async (blockerId, blockedId, reason = null) => {
 
     return data;
   } catch (error) {
-    console.error('Error in blockUser:', error);
+    console.error('Error in blockUser:', error instanceof Error ? error.message : error);
     throw error;
   }
 };
 
 /**
  * Unblock a user
- * @param {string} blockerId - The ID of the user doing the unblocking (current user)
- * @param {string} blockedId - The ID of the user being unblocked
- * @returns {Promise<void>}
+ * @param blockerId - The ID of the user doing the unblocking (current user)
+ * @param blockedId - The ID of the user being unblocked
  */
-export const unblockUser = async (blockerId, blockedId) => {
+export const unblockUser = async (blockerId: string, blockedId: string): Promise<void> => {
   try {
+    if (!supabase) {
+      throw new Error('Database unavailable');
+    }
+
     const { error } = await supabase
       .from('blocked_users')
       .delete()
@@ -50,18 +77,22 @@ export const unblockUser = async (blockerId, blockedId) => {
       throw error;
     }
   } catch (error) {
-    console.error('Error in unblockUser:', error);
+    console.error('Error in unblockUser:', error instanceof Error ? error.message : error);
     throw error;
   }
 };
 
 /**
  * Get all users blocked by the current user
- * @param {string} blockerId - The ID of the user (current user)
- * @returns {Promise<Array>} Array of blocked users with their profile info
+ * @param blockerId - The ID of the user (current user)
+ * @returns Array of blocked users with their profile info
  */
-export const getBlockedUsers = async (blockerId) => {
+export const getBlockedUsers = async (blockerId: string): Promise<BlockedUserWithProfile[]> => {
   try {
+    if (!supabase) {
+      throw new Error('Database unavailable');
+    }
+
     const { data, error } = await supabase
       .from('blocked_users')
       .select(`
@@ -87,7 +118,7 @@ export const getBlockedUsers = async (blockerId) => {
     }
 
     // Transform data to flatten user info
-    const blockedUsers = (data || []).map(block => ({
+    const blockedUsers = (data || []).map((block: any) => ({
       blockId: block.id,
       blockedAt: block.blocked_at,
       reason: block.reason,
@@ -96,19 +127,23 @@ export const getBlockedUsers = async (blockerId) => {
 
     return blockedUsers;
   } catch (error) {
-    console.error('Error in getBlockedUsers:', error);
+    console.error('Error in getBlockedUsers:', error instanceof Error ? error.message : error);
     throw error;
   }
 };
 
 /**
  * Check if a user is blocked
- * @param {string} blockerId - The ID of the user (current user)
- * @param {string} blockedId - The ID of the user to check
- * @returns {Promise<boolean>} True if blocked, false otherwise
+ * @param blockerId - The ID of the user (current user)
+ * @param blockedId - The ID of the user to check
+ * @returns True if blocked, false otherwise
  */
-export const isUserBlocked = async (blockerId, blockedId) => {
+export const isUserBlocked = async (blockerId: string, blockedId: string): Promise<boolean> => {
   try {
+    if (!supabase) {
+      throw new Error('Database unavailable');
+    }
+
     const { data, error } = await supabase
       .from('blocked_users')
       .select('id')
@@ -123,19 +158,23 @@ export const isUserBlocked = async (blockerId, blockedId) => {
 
     return !!data;
   } catch (error) {
-    console.error('Error in isUserBlocked:', error);
+    console.error('Error in isUserBlocked:', error instanceof Error ? error.message : error);
     return false;
   }
 };
 
 /**
  * Check if current user is blocked by another user
- * @param {string} userId - The ID of the user to check (current user)
- * @param {string} potentialBlockerId - The ID of the user who might have blocked us
- * @returns {Promise<boolean>} True if we are blocked by them, false otherwise
+ * @param userId - The ID of the user to check (current user)
+ * @param potentialBlockerId - The ID of the user who might have blocked us
+ * @returns True if we are blocked by them, false otherwise
  */
-export const isBlockedBy = async (userId, potentialBlockerId) => {
+export const isBlockedBy = async (userId: string, potentialBlockerId: string): Promise<boolean> => {
   try {
+    if (!supabase) {
+      throw new Error('Database unavailable');
+    }
+
     const { data, error } = await supabase
       .from('blocked_users')
       .select('id')
@@ -150,7 +189,7 @@ export const isBlockedBy = async (userId, potentialBlockerId) => {
 
     return !!data;
   } catch (error) {
-    console.error('Error in isBlockedBy:', error);
+    console.error('Error in isBlockedBy:', error instanceof Error ? error.message : error);
     return false;
   }
 };

@@ -40,7 +40,7 @@ const limits = {
 /**
  * Sanitize input by removing dangerous characters
  */
-export const sanitizeInput = (input, allowHtml = false) => {
+export const sanitizeInput = (input: any, allowHtml: boolean = false): string => {
   if (typeof input !== 'string') return '';
 
   // Trim whitespace
@@ -72,8 +72,8 @@ export const sanitizeInput = (input, allowHtml = false) => {
 /**
  * Validate email address
  */
-export const validateEmail = (email) => {
-  const errors = [];
+export const validateEmail = (email: any): { valid: boolean; errors: string[] } => {
+  const errors: string[] = [];
 
   if (!email) {
     errors.push('Email is required');
@@ -102,8 +102,8 @@ export const validateEmail = (email) => {
 /**
  * Validate username
  */
-export const validateUsername = (username) => {
-  const errors = [];
+export const validateUsername = (username: any): { valid: boolean; errors: string[] } => {
+  const errors: string[] = [];
 
   if (!username) {
     errors.push('Username is required');
@@ -124,7 +124,7 @@ export const validateUsername = (username) => {
 
   // Check for inappropriate content (basic filter)
   const inappropriate = ['admin', 'root', 'system', 'lightning', 'support'];
-  if (inappropriate.some(word => username.toLowerCase().includes(word))) {
+  if (inappropriate.some((word: string) => username.toLowerCase().includes(word))) {
     errors.push('This username is not allowed');
   }
 
@@ -137,12 +137,32 @@ export const validateUsername = (username) => {
 /**
  * Validate password
  */
-export const validatePassword = (password) => {
-  const errors = [];
+export const validatePassword = (password: any): {
+  valid: boolean;
+  errors: string[];
+  strength: {
+    hasUpperCase: boolean;
+    hasLowerCase: boolean;
+    hasNumbers: boolean;
+    hasSpecialChar: boolean;
+    score: number;
+  }
+} => {
+  const errors: string[] = [];
 
   if (!password) {
     errors.push('Password is required');
-    return { valid: false, errors };
+    return {
+      valid: false,
+      errors,
+      strength: {
+        hasUpperCase: false,
+        hasLowerCase: false,
+        hasNumbers: false,
+        hasSpecialChar: false,
+        score: 0
+      }
+    };
   }
 
   if (password.length < limits.password.min) {
@@ -185,13 +205,18 @@ export const validatePassword = (password) => {
 /**
  * Validate message/comment text
  */
-export const validateMessage = (message, type = 'message') => {
-  const errors = [];
+export const validateMessage = (message: any, type: string = 'message'): {
+  valid: boolean;
+  errors: string[];
+  sanitized: string;
+} => {
+  const errors: string[] = [];
+  // @ts-ignore
   const limit = limits[type] || limits.message;
 
   if (!message || !message.trim()) {
     errors.push(`${type.charAt(0).toUpperCase() + type.slice(1)} cannot be empty`);
-    return { valid: false, errors };
+    return { valid: false, errors, sanitized: '' };
   }
 
   if (message.length < limit.min) {
@@ -222,12 +247,16 @@ export const validateMessage = (message, type = 'message') => {
 /**
  * Validate testimony
  */
-export const validateTestimony = (testimony) => {
-  const errors = [];
+export const validateTestimony = (testimony: any): {
+  valid: boolean;
+  errors: string[];
+  sanitized: string;
+} => {
+  const errors: string[] = [];
 
   if (!testimony || !testimony.trim()) {
     errors.push('Testimony cannot be empty');
-    return { valid: false, errors };
+    return { valid: false, errors, sanitized: '' };
   }
 
   if (testimony.length < limits.testimony.min) {
@@ -262,8 +291,11 @@ export const validateTestimony = (testimony) => {
 /**
  * Validate profile fields
  */
-export const validateProfile = (profile) => {
-  const errors = {};
+export const validateProfile = (profile: any): {
+  valid: boolean;
+  errors: Record<string, string>;
+} => {
+  const errors: Record<string, string> = {};
 
   // Display name
   if (profile.displayName) {
@@ -320,8 +352,8 @@ export const validateProfile = (profile) => {
 /**
  * Validate URL
  */
-export const validateUrl = (url) => {
-  const errors = [];
+export const validateUrl = (url: any): { valid: boolean; errors: string[] } => {
+  const errors: string[] = [];
 
   if (!url) {
     return { valid: true, errors }; // URL might be optional
@@ -333,7 +365,7 @@ export const validateUrl = (url) => {
 
   // Check for malicious URLs
   const maliciousPatterns = ['javascript:', 'data:', 'vbscript:', 'file:'];
-  if (maliciousPatterns.some(pattern => url.toLowerCase().includes(pattern))) {
+  if (maliciousPatterns.some((pattern: string) => url.toLowerCase().includes(pattern))) {
     errors.push('This type of URL is not allowed');
   }
 
@@ -346,11 +378,15 @@ export const validateUrl = (url) => {
 /**
  * Validate phone number
  */
-export const validatePhone = (phone) => {
-  const errors = [];
+export const validatePhone = (phone: any): {
+  valid: boolean;
+  errors: string[];
+  formatted: string;
+} => {
+  const errors: string[] = [];
 
   if (!phone) {
-    return { valid: true, errors }; // Phone might be optional
+    return { valid: true, errors, formatted: '' }; // Phone might be optional
   }
 
   // Remove formatting for validation
@@ -378,7 +414,7 @@ export const validatePhone = (phone) => {
 /**
  * Format phone number for display
  */
-const formatPhone = (phone) => {
+const formatPhone = (phone: string): string => {
   const cleaned = phone.replace(/\D/g, '');
   const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
   if (match) {
@@ -390,8 +426,12 @@ const formatPhone = (phone) => {
 /**
  * Validate file upload
  */
-export const validateFileUpload = (file, options = {}) => {
-  const errors = [];
+export const validateFileUpload = (file: any, options: {
+  maxSize?: number;
+  allowedTypes?: string[];
+  allowedExtensions?: string[];
+} = {}): { valid: boolean; errors: string[] } => {
+  const errors: string[] = [];
   const {
     maxSize = 5 * 1024 * 1024, // 5MB default
     allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
@@ -416,7 +456,7 @@ export const validateFileUpload = (file, options = {}) => {
 
   // Check file extension
   const fileName = file.name.toLowerCase();
-  const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+  const hasValidExtension = allowedExtensions.some((ext: string) => fileName.endsWith(ext));
   if (!hasValidExtension) {
     errors.push('Invalid file extension');
   }
@@ -435,8 +475,11 @@ export const validateFileUpload = (file, options = {}) => {
 /**
  * Validate group creation
  */
-export const validateGroup = (group) => {
-  const errors = {};
+export const validateGroup = (group: any): {
+  valid: boolean;
+  errors: Record<string, string>;
+} => {
+  const errors: Record<string, string> = {};
 
   // Group name
   if (!group.name || !group.name.trim()) {
@@ -454,7 +497,7 @@ export const validateGroup = (group) => {
 
   // Check for inappropriate content
   const inappropriate = ['xxx', 'porn', 'sex', 'nude'];
-  if (group.name && inappropriate.some(word => group.name.toLowerCase().includes(word))) {
+  if (group.name && inappropriate.some((word: string) => group.name.toLowerCase().includes(word))) {
     errors.name = 'This group name is not allowed';
   }
 
@@ -467,7 +510,7 @@ export const validateGroup = (group) => {
 /**
  * Main validation function for any form
  */
-export const validateForm = (formData, formType) => {
+export const validateForm = (formData: any, formType: string): any => {
   switch (formType) {
     case 'login':
       return {

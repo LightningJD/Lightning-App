@@ -1,5 +1,20 @@
 import { supabase } from '../supabase';
 
+interface TestimonyData {
+  title?: string;
+  content: string;
+  lesson?: string;
+  question1?: string;
+  question2?: string;
+  question3?: string;
+  question4?: string;
+  isPublic?: boolean;
+  musicSpotifyUrl?: string;
+  musicTrackName?: string;
+  musicArtist?: string;
+  musicAudioUrl?: string;
+}
+
 // ============================================
 // TESTIMONY OPERATIONS
 // ============================================
@@ -7,11 +22,12 @@ import { supabase } from '../supabase';
 /**
  * Create a new testimony
  */
-export const createTestimony = async (userId, testimonyData) => {
+export const createTestimony = async (userId: string, testimonyData: TestimonyData): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('testimonies')
+    // @ts-ignore - Supabase generated types are incomplete
     .insert({
       user_id: userId,
       title: testimonyData.title || 'My Testimony',
@@ -39,6 +55,7 @@ export const createTestimony = async (userId, testimonyData) => {
   // Update user's has_testimony flag
   await supabase
     .from('users')
+    // @ts-ignore - Supabase generated types don't allow update on this table
     .update({ has_testimony: true })
     .eq('id', userId);
 
@@ -48,7 +65,7 @@ export const createTestimony = async (userId, testimonyData) => {
 /**
  * Get testimony by user ID
  */
-export const getTestimonyByUserId = async (userId) => {
+export const getTestimonyByUserId = async (userId: string): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
@@ -70,11 +87,12 @@ export const getTestimonyByUserId = async (userId) => {
 /**
  * Update testimony
  */
-export const updateTestimony = async (testimonyId, updates) => {
+export const updateTestimony = async (testimonyId: string, updates: Record<string, any>): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('testimonies')
+    // @ts-ignore - Supabase generated types don't allow dynamic updates
     .update({
       ...updates,
       updated_at: new Date().toISOString()
@@ -98,12 +116,13 @@ export const updateTestimony = async (testimonyId, updates) => {
 /**
  * Track testimony view (one per user per testimony)
  */
-export const trackTestimonyView = async (testimonyId, viewerId) => {
+export const trackTestimonyView = async (testimonyId: string, viewerId: string): Promise<{ success: boolean; error?: string; alreadyViewed?: boolean }> => {
   if (!supabase) return { success: false, error: 'Database not initialized' };
 
   try {
     const { error } = await supabase
       .from('testimony_views')
+      // @ts-ignore - Supabase generated types are incomplete
       .insert({
         testimony_id: testimonyId,
         viewer_id: viewerId
@@ -120,14 +139,14 @@ export const trackTestimonyView = async (testimonyId, viewerId) => {
     return { success: true, alreadyViewed: false };
   } catch (error) {
     console.error('Error tracking testimony view:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
 
 /**
  * Get testimony view count
  */
-export const getTestimonyViewCount = async (testimonyId) => {
+export const getTestimonyViewCount = async (testimonyId: string): Promise<{ count: number }> => {
   if (!supabase) return { count: 0 };
 
   try {
@@ -148,7 +167,7 @@ export const getTestimonyViewCount = async (testimonyId) => {
 /**
  * Toggle testimony like/heart
  */
-export const toggleTestimonyLike = async (testimonyId, userId) => {
+export const toggleTestimonyLike = async (testimonyId: string, userId: string): Promise<{ success: boolean; error?: string; liked?: boolean }> => {
   if (!supabase) return { success: false, error: 'Database not initialized' };
 
   try {
@@ -165,7 +184,7 @@ export const toggleTestimonyLike = async (testimonyId, userId) => {
       const { error } = await supabase
         .from('testimony_likes')
         .delete()
-        .eq('id', existing.id);
+        .eq('id', (existing as any).id);
 
       if (error) throw error;
       return { success: true, liked: false };
@@ -173,6 +192,7 @@ export const toggleTestimonyLike = async (testimonyId, userId) => {
       // Like - add new like
       const { error } = await supabase
         .from('testimony_likes')
+        // @ts-ignore - Supabase generated types are incomplete
         .insert({
           testimony_id: testimonyId,
           user_id: userId
@@ -183,14 +203,14 @@ export const toggleTestimonyLike = async (testimonyId, userId) => {
     }
   } catch (error) {
     console.error('Error toggling testimony like:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
 
 /**
  * Check if user liked a testimony
  */
-export const hasUserLikedTestimony = async (testimonyId, userId) => {
+export const hasUserLikedTestimony = async (testimonyId: string, userId: string): Promise<{ liked: boolean }> => {
   if (!supabase) return { liked: false };
 
   try {
@@ -213,7 +233,7 @@ export const hasUserLikedTestimony = async (testimonyId, userId) => {
 /**
  * Get testimony like count
  */
-export const getTestimonyLikeCount = async (testimonyId) => {
+export const getTestimonyLikeCount = async (testimonyId: string): Promise<{ count: number }> => {
   if (!supabase) return { count: 0 };
 
   try {
@@ -234,12 +254,13 @@ export const getTestimonyLikeCount = async (testimonyId) => {
 /**
  * Add comment to testimony
  */
-export const addTestimonyComment = async (testimonyId, userId, content) => {
+export const addTestimonyComment = async (testimonyId: string, userId: string, content: string): Promise<{ success: boolean; error?: string; comment?: any }> => {
   if (!supabase) return { success: false, error: 'Database not initialized' };
 
   try {
     const { data, error } = await supabase
       .from('testimony_comments')
+      // @ts-ignore - Supabase generated types are incomplete
       .insert({
         testimony_id: testimonyId,
         user_id: userId,
@@ -253,19 +274,20 @@ export const addTestimonyComment = async (testimonyId, userId, content) => {
     return { success: true, comment: data };
   } catch (error) {
     console.error('Error adding testimony comment:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
 
 /**
  * Get testimony comments
  */
-export const getTestimonyComments = async (testimonyId) => {
+export const getTestimonyComments = async (testimonyId: string): Promise<{ comments: any[] }> => {
   if (!supabase) return { comments: [] };
 
   try {
     const { data, error } = await supabase
       .from('testimony_comments')
+      // @ts-ignore - Supabase generated types don't handle nested relations
       .select(`
         id,
         content,
@@ -293,7 +315,7 @@ export const getTestimonyComments = async (testimonyId) => {
 /**
  * Delete testimony comment
  */
-export const deleteTestimonyComment = async (commentId, userId) => {
+export const deleteTestimonyComment = async (commentId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
   if (!supabase) return { success: false, error: 'Database not initialized' };
 
   try {
@@ -308,6 +330,6 @@ export const deleteTestimonyComment = async (commentId, userId) => {
     return { success: true };
   } catch (error) {
     console.error('Error deleting testimony comment:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };

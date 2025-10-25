@@ -39,6 +39,7 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({ isOpen, onClose, nightMode,
     setLoading(true);
     try {
       const blocked = await getBlockedUsers(userProfile.supabaseId);
+      // @ts-ignore - blocked users type compatibility
       setBlockedUsers(blocked);
     } catch (error) {
       console.error('Error loading blocked users:', error);

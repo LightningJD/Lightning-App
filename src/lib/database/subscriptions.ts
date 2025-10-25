@@ -1,13 +1,16 @@
 import { supabase } from '../supabase';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 // ============================================
 // REALTIME SUBSCRIPTIONS
 // ============================================
 
+type RealtimeCallback = (payload: any) => void;
+
 /**
  * Subscribe to new messages for a user
  */
-export const subscribeToMessages = (userId, callback) => {
+export const subscribeToMessages = (userId: string, callback: RealtimeCallback): RealtimeChannel | null => {
   if (!supabase) return null;
 
   const subscription = supabase
@@ -30,7 +33,7 @@ export const subscribeToMessages = (userId, callback) => {
 /**
  * Subscribe to group messages
  */
-export const subscribeToGroupMessages = (groupId, callback) => {
+export const subscribeToGroupMessages = (groupId: string, callback: RealtimeCallback): RealtimeChannel | null => {
   if (!supabase) return null;
 
   const subscription = supabase
@@ -53,7 +56,7 @@ export const subscribeToGroupMessages = (groupId, callback) => {
 /**
  * Unsubscribe from a channel
  */
-export const unsubscribe = async (subscription) => {
+export const unsubscribe = async (subscription: RealtimeChannel): Promise<void> => {
   if (!supabase || !subscription) return;
   await supabase.removeChannel(subscription);
 };
