@@ -74,16 +74,16 @@ export const useUserProfile = () => {
     searchRadius: supabaseUser?.search_radius || 25,
     spotifyUrl: supabaseUser?.spotify_url || null,
     music: testimony ? {
-      platform: testimony.music_platform || 'spotify',
+      platform: testimony.music_platform || 'youtube',
       trackName: testimony.music_track_name || "GOOD GOOD FATHER",
       artist: testimony.music_artist || "Forrest Frank",
-      spotifyUrl: testimony.music_spotify_url || "https://open.spotify.com/track/0VE4kBnHJUgtMf0dy6DRmW",
+      spotifyUrl: testimony.music_spotify_url || "https://www.youtube.com/watch?v=Wlu9k93uSTc",
       audioUrl: testimony.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
     } : {
-      platform: 'spotify' as const,
+      platform: 'youtube' as const,
       trackName: "GOOD GOOD FATHER",
       artist: "Forrest Frank",
-      spotifyUrl: "https://open.spotify.com/track/0VE4kBnHJUgtMf0dy6DRmW",
+      spotifyUrl: "https://www.youtube.com/watch?v=Wlu9k93uSTc",
       audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
     },
     story: testimony ? {
