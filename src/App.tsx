@@ -980,9 +980,9 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                   />
                   <MenuItem
                     icon={Music}
-                    label="YouTube Channel"
+                    label="Profile Song"
                     nightMode={nightMode}
-                    subtext={userProfile?.spotifyUrl ? 'Connected' : 'Link your channel'}
+                    subtext={userProfile?.spotifyUrl ? 'Linked' : 'Add a YouTube song'}
                     onClick={() => setShowLinkSpotify(true)}
                   />
 

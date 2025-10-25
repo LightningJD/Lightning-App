@@ -26,11 +26,11 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
     setSaving(true);
     try {
       await updateUserProfile(userProfile.supabaseId, { spotify_url: spotifyUrl } as any);
-      showSuccess(spotifyUrl ? 'YouTube channel linked!' : 'YouTube channel unlinked');
+      showSuccess(spotifyUrl ? 'YouTube song linked!' : 'YouTube song unlinked');
       onClose();
     } catch (error) {
-      console.error('Error updating YouTube channel URL:', error);
-      showError('Failed to update YouTube channel');
+      console.error('Error updating YouTube song URL:', error);
+      showError('Failed to update YouTube song');
     } finally {
       setSaving(false);
     }
@@ -41,11 +41,11 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
     setSaving(true);
     try {
       await updateUserProfile(userProfile.supabaseId, { spotify_url: null } as any);
-      showSuccess('YouTube channel unlinked');
+      showSuccess('YouTube song unlinked');
       onClose();
     } catch (error) {
-      console.error('Error removing YouTube URL:', error);
-      showError('Failed to remove YouTube channel');
+      console.error('Error removing YouTube song:', error);
+      showError('Failed to remove YouTube song');
     } finally {
       setSaving(false);
     }
@@ -78,7 +78,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
             <div className="flex items-center gap-3">
               <Music className={`w-5 h-5 ${nightMode ? 'text-red-400' : 'text-red-600'}`} />
               <h2 className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                Link YouTube Channel
+                Link YouTube Song
               </h2>
             </div>
             <button
@@ -97,13 +97,13 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
           <form onSubmit={handleSave} className="p-6 space-y-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                YouTube Channel URL
+                YouTube Song URL
               </label>
               <input
                 type="url"
                 value={spotifyUrl}
                 onChange={(e) => setSpotifyUrl(e.target.value)}
-                placeholder="https://youtube.com/@yourchannel"
+                placeholder="https://youtube.com/watch?v=..."
                 className={`w-full px-4 py-3 rounded-lg border transition-colors ${
                   nightMode
                     ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500 focus:border-red-500'
@@ -115,12 +115,12 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
             {/* Instructions */}
             <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-slate-50'}`}>
               <p className={`text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                How to find your YouTube channel URL:
+                How to get a YouTube song URL:
               </p>
               <ol className={`text-xs space-y-1 list-decimal list-inside ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                <li>Go to youtube.com and sign in</li>
-                <li>Click your profile icon → "Your channel"</li>
-                <li>Copy the URL from your browser (e.g., youtube.com/@yourname)</li>
+                <li>Go to youtube.com and find a song</li>
+                <li>Click the song to start playing it</li>
+                <li>Copy the URL from your browser address bar</li>
                 <li>Paste the link here</li>
               </ol>
             </div>
@@ -133,7 +133,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
                 <Check className={`w-5 h-5 ${nightMode ? 'text-red-400' : 'text-red-600'}`} />
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-medium ${nightMode ? 'text-red-300' : 'text-red-900'}`}>
-                    YouTube channel will be visible
+                    Song will play on your profile
                   </p>
                   <a
                     href={spotifyUrl}
