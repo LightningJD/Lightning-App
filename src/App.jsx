@@ -21,6 +21,7 @@ import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
 import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets, checkMilestoneSecret, checkActivitySecrets } from './lib/secrets';
 import { trackDailyLogin, getLoginStreak, trackThemeChange, trackNightModeUsage, trackAvatarChange, getAvatarChangeCount } from './lib/activityTracker';
+import { initSentry, setUser as setSentryUser } from './lib/sentry';
 
 function App() {
   const { signOut } = useClerk();
@@ -76,6 +77,25 @@ function App() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Initialize Sentry error monitoring on app mount
+  React.useEffect(() => {
+    initSentry();
+  }, []);
+
+  // Set Sentry user context when authenticated
+  React.useEffect(() => {
+    if (isAuthenticated && userProfile) {
+      setSentryUser({
+        id: userProfile.supabaseId,
+        email: userProfile.email,
+        username: userProfile.username,
+        displayName: userProfile.displayName,
+      });
+    } else {
+      setSentryUser(null);
+    }
+  }, [isAuthenticated, userProfile]);
 
   // Start time-based secrets (John 3:16 at 3:16) and check holiday secrets
   React.useEffect(() => {
