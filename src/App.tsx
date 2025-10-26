@@ -142,30 +142,25 @@ function App() {
   };
 
   // Handler for opening report dialog
-  // Ref to store the timeout for debouncing
-  const searchRadiusTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  // Handler for saving search radius
+  const handleSaveSearchRadius = async (): Promise<void> => {
+    if (!userProfile) return;
 
-  // Handler for search radius change with debouncing
-  const handleSearchRadiusChange = (newRadius: number): void => {
-    setSearchRadius(newRadius);
-
-    // Clear existing timeout
-    if (searchRadiusTimeoutRef.current) {
-      clearTimeout(searchRadiusTimeoutRef.current);
+    // Validate range
+    if (searchRadius < 5 || searchRadius > 100) {
+      showError('Search radius must be between 5 and 100 miles');
+      setSearchRadius(userProfile.searchRadius || 25);
+      return;
     }
 
-    // Set new timeout to save after 1 second of no changes
-    searchRadiusTimeoutRef.current = setTimeout(async () => {
-      if (!userProfile) return;
-
-      try {
-        await updateUserProfile(userProfile.supabaseId, { search_radius: newRadius });
-      } catch (error) {
-        console.error('Error updating search radius:', error);
-        showError('Failed to update search radius');
-        setSearchRadius(userProfile.searchRadius || 25);
-      }
-    }, 1000);
+    try {
+      await updateUserProfile(userProfile.supabaseId, { search_radius: searchRadius });
+      showSuccess('Search radius updated');
+    } catch (error) {
+      console.error('Error updating search radius:', error);
+      showError('Failed to update search radius');
+      setSearchRadius(userProfile.searchRadius || 25);
+    }
   };
 
   // Initialize Sentry error monitoring on app mount
@@ -1066,45 +1061,64 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                     </div>
                   </div>
 
-                  {/* Search Radius Slider */}
+                  {/* Search Radius Input */}
                   <div className={`px-4 py-4 border-b transition-colors ${
                     nightMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'
                   }`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <MapPin className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-400'}`} />
-                        <div>
-                          <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                            Search Radius
-                          </p>
-                          <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                            {searchRadius} miles
-                          </p>
-                        </div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <MapPin className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-400'}`} />
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                          Search Radius
+                        </p>
+                        <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                          5-100 miles
+                        </p>
                       </div>
-                      <span className={`text-lg font-bold ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                        {searchRadius}
-                      </span>
                     </div>
-                    <input
-                      type="range"
-                      min="5"
-                      max="100"
-                      step="5"
-                      value={searchRadius}
-                      onChange={(e) => handleSearchRadiusChange(parseInt(e.target.value))}
-                      className="w-full h-2 rounded-lg cursor-pointer"
-                      style={{
-                        WebkitAppearance: 'none',
-                        appearance: 'none',
-                        background: nightMode
-                          ? `linear-gradient(to right, rgb(37 99 235) 0%, rgb(37 99 235) ${((searchRadius - 5) / 95) * 100}%, rgba(255,255,255,0.1) ${((searchRadius - 5) / 95) * 100}%, rgba(255,255,255,0.1) 100%)`
-                          : `linear-gradient(to right, rgb(59 130 246) 0%, rgb(59 130 246) ${((searchRadius - 5) / 95) * 100}%, rgb(226 232 240) ${((searchRadius - 5) / 95) * 100}%, rgb(226 232 240) 100%)`
-                      }}
-                    />
-                    <div className="flex justify-between mt-1">
-                      <span className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>5 mi</span>
-                      <span className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>100 mi</span>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="5"
+                        max="100"
+                        value={searchRadius}
+                        onChange={(e) => setSearchRadius(parseInt(e.target.value) || 5)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSaveSearchRadius();
+                          }
+                        }}
+                        className={`flex-1 px-4 py-2 rounded-lg border text-center ${
+                          nightMode
+                            ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500'
+                            : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
+                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        placeholder="25"
+                      />
+                      <button
+                        onClick={handleSaveSearchRadius}
+                        className={`flex-shrink-0 p-2 rounded-lg border transition-all ${
+                          nightMode
+                            ? 'border-blue-500/30 text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/10'
+                            : 'border-blue-500/40 text-blue-600 hover:border-blue-500/60 hover:bg-blue-500/10'
+                        }`}
+                        style={nightMode ? {
+                          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
+                          boxShadow: '0 1px 4px rgba(59, 130, 246, 0.2), inset 0 0.5px 0 rgba(59, 130, 246, 0.2)',
+                          backdropFilter: 'blur(10px)',
+                          WebkitBackdropFilter: 'blur(10px)'
+                        } : {
+                          background: 'rgba(59, 130, 246, 0.1)',
+                          backdropFilter: 'blur(30px)',
+                          WebkitBackdropFilter: 'blur(30px)',
+                          boxShadow: '0 1px 4px rgba(59, 130, 246, 0.15), inset 0 0.5px 1px rgba(59, 130, 246, 0.3)'
+                        }}
+                        title="Save search radius"
+                      >
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </button>
                     </div>
                   </div>
                   <MenuItem icon={Globe} label="Language" subtext="English" nightMode={nightMode} comingSoon />
