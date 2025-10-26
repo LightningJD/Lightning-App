@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, X, Settings, Crown, Users, Trash2, LogOut, Smile, Pin, Info, ChevronRight } from 'lucide-react';
-import { showError } from '../lib/toast';
+import { showError, showSuccess } from '../lib/toast';
 import { validateGroup, validateMessage, sanitizeInput } from '../lib/inputValidation';
 import {
   createGroup,
