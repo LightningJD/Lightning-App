@@ -192,31 +192,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           )}
         </div>
         <div className="text-center w-full">
-          <div className="flex items-center justify-center gap-2">
-            <h1 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} break-words`}>{profile.username}</h1>
-            {/* Like Button - Beside Username */}
-            <button
-              onClick={handleLike}
-              className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${isLiked ? 'border-red-500' : nightMode ? 'border-white/20' : 'border-white/30'}`}
-              style={isLiked ? {
-                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                boxShadow: '0 2px 6px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-              } : nightMode ? {
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
-                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)'
-              } : {
-                background: 'rgba(255, 255, 255, 0.25)',
-                backdropFilter: 'blur(30px)',
-                WebkitBackdropFilter: 'blur(30px)',
-                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-              }}
-            >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-slate-100' : nightMode ? 'text-slate-100' : 'text-black'}`} />
-              <span className={`text-xs font-medium ${isLiked ? 'text-slate-100' : nightMode ? 'text-slate-100' : 'text-black'}`}>{likeCount}</span>
-            </button>
-          </div>
+          <h1 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} break-words text-center`}>{profile.username}</h1>
           <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm ${!nightMode && 'opacity-70'} mt-1`}>{profile.displayName}</p>
 
           {/* Location */}
@@ -298,15 +274,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
             <h2 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center gap-2`}>
               <span>✨</span> {profile?.story?.title}
             </h2>
-            {onEditTestimony && profile?.story?.content && (
+            <div className="flex items-center gap-2">
+              {/* Like Button - Top Right */}
               <button
-                onClick={onEditTestimony}
-                className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${
-                  nightMode
-                    ? 'border-white/20 hover:bg-white/10'
-                    : 'border-white/30 hover:bg-white/20'
-                }`}
-                style={nightMode ? {
+                onClick={handleLike}
+                className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${isLiked ? 'border-red-500' : nightMode ? 'border-white/20' : 'border-white/30'}`}
+                style={isLiked ? {
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  boxShadow: '0 2px 6px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                } : nightMode ? {
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
                   boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
                   backdropFilter: 'blur(10px)',
@@ -317,12 +293,39 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                   WebkitBackdropFilter: 'blur(30px)',
                   boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
                 }}
-                title="Edit Testimony"
+                title={isLiked ? 'Unlike testimony' : 'Like testimony'}
               >
-                <Edit3 className={`w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-black'}`} />
-                <span className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-black'}`}>Edit</span>
+                <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-slate-100' : nightMode ? 'text-slate-100' : 'text-black'}`} />
+                <span className={`text-xs font-medium ${isLiked ? 'text-slate-100' : nightMode ? 'text-slate-100' : 'text-black'}`}>{likeCount}</span>
               </button>
-            )}
+
+              {/* Edit Button */}
+              {onEditTestimony && profile?.story?.content && (
+                <button
+                  onClick={onEditTestimony}
+                  className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${
+                    nightMode
+                      ? 'border-white/20 hover:bg-white/10'
+                      : 'border-white/30 hover:bg-white/20'
+                  }`}
+                  style={nightMode ? {
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)'
+                  } : {
+                    background: 'rgba(255, 255, 255, 0.25)',
+                    backdropFilter: 'blur(30px)',
+                    WebkitBackdropFilter: 'blur(30px)',
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                  }}
+                  title="Edit Testimony"
+                >
+                  <Edit3 className={`w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-black'}`} />
+                  <span className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-black'}`}>Edit</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Testimony Content - Privacy Protected */}
