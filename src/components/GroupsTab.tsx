@@ -269,30 +269,38 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
 
     setLoading(true);
 
-    const newGroup = await createGroup(profile.supabaseId, {
-      name: sanitizeInput(newGroupName),
-      description: sanitizeInput(newGroupDescription),
-      avatarEmoji: '✨',
-      isPrivate: false
-    });
+    try {
+      const newGroup = await createGroup(profile.supabaseId, {
+        name: sanitizeInput(newGroupName),
+        description: sanitizeInput(newGroupDescription),
+        avatarEmoji: '✨',
+        isPrivate: false
+      });
 
-    if (newGroup) {
-      console.log('✅ Group created!', newGroup);
+      if (newGroup) {
+        console.log('✅ Group created!', newGroup);
 
-      // Unlock group creator secret
-      unlockSecret('group_creator');
+        // Unlock group creator secret
+        unlockSecret('group_creator');
 
-      // Reload groups
-      const groups = await getUserGroups(profile.supabaseId);
-      setMyGroups(groups || []);
-      setShowCreateGroup(false);
-      setNewGroupName('');
-      setNewGroupDescription('');
-    } else {
-      console.error('❌ Failed to create group');
+        // Reload groups
+        const groups = await getUserGroups(profile.supabaseId);
+        setMyGroups(groups || []);
+        setShowCreateGroup(false);
+        setNewGroupName('');
+        setNewGroupDescription('');
+
+        showSuccess('Group created successfully!');
+      } else {
+        console.error('❌ Failed to create group');
+        showError('Failed to create group. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Error creating group:', error);
+      showError('Failed to create group. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleSendGroupMessage = async (e: React.FormEvent) => {
@@ -324,36 +332,47 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     setGroupMessages([...groupMessages, tempMessage]);
     setNewMessage('');
 
-    // Send to database
-    const savedMessage = await sendGroupMessage(
-      activeGroup,
-      profile.supabaseId,
-      messageContent
-    );
+    try {
+      // Send to database
+      const savedMessage = await sendGroupMessage(
+        activeGroup,
+        profile.supabaseId,
+        messageContent
+      );
 
-    if (savedMessage) {
-      console.log('✅ Group message sent!', savedMessage);
+      if (savedMessage) {
+        console.log('✅ Group message sent!', savedMessage);
 
-      // Check message content for secrets (Amen 3x, scripture sharing)
-      checkMessageSecrets(messageContent);
+        // Check message content for secrets (Amen 3x, scripture sharing)
+        checkMessageSecrets(messageContent);
 
-      // Track message timing for early bird / night owl secrets
-      trackMessageByHour();
-      const earlyBirdCount = getEarlyBirdMessages();
-      const nightOwlCount = getNightOwlMessages();
+        // Track message timing for early bird / night owl secrets
+        trackMessageByHour();
+        const earlyBirdCount = getEarlyBirdMessages();
+        const nightOwlCount = getNightOwlMessages();
 
-      if (earlyBirdCount >= 10) {
-        unlockSecret('early_bird_messenger');
+        if (earlyBirdCount >= 10) {
+          unlockSecret('early_bird_messenger');
+        }
+        if (nightOwlCount >= 10) {
+          unlockSecret('night_owl_messenger');
+        }
+
+        // Track message streak for consistent encourager
+        const streak = trackMessageStreak();
+        if (streak >= 7) {
+          unlockSecret('messages_streak_7');
+        }
+      } else {
+        // Rollback optimistic update
+        setGroupMessages(groupMessages);
+        showError('Failed to send message. Please try again.');
       }
-      if (nightOwlCount >= 10) {
-        unlockSecret('night_owl_messenger');
-      }
-
-      // Track message streak for consistent encourager
-      const streak = trackMessageStreak();
-      if (streak >= 7) {
-        unlockSecret('messages_streak_7');
-      }
+    } catch (error) {
+      console.error('Error sending group message:', error);
+      // Rollback optimistic update
+      setGroupMessages(groupMessages);
+      showError('Failed to send message. Please try again.');
     }
   };
 
@@ -363,20 +382,28 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
 
     setLoading(true);
 
-    const updated = await updateGroup(activeGroup as string, {
-      name: editGroupName,
-      description: editGroupDescription
-    });
+    try {
+      const updated = await updateGroup(activeGroup as string, {
+        name: editGroupName,
+        description: editGroupDescription
+      });
 
-    if (updated) {
-      console.log('✅ Group updated!', updated);
-      // Reload groups
-      const groups = await getUserGroups(profile!.supabaseId);
-      setMyGroups(groups || []);
-      setActiveView('chat');
+      if (updated) {
+        console.log('✅ Group updated!', updated);
+        // Reload groups
+        const groups = await getUserGroups(profile!.supabaseId);
+        setMyGroups(groups || []);
+        setActiveView('chat');
+        showSuccess('Group updated successfully');
+      } else {
+        showError('Failed to update group. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error updating group:', error);
+      showError('Failed to update group. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleDeleteGroup = async () => {
@@ -384,18 +411,26 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
 
     setLoading(true);
 
-    const deleted = await deleteGroup(activeGroup as string);
+    try {
+      const deleted = await deleteGroup(activeGroup as string);
 
-    if (deleted) {
-      console.log('✅ Group deleted!');
-      // Reload groups
-      const groups = await getUserGroups(profile!.supabaseId);
-      setMyGroups(groups || []);
-      setActiveGroup(null);
-      setActiveView('list');
+      if (deleted) {
+        console.log('✅ Group deleted!');
+        // Reload groups
+        const groups = await getUserGroups(profile!.supabaseId);
+        setMyGroups(groups || []);
+        setActiveGroup(null);
+        setActiveView('list');
+        showSuccess('Group deleted successfully');
+      } else {
+        showError('Failed to delete group. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting group:', error);
+      showError('Failed to delete group. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleLeaveGroup = async () => {
@@ -403,43 +438,67 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
 
     setLoading(true);
 
-    const left = await leaveGroup(activeGroup as string, profile!.supabaseId);
+    try {
+      const left = await leaveGroup(activeGroup as string, profile!.supabaseId);
 
-    if (left) {
-      console.log('✅ Left group!');
-      // Reload groups
-      const groups = await getUserGroups(profile!.supabaseId);
-      setMyGroups(groups || []);
-      setActiveGroup(null);
-      setActiveView('list');
+      if (left) {
+        console.log('✅ Left group!');
+        // Reload groups
+        const groups = await getUserGroups(profile!.supabaseId);
+        setMyGroups(groups || []);
+        setActiveGroup(null);
+        setActiveView('list');
+        showSuccess('You have left the group');
+      } else {
+        showError('Failed to leave group. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error leaving group:', error);
+      showError('Failed to leave group. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleRemoveMember = async (userId: string) => {
     if (!window.confirm('Are you sure you want to remove this member?')) return;
 
-    const removed = await removeMemberFromGroup(activeGroup as string, userId);
+    try {
+      const removed = await removeMemberFromGroup(activeGroup as string, userId);
 
-    if (removed) {
-      console.log('✅ Member removed!');
-      // Reload members
-      const members = await getGroupMembers(activeGroup as string);
-      setGroupMembers(members || []);
+      if (removed) {
+        console.log('✅ Member removed!');
+        // Reload members
+        const members = await getGroupMembers(activeGroup as string);
+        setGroupMembers(members || []);
+        showSuccess('Member removed from group');
+      } else {
+        showError('Failed to remove member. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error removing member:', error);
+      showError('Failed to remove member. Please try again.');
     }
   };
 
   const handlePromoteMember = async (userId: string) => {
     if (!window.confirm('Promote this member to leader?')) return;
 
-    const promoted = await promoteMemberToLeader(activeGroup as string, userId);
+    try {
+      const promoted = await promoteMemberToLeader(activeGroup as string, userId);
 
-    if (promoted) {
-      console.log('✅ Member promoted!');
-      // Reload members
-      const members = await getGroupMembers(activeGroup as string);
-      setGroupMembers(members || []);
+      if (promoted) {
+        console.log('✅ Member promoted!');
+        // Reload members
+        const members = await getGroupMembers(activeGroup as string);
+        setGroupMembers(members || []);
+        showSuccess('Member promoted to leader');
+      } else {
+        showError('Failed to promote member. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error promoting member:', error);
+      showError('Failed to promote member. Please try again.');
     }
   };
 
@@ -524,24 +583,40 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
   const handlePinMessage = async (messageId: string | number) => {
     if (!profile?.supabaseId) return;
 
-    // @ts-ignore - message id type compatibility
-    const result = await pinMessage(messageId, profile!.supabaseId);
-    if (result) {
-      console.log('✅ Message pinned!');
-      // Reload pinned messages
-      const pinned = await getPinnedMessages(activeGroup as string);
-      setPinnedMessages(pinned || []);
+    try {
+      // @ts-ignore - message id type compatibility
+      const result = await pinMessage(messageId, profile!.supabaseId);
+      if (result) {
+        console.log('✅ Message pinned!');
+        // Reload pinned messages
+        const pinned = await getPinnedMessages(activeGroup as string);
+        setPinnedMessages(pinned || []);
+        showSuccess('Message pinned');
+      } else {
+        showError('Failed to pin message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error pinning message:', error);
+      showError('Failed to pin message. Please try again.');
     }
   };
 
   const handleUnpinMessage = async (messageId: string | number) => {
-    // @ts-ignore - message id type compatibility
-    const result = await unpinMessage(messageId);
-    if (result) {
-      console.log('✅ Message unpinned!');
-      // Reload pinned messages
-      const pinned = await getPinnedMessages(activeGroup as string);
-      setPinnedMessages(pinned || []);
+    try {
+      // @ts-ignore - message id type compatibility
+      const result = await unpinMessage(messageId);
+      if (result) {
+        console.log('✅ Message unpinned!');
+        // Reload pinned messages
+        const pinned = await getPinnedMessages(activeGroup as string);
+        setPinnedMessages(pinned || []);
+        showSuccess('Message unpinned');
+      } else {
+        showError('Failed to unpin message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error unpinning message:', error);
+      showError('Failed to unpin message. Please try again.');
     }
   };
 
