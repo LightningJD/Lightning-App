@@ -24,7 +24,6 @@ import ContactSupport from './components/ContactSupport';
 import BlockedUsers from './components/BlockedUsers';
 import ReportContent from './components/ReportContent';
 import LinkSpotify from './components/LinkSpotify';
-import DemoUserProfile from './components/DemoUserProfile';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
@@ -1693,9 +1692,6 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         nightMode={nightMode}
         userProfile={userProfile}
       />
-
-      {/* Demo User Profile Button (for testing when no other users exist) */}
-      <DemoUserProfile nightMode={nightMode} />
       </div>
     </GuestModalProvider>
     </ErrorBoundary>

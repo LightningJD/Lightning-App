@@ -107,27 +107,27 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
                   ? 'border-blue-500/30 text-blue-400 hover:border-blue-500/50'
                   : 'border-blue-500/40 text-blue-600 hover:border-blue-500/60'
                 : nightMode
-                  ? 'border-green-500/30 text-green-400 hover:border-green-500/50'
-                  : 'border-green-500/40 text-green-600 hover:border-green-500/60'
+                  ? 'border-white/5 text-slate-400 hover:bg-slate-700/30'
+                  : 'border-white/10 text-slate-500 hover:bg-slate-100/50'
             }`}
             style={nightMode ? {
               background: isMuted
                 ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%)'
-                : 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%)',
+                : 'transparent',
               boxShadow: isMuted
                 ? '0 1px 4px rgba(59, 130, 246, 0.2), inset 0 0.5px 0 rgba(59, 130, 246, 0.2)'
-                : '0 1px 4px rgba(34, 197, 94, 0.2), inset 0 0.5px 0 rgba(34, 197, 94, 0.2)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)'
+                : 'none',
+              backdropFilter: isMuted ? 'blur(10px)' : 'none',
+              WebkitBackdropFilter: isMuted ? 'blur(10px)' : 'none'
             } : {
               background: isMuted
                 ? 'rgba(59, 130, 246, 0.15)'
-                : 'rgba(34, 197, 94, 0.15)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
+                : 'transparent',
+              backdropFilter: isMuted ? 'blur(30px)' : 'none',
+              WebkitBackdropFilter: isMuted ? 'blur(30px)' : 'none',
               boxShadow: isMuted
                 ? '0 1px 4px rgba(59, 130, 246, 0.15), inset 0 0.5px 1px rgba(59, 130, 246, 0.3)'
-                : '0 1px 4px rgba(34, 197, 94, 0.15), inset 0 0.5px 1px rgba(34, 197, 94, 0.3)'
+                : 'none'
             }}
             title={isMuted ? 'Click to unmute' : 'Click to mute'}
           >
