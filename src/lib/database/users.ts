@@ -212,7 +212,6 @@ export const searchUsers = async (
     .select('*')
     .or(`display_name.ilike.%${query}%,username.ilike.%${query}%`)
     .neq('id', currentUserId || '')
-    .eq('is_private', false) // Only search non-private profiles
     .limit(20);
 
   if (error) {
