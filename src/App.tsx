@@ -1082,7 +1082,14 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                         min="5"
                         max="100"
                         value={searchRadius}
-                        onChange={(e) => setSearchRadius(parseInt(e.target.value) || 5)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === '') {
+                            setSearchRadius(0); // Allow clearing
+                          } else {
+                            setSearchRadius(parseInt(val));
+                          }
+                        }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             handleSaveSearchRadius();

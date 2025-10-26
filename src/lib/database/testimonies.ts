@@ -150,7 +150,8 @@ export const trackTestimonyView = async (testimonyId: string, viewerId: string):
 
     if (error) {
       // Ignore duplicate view errors (already viewed) - this is expected behavior
-      if (error.code === '23505') {
+      // Error code 23505 is PostgreSQL unique violation (duplicate key)
+      if (error.code === '23505' || error.message?.includes('duplicate')) {
         return { success: true, alreadyViewed: true };
       }
       throw error;
