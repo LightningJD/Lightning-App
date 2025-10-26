@@ -73,3 +73,40 @@ input[type="range"]::-moz-range-thumb:hover {
   background: rgb(37 99 235);
   transform: scale(1.1);
 }
+
+/* Music Player: Equalizer Bar Animations */
+@keyframes equalizerBar1 {
+  0%, 100% {
+    height: 4px;
+  }
+  50% {
+    height: 14px;
+  }
+}
+
+@keyframes equalizerBar2 {
+  0%, 100% {
+    height: 8px;
+  }
+  50% {
+    height: 16px;
+  }
+}
+
+@keyframes equalizerBar3 {
+  0%, 100% {
+    height: 12px;
+  }
+  50% {
+    height: 6px;
+  }
+}
+
+@keyframes equalizerBar4 {
+  0%, 100% {
+    height: 6px;
+  }
+  50% {
+    height: 12px;
+  }
+}
