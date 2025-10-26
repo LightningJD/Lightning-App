@@ -3,7 +3,6 @@ import { useClerk } from '@clerk/clerk-react';
 import { User, MessageCircle, Users, MapPin, Zap, Plus, X, ArrowRight, ArrowLeft, Sparkles, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
-import { secondsToTimeString, timeStringToSeconds, isValidTimeString } from './lib/timeUtils';
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
 import ProfileTab from './components/ProfileTab';
 import MessagesTab from './components/MessagesTab';
@@ -86,9 +85,6 @@ function App() {
     notifyNearby: userProfile?.notifyNearby !== false
   });
   const [searchRadius, setSearchRadius] = useState(userProfile?.searchRadius || 25);
-  const [musicStartTime, setMusicStartTime] = useState(
-    secondsToTimeString(userProfile?.music?.startTime || 0)
-  );
 
   // Update settings when user profile loads
   React.useEffect(() => {
@@ -170,42 +166,6 @@ function App() {
         setSearchRadius(userProfile.searchRadius || 25);
       }
     }, 1000);
-  };
-
-  // Handler for music start time change
-  const handleMusicStartTimeChange = async (timeString: string): Promise<void> => {
-    setMusicStartTime(timeString);
-
-    // Validate format
-    if (!isValidTimeString(timeString)) {
-      showError('Invalid time format. Use M:SS or MM:SS (e.g., 3:12)');
-      return;
-    }
-
-    // Convert to seconds
-    const seconds = timeStringToSeconds(timeString);
-    if (seconds === null) {
-      showError('Invalid time format');
-      return;
-    }
-
-    // Save to database
-    if (!userProfile?.story?.id) {
-      showError('No testimony found');
-      return;
-    }
-
-    try {
-      await updateTestimony(userProfile.story.id, userProfile.supabaseId, {
-        music_start_time: seconds
-      });
-      showSuccess('Music start time updated');
-    } catch (error) {
-      console.error('Error updating music start time:', error);
-      showError('Failed to update start time');
-      // Revert on error
-      setMusicStartTime(secondsToTimeString(userProfile.music?.startTime || 0));
-    }
   };
 
   // Initialize Sentry error monitoring on app mount
@@ -985,45 +945,6 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                     subtext={userProfile?.spotifyUrl ? 'Linked' : 'Add a YouTube song'}
                     onClick={() => setShowLinkSpotify(true)}
                   />
-
-                  {/* Music Start Time Input */}
-                  {userProfile?.story?.id && (
-                    <div className={`px-4 py-4 border-b transition-colors ${
-                      nightMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'
-                    }`}>
-                      <div className="flex items-center gap-3 mb-3">
-                        <Music className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-400'}`} />
-                        <div className="flex-1">
-                          <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                            Music Start Time
-                          </p>
-                          <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                            Skip to timestamp (e.g., 3:12)
-                          </p>
-                        </div>
-                      </div>
-                      <input
-                        type="text"
-                        value={musicStartTime}
-                        onChange={(e) => setMusicStartTime(e.target.value)}
-                        onBlur={(e) => handleMusicStartTimeChange(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.currentTarget.blur();
-                          }
-                        }}
-                        placeholder="0:00"
-                        className={`w-full px-4 py-2 rounded-lg border text-center ${
-                          nightMode
-                            ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500'
-                            : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
-                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                      />
-                      <p className={`text-xs mt-2 text-center ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                        Format: M:SS or MM:SS (e.g., 0:30, 3:12, 12:45)
-                      </p>
-                    </div>
-                  )}
                   {/* Email & Password removed - using Google OAuth only per roadmap */}
                 </div>
 
