@@ -7,6 +7,7 @@ import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUse
 import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
 import MusicPlayer from './MusicPlayer';
+import { showSuccess, showError } from '../lib/toast';
 
 interface ProfileTabProps {
   profile: any;
@@ -140,37 +141,46 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
 
     setIsSubmittingComment(true);
 
-    const { success, comment } = await addTestimonyComment(
-      profile.story.id,
-      profile.supabaseId,
-      newComment.trim()
-    );
+    try {
+      const { success, comment } = await addTestimonyComment(
+        profile.story.id,
+        profile.supabaseId,
+        newComment.trim()
+      );
 
-    if (success && comment) {
-      // Verify profile exists and has required fields
-      if (!profile || !profile.username) {
-        console.error('Cannot add comment: profile data incomplete');
-        setIsSubmittingComment(false);
-        return;
-      }
-
-      // Add comment to local state
-      setComments([...comments, {
-        ...(comment as any),
-        users: {
-          username: profile.username,
-          display_name: profile.displayName,
-          avatar_emoji: profile.avatar,
-          avatar_url: profile.avatarImage
+      if (success && comment) {
+        // Verify profile exists and has required fields
+        if (!profile || !profile.username) {
+          console.error('Cannot add comment: profile data incomplete');
+          showError('Failed to add comment. Please try again.');
+          setIsSubmittingComment(false);
+          return;
         }
-      }]);
-      setNewComment('');
 
-      // Check if this unlocked the first comment secret
-      await checkTestimonyAnalyticsSecrets(profile.story.id);
+        // Add comment to local state
+        setComments([...comments, {
+          ...(comment as any),
+          users: {
+            username: profile.username,
+            display_name: profile.displayName,
+            avatar_emoji: profile.avatar,
+            avatar_url: profile.avatarImage
+          }
+        }]);
+        setNewComment('');
+        showSuccess('Comment added successfully!');
+
+        // Check if this unlocked the first comment secret
+        await checkTestimonyAnalyticsSecrets(profile.story.id);
+      } else {
+        showError('Failed to add comment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      showError('Failed to add comment. Please try again.');
+    } finally {
+      setIsSubmittingComment(false);
     }
-
-    setIsSubmittingComment(false);
   };
 
   return (

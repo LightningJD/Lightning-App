@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, Check } from 'lucide-react';
+import { showError } from '../lib/toast';
 
 interface FormData {
   displayName: string;
@@ -128,6 +129,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     } catch (error) {
       console.error('Error creating profile:', error);
       setErrors({ submit: 'Failed to create profile. Please try again.' });
+      showError('Failed to create profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
