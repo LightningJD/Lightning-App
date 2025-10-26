@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MapPin, MessageCircle, Flag, UserPlus } from 'lucide-react';
+import { X, MapPin, MessageCircle, Flag, UserPlus, Heart } from 'lucide-react';
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
 import { sanitizeUserContent } from '../lib/sanitization';
@@ -12,6 +12,7 @@ interface UserStory {
   title?: string;
   content: string;
   lesson?: string;
+  likeCount?: number;
 }
 
 interface User {
@@ -199,18 +200,6 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               </button>
 
               <button
-                onClick={handleSendFriendRequest}
-                disabled={friendStatus !== 'none' || sendingRequest}
-                className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 border ${
-                  nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100 border-white/10' : 'bg-white/80 text-black border-white/30 shadow-md'
-                } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
-                aria-label={`Add ${user.displayName} as friend`}
-              >
-                <UserPlus className="w-5 h-5" />
-                {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
-              </button>
-
-              <button
                 onClick={() => {
                   setReportData({ type: 'user', content: { id: user.id, name: user.displayName || user.username } });
                   setShowReport(true);
@@ -224,16 +213,74 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               </button>
             </div>
 
-            {/* Music Player */}
+            {/* Music Player + Stats Row */}
             {user.music && user.music.spotifyUrl && (
-              <div className="flex justify-center mt-6">
-                <MusicPlayer
-                  platform={user.music.platform || 'youtube'}
-                  url={user.music.spotifyUrl}
-                  trackName={user.music.trackName}
-                  artist={user.music.artist}
-                  nightMode={nightMode}
-                />
+              <div className="flex gap-3 mt-6">
+                {/* Music Player - Left Half */}
+                <div className="flex-1">
+                  <MusicPlayer
+                    platform={user.music.platform || 'youtube'}
+                    url={user.music.spotifyUrl}
+                    trackName={user.music.trackName}
+                    artist={user.music.artist}
+                    nightMode={nightMode}
+                  />
+                </div>
+
+                {/* Stats & Actions - Right Half */}
+                <div className="flex-1 flex flex-col gap-3">
+                  {/* Add Friend Button */}
+                  <button
+                    onClick={handleSendFriendRequest}
+                    disabled={friendStatus !== 'none' || sendingRequest}
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${
+                      nightMode ? 'border-white/20' : 'border-white/30'
+                    } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={nightMode ? {
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)'
+                    } : {
+                      background: 'rgba(255, 255, 255, 0.25)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)',
+                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                    }}
+                    aria-label={`Add ${user.displayName} as friend`}
+                  >
+                    <UserPlus className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`} />
+                    <span className={nightMode ? 'text-slate-100' : 'text-slate-900'}>
+                      {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
+                    </span>
+                  </button>
+
+                  {/* Testimony Likes */}
+                  {user.story && (
+                    <div
+                      className={`px-6 py-3 rounded-xl border ${nightMode ? 'border-white/20' : 'border-white/30'} flex items-center justify-center gap-2`}
+                      style={nightMode ? {
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)'
+                      } : {
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        backdropFilter: 'blur(30px)',
+                        WebkitBackdropFilter: 'blur(30px)',
+                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                      }}
+                    >
+                      <Heart className={`w-5 h-5 ${nightMode ? 'text-red-400' : 'text-red-500'}`} fill="currentColor" />
+                      <span className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                        {user.story.likeCount || 0}
+                      </span>
+                      <span className={`text-sm ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                        {(user.story.likeCount || 0) === 1 ? 'Like' : 'Likes'}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
