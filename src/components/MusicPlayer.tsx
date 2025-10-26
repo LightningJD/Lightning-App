@@ -1,5 +1,5 @@
-import React from 'react';
-import { ExternalLink } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ExternalLink, Volume2, VolumeX } from 'lucide-react';
 import { getYouTubeVideoId, getSpotifyTrackId, getYouTubeEmbedUrl, getSpotifyEmbedUrl } from '../lib/musicUtils';
 
 interface MusicPlayerProps {
@@ -11,6 +11,21 @@ interface MusicPlayerProps {
 }
 
 const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, artist, nightMode }) => {
+  const [isMuted, setIsMuted] = useState(true);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const toggleMute = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      // Use YouTube IFrame API to toggle mute
+      const command = isMuted ? 'unMute' : 'mute';
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func: command, args: [] }),
+        '*'
+      );
+      setIsMuted(!isMuted);
+    }
+  };
+
   if (platform === 'youtube') {
     const videoId = getYouTubeVideoId(url);
     if (!videoId) return null;
@@ -47,6 +62,16 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
               </p>
             )}
           </div>
+          <button
+            onClick={toggleMute}
+            className={`flex-shrink-0 p-2 rounded-md transition-colors ${
+              nightMode ? 'hover:bg-slate-700/50 text-slate-400 hover:text-slate-200' : 'hover:bg-slate-100/70 text-slate-500 hover:text-slate-700'
+            }`}
+            title={isMuted ? 'Unmute' : 'Mute'}
+            aria-label={isMuted ? 'Unmute music' : 'Mute music'}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
           <a
             href={url}
             target="_blank"
@@ -62,6 +87,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
 
         {/* Hidden YouTube Player (plays in background, muted) */}
         <iframe
+          ref={iframeRef}
           width="0"
           height="0"
           src={getYouTubeEmbedUrl(videoId)}
