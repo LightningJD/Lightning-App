@@ -86,7 +86,7 @@ function App() {
   });
   const [searchRadius, setSearchRadius] = useState(userProfile?.searchRadius || 25);
 
-  // Update settings when user profile loads
+  // Update settings when user profile loads (ONLY on initial load or user ID change)
   React.useEffect(() => {
     if (userProfile) {
       setPrivacySettings({
@@ -101,7 +101,7 @@ function App() {
       });
       setSearchRadius(userProfile.searchRadius || 25);
     }
-  }, [userProfile]);
+  }, [userProfile?.supabaseId]); // Only run when user ID changes, not on every profile update
 
   // Handlers for privacy settings
   const handlePrivacyToggle = async (setting: string, value: boolean | string): Promise<void> => {
