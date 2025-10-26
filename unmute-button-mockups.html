@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unmute Button Design Options</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 32px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 30px;
+    }
+
+    .option {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .option-title {
+      color: #60a5fa;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .music-player {
+      position: relative;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      max-width: 384px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .youtube-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      background: rgba(100, 116, 139, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    .youtube-icon svg {
+      width: 12px;
+      height: 12px;
+      fill: #ef4444;
+    }
+
+    .track-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .track-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .track-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .artist {
+      font-size: 12px;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .equalizer {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .bar {
+      width: 2px;
+      border-radius: 2px;
+      background: #3b82f6;
+    }
+
+    .bar1 { height: 4px; animation: eq1 0.6s ease-in-out infinite; }
+    .bar2 { height: 8px; animation: eq2 0.6s ease-in-out infinite 0.1s; }
+    .bar3 { height: 12px; animation: eq3 0.6s ease-in-out infinite 0.2s; }
+    .bar4 { height: 6px; animation: eq4 0.6s ease-in-out infinite 0.3s; }
+
+    @keyframes eq1 { 0%, 100% { height: 4px; } 50% { height: 14px; } }
+    @keyframes eq2 { 0%, 100% { height: 8px; } 50% { height: 16px; } }
+    @keyframes eq3 { 0%, 100% { height: 12px; } 50% { height: 6px; } }
+    @keyframes eq4 { 0%, 100% { height: 6px; } 50% { height: 12px; } }
+
+    .external-link {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .external-link:hover {
+      background: rgba(100, 116, 139, 0.5);
+    }
+
+    .external-link svg {
+      width: 16px;
+      height: 16px;
+      stroke: #94a3b8;
+    }
+
+    /* Option 1: Floating Badge */
+    .unmute-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    }
+
+    .unmute-badge:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.15) 100%);
+      border-color: rgba(59, 130, 246, 0.5);
+    }
+
+    .unmute-badge svg {
+      width: 14px;
+      height: 14px;
+      stroke: #60a5fa;
+    }
+
+    .unmute-badge span {
+      font-size: 12px;
+      color: #60a5fa;
+      font-weight: 500;
+    }
+
+    /* Option 2: Icon Button Top-Right */
+    .unmute-icon-btn {
+      position: absolute;
+      top: 8px;
+      right: 44px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+      border: 2px solid rgba(59, 130, 246, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .unmute-icon-btn:hover {
+      transform: scale(1.1);
+      border-color: rgba(59, 130, 246, 0.6);
+    }
+
+    .unmute-icon-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: #60a5fa;
+    }
+
+    /* Option 3: Inline Button in Header */
+    .unmute-inline {
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .unmute-inline:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%);
+    }
+
+    .unmute-inline svg {
+      width: 14px;
+      height: 14px;
+      stroke: #60a5fa;
+    }
+
+    .unmute-inline span {
+      font-size: 11px;
+      color: #60a5fa;
+      font-weight: 500;
+    }
+
+    /* Option 4: Pulsing Icon Corner */
+    .unmute-pulse {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.15) 100%);
+      border: 2px solid rgba(59, 130, 246, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+      50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+    }
+
+    .unmute-pulse svg {
+      width: 14px;
+      height: 14px;
+      stroke: #60a5fa;
+    }
+
+    /* Option 5: Bottom Strip */
+    .unmute-strip {
+      margin-top: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .unmute-strip:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%);
+    }
+
+    .unmute-strip svg {
+      width: 14px;
+      height: 14px;
+      stroke: #60a5fa;
+    }
+
+    .unmute-strip span {
+      font-size: 12px;
+      color: #60a5fa;
+      font-weight: 500;
+    }
+
+    /* Option 6: Left Sidebar Icon */
+    .player-with-sidebar {
+      display: flex;
+      gap: 8px;
+    }
+
+    .unmute-sidebar {
+      width: 32px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .unmute-sidebar:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.15) 100%);
+    }
+
+    .unmute-sidebar svg {
+      width: 16px;
+      height: 16px;
+      stroke: #60a5fa;
+    }
+
+    .player-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Option 7: Tooltip Style */
+    .unmute-tooltip-wrapper {
+      position: relative;
+    }
+
+    .unmute-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 8px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-4px); }
+    }
+
+    .unmute-tooltip svg {
+      width: 14px;
+      height: 14px;
+      stroke: #60a5fa;
+    }
+
+    .unmute-tooltip span {
+      font-size: 11px;
+      color: #60a5fa;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .unmute-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid rgba(59, 130, 246, 0.4);
+    }
+
+    /* Option 8: Chip Between Elements */
+    .header-with-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .unmute-chip {
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .unmute-chip:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.15) 100%);
+    }
+
+    .unmute-chip svg {
+      width: 12px;
+      height: 12px;
+      stroke: #60a5fa;
+    }
+
+    .unmute-chip .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #60a5fa;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Option 9: Compact Toggle Button */
+    .unmute-toggle {
+      width: 40px;
+      height: 20px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .unmute-toggle:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.15) 100%);
+    }
+
+    .unmute-toggle::after {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #60a5fa;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s;
+    }
+
+    /* Option 10: Mini Player Control */
+    .unmute-mini-control {
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+
+    .unmute-mini-control:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0.15) 100%);
+    }
+
+    .unmute-mini-control svg {
+      width: 14px;
+      height: 14px;
+      stroke: #60a5fa;
+    }
+
+    .unmute-mini-control .text {
+      font-size: 11px;
+      color: #60a5fa;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .unmute-mini-control .status {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 Unmute Button Design Options</h1>
+
+    <div class="grid">
+      <!-- Option 1: Floating Badge -->
+      <div class="option">
+        <div class="option-title">Option 1: Floating Badge (Top-Right)</div>
+        <div class="music-player">
+          <div class="unmute-badge">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Tap to unmute</span>
+          </div>
+
+          <div class="header">
+            <div class="youtube-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div class="track-info">
+              <div class="track-text">
+                <div class="track-name">YOUR WAY'S BETTER</div>
+                <div class="artist">Forrest Frank</div>
+              </div>
+              <div class="equalizer">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+              </div>
+            </div>
+            <div class="external-link">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 2: Icon Button -->
+      <div class="option">
+        <div class="option-title">Option 2: Circular Icon Button</div>
+        <div class="music-player">
+          <div class="unmute-icon-btn">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="header">
+            <div class="youtube-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div class="track-info">
+              <div class="track-text">
+                <div class="track-name">YOUR WAY'S BETTER</div>
+                <div class="artist">Forrest Frank</div>
+              </div>
+              <div class="equalizer">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+              </div>
+            </div>
+            <div class="external-link">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 3: Inline Button -->
+      <div class="option">
+        <div class="option-title">Option 3: Inline Button in Header</div>
+        <div class="music-player">
+          <div class="header">
+            <div class="youtube-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div class="track-info">
+              <div class="track-text">
+                <div class="track-name">YOUR WAY'S BETTER</div>
+                <div class="artist">Forrest Frank</div>
+              </div>
+              <div class="equalizer">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+              </div>
+            </div>
+            <div class="unmute-inline">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M11 5L6 9H2v6h4l5 4V5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Unmute</span>
+            </div>
+            <div class="external-link">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 4: Pulsing Icon -->
+      <div class="option">
+        <div class="option-title">Option 4: Pulsing Icon (Attention-Grabbing)</div>
+        <div class="music-player">
+          <div class="unmute-pulse">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M11 5L6 9H2v6h4l5 4V5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+
+          <div class="header">
+            <div class="youtube-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div class="track-info">
+              <div class="track-text">
+                <div class="track-name">YOUR WAY'S BETTER</div>
+                <div class="artist">Forrest Frank</div>
+              </div>
+              <div class="equalizer">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+              </div>
+            </div>
+            <div class="external-link">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 5: Bottom Strip -->
+      <div class="option">
+        <div class="option-title">Option 5: Bottom Strip (Subtle)</div>
+        <div class="music-player">
+          <div class="header">
+            <div class="youtube-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div class="track-info">
+              <div class="track-text">
+                <div class="track-name">YOUR WAY'S BETTER</div>
+                <div class="artist">Forrest Frank</div>
+              </div>
+              <div class="equalizer">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+              </div>
+            </div>
+            <div class="external-link">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="unmute-strip">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Click to unmute audio</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 6: Left Sidebar -->
+      <div class="option">
+        <div class="option-title">Option 6: Left Sidebar Icon</div>
+        <div class="music-player">
+          <div class="player-with-sidebar">
+            <div class="unmute-sidebar">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 010 7.07" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="player-content">
+              <div class="header" style="margin-bottom: 0;">
+                <div class="youtube-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </div>
+                <div class="track-info">
+                  <div class="track-text">
+                    <div class="track-name">YOUR WAY'S BETTER</div>
+                    <div class="artist">Forrest Frank</div>
+                  </div>
+                  <div class="equalizer">
+                    <div class="bar bar1"></div>
+                    <div class="bar bar2"></div>
+                    <div class="bar bar3"></div>
+                    <div class="bar bar4"></div>
+                  </div>
+                </div>
+                <div class="external-link">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 7: Floating Tooltip -->
+      <div class="option">
+        <div class="option-title">Option 7: Floating Tooltip (Animated)</div>
+        <div class="music-player unmute-tooltip-wrapper">
+          <div class="unmute-tooltip">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M11 5L6 9H2v6h4l5 4V5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Click to play audio</span>
+          </div>
+
+          <div class="header">
+            <div class="youtube-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div class="track-info">
+              <div class="track-text">
+                <div class="track-name">YOUR WAY'S BETTER</div>
+                <div class="artist">Forrest Frank</div>
+              </div>
+              <div class="equalizer">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+              </div>
+            </div>
+            <div class="external-link">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 8: Chip Between Elements -->
+      <div class="option">
+        <div class="option-title">Option 8: Indicator Chip (Clean)</div>
+        <div class="music-player">
+          <div class="header-with-chip">
+            <div class="youtube-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div class="track-info">
+              <div class="track-text">
+                <div class="track-name">YOUR WAY'S BETTER</div>
+                <div class="artist">Forrest Frank</div>
+              </div>
+              <div class="equalizer">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+              </div>
+            </div>
+            <div class="unmute-chip">
+              <div class="dot"></div>
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M11 5L6 9H2v6h4l5 4V5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="external-link">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 9: Toggle Switch -->
+      <div class="option">
+        <div class="option-title">Option 9: Compact Toggle Switch</div>
+        <div class="music-player">
+          <div class="header">
+            <div class="youtube-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div class="track-info">
+              <div class="track-text">
+                <div class="track-name">YOUR WAY'S BETTER</div>
+                <div class="artist">Forrest Frank</div>
+              </div>
+              <div class="equalizer">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+              </div>
+            </div>
+            <div class="unmute-toggle"></div>
+            <div class="external-link">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option 10: Mini Player Control -->
+      <div class="option">
+        <div class="option-title">Option 10: Mini Player Control Bar</div>
+        <div class="music-player">
+          <div class="header">
+            <div class="youtube-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div class="track-info">
+              <div class="track-text">
+                <div class="track-name">YOUR WAY'S BETTER</div>
+                <div class="artist">Forrest Frank</div>
+              </div>
+              <div class="equalizer">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+              </div>
+            </div>
+            <div class="external-link">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="unmute-mini-control">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M11 5L6 9H2v6h4l5 4V5z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="text">Tap to enable audio</div>
+            <div class="status">Muted</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

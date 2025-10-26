@@ -46,7 +46,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
         }}
       >
         {/* Track Info Header - Audio Player Style */}
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2">
           <div className={`w-6 h-6 rounded flex items-center justify-center relative opacity-70 ${nightMode ? 'bg-slate-700/30' : 'bg-slate-100/50'}`}>
             <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 24 24">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -97,6 +97,44 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
               />
             </div>
           </div>
+
+          {/* Inline Unmute Button */}
+          <button
+            onClick={toggleMute}
+            className={`flex-shrink-0 px-3 py-1 rounded-md transition-all border flex items-center gap-1.5 ${
+              isMuted
+                ? nightMode
+                  ? 'border-blue-500/30 text-blue-400 hover:border-blue-500/50'
+                  : 'border-blue-500/40 text-blue-600 hover:border-blue-500/60'
+                : nightMode
+                  ? 'border-green-500/30 text-green-400 hover:border-green-500/50'
+                  : 'border-green-500/40 text-green-600 hover:border-green-500/60'
+            }`}
+            style={nightMode ? {
+              background: isMuted
+                ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%)'
+                : 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%)',
+              boxShadow: isMuted
+                ? '0 1px 4px rgba(59, 130, 246, 0.2), inset 0 0.5px 0 rgba(59, 130, 246, 0.2)'
+                : '0 1px 4px rgba(34, 197, 94, 0.2), inset 0 0.5px 0 rgba(34, 197, 94, 0.2)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)'
+            } : {
+              background: isMuted
+                ? 'rgba(59, 130, 246, 0.15)'
+                : 'rgba(34, 197, 94, 0.15)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)',
+              boxShadow: isMuted
+                ? '0 1px 4px rgba(59, 130, 246, 0.15), inset 0 0.5px 1px rgba(59, 130, 246, 0.3)'
+                : '0 1px 4px rgba(34, 197, 94, 0.15), inset 0 0.5px 1px rgba(34, 197, 94, 0.3)'
+            }}
+            title={isMuted ? 'Click to unmute' : 'Click to mute'}
+          >
+            {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+            <span className="text-xs font-medium">{isMuted ? 'Unmute' : 'Mute'}</span>
+          </button>
+
           <a
             href={url}
             target="_blank"
@@ -109,53 +147,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
             <ExternalLink className="w-4 h-4" />
           </a>
         </div>
-
-        {/* Prominent Unmute Button - Glassmorphism Style */}
-        <button
-          onClick={toggleMute}
-          className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all border ${
-            isMuted
-              ? nightMode
-                ? 'border-blue-500/30 text-blue-400 hover:border-blue-500/50'
-                : 'border-blue-500/40 text-blue-600 hover:border-blue-500/60'
-              : nightMode
-                ? 'border-green-500/30 text-green-400 hover:border-green-500/50'
-                : 'border-green-500/40 text-green-600 hover:border-green-500/60'
-          }`}
-          style={nightMode ? {
-            background: isMuted
-              ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)'
-              : 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)',
-            boxShadow: isMuted
-              ? '0 2px 8px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(59, 130, 246, 0.2)'
-              : '0 2px 8px rgba(34, 197, 94, 0.2), inset 0 1px 0 rgba(34, 197, 94, 0.2)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)'
-          } : {
-            background: isMuted
-              ? 'rgba(59, 130, 246, 0.15)'
-              : 'rgba(34, 197, 94, 0.15)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-            boxShadow: isMuted
-              ? '0 2px 10px rgba(59, 130, 246, 0.15), inset 0 1px 2px rgba(59, 130, 246, 0.3)'
-              : '0 2px 10px rgba(34, 197, 94, 0.15), inset 0 1px 2px rgba(34, 197, 94, 0.3)'
-          }}
-        >
-          <div className="flex items-center justify-center gap-2">
-            {isMuted ? (
-              <>
-                <VolumeX className="w-5 h-5" />
-                <span>Click to Unmute & Play Audio</span>
-              </>
-            ) : (
-              <>
-                <Volume2 className="w-5 h-5" />
-                <span>Audio Playing</span>
-              </>
-            )}
-          </div>
-        </button>
 
         {/* Hidden YouTube Player (plays in background, muted) */}
         <iframe
