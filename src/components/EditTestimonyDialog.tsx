@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Save, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
+import { showSuccess, showError } from '../lib/toast';
 
 interface EditTestimonyDialogProps {
   testimony: any;
@@ -106,8 +107,11 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
     setIsSaving(true);
     try {
       await onSave(formData);
+      showSuccess('Testimony updated successfully!');
+      onClose(); // Close dialog after successful save
     } catch (error) {
       console.error('Error saving testimony:', error);
+      showError('Failed to save testimony. Please try again.');
       setErrors({ submit: 'Failed to save testimony. Please try again.' });
     } finally {
       setIsSaving(false);
