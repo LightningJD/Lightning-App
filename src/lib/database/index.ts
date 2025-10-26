@@ -11,7 +11,8 @@ export {
   updateUserProfile,
   updateUserLocation,
   findNearbyUsers,
-  updateOnlineStatus
+  updateOnlineStatus,
+  searchUsers
 } from './users.js';
 
 // Testimony Management

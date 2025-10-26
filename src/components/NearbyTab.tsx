@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Search, X } from 'lucide-react';
 import UserCard from './UserCard';
 import { UserCardSkeleton } from './SkeletonLoader';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
@@ -11,7 +12,8 @@ import {
   checkFriendshipStatus,
   getMutualFriends,
   isUserBlocked,
-  isBlockedBy
+  isBlockedBy,
+  searchUsers
 } from '../lib/database';
 
 interface User {
@@ -47,6 +49,9 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
   const [viewingUser, setViewingUser] = useState<User | null>(null);
   const [recommendedUsers, setRecommendedUsers] = useState<User[]>([]);
   const [friends, setFriends] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
 
   // Load users and friends from database
   useEffect(() => {
@@ -131,6 +136,70 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     loadData();
   }, [profile?.supabaseId, profile?.location?.lat, profile?.location?.lng]);
 
+  // Search handler with debouncing
+  useEffect(() => {
+    const handleSearch = async () => {
+      if (!searchQuery.trim()) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+
+      try {
+        const results = await searchUsers(searchQuery, profile?.supabaseId || null);
+
+        // Filter out blocked users
+        const unblockedResults = [];
+        for (const user of results) {
+          const blocked = await isUserBlocked(profile?.supabaseId || '', user.id);
+          const blockedBy = await isBlockedBy(profile?.supabaseId || '', user.id);
+          if (!blocked && !blockedBy) {
+            unblockedResults.push(user);
+          }
+        }
+
+        // Add friendship status
+        const enrichedResults = await Promise.all(
+          unblockedResults.map(async (user) => {
+            const friendshipStatus = await checkFriendshipStatus(profile?.supabaseId || '', user.id);
+            const mutualFriendsList = await getMutualFriends(profile?.supabaseId || '', user.id);
+
+            return {
+              id: user.id,
+              display_name: user.display_name || '',
+              displayName: user.display_name || '',
+              avatar_emoji: user.avatar_emoji || '👤',
+              avatar: user.avatar_emoji || '👤',
+              is_online: user.is_online || false,
+              online: user.is_online || false,
+              location_city: user.location_city,
+              location: user.location_city,
+              friendshipStatus,
+              mutualFriends: mutualFriendsList?.length || 0
+            } as User;
+          })
+        );
+
+        setSearchResults(enrichedResults);
+      } catch (error) {
+        console.error('Error searching users:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const timeoutId = setTimeout(handleSearch, 300); // Debounce search
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, profile?.supabaseId]);
+
+  const handleClearSearch = (): void => {
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
   const handleViewProfile = (user: User): void => {
     setViewingUser(user);
   };
@@ -198,6 +267,45 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
 
   return (
     <div className="py-4 space-y-6">
+      {/* Search Bar */}
+      <div className="px-4">
+        <div
+          className={`relative rounded-lg border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
+          style={nightMode ? {
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)'
+          } : {
+            background: 'rgba(255, 255, 255, 0.25)',
+            backdropFilter: 'blur(30px)',
+            WebkitBackdropFilter: 'blur(30px)',
+            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+          }}
+        >
+          <div className="flex items-center gap-2 px-4 py-3">
+            <Search className={`w-5 h-5 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name or username..."
+              className={`flex-1 bg-transparent border-none outline-none text-sm ${
+                nightMode ? 'text-slate-100 placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'
+              }`}
+            />
+            {searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className={`p-1 rounded-md transition-colors ${
+                  nightMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
+                }`}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="px-4">
         <div
           className={`rounded-xl border p-2 flex gap-2 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
@@ -302,7 +410,45 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
       )}
 
       <div className="px-4 pb-20" key={activeConnectTab}>
-        {isLoading ? (
+        {searchQuery ? (
+          // Show search results
+          isSearching ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <UserCardSkeleton key={i} nightMode={nightMode} />
+              ))}
+            </div>
+          ) : searchResults.length === 0 ? (
+            <div
+              className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+              style={nightMode ? {} : {
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(30px)',
+                WebkitBackdropFilter: 'blur(30px)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+              }}
+            >
+              <p className={`text-sm ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                No users found for "{searchQuery}"
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {searchResults.map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  onViewProfile={handleViewProfile}
+                  onMessage={handleMessage}
+                  onAddFriend={handleAddFriend}
+                  showReason={false}
+                  isFriend={user.friendshipStatus === 'accepted'}
+                  nightMode={nightMode}
+                />
+              ))}
+            </div>
+          )
+        ) : isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
               <UserCardSkeleton key={i} nightMode={nightMode} />

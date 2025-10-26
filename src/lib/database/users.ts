@@ -195,3 +195,30 @@ export const updateOnlineStatus = async (userId: string, isOnline: boolean): Pro
 
   return data;
 };
+
+/**
+ * Search users by display name or username
+ */
+export const searchUsers = async (
+  searchQuery: string,
+  currentUserId: string | null = null
+): Promise<User[]> => {
+  if (!supabase || !searchQuery.trim()) return [];
+
+  const query = searchQuery.trim().toLowerCase();
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .or(`display_name.ilike.%${query}%,username.ilike.%${query}%`)
+    .neq('id', currentUserId || '')
+    .eq('is_private', false) // Only search non-private profiles
+    .limit(20);
+
+  if (error) {
+    console.error('Error searching users:', error);
+    return [];
+  }
+
+  return (data || []) as unknown as User[];
+};
