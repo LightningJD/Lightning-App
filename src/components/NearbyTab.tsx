@@ -4,6 +4,7 @@ import UserCard from './UserCard';
 import { UserCardSkeleton } from './SkeletonLoader';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
 import { useUserProfile } from './useUserProfile';
+import { showSuccess, showError } from '../lib/toast';
 import {
   getFriends,
   findNearbyUsers,
@@ -223,8 +224,13 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
           u.id === userId ? { ...u, friendshipStatus: 'pending' } : u
         )
       );
+
+      // Show success feedback to user
+      showSuccess('Friend request sent!');
     } catch (error) {
       console.error('Error sending friend request:', error);
+      // Show error feedback to user
+      showError('Failed to send friend request. Please try again.');
     }
   };
 
@@ -237,8 +243,13 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
       const friendsList = await getFriends(profile.supabaseId);
       // @ts-ignore - friends type compatibility
       setFriends(friendsList || []);
+
+      // Show success feedback to user
+      showSuccess('Friend removed successfully');
     } catch (error) {
       console.error('Error unfriending user:', error);
+      // Show error feedback to user
+      showError('Failed to remove friend. Please try again.');
     }
   };
 
