@@ -215,7 +215,14 @@ export const validateMessage = (message: any, type: string = 'message'): {
   const limit = limits[type] || limits.message;
 
   if (!message || !message.trim()) {
-    errors.push(`${type.charAt(0).toUpperCase() + type.slice(1)} cannot be empty`);
+    const friendlyNames = {
+      'bugReport': 'Message',
+      'message': 'Message',
+      'comment': 'Comment',
+      'testimony': 'Testimony'
+    };
+    const displayName = friendlyNames[type as keyof typeof friendlyNames] || type.charAt(0).toUpperCase() + type.slice(1);
+    errors.push(`${displayName} field cannot be empty`);
     return { valid: false, errors, sanitized: '' };
   }
 
@@ -484,10 +491,12 @@ export const validateGroup = (group: any): {
   // Group name
   if (!group.name || !group.name.trim()) {
     errors.name = 'Group name is required';
-  } else if (group.name.length < limits.groupName.min) {
+  } else if (group.name.trim().length < limits.groupName.min) {
     errors.name = `Group name must be at least ${limits.groupName.min} characters`;
-  } else if (group.name.length > limits.groupName.max) {
+  } else if (group.name.trim().length > limits.groupName.max) {
     errors.name = `Group name must be less than ${limits.groupName.max} characters`;
+  } else if (!patterns.noSpecialChars.test(group.name.trim())) {
+    errors.name = 'Group name can only contain letters, numbers, spaces, and basic punctuation (. , ! ? \' -)';
   }
 
   // Group description

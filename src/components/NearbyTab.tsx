@@ -13,7 +13,8 @@ import {
   getMutualFriends,
   isUserBlocked,
   isBlockedBy,
-  searchUsers
+  searchUsers,
+  getAllUsers
 } from '../lib/database';
 
 interface User {
@@ -69,7 +70,9 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
         // @ts-ignore - friends type compatibility
         setFriends(friendsList || []);
 
-        // Load nearby users (if location available)
+        // Load nearby users (if location available) or all users as fallback
+        let usersToShow = [];
+
         // @ts-ignore - location type from profile
         if (profile.location?.lat && profile.location?.lng) {
           // @ts-ignore - location type from profile
@@ -79,53 +82,58 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
             profile.searchRadius || 25,
             profile.supabaseId
           );
-
-          // Filter out current user and existing friends
-          const friendIds = new Set(friendsList?.map(f => f.id) || []);
-          const filteredUsers = nearby?.filter(u =>
-            u.id !== profile.supabaseId && !friendIds.has(u.id)
-          ) || [];
-
-          // Filter out blocked users and users who blocked current user
-          const unblockedUsers = [];
-          for (const user of filteredUsers) {
-            const blocked = await isUserBlocked(profile.supabaseId, user.id);
-            const blockedBy = await isBlockedBy(profile.supabaseId, user.id);
-            if (!blocked && !blockedBy) {
-              unblockedUsers.push(user);
-            }
-          }
-
-          // Add mutual friends count and friendship status
-          const enrichedUsers = await Promise.all(
-            unblockedUsers.map(async (user) => {
-              const mutualFriends = await getMutualFriends(profile.supabaseId, user.id);
-              const friendshipStatus = await checkFriendshipStatus(profile.supabaseId, user.id);
-
-              return {
-                ...user,
-                displayName: user.display_name,
-                avatarImage: user.avatar_url,
-                // @ts-ignore - user type compatibility
-                avatar: user.avatar_emoji || '👤',
-                // @ts-ignore - user type compatibility
-                avatar_emoji: user.avatar_emoji || '👤',
-                // @ts-ignore - user type compatibility
-                online: user.online || false,
-                // @ts-ignore - user type compatibility
-                is_online: user.online || false,
-                location: user.location_city || 'Unknown',
-                mutualFriends: mutualFriends?.length || 0,
-                reason: mutualFriends?.length > 0
-                  ? `${mutualFriends.length} mutual friend${mutualFriends.length > 1 ? 's' : ''}`
-                  : 'Nearby',
-                friendshipStatus // 'pending', 'accepted', null
-              };
-            })
-          );
-
-          setRecommendedUsers(enrichedUsers as User[]);
+          usersToShow = nearby || [];
+        } else {
+          // Fallback: show all users when location is not available
+          const allUsers = await getAllUsers(profile.supabaseId, 50);
+          usersToShow = allUsers || [];
         }
+
+        // Filter out current user and existing friends
+        const friendIds = new Set(friendsList?.map(f => f.id) || []);
+        const filteredUsers = usersToShow.filter(u =>
+          u.id !== profile.supabaseId && !friendIds.has(u.id)
+        );
+
+        // Filter out blocked users and users who blocked current user
+        const unblockedUsers = [];
+        for (const user of filteredUsers) {
+          const blocked = await isUserBlocked(profile.supabaseId, user.id);
+          const blockedBy = await isBlockedBy(profile.supabaseId, user.id);
+          if (!blocked && !blockedBy) {
+            unblockedUsers.push(user);
+          }
+        }
+
+        // Add mutual friends count and friendship status
+        const enrichedUsers = await Promise.all(
+          unblockedUsers.map(async (user) => {
+            const mutualFriends = await getMutualFriends(profile.supabaseId, user.id);
+            const friendshipStatus = await checkFriendshipStatus(profile.supabaseId, user.id);
+
+            return {
+              ...user,
+              displayName: user.display_name,
+              avatarImage: user.avatar_url,
+              // @ts-ignore - user type compatibility
+              avatar: user.avatar_emoji || '👤',
+              // @ts-ignore - user type compatibility
+              avatar_emoji: user.avatar_emoji || '👤',
+              // @ts-ignore - user type compatibility
+              online: user.online || false,
+              // @ts-ignore - user type compatibility
+              is_online: user.online || false,
+              location: user.location_city || 'Unknown',
+              mutualFriends: mutualFriends?.length || 0,
+              reason: mutualFriends?.length > 0
+                ? `${mutualFriends.length} mutual friend${mutualFriends.length > 1 ? 's' : ''}`
+                : profile.location?.lat && profile.location?.lng ? 'Nearby' : 'Recommended',
+              friendshipStatus // 'pending', 'accepted', null
+            };
+          })
+        );
+
+        setRecommendedUsers(enrichedUsers as User[]);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -150,37 +158,21 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
       try {
         const results = await searchUsers(searchQuery, profile?.supabaseId || null);
 
-        // Filter out blocked users
-        const unblockedResults = [];
-        for (const user of results) {
-          const blocked = await isUserBlocked(profile?.supabaseId || '', user.id);
-          const blockedBy = await isBlockedBy(profile?.supabaseId || '', user.id);
-          if (!blocked && !blockedBy) {
-            unblockedResults.push(user);
-          }
-        }
-
-        // Add friendship status
-        const enrichedResults = await Promise.all(
-          unblockedResults.map(async (user) => {
-            const friendshipStatus = await checkFriendshipStatus(profile?.supabaseId || '', user.id);
-            const mutualFriendsList = await getMutualFriends(profile?.supabaseId || '', user.id);
-
-            return {
-              id: user.id,
-              display_name: user.display_name || '',
-              displayName: user.display_name || '',
-              avatar_emoji: user.avatar_emoji || '👤',
-              avatar: user.avatar_emoji || '👤',
-              is_online: user.is_online || false,
-              online: user.is_online || false,
-              location_city: user.location_city,
-              location: user.location_city,
-              friendshipStatus,
-              mutualFriends: mutualFriendsList?.length || 0
-            } as User;
-          })
-        );
+        // Skip blocking and friendship checks - just show all search results
+        const enrichedResults = results.map((user) => ({
+          id: user.id,
+          display_name: user.display_name || '',
+          displayName: user.display_name || '',
+          username: user.username || '',
+          avatar_emoji: user.avatar_emoji || '👤',
+          avatar: user.avatar_emoji || '👤',
+          is_online: user.is_online || false,
+          online: user.is_online || false,
+          location_city: user.location_city,
+          location: user.location_city,
+          friendshipStatus: 'none', // Always show as "not friends" so Add button appears
+          mutualFriends: 0
+        }));
 
         setSearchResults(enrichedResults);
       } catch (error) {
@@ -243,7 +235,13 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
   };
 
   const getSortedUsers = (usersList: User[]): User[] => {
-    return [...usersList].sort((a, b) => {
+    // Filter users when "Mutual" sort is active - only show users with mutual friends
+    let filteredUsers = usersList;
+    if (sortBy === 'mutual') {
+      filteredUsers = usersList.filter(u => (u.mutualFriends || 0) > 0);
+    }
+
+    return [...filteredUsers].sort((a, b) => {
       if (sortBy === 'online') {
         return (b.online ? 1 : 0) - (a.online ? 1 : 0);
       } else if (sortBy === 'mutual') {

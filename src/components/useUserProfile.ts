@@ -9,8 +9,9 @@ export const useUserProfile = () => {
   const { user, isLoaded, isSignedIn } = useUser();
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [testimony, setTestimony] = useState<any>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Sync user to Supabase when they sign in
+  // Sync user to Supabase when they sign in or when refresh is triggered
   useEffect(() => {
     const syncUser = async () => {
       if (isLoaded && isSignedIn && user) {
@@ -28,7 +29,17 @@ export const useUserProfile = () => {
     };
 
     syncUser();
-  }, [isLoaded, isSignedIn, user]);
+  }, [isLoaded, isSignedIn, user, refreshTrigger]);
+
+  // Listen for profile updates via custom event
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, []);
 
   if (!isLoaded || !isSignedIn) {
     return {

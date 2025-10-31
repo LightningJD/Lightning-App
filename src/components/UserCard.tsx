@@ -50,10 +50,12 @@ const UserCard: React.FC<UserCardProps> = ({ user, showReason, isFriend, nightMo
           </div>
           <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>@{user.username}</p>
           <div className="flex items-center gap-1.5 mt-1.5 text-[11px]">
-            <div className={`flex items-center gap-0.5 ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-              <MapPin className="w-3 h-3" />
-              <span>{Math.floor(parseFloat(user.distance))} mi</span>
-            </div>
+            {user.distance && !isNaN(parseFloat(user.distance)) && (
+              <div className={`flex items-center gap-0.5 ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                <MapPin className="w-3 h-3" />
+                <span>{Math.floor(parseFloat(user.distance))} mi</span>
+              </div>
+            )}
             {showReason && user.reason && !user.reason.toLowerCase().includes('similar interests') && (
               <span className={`${nightMode ? 'text-slate-100' : 'text-black'} text-[10px] font-medium`}>
                 • {user.reason.replace(' friends', '').replace(' friend', '')}

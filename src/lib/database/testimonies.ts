@@ -73,7 +73,6 @@ export const getTestimonyByUserId = async (userId: string): Promise<any> => {
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-    .limit(1)
     .single();
 
   if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -333,6 +332,27 @@ export const getTestimonyComments = async (testimonyId: string): Promise<{ comme
   } catch (error) {
     console.error('Error getting testimony comments:', error);
     return { comments: [] };
+  }
+};
+
+/**
+ * Delete a testimony (owner only)
+ */
+export const deleteTestimony = async (testimonyId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
+  if (!supabase) return { success: false, error: 'Database not initialized' };
+
+  try {
+    const { error } = await supabase
+      .from('testimonies')
+      .delete()
+      .eq('id', testimonyId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting testimony:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
 

@@ -35,6 +35,7 @@ import type { UserUpdate } from './types';
 function App() {
   const { signOut } = useClerk();
   const { isLoading, isAuthenticated, profile: userProfile } = useUserProfile();
+  const [localProfile, setLocalProfile] = useState<any | null>(null);
 
   const [currentTab, setCurrentTab] = useState('profile');
   const [showMenu, setShowMenu] = useState(false);
@@ -52,14 +53,15 @@ function App() {
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showTestimonyEdit, setShowTestimonyEdit] = useState(false);
   const [testimonyData, setTestimonyData] = useState<any>(null);
-  const notificationCounts = {
-    messages: 3,
-    groups: 2,
-    connect: 1
-  };
+  const [notificationCounts, setNotificationCounts] = React.useState({
+    messages: 0,
+    groups: 0,
+    connect: 0
+  });
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
   const [logoClicks, setLogoClicks] = useState(0);
+  const [startChatWith, setStartChatWith] = useState<{ id: string; name: string; avatar?: string } | null>(null);
   const [logoClickTimer, setLogoClickTimer] = useState<NodeJS.Timeout | null>(null);
   const [showSecretsMuseum, setShowSecretsMuseum] = useState(false);
   const [testimonyStartTime, setTestimonyStartTime] = useState<number | null>(null);
@@ -85,6 +87,38 @@ function App() {
     notifyNearby: userProfile?.notifyNearby !== false
   });
   const [searchRadius, setSearchRadius] = useState(userProfile?.searchRadius || 25);
+
+  // Sync local profile mirror when hook profile changes (enables optimistic UI updates)
+  React.useEffect(() => {
+    if (userProfile) {
+      setLocalProfile((prev) => {
+        // If switching users or first load, overwrite; otherwise merge to preserve optimistic fields
+        if (!prev || prev.supabaseId !== userProfile.supabaseId) {
+          return userProfile;
+        }
+
+        // Always update testimony-related fields when they change
+        if (prev.hasTestimony !== userProfile.hasTestimony || prev.story?.id !== userProfile.story?.id) {
+          return { ...prev, ...userProfile };
+        }
+
+        // Only merge if there are actual differences to prevent infinite loops
+        const hasChanges = Object.keys(userProfile).some(key =>
+          userProfile[key] !== prev[key] && !prev.hasOwnProperty(key)
+        );
+        return hasChanges ? { ...userProfile, ...prev } : prev;
+      });
+    } else {
+      setLocalProfile(null);
+    }
+  }, [userProfile?.supabaseId, userProfile?.displayName, userProfile?.username, userProfile?.bio, userProfile?.location, userProfile?.avatar, userProfile?.avatarImage, userProfile?.hasTestimony, userProfile?.story?.id]);
+
+  // Force re-render when username changes
+  React.useEffect(() => {
+    if (userProfile?.username && localProfile?.username !== userProfile.username) {
+      setLocalProfile(prev => prev ? { ...prev, username: userProfile.username } : null);
+    }
+  }, [userProfile?.username, localProfile?.username]);
 
   // Update settings when user profile loads (ONLY on initial load or user ID change)
   React.useEffect(() => {
@@ -257,8 +291,8 @@ function App() {
     trackNightModeUsage(newNightMode);
   };
 
-  // Use authenticated user profile, or fallback to demo profile for development
-  const profile = userProfile || {
+  // Use local mirror first, then hook profile, else demo profile for development
+  const profile = localProfile || userProfile || {
     username: "king_david",
     displayName: "David",
     avatar: "👑",
@@ -355,9 +389,9 @@ function App() {
                 setShowSaveTestimonyModal(false);
               }
 
-              // Reload to show the testimony on profile (only if still mounted)
+              // Dispatch custom event to trigger profile refresh (instead of full page reload)
               if (isMounted) {
-                setTimeout(() => window.location.reload(), 1500);
+                window.dispatchEvent(new CustomEvent('profileUpdated'));
               }
             } else {
               throw new Error('Failed to save testimony');
@@ -382,9 +416,10 @@ function App() {
   // Check if profile needs to be completed (first-time users)
   React.useEffect(() => {
     if (isAuthenticated && userProfile && userProfile.supabaseId) {
-      // Check if profile is incomplete (no custom bio or location)
-      const isProfileIncomplete = !userProfile.location ||
-                                   userProfile.bio === 'Welcome to Lightning! Share your testimony to inspire others.';
+      // Check if profile is incomplete - prioritize database profile_completed field
+      const isProfileIncomplete = !userProfile.profileCompleted && 
+                                 (!userProfile.location ||
+                                  userProfile.bio === 'Welcome to Lightning! Share your testimony to inspire others.');
 
       // Only show wizard if profile is incomplete and user hasn't completed it in this session
       if (isProfileIncomplete && !profileCompleted) {
@@ -393,6 +428,10 @@ function App() {
           setShowProfileWizard(true);
         }, 500);
         return () => clearTimeout(timer);
+      } else if (userProfile.profileCompleted) {
+        // If profile is completed in database, hide wizard and update local state
+        setShowProfileWizard(false);
+        setProfileCompleted(true);
       }
     }
   }, [isAuthenticated, userProfile, profileCompleted]);
@@ -493,6 +532,9 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
 
             // First Testimony Secret
             unlockSecret('first_testimony');
+
+            // Dispatch custom event to trigger profile refresh
+            window.dispatchEvent(new CustomEvent('profileUpdated'));
           } else {
             console.error('❌ Failed to save testimony');
             showError('Failed to save testimony. Please try again.');
@@ -605,6 +647,19 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
       if (updated) {
         console.log('✅ Profile updated successfully!', updated);
 
+        // Optimistically update local profile so changes reflect immediately
+        setLocalProfile((prev: any) => {
+          if (!prev) return prev;
+          const next = { ...prev };
+          if (profileData.displayName !== undefined) next.displayName = profileData.displayName;
+          if (profileData.username !== undefined) next.username = profileData.username;
+          if (profileData.bio !== undefined) next.bio = profileData.bio;
+          if (profileData.location !== undefined) next.location = profileData.location;
+          if (profileData.avatar !== undefined) next.avatar = profileData.avatar;
+          if (profileData.avatarUrl !== undefined) next.avatarImage = profileData.avatarUrl;
+          return next;
+        });
+
         // If testimony was edited, update it separately
         if (profileData.testimonyContent && userProfile.story?.id && userProfile.supabaseId) {
           await updateTestimony(userProfile.story.id, userProfile.supabaseId, {
@@ -627,8 +682,10 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
         // Check profile secrets (completion, bio length)
         checkProfileSecrets(profileData);
 
-        // Reload the page to reflect changes
-        setTimeout(() => window.location.reload(), 1000);
+        // Dispatch custom event to trigger profile refresh
+        window.dispatchEvent(new CustomEvent('profileUpdated'));
+
+        // No need to reload page - optimistic updates handle the UI
       } else {
         throw new Error('Failed to update profile');
       }
@@ -733,19 +790,40 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       case 'messages':
         return (
           <ComponentErrorBoundary name="Messages" nightMode={nightMode}>
-            <MessagesTab nightMode={nightMode} />
+            <MessagesTab
+              nightMode={nightMode}
+              onConversationsCountChange={(count) =>
+                setNotificationCounts((prev) => ({ ...prev, messages: count }))
+              }
+              startChatWith={startChatWith}
+            />
           </ComponentErrorBoundary>
         );
       case 'groups':
         return (
           <ComponentErrorBoundary name="Groups" nightMode={nightMode}>
-            <GroupsTab nightMode={nightMode} />
+            <GroupsTab
+              nightMode={nightMode}
+              onGroupsCountChange={(count) =>
+                setNotificationCounts((prev) => ({ ...prev, groups: count }))
+              }
+            />
           </ComponentErrorBoundary>
         );
       case 'connect':
         return (
           <ComponentErrorBoundary name="Connect" nightMode={nightMode}>
-            <NearbyTab sortBy={sortBy} setSortBy={setSortBy} activeConnectTab={activeConnectTab} setActiveConnectTab={setActiveConnectTab} nightMode={nightMode} onNavigateToMessages={() => setCurrentTab('messages')} />
+            <NearbyTab
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              activeConnectTab={activeConnectTab}
+              setActiveConnectTab={setActiveConnectTab}
+              nightMode={nightMode}
+              onNavigateToMessages={(user: any) => {
+                setStartChatWith({ id: String(user.id), name: user.displayName || user.username || 'User', avatar: user.avatar || user.avatar_emoji || '👤' });
+                setCurrentTab('messages');
+              }}
+            />
           </ComponentErrorBoundary>
         );
       case 'profile':
@@ -1441,20 +1519,33 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                 <button
                   onClick={nextTestimonyStep}
                   disabled={!testimonyAnswers[testimonyStep]?.trim() || isGenerating}
-                  className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 border ${
+                  className={`flex-1 px-5 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border shadow-sm ${
                     testimonyAnswers[testimonyStep]?.trim() && !isGenerating
                       ? nightMode
-                        ? 'text-slate-100 border-white/20'
-                        : 'text-slate-100 hover:opacity-90 border-white/30'
+                        ? 'text-slate-100 border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400'
+                        : 'text-white border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400'
                       : nightMode
-                        ? 'bg-white/5 text-slate-100 cursor-not-allowed border-white/10'
-                        : 'bg-slate-200 text-slate-400 cursor-not-allowed border-slate-300'
+                        ? 'bg-white/5 text-slate-100/60 cursor-not-allowed border-white/10'
+                        : 'bg-slate-200 text-slate-500 cursor-not-allowed border-slate-300'
                   }`}
                   style={testimonyAnswers[testimonyStep]?.trim() && !isGenerating ? {
-                    background: nightMode ? 'rgba(79, 150, 255, 0.85)' : themes[selectedTheme].lightGradient,
-                    backdropFilter: 'blur(30px)',
-                    WebkitBackdropFilter: 'blur(30px)'
+                    background: nightMode ? 'rgba(59, 130, 246, 0.95)' : 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
+                    boxShadow: nightMode
+                      ? '0 6px 18px rgba(59, 130, 246, 0.35)'
+                      : '0 6px 18px rgba(59, 130, 246, 0.35)',
+                    transform: 'translateY(0)'
                   } : {}}
+                  onMouseEnter={(e) => {
+                    if (testimonyAnswers[testimonyStep]?.trim() && !isGenerating) {
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (testimonyAnswers[testimonyStep]?.trim() && !isGenerating) {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }
+                  }}
+                  aria-label="Next"
                 >
                   {isGenerating ? (
                     <>

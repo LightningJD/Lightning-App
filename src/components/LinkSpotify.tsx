@@ -18,9 +18,12 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
     e.preventDefault();
 
     // Validate URL if provided (YouTube only)
-    if (spotifyUrl && !spotifyUrl.includes('youtube.com')) {
-      showError('Please enter a valid YouTube URL');
-      return;
+    if (spotifyUrl) {
+      const isValidYouTube = /^https?:\/\/(www\.)?(youtube\.com|youtu\.be|m\.youtube\.com)\/.+/.test(spotifyUrl);
+      if (!isValidYouTube) {
+        showError('Please enter a valid YouTube URL');
+        return;
+      }
     }
 
     setSaving(true);

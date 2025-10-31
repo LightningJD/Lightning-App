@@ -1,9 +1,35 @@
+import { useEffect } from 'react';
 import { SignUp } from '@clerk/clerk-react';
 
 const SignUpPage = () => {
   const lightGradient = `linear-gradient(135deg, rgba(219, 234, 254, 0.63) 0%, transparent 100%),
                         radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.175) 0%, transparent 60%),
                         linear-gradient(45deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%)`;
+
+  // Add placeholder text to username field after Clerk component mounts
+  useEffect(() => {
+    const addPlaceholder = () => {
+      const usernameInput = document.querySelector('input[name="username"]') as HTMLInputElement;
+      if (usernameInput && !usernameInput.placeholder) {
+        usernameInput.placeholder = 'Choose a username';
+      }
+    };
+
+    // Try immediately
+    addPlaceholder();
+
+    // Also try after a short delay to ensure Clerk has rendered
+    const timer = setTimeout(addPlaceholder, 100);
+
+    // Set up a MutationObserver to catch when Clerk adds the input
+    const observer = new MutationObserver(addPlaceholder);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: lightGradient }}>
@@ -30,7 +56,10 @@ const SignUpPage = () => {
                 socialButtonsBlockButton: 'border-slate-300 hover:bg-slate-50',
                 formFieldLabel: 'text-slate-700 font-semibold',
                 formFieldInput: 'border-slate-300 focus:border-blue-500',
-                footerActionLink: 'text-blue-500 hover:text-blue-600'
+                footerActionLink: 'text-blue-500 hover:text-blue-600',
+                formFieldInput__username: 'placeholder:text-slate-400',
+                formFieldInput__emailAddress: 'placeholder:text-slate-400',
+                formFieldInput__password: 'placeholder:text-slate-400'
               }
             }}
             routing="path"

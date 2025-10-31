@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ExternalLink, Volume2, VolumeX } from 'lucide-react';
+import { ExternalLink, Volume2, VolumeX, Play, Pause, Square } from 'lucide-react';
 import { getYouTubeVideoId, getSpotifyTrackId, getYouTubeEmbedUrl, getSpotifyEmbedUrl } from '../lib/musicUtils';
 
 interface MusicPlayerProps {
@@ -12,6 +12,7 @@ interface MusicPlayerProps {
 
 const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, artist, nightMode }) => {
   const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const toggleMute = () => {
@@ -23,6 +24,27 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
         '*'
       );
       setIsMuted(!isMuted);
+    }
+  };
+
+  const togglePlay = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      const func = isPlaying ? 'pauseVideo' : 'playVideo';
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func, args: [] }),
+        '*'
+      );
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const stopPlayback = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func: 'stopVideo', args: [] }),
+        '*'
+      );
+      setIsPlaying(false);
     }
   };
 
@@ -98,7 +120,31 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
             </div>
           </div>
 
-          {/* Inline Unmute Button */}
+            {/* Transport Controls */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={togglePlay}
+              className={`flex-shrink-0 px-3 py-1 rounded-md transition-all border flex items-center gap-1.5 ${
+                nightMode ? 'border-white/10 text-slate-200 hover:bg-slate-700/30' : 'border-white/30 text-slate-700 hover:bg-slate-100/70'
+              }`}
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              <span className="text-xs font-medium">{isPlaying ? 'Pause' : 'Play'}</span>
+            </button>
+
+            <button
+              onClick={stopPlayback}
+              className={`flex-shrink-0 px-3 py-1 rounded-md transition-all border flex items-center gap-1.5 ${
+                nightMode ? 'border-white/10 text-slate-200 hover:bg-slate-700/30' : 'border-white/30 text-slate-700 hover:bg-slate-100/70'
+              }`}
+              title="Stop"
+            >
+              <Square className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">Stop</span>
+            </button>
+
+            {/* Inline Mute Button */}
           <button
             onClick={toggleMute}
             className={`flex-shrink-0 px-3 py-1 rounded-md transition-all border flex items-center gap-1.5 ${
@@ -146,6 +192,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
           >
             <ExternalLink className="w-4 h-4" />
           </a>
+          </div>
         </div>
 
         {/* Hidden YouTube Player (plays in background, muted) */}

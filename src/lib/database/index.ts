@@ -12,7 +12,8 @@ export {
   updateUserLocation,
   findNearbyUsers,
   updateOnlineStatus,
-  searchUsers
+  searchUsers,
+  getAllUsers
 } from './users.js';
 
 // Testimony Management
@@ -20,6 +21,7 @@ export {
   createTestimony,
   getTestimonyByUserId,
   updateTestimony,
+  deleteTestimony,
   trackTestimonyView,
   getTestimonyViewCount,
   toggleTestimonyLike,

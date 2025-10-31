@@ -52,7 +52,7 @@ interface Conversation {
 }
 
 interface Connection {
-  id: number;
+  id: number | string;
   name: string;
   avatar: string;
   status: string;
@@ -65,9 +65,11 @@ interface Reaction {
 
 interface MessagesTabProps {
   nightMode: boolean;
+  onConversationsCountChange?: (count: number) => void;
+  startChatWith?: { id: string; name: string; avatar?: string } | null;
 }
 
-const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
+const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCountChange, startChatWith }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const [activeChat, setActiveChat] = useState<number | string | null>(null);
@@ -121,6 +123,15 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
       recipientInputRef.current.focus();
     }
   }, [showNewChatDialog]);
+
+  // Open New Chat dialog prefilled when launched from Connect/Search
+  useEffect(() => {
+    if (startChatWith && startChatWith.id && startChatWith.name) {
+      setSelectedConnections([{ id: startChatWith.id, name: startChatWith.name, avatar: startChatWith.avatar || '👤', status: 'online' }]);
+      setShowNewChatDialog(true);
+      setShowSuggestions(false);
+    }
+  }, [startChatWith]);
 
   // Reaction emojis (same as Groups)
   const reactionEmojis = [
@@ -177,6 +188,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode }) => {
         }
 
         setConversations(unblockedConversations);
+        // Inform parent for badge count (0 when none)
+        onConversationsCountChange?.(unblockedConversations.length || 0);
         setIsInitialLoad(false);
       }
     };

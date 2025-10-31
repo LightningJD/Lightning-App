@@ -7,6 +7,7 @@ import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUse
 import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
 import MusicPlayer from './MusicPlayer';
+import { deleteTestimony } from '../lib/database';
 
 interface ProfileTabProps {
   profile: any;
@@ -66,6 +67,22 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     loadLikeStatus();
   }, [profile?.story?.id, profile?.supabaseId, user]);
 
+  // Sync like count from database to avoid negative counts when already liked
+  React.useEffect(() => {
+    const loadLikeCount = async () => {
+      try {
+        if (profile?.story?.id) {
+          const { getTestimonyLikeCount } = await import('../lib/database');
+          const { count } = await getTestimonyLikeCount(profile.story.id);
+          setLikeCount(count || 0);
+        }
+      } catch (err) {
+        // keep existing count on failure
+      }
+    };
+    loadLikeCount();
+  }, [profile?.story?.id]);
+
   // Check testimony visibility based on privacy settings
   React.useEffect(() => {
     const checkVisibility = async () => {
@@ -97,7 +114,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     // Optimistic update
     const newLiked = !isLiked;
     setIsLiked(newLiked);
-    setLikeCount(newLiked ? likeCount + 1 : likeCount - 1);
+    setLikeCount((prev) => {
+      if (newLiked) return prev + 1;
+      return Math.max(0, prev - 1);
+    });
 
     // Update database
     const { success } = await toggleTestimonyLike(profile.story.id, profile.supabaseId);
@@ -108,7 +128,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     } else {
       // Revert on error
       setIsLiked(!newLiked);
-      setLikeCount(newLiked ? likeCount - 1 : likeCount + 1);
+      setLikeCount((prev) => {
+        // revert the optimistic change
+        if (newLiked) return Math.max(0, prev - 1);
+        return prev + 1;
+      });
     }
   };
 
@@ -299,8 +323,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                 <span className={`text-xs font-medium ${isLiked ? 'text-slate-100' : nightMode ? 'text-slate-100' : 'text-black'}`}>{likeCount}</span>
               </button>
 
-              {/* Edit Button */}
-              {onEditTestimony && profile?.story?.content && (
+              {/* Edit / Delete Buttons (owner only) */}
+              {onEditTestimony && profile?.story?.content && currentUserProfile?.supabaseId === profile?.supabaseId && (
                 <button
                   onClick={onEditTestimony}
                   className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${
@@ -323,6 +347,29 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                 >
                   <Edit3 className={`w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-black'}`} />
                   <span className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-black'}`}>Edit</span>
+                </button>
+              )}
+
+              {profile?.story?.id && currentUserProfile?.supabaseId === profile?.supabaseId && (
+                <button
+                  onClick={async () => {
+                    if (!profile?.story?.id || !profile?.supabaseId) return;
+                    if (!window.confirm('Delete your testimony? This cannot be undone.')) return;
+                    const { success } = await deleteTestimony(profile.story.id, profile.supabaseId);
+                    if (success) {
+                      window.location.reload();
+                    } else {
+                      alert('Failed to delete testimony. Please try again.');
+                    }
+                  }}
+                  className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${
+                    nightMode
+                      ? 'border-red-400 text-red-300 hover:bg-red-500/10'
+                      : 'border-red-300 text-red-600 hover:bg-red-50'
+                  }`}
+                  title="Delete testimony"
+                >
+                  Delete
                 </button>
               )}
             </div>
@@ -440,7 +487,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                   <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Share your thoughts on this testimony..."
+                    placeholder={profile?.story?.id ? 'Share your thoughts on this testimony...' : 'You can comment after adding a testimony.'}
                     className={`w-full px-4 py-3 rounded-xl border resize-none transition-all ${
                       nightMode
                         ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-400 focus:bg-white/10 focus:border-white/20'
@@ -455,11 +502,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
                     }}
                     rows={2}
-                    disabled={isSubmittingComment}
+                    disabled={isSubmittingComment || !profile?.story?.id}
                   />
                   <button
                     type="submit"
-                    disabled={!newComment.trim() || isSubmittingComment}
+                    disabled={isSubmittingComment || !profile?.story?.id}
                     className={`mt-2 px-5 py-2 rounded-lg font-medium text-sm transition-all ${
                       nightMode
                         ? 'bg-blue-500/80 hover:bg-blue-500 text-white disabled:opacity-40 disabled:cursor-not-allowed'
@@ -553,7 +600,27 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
 
         {/* Share Button */}
         <button
-          onClick={() => setShowQR(!showQR)}
+          onClick={async () => {
+            try {
+              const shareData = {
+                title: 'My Testimony on Lightning',
+                text: 'Be encouraged by this testimony on Lightning ✨',
+                url: window.location.href
+              };
+              // Prefer Web Share API if available
+              // @ts-ignore - navigator.share types vary across environments
+              if (navigator?.share && typeof navigator.share === 'function') {
+                // @ts-ignore
+                await navigator.share(shareData);
+              } else {
+                // Fallback to QR toggle
+                setShowQR((prev) => !prev);
+              }
+            } catch (err) {
+              // If user cancels or share fails, show QR fallback
+              setShowQR((prev) => !prev);
+            }
+          }}
           className={`w-full mt-3 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 text-sm transition-all duration-200 border ${nightMode ? 'text-slate-100 border-white/20' : 'text-black border-white/30'}`}
           style={nightMode ? {
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
@@ -580,6 +647,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
             }
           }}
+          aria-label="Share your testimony"
         >
           <Share2 className="w-4 h-4" />
           Share Testimony

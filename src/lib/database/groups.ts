@@ -5,6 +5,7 @@ interface GroupData {
   description?: string;
   avatarEmoji?: string;
   isPrivate?: boolean;
+  memberIds?: string[]; // optional initial members (excluding creator)
 }
 
 // ============================================
@@ -45,6 +46,20 @@ export const createGroup = async (creatorId: string, groupData: GroupData): Prom
       user_id: creatorId,
       role: 'leader'
     });
+
+  // Add initial members if provided
+  if (Array.isArray(groupData.memberIds) && groupData.memberIds.length > 0) {
+    const members = groupData.memberIds
+      .filter((id) => id && id !== creatorId)
+      .map((id) => ({ group_id: (group as any).id, user_id: id, role: 'member' }));
+
+    if (members.length > 0) {
+      await supabase
+        .from('group_members')
+        // @ts-ignore - Supabase generated types are incomplete
+        .insert(members);
+    }
+  }
 
   return group;
 };

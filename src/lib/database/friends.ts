@@ -29,9 +29,10 @@ export const sendFriendRequest = async (fromUserId: string, toUserId: string): P
   if (!supabase) return null;
 
   const insertData: any = {
-    user_id: fromUserId,
-    friend_id: toUserId,
-    status: 'pending'
+    user_id_1: fromUserId,
+    user_id_2: toUserId,
+    status: 'pending',
+    requested_by: fromUserId
   };
 
   const { data, error } = await supabase
@@ -68,11 +69,12 @@ export const acceptFriendRequest = async (requestId: string): Promise<Friend | n
   }
 
   // Create reverse friendship (so both users are friends)
-  const { user_id, friend_id } = data;
+  const { user_id_1, user_id_2 } = data;
   const insertData: any = {
-    user_id: friend_id,
-    friend_id: user_id,
-    status: 'accepted'
+    user_id_1: user_id_2,
+    user_id_2: user_id_1,
+    status: 'accepted',
+    requested_by: user_id_2
   };
 
   await supabase
@@ -110,8 +112,8 @@ export const getFriends = async (userId: string): Promise<FriendWithUser[]> => {
 
   const { data, error } = await supabase
     .from('friendships')
-    .select('*, friend:users!friend_id(id, username, display_name, avatar_emoji, avatar_url, is_online, bio, location_city)')
-    .eq('user_id', userId)
+    .select('*, friend:users!user_id_2(id, username, display_name, avatar_emoji, avatar_url, is_online, bio, location_city)')
+    .eq('user_id_1', userId)
     .eq('status', 'accepted');
 
   if (error) {
@@ -130,8 +132,8 @@ export const getPendingFriendRequests = async (userId: string): Promise<FriendRe
 
   const { data, error } = await supabase
     .from('friendships')
-    .select('*, sender:users!user_id(id, username, display_name, avatar_emoji, avatar_url, is_online, bio)')
-    .eq('friend_id', userId)
+    .select('*, sender:users!user_id_1(id, username, display_name, avatar_emoji, avatar_url, is_online, bio)')
+    .eq('user_id_2', userId)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
 
@@ -151,8 +153,8 @@ export const getSentFriendRequests = async (userId: string): Promise<FriendReque
 
   const { data, error } = await supabase
     .from('friendships')
-    .select('*, recipient:users!friend_id(id, username, display_name, avatar_emoji)')
-    .eq('user_id', userId)
+    .select('*, recipient:users!user_id_2(id, username, display_name, avatar_emoji)')
+    .eq('user_id_1', userId)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
 
@@ -174,7 +176,7 @@ export const unfriend = async (userId: string, friendId: string): Promise<boolea
   await supabase
     .from('friendships')
     .delete()
-    .or(`and(user_id.eq.${userId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${userId})`);
+    .or(`and(user_id_1.eq.${userId},user_id_2.eq.${friendId}),and(user_id_1.eq.${friendId},user_id_2.eq.${userId})`);
 
   return true;
 };
@@ -189,8 +191,7 @@ export const checkFriendshipStatus = async (userId: string, friendId: string): P
   const { data, error } = await supabase
     .from('friendships')
     .select('status')
-    .eq('user_id', userId)
-    .eq('friend_id', friendId)
+    .or(`and(user_id_1.eq.${userId},user_id_2.eq.${friendId}),and(user_id_1.eq.${friendId},user_id_2.eq.${userId})`)
     .single();
 
   if (error) {
@@ -210,8 +211,8 @@ export const getMutualFriends = async (userId1: string, userId2: string): Promis
   // Get user1's friends
   const { data: user1Friends, error: error1 } = await supabase
     .from('friendships')
-    .select('friend_id')
-    .eq('user_id', userId1)
+    .select('user_id_2')
+    .eq('user_id_1', userId1)
     .eq('status', 'accepted');
 
   if (error1) return [];
@@ -219,17 +220,17 @@ export const getMutualFriends = async (userId1: string, userId2: string): Promis
   // Get user2's friends
   const { data: user2Friends, error: error2 } = await supabase
     .from('friendships')
-    .select('friend_id')
-    .eq('user_id', userId2)
+    .select('user_id_2')
+    .eq('user_id_1', userId2)
     .eq('status', 'accepted');
 
   if (error2) return [];
 
   // Find intersection
-  const user1FriendIds = new Set((user1Friends as any[]).map((f: any) => f.friend_id));
+  const user1FriendIds = new Set((user1Friends as any[]).map((f: any) => f.user_id_2));
   const mutualFriendIds = (user2Friends as any[])
-    .filter((f: any) => user1FriendIds.has(f.friend_id))
-    .map((f: any) => f.friend_id);
+    .filter((f: any) => user1FriendIds.has(f.user_id_2))
+    .map((f: any) => f.user_id_2);
 
   if (mutualFriendIds.length === 0) return [];
 

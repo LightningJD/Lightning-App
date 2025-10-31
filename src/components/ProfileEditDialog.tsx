@@ -33,6 +33,22 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
     testimonyContent: profile?.testimony || '',
     testimonyLesson: profile?.testimonyLesson || ''
   });
+
+  // Update form data when profile changes to prevent stale data
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        displayName: profile.displayName || '',
+        username: profile.username || '',
+        bio: profile.bio || '',
+        location: profile.location || '',
+        avatar: profile.avatar || '👤',
+        avatarUrl: profile.avatarImage || null,
+        testimonyContent: profile.testimony || '',
+        testimonyLesson: profile.testimonyLesson || ''
+      });
+    }
+  }, [profile?.displayName, profile?.username, profile?.bio, profile?.location, profile?.avatar, profile?.avatarImage]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -104,7 +120,6 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
       return;
     }
 
-    const toastId = showLoading('Saving profile...');
     setIsSaving(true);
 
     try {
@@ -120,22 +135,23 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
       };
 
       await onSave(sanitizedData);
-      updateToSuccess(toastId, 'Profile updated successfully!');
     } catch (error) {
       console.error('Error saving profile:', error);
-      updateToError(toastId, error instanceof Error ? error.message : 'Failed to save profile. Please try again.');
+      showError(error instanceof Error ? error.message : 'Failed to save profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleInputChange = (field: keyof FormData, value: string | null) => {
-    setFormData({ ...formData, [field]: value });
+    setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field when user starts typing
     if (errors[field]) {
-      const newErrors = { ...errors };
-      delete newErrors[field];
-      setErrors(newErrors);
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
@@ -228,7 +244,10 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
                     <input
                       type="text"
                       value={formData.username}
-                      onChange={(e) => handleInputChange('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                      onChange={(e) => {
+                        const cleanValue = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                        handleInputChange('username', cleanValue);
+                      }}
                       placeholder="johndoe"
                       className={`w-full pl-8 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         nightMode
