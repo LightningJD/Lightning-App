@@ -46,7 +46,7 @@ export const sendFriendRequest = async (fromUserId: string, toUserId: string): P
     return null;
   }
 
-  return data;
+  return data as Friend;
 };
 
 /**
@@ -69,7 +69,7 @@ export const acceptFriendRequest = async (requestId: string): Promise<Friend | n
   }
 
   // Create reverse friendship (so both users are friends)
-  const { user_id_1, user_id_2 } = data;
+  const { user_id_1, user_id_2 } = data as any;
   const insertData: any = {
     user_id_1: user_id_2,
     user_id_2: user_id_1,
@@ -81,7 +81,7 @@ export const acceptFriendRequest = async (requestId: string): Promise<Friend | n
     .from('friendships')
     .insert(insertData);
 
-  return data;
+  return data as Friend;
 };
 
 /**

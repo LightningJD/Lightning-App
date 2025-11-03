@@ -91,7 +91,7 @@ function App() {
   // Sync local profile mirror when hook profile changes (enables optimistic UI updates)
   React.useEffect(() => {
     if (userProfile) {
-      setLocalProfile((prev) => {
+      setLocalProfile((prev: any) => {
         // If switching users or first load, overwrite; otherwise merge to preserve optimistic fields
         if (!prev || prev.supabaseId !== userProfile.supabaseId) {
           return userProfile;
@@ -103,8 +103,8 @@ function App() {
         }
 
         // Only merge if there are actual differences to prevent infinite loops
-        const hasChanges = Object.keys(userProfile).some(key =>
-          userProfile[key] !== prev[key] && !prev.hasOwnProperty(key)
+        const hasChanges = Object.keys(userProfile).some((key: string) =>
+          (userProfile as any)[key] !== (prev as any)[key] && !prev.hasOwnProperty(key)
         );
         return hasChanges ? { ...userProfile, ...prev } : prev;
       });
@@ -116,7 +116,7 @@ function App() {
   // Force re-render when username changes
   React.useEffect(() => {
     if (userProfile?.username && localProfile?.username !== userProfile.username) {
-      setLocalProfile(prev => prev ? { ...prev, username: userProfile.username } : null);
+      setLocalProfile((prev: any) => prev ? { ...prev, username: userProfile.username } : null);
     }
   }, [userProfile?.username, localProfile?.username]);
 

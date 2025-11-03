@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Save, User, MapPin, Book } from 'lucide-react';
 import ImageUploadButton from './ImageUploadButton';
-import { showError, showLoading, updateToSuccess, updateToError } from '../lib/toast';
+import { showError } from '../lib/toast';
 import { validateProfile, sanitizeInput } from '../lib/inputValidation';
 
 interface FormData {

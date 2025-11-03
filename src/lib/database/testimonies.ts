@@ -27,7 +27,6 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
 
   const { data, error } = await supabase
     .from('testimonies')
-    // @ts-ignore - Supabase generated types are incomplete
     .insert({
       user_id: userId,
       title: testimonyData.title || 'My Testimony',
@@ -43,7 +42,7 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
       music_track_name: testimonyData.musicTrackName,
       music_artist: testimonyData.musicArtist,
       music_audio_url: testimonyData.musicAudioUrl
-    })
+    } as any)
     .select()
     .single();
 

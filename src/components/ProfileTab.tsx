@@ -114,7 +114,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     // Optimistic update
     const newLiked = !isLiked;
     setIsLiked(newLiked);
-    setLikeCount((prev) => {
+    setLikeCount((prev: number) => {
       if (newLiked) return prev + 1;
       return Math.max(0, prev - 1);
     });
@@ -128,7 +128,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     } else {
       // Revert on error
       setIsLiked(!newLiked);
-      setLikeCount((prev) => {
+      setLikeCount((prev: number) => {
         // revert the optimistic change
         if (newLiked) return Math.max(0, prev - 1);
         return prev + 1;
@@ -179,7 +179,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
       }
 
       // Add comment to local state
-      setComments([...comments, {
+      setComments((prev: any[]) => [...prev, {
         ...(comment as any),
         users: {
           username: profile.username,
