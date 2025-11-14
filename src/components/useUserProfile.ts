@@ -23,7 +23,13 @@ export const useUserProfile = () => {
         // Load testimony if user has one
         if (dbUser && dbUser.id) {
           const userTestimony = await getTestimonyByUserId(dbUser.id);
-          setTestimony(userTestimony);
+          if (userTestimony) {
+            console.log('✅ Testimony loaded:', userTestimony.id);
+            setTestimony(userTestimony);
+          } else {
+            console.log('ℹ️ No testimony found for user:', dbUser.id);
+            setTestimony(null);
+          }
         }
       }
     };
@@ -85,17 +91,19 @@ export const useUserProfile = () => {
     searchRadius: supabaseUser?.search_radius || 25,
     spotifyUrl: supabaseUser?.spotify_url || null,
     music: testimony ? {
-      platform: testimony.music_platform || 'youtube',
+      // If music URL is not set, use defaults with correct platform
+      platform: testimony.music_spotify_url ? (testimony.music_platform || 'youtube') : 'youtube',
       trackName: testimony.music_track_name || "YOUR WAY'S BETTER",
       artist: testimony.music_artist || "Forrest Frank",
       spotifyUrl: testimony.music_spotify_url || "https://www.youtube.com/watch?v=T1LRsp8qBY0",
       audioUrl: testimony.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
       startTime: testimony.music_start_time || 0
     } : {
+      // Always show default music player, even without testimony
       platform: 'youtube' as const,
       trackName: "YOUR WAY'S BETTER",
       artist: "Forrest Frank",
-      spotifyUrl: "https://www.youtube.com/watch?v=T1LRsp8qBY0",
+      spotifyUrl: supabaseUser?.spotify_url || "https://www.youtube.com/watch?v=T1LRsp8qBY0",
       audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
       startTime: 0
     },

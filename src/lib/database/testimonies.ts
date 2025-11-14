@@ -376,3 +376,46 @@ export const deleteTestimonyComment = async (commentId: string, userId: string):
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 };
+
+/**
+ * Get public testimonies for browsing (with user info)
+ */
+export const getPublicTestimonies = async (limit: number = 20, offset: number = 0): Promise<any[]> => {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('testimonies')
+      .select(`
+        id,
+        user_id,
+        title,
+        content,
+        lesson,
+        view_count,
+        like_count,
+        created_at,
+        updated_at,
+        users:user_id (
+          id,
+          username,
+          display_name,
+          avatar_emoji,
+          avatar_url
+        )
+      `)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Error fetching public testimonies:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching public testimonies:', error);
+    return [];
+  }
+};

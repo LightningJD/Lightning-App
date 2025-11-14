@@ -20,7 +20,10 @@ import {
   pinMessage,
   unpinMessage,
   getPinnedMessages,
-  getFriends
+  getFriends,
+  getUserJoinRequests,
+  approveJoinRequest,
+  denyJoinRequest
 } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { GroupCardSkeleton } from './SkeletonLoader';
@@ -84,6 +87,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
   const [activeView, setActiveView] = useState<'list' | 'chat' | 'settings' | 'members'>('list');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [myGroups, setMyGroups] = useState<GroupData[]>([]);
+  const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<GroupMessage[]>([]);
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
@@ -140,19 +144,24 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     }
   }, [isGuest, checkAndShowModal]);
 
-  // Load user's groups
+  // Load user's groups and pending invitations
   useEffect(() => {
     const loadGroups = async () => {
       if (!profile?.supabaseId) return;
       try {
-        const groups = await getUserGroups(profile.supabaseId);
+        const [groups, invitations] = await Promise.all([
+          getUserGroups(profile.supabaseId),
+          getUserJoinRequests(profile.supabaseId)
+        ]);
         setMyGroups(groups || []);
+        setPendingInvitations(invitations || []);
         if (onGroupsCountChange) {
           onGroupsCountChange(groups?.length || 0);
         }
       } catch (error) {
         console.error('Failed to load groups:', error);
         setMyGroups([]);
+        setPendingInvitations([]);
       }
     };
 
@@ -420,7 +429,13 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     setIsSaving(false);
   };
 
-  const handleDeleteGroup = async () => {
+  const handleDeleteGroup = async (e?: React.MouseEvent) => {
+    // Prevent form submission if Delete button is inside a form
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     if (!window.confirm('Are you sure you want to delete this group? This cannot be undone.')) return;
 
     setIsDeleting(true);
@@ -456,6 +471,36 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     }
 
     setIsLeaving(false);
+  };
+
+  const handleAcceptInvitation = async (requestId: string, groupId: string) => {
+    if (!profile?.supabaseId) return;
+    
+    const result = await approveJoinRequest(requestId, groupId, profile.supabaseId);
+    
+    if (result) {
+      console.log('✅ Invitation accepted!');
+      // Reload groups and invitations
+      const [groups, invitations] = await Promise.all([
+        getUserGroups(profile.supabaseId),
+        getUserJoinRequests(profile.supabaseId)
+      ]);
+      setMyGroups(groups || []);
+      setPendingInvitations(invitations || []);
+    }
+  };
+
+  const handleDeclineInvitation = async (requestId: string) => {
+    if (!profile?.supabaseId) return;
+    
+    const result = await denyJoinRequest(requestId);
+    
+    if (result) {
+      console.log('✅ Invitation declined!');
+      // Reload invitations
+      const invitations = await getUserJoinRequests(profile.supabaseId);
+      setPendingInvitations(invitations || []);
+    }
   };
 
   const handleRemoveMember = async (userId: string) => {
@@ -637,17 +682,36 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
 
             {/* Member selection */}
             <div>
-              <label className={nightMode ? 'block text-sm font-semibold text-slate-100 mb-2' : 'block text-sm font-semibold text-black mb-2'}>
-                Add Members (optional)
-              </label>
-              <div className={nightMode ? 'max-h-40 overflow-auto rounded-xl border border-white/10 p-2' : 'max-h-40 overflow-auto rounded-xl border border-white/30 bg-white/60 p-2'}>
-                {inviteCandidates.length === 0 ? (
-                  <p className={nightMode ? 'text-sm text-slate-400 px-2 py-1' : 'text-sm text-slate-700 px-2 py-1'}>No friends to invite yet.</p>
-                ) : (
-                  inviteCandidates.map((u) => {
+              <div className="flex items-center justify-between mb-2">
+                <label className={nightMode ? 'block text-sm font-semibold text-slate-100' : 'block text-sm font-semibold text-black'}>
+                  Add Members (optional)
+                </label>
+                {selectedMemberIds.length > 0 && (
+                  <span className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {selectedMemberIds.length} selected
+                  </span>
+                )}
+              </div>
+              
+              {inviteCandidates.length === 0 ? (
+                <div className={`rounded-xl border p-4 text-center ${nightMode ? 'border-white/10 bg-white/5' : 'border-white/30 bg-white/60'}`}>
+                  <p className={nightMode ? 'text-sm text-slate-400' : 'text-sm text-slate-700'}>
+                    No friends to invite yet. Add friends from the Connect tab first.
+                  </p>
+                </div>
+              ) : (
+                <div className={`max-h-48 overflow-auto rounded-xl border ${nightMode ? 'border-white/10 bg-white/5' : 'border-white/30 bg-white/60'} p-3 space-y-2`}>
+                  {inviteCandidates.map((u) => {
                     const checked = selectedMemberIds.includes(u.id);
                     return (
-                      <label key={u.id} className="flex items-center gap-3 px-2 py-2 cursor-pointer">
+                      <label 
+                        key={u.id} 
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                          checked 
+                            ? nightMode ? 'bg-blue-500/20 border border-blue-500/30' : 'bg-blue-50 border border-blue-200'
+                            : nightMode ? 'hover:bg-white/5' : 'hover:bg-white/40'
+                        }`}
+                      >
                         <input
                           type="checkbox"
                           checked={checked}
@@ -658,15 +722,36 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                               setSelectedMemberIds((prev) => prev.filter((id) => id !== String(u.id)));
                             }
                           }}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className={nightMode ? 'text-slate-100' : 'text-black'}>
-                          {u.display_name || u.username}
-                        </span>
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className={`text-base ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                            {u.avatar_emoji || '👤'}
+                          </span>
+                          <div className="flex-1">
+                            <span className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                              {u.display_name || u.username}
+                            </span>
+                            {u.location_city && (
+                              <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                                {u.location_city}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </label>
                     );
-                  })
-                )}
-              </div>
+                  })}
+                </div>
+              )}
+              
+              {selectedMemberIds.length > 0 && (
+                <div className="mt-2">
+                  <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'} mb-1`}>
+                    Selected members will receive a notification to join the group.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 pt-2">
@@ -771,7 +856,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
 
               <button
                 type="submit"
-                disabled={isSaving || isDeleting || !editGroupName.trim()}
+                disabled={isSaving || !editGroupName.trim()}
                 className={`w-full px-4 py-3 border rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
                 style={{
                   background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
@@ -780,7 +865,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                     : '0 4px 12px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
                 }}
                 onMouseEnter={(e) => {
-                  if (!isSaving && !isDeleting && editGroupName.trim()) {
+                  if (!isSaving && editGroupName.trim()) {
                     e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)';
                   }
                 }}
@@ -807,8 +892,8 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
               </p>
               <button
                 type="button"
-                onClick={handleDeleteGroup}
-                disabled={isDeleting || isSaving}
+                onClick={(e) => handleDeleteGroup(e)}
+                disabled={isDeleting}
                 className="w-full px-4 py-3 bg-red-500 text-slate-100 rounded-xl font-semibold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md transition-all"
               >
                 <Trash2 className="w-4 h-4" />
@@ -1705,6 +1790,70 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
           </button>
         </div>
       </div>
+
+      {/* Pending Invitations */}
+      {pendingInvitations.length > 0 && (
+        <div>
+          <h3 className={nightMode ? 'text-sm font-semibold text-slate-100 mb-2' : 'text-sm font-semibold text-black mb-2'}>
+            Group Invitations ({pendingInvitations.length})
+          </h3>
+          <div className="space-y-2">
+            {pendingInvitations.map((invitation) => (
+              <div
+                key={invitation.id}
+                className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+                style={nightMode ? {} : {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="text-3xl">{invitation.group?.avatar_emoji || '✝️'}</div>
+                  <div className="flex-1">
+                    <h4 className={nightMode ? 'font-semibold text-slate-100' : 'font-semibold text-black'}>
+                      {invitation.group?.name || 'Group'}
+                    </h4>
+                    <p className={nightMode ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>
+                      You've been invited to join this group
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAcceptInvitation(invitation.id, invitation.group_id)}
+                    className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all border text-slate-100 ${nightMode ? 'border-white/20' : 'border-white/30'}`}
+                    style={{
+                      background: 'rgba(79, 150, 255, 0.85)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
+                    }}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleDeclineInvitation(invitation.id)}
+                    className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all border ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100 border-white/10' : 'text-black hover:bg-white/30 border-white/30'}`}
+                    style={nightMode ? {} : {
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)'
+                    }}
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* My Groups */}
       <div>

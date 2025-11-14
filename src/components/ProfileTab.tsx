@@ -272,6 +272,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         </div>
       )}
 
+      {/* Music Player - Only show when there's a testimony or profile song */}
       {profile.music && profile.music.spotifyUrl && (
         <div className="px-4">
           <MusicPlayer
@@ -284,6 +285,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         </div>
       )}
 
+      {/* Testimony Section - Only show when testimony exists */}
+      {profile?.story?.id && (
       <div className="px-4">
         <div
           className={`p-6 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.08)]'}`}
@@ -296,10 +299,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center gap-2`}>
-              <span>✨</span> {profile?.story?.title}
+              <span>✨</span> {profile?.story?.title || 'My Testimony'}
             </h2>
             <div className="flex items-center gap-2">
-              {/* Like Button - Top Right */}
+              {/* Like Button - Top Right - Only show when testimony exists */}
+              {profile?.story?.id && (
               <button
                 onClick={handleLike}
                 className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${isLiked ? 'border-red-500' : nightMode ? 'border-white/20' : 'border-white/30'}`}
@@ -322,6 +326,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                 <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-slate-100' : nightMode ? 'text-slate-100' : 'text-black'}`} />
                 <span className={`text-xs font-medium ${isLiked ? 'text-slate-100' : nightMode ? 'text-slate-100' : 'text-black'}`}>{likeCount}</span>
               </button>
+              )}
 
               {/* Edit / Delete Buttons (owner only) */}
               {onEditTestimony && profile?.story?.content && currentUserProfile?.supabaseId === profile?.supabaseId && (
@@ -376,7 +381,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           </div>
 
           {/* Testimony Content - Privacy Protected */}
-          {canView ? (
+          {profile?.story?.id && canView ? (
             <>
               <p
                 className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}
@@ -421,7 +426,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
             </div>
           )}
             </>
-          ) : (
+          ) : profile?.story?.id && !canView ? (
             <div className={`text-center py-8 ${nightMode ? 'bg-white/5' : 'bg-slate-50'} rounded-lg`}>
               <div className="flex flex-col items-center gap-3">
                 <div className={`p-3 rounded-full ${nightMode ? 'bg-white/10' : 'bg-white/50'}`}>
@@ -439,13 +444,21 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                 </div>
               </div>
             </div>
+          ) : (
+            <div className={`text-center py-8 ${nightMode ? 'bg-white/5' : 'bg-slate-50'} rounded-lg`}>
+              <p className={`text-sm ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                No testimony yet. Click the + button to add your testimony.
+              </p>
+            </div>
           )}
         </div>
       </div>
+      )}
 
       <div className="px-4 pb-20">
 
-        {/* Comments Section - Always Visible */}
+        {/* Comments Section - Only show when testimony exists */}
+        {profile?.story?.id && (
         <div
           className={`mt-4 p-5 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
           style={nightMode ? {} : {
@@ -597,8 +610,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
             </div>
           )}
         </div>
+        )}
 
-        {/* Share Button */}
+        {/* Share Button - Only show when testimony exists */}
+        {profile?.story?.id && (
         <button
           onClick={async () => {
             try {
@@ -652,10 +667,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           <Share2 className="w-4 h-4" />
           Share Testimony
         </button>
+        )}
       </div>
 
       {/* Floating Action Button (FAB) for Add Testimony - Only show if user doesn't have testimony */}
-      {onAddTestimony && !profile?.hasTestimony && (
+      {onAddTestimony && !profile?.story?.id && (
         <button
           onClick={onAddTestimony}
           className="fixed bottom-20 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 z-40 text-white"

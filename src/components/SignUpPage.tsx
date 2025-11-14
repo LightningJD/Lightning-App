@@ -9,24 +9,80 @@ const SignUpPage = () => {
   // Add placeholder text to username field after Clerk component mounts
   useEffect(() => {
     const addPlaceholder = () => {
-      const usernameInput = document.querySelector('input[name="username"]') as HTMLInputElement;
-      if (usernameInput && !usernameInput.placeholder) {
-        usernameInput.placeholder = 'Choose a username';
+      // Try multiple selectors to find the username input field
+      const selectors = [
+        'input[name="username"]',
+        'input[id*="username"]',
+        'input[type="text"][autocomplete="username"]',
+        'input[data-testid*="username"]',
+        'input[aria-label*="username" i]',
+        'input[aria-label*="Username" i]',
+        // Clerk-specific selectors
+        'input[type="text"]:not([name="emailAddress"]):not([name="password"]):not([name="firstName"]):not([name="lastName"])'
+      ];
+
+      for (const selector of selectors) {
+        const inputs = document.querySelectorAll<HTMLInputElement>(selector);
+        for (const input of inputs) {
+          // Check if this is likely the username field (not email, password, etc.)
+          const name = input.name?.toLowerCase() || '';
+          const id = input.id?.toLowerCase() || '';
+          const ariaLabel = input.getAttribute('aria-label')?.toLowerCase() || '';
+          
+          if (
+            (name.includes('username') || id.includes('username') || ariaLabel.includes('username')) &&
+            input.type === 'text' &&
+            !input.placeholder
+          ) {
+            input.placeholder = 'Choose a username (e.g., johndoe)';
+            return; // Found and set, exit early
+          }
+        }
+      }
+
+      // Fallback: find the first text input that doesn't have a placeholder and isn't email/password
+      const allTextInputs = document.querySelectorAll<HTMLInputElement>('input[type="text"]');
+      for (const input of allTextInputs) {
+        const name = input.name?.toLowerCase() || '';
+        if (
+          !name.includes('email') &&
+          !name.includes('password') &&
+          !name.includes('first') &&
+          !name.includes('last') &&
+          !input.placeholder &&
+          !input.value
+        ) {
+          input.placeholder = 'Choose a username (e.g., johndoe)';
+          return;
+        }
       }
     };
 
     // Try immediately
     addPlaceholder();
 
-    // Also try after a short delay to ensure Clerk has rendered
-    const timer = setTimeout(addPlaceholder, 100);
+    // Try multiple times with increasing delays to catch Clerk's async rendering
+    const timers = [
+      setTimeout(addPlaceholder, 100),
+      setTimeout(addPlaceholder, 300),
+      setTimeout(addPlaceholder, 500),
+      setTimeout(addPlaceholder, 1000),
+      setTimeout(addPlaceholder, 2000)
+    ];
 
     // Set up a MutationObserver to catch when Clerk adds the input
-    const observer = new MutationObserver(addPlaceholder);
-    observer.observe(document.body, { childList: true, subtree: true });
+    const observer = new MutationObserver(() => {
+      addPlaceholder();
+    });
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['placeholder', 'name', 'id']
+    });
 
     return () => {
-      clearTimeout(timer);
+      timers.forEach(timer => clearTimeout(timer));
       observer.disconnect();
     };
   }, []);

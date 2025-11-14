@@ -47,17 +47,57 @@ export const createGroup = async (creatorId: string, groupData: GroupData): Prom
       role: 'leader'
     });
 
-  // Add initial members if provided
+  // Add initial members if provided - create join requests and send notifications
   if (Array.isArray(groupData.memberIds) && groupData.memberIds.length > 0) {
-    const members = groupData.memberIds
-      .filter((id) => id && id !== creatorId)
-      .map((id) => ({ group_id: (group as any).id, user_id: id, role: 'member' }));
+    const memberIds = groupData.memberIds.filter((id) => id && id !== creatorId);
+    
+    if (memberIds.length > 0) {
+      // Create join requests for each member
+      const joinRequests = memberIds.map((id) => ({
+        group_id: (group as any).id,
+        user_id: id,
+        status: 'pending',
+        message: `You've been invited to join ${groupData.name}`
+      }));
 
-    if (members.length > 0) {
-      await supabase
-        .from('group_members')
+      const { error: joinRequestError } = await supabase
+        .from('join_requests')
         // @ts-ignore - Supabase generated types are incomplete
-        .insert(members);
+        .insert(joinRequests);
+
+      if (joinRequestError) {
+        console.error('Error creating join requests:', joinRequestError);
+      }
+
+      // Get creator's display name for notification
+      const { data: creatorData } = await supabase
+        .from('users')
+        .select('display_name, username')
+        .eq('id', creatorId)
+        .single();
+
+      const creatorName = creatorData?.display_name || creatorData?.username || 'Someone';
+
+      // Create notifications for each invited member
+      const notifications = memberIds.map((id) => ({
+        user_id: id,
+        type: 'group_invite',
+        title: 'Group Invitation',
+        content: `${creatorName} invited you to join "${groupData.name}"`,
+        link: `/groups/${(group as any).id}`,
+        is_read: false
+      }));
+
+      const { error: notificationError } = await supabase
+        .from('notifications')
+        // @ts-ignore - Supabase generated types are incomplete
+        .insert(notifications);
+
+      if (notificationError) {
+        console.error('Error creating notifications:', notificationError);
+      } else {
+        console.log(`✅ Created ${notifications.length} group invitation notifications`);
+      }
     }
   }
 
@@ -364,6 +404,28 @@ export const getGroupJoinRequests = async (groupId: string): Promise<any[]> => {
 
   if (error) {
     console.error('Error fetching join requests:', error);
+    return [];
+  }
+
+  return data;
+};
+
+/**
+ * Get user's pending group invitations
+ */
+export const getUserJoinRequests = async (userId: string): Promise<any[]> => {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('join_requests')
+    // @ts-ignore - Supabase generated types don't handle nested relations
+    .select('*, group:groups!group_id(*)')
+    .eq('user_id', userId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false});
+
+  if (error) {
+    console.error('Error fetching user join requests:', error);
     return [];
   }
 

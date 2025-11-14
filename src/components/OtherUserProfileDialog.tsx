@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { X, MapPin, MessageCircle, Flag, UserPlus, Heart } from 'lucide-react';
+import { X, MapPin, MessageCircle, Flag, UserPlus, Heart, UserX } from 'lucide-react';
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
 import { sanitizeUserContent } from '../lib/sanitization';
-import { sendFriendRequest, checkFriendshipStatus } from '../lib/database';
+import { sendFriendRequest, checkFriendshipStatus, blockUser, isUserBlocked } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
 import MusicPlayer from './MusicPlayer';
 
@@ -62,13 +62,19 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [friendStatus, setFriendStatus] = useState<'none' | 'pending' | 'accepted' | 'rejected'>('none');
   const [sendingRequest, setSendingRequest] = useState(false);
+  const [isBlocked, setIsBlocked] = useState<boolean>(false);
+  const [blocking, setBlocking] = useState<boolean>(false);
 
-  // Check friendship status
+  // Check friendship status and block status
   React.useEffect(() => {
     const checkStatus = async () => {
       if (currentUserProfile?.supabaseId && user?.id) {
-        const status = await checkFriendshipStatus(currentUserProfile.supabaseId, user.id);
+        const [status, blocked] = await Promise.all([
+          checkFriendshipStatus(currentUserProfile.supabaseId, user.id),
+          isUserBlocked(currentUserProfile.supabaseId, user.id)
+        ]);
         setFriendStatus(status || 'none');
+        setIsBlocked(blocked);
       }
     };
     checkStatus();
@@ -87,6 +93,29 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
       showError('Failed to send friend request');
     } finally {
       setSendingRequest(false);
+    }
+  };
+
+  const handleBlockUser = async () => {
+    if (!currentUserProfile?.supabaseId || !user?.id) return;
+
+    const confirmMessage = `Block ${user.displayName || user.username}? They won't be able to message you, see your profile, or find you in searches.`;
+    if (!window.confirm(confirmMessage)) return;
+
+    setBlocking(true);
+    try {
+      await blockUser(currentUserProfile.supabaseId, user.id);
+      setIsBlocked(true);
+      showSuccess(`${user.displayName || user.username} has been blocked`);
+      // Close the dialog after blocking
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      showError('Failed to block user');
+    } finally {
+      setBlocking(false);
     }
   };
 
@@ -182,22 +211,33 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
 
             {/* Action Buttons */}
             <div className="flex gap-3 max-w-md mx-auto pt-2">
-              <button
-                onClick={() => onMessage(user)}
-                className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-100 border ${
-                  nightMode ? 'border-white/20' : 'border-white/30'
-                }`}
-                style={{
-                  background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
-                  boxShadow: nightMode
-                    ? '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                    : '0 4px 12px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-                }}
-                aria-label={`Send message to ${user.displayName}`}
-              >
-                <MessageCircle className="w-5 h-5" />
-                Message
-              </button>
+              {!isBlocked && (
+                <button
+                  onClick={() => onMessage(user)}
+                  className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-100 border ${
+                    nightMode ? 'border-white/20' : 'border-white/30'
+                  }`}
+                  style={{
+                    background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                    boxShadow: nightMode
+                      ? '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                      : '0 4px 12px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                  }}
+                  aria-label={`Send message to ${user.displayName}`}
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Message
+                </button>
+              )}
+
+              {isBlocked && (
+                <div className={`flex-1 px-6 py-3 rounded-xl border text-center ${
+                  nightMode ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-white/50 border-white/30 text-slate-500'
+                }`}>
+                  <UserX className="w-5 h-5 inline-block mr-2" />
+                  <span className="text-sm font-medium">Blocked</span>
+                </div>
+              )}
 
               <button
                 onClick={() => {
@@ -211,6 +251,21 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               >
                 <Flag className="w-5 h-5" />
               </button>
+
+              {!isBlocked && (
+                <button
+                  onClick={handleBlockUser}
+                  disabled={blocking}
+                  className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${
+                    nightMode 
+                      ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10' 
+                      : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
+                  } ${blocking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  aria-label={`Block ${user.displayName}`}
+                >
+                  <UserX className="w-5 h-5" />
+                </button>
+              )}
             </div>
 
             {/* Music Player + Stats Row */}

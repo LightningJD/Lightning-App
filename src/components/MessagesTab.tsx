@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Smile, Plus, X } from 'lucide-react';
-import { sendMessage, getConversation, getUserConversations, subscribeToMessages, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy, createGroup, sendGroupMessage } from '../lib/database';
+import { Smile, Plus, X, Reply, Trash2, MoreVertical, UserX } from 'lucide-react';
+import { sendMessage, getConversation, getUserConversations, subscribeToMessages, subscribeToMessageReactions, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy, createGroup, sendGroupMessage, addReaction, removeReaction, getMessageReactions, deleteMessage, blockUser, markConversationAsRead } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { showError, showSuccess } from '../lib/toast';
 import { ConversationSkeleton } from './SkeletonLoader';
@@ -33,6 +33,16 @@ interface Message {
   recipient_id: string;
   content: string;
   created_at: string;
+  reply_to_message_id?: string;
+  reply_to?: {
+    id: string;
+    content: string;
+    sender: {
+      username: string;
+      display_name: string;
+      avatar_emoji: string;
+    };
+  };
   sender?: {
     username: string;
     display_name: string;
@@ -87,9 +97,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   const [newChatMessage, setNewChatMessage] = useState<string>('');
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const [selectedConnections, setSelectedConnections] = useState<Connection[]>([]);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recipientInputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
+  const reactionSubscriptionRef = useRef<any>(null);
 
   // Helper function to check if message is in bottom half of viewport
   const isMessageInBottomHalf = (messageId: string | number): boolean => {
@@ -142,25 +154,69 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   ];
 
   // Handle reaction toggle
-  const handleReaction = (messageId: string | number, emoji: string): void => {
-    setMessageReactions(prev => {
-      const current = prev[messageId] || [];
-      const hasReacted = current.some(r => r.emoji === emoji && r.userId === profile?.supabaseId);
+  const handleReaction = async (messageId: string | number, emoji: string): Promise<void> => {
+    if (!profile?.supabaseId) return;
 
-      if (hasReacted) {
-        // Remove reaction
-        return {
+    const reactions = messageReactions[messageId] || [];
+    const existingReaction = reactions.find(
+      r => r.userId === profile.supabaseId && r.emoji === emoji
+    );
+
+    if (existingReaction) {
+      // Optimistically remove reaction from UI immediately
+      setMessageReactions(prev => ({
+        ...prev,
+        [messageId]: reactions.filter(r => r.userId !== profile?.supabaseId || r.emoji !== emoji)
+      }));
+
+      // Then remove from database in background
+      // @ts-ignore - message id type compatibility
+      const result = await removeReaction(String(messageId), profile.supabaseId, emoji);
+      if (!result) {
+        // Rollback on error
+        setMessageReactions(prev => ({
           ...prev,
-          [messageId]: current.filter(r => !(r.emoji === emoji && r.userId === profile?.supabaseId))
-        };
+          [messageId]: reactions
+        }));
       } else {
-        // Add reaction
-        return {
+        // Reload reactions to get updated state
+        const updatedReactions = await getMessageReactions(String(messageId));
+        setMessageReactions(prev => ({
           ...prev,
-          [messageId]: [...current, { emoji, userId: profile?.supabaseId || '' }]
-        };
+          [messageId]: updatedReactions.map((r: any) => ({
+            emoji: r.emoji,
+            userId: r.user_id
+          }))
+        }));
       }
-    });
+    } else {
+      // Optimistically add reaction to UI immediately
+      setMessageReactions(prev => ({
+        ...prev,
+        [messageId]: [...reactions, { emoji, userId: profile.supabaseId }]
+      }));
+
+      // Then add to database in background
+      // @ts-ignore - message id type compatibility
+      const result = await addReaction(String(messageId), profile.supabaseId, emoji);
+      if (!result) {
+        // Rollback on error
+        setMessageReactions(prev => ({
+          ...prev,
+          [messageId]: reactions
+        }));
+      } else {
+        // Reload reactions to get updated state
+        const updatedReactions = await getMessageReactions(String(messageId));
+        setMessageReactions(prev => ({
+          ...prev,
+          [messageId]: updatedReactions.map((r: any) => ({
+            emoji: r.emoji,
+            userId: r.user_id
+          }))
+        }));
+      }
+    }
   };
 
   // Block guests from accessing messages (Freemium Browse & Block)
@@ -204,24 +260,57 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     let isMounted = true;
     console.log('📡 Setting up real-time message subscription...');
 
-    const subscription = subscribeToMessages(profile.supabaseId, (payload: any) => {
+    const subscription = subscribeToMessages(profile.supabaseId, async (payload: any) => {
       if (!isMounted) return; // Prevent state updates after unmount
       console.log('📨 New message received!', payload);
 
-      // Reload conversations to update the list
-      getUserConversations(profile.supabaseId)
-        .then(data => {
-          if (isMounted) setConversations(data);
-        })
-        .catch(error => console.error('Failed to load conversations:', error));
+      // Reload conversations to update the list with new unread counts
+      const updatedConversations = await getUserConversations(profile.supabaseId);
+      // Filter out blocked users
+      const unblockedConversations = [];
+      for (const convo of updatedConversations) {
+        const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
+        const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
+        if (!blocked && !blockedBy) {
+          unblockedConversations.push(convo);
+        }
+      }
+      if (isMounted) setConversations(unblockedConversations);
 
-      // If the message is for the active chat, reload messages
+      // If the message is for the active chat, reload messages and mark as read
       // @ts-ignore - activeChat type compatibility
       if (activeChat && payload.new.sender_id === activeChat) {
+        // Mark as read since user is viewing the conversation
+        await markConversationAsRead(profile.supabaseId, payload.new.sender_id);
+        
         // @ts-ignore - activeChat type compatibility
         getConversation(profile.supabaseId, activeChat)
-          .then(data => {
-            if (isMounted) setMessages(data);
+          .then(async (data) => {
+            if (isMounted) {
+              setMessages(data);
+              // Reload reactions for all messages
+              const reactionsMap: Record<string | number, any[]> = {};
+              for (const msg of data || []) {
+                const reactions = await getMessageReactions(String(msg.id));
+                reactionsMap[msg.id] = reactions.map((r: any) => ({
+                  emoji: r.emoji,
+                  userId: r.user_id
+                }));
+              }
+              setMessageReactions(reactionsMap);
+              
+              // Reload conversations again to update unread count after marking as read
+              const refreshedConversations = await getUserConversations(profile.supabaseId);
+              const refreshedUnblocked = [];
+              for (const convo of refreshedConversations) {
+                const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
+                const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
+                if (!blocked && !blockedBy) {
+                  refreshedUnblocked.push(convo);
+                }
+              }
+              if (isMounted) setConversations(refreshedUnblocked);
+            }
           })
           .catch(error => console.error('Failed to load messages:', error));
       }
@@ -237,6 +326,48 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     };
   }, [profile?.supabaseId, activeChat]);
 
+  // Subscribe to message reactions for real-time updates
+  useEffect(() => {
+    if (!activeChat) return;
+
+    let isMounted = true;
+    console.log('📡 Setting up real-time reaction subscription...');
+
+    const reactionSubscription = subscribeToMessageReactions((payload: any) => {
+      if (!isMounted) return;
+      console.log('🎭 Reaction update received!', payload);
+
+      // Reload reactions for the affected message
+      if (payload.new?.message_id || payload.old?.message_id) {
+        const messageId = payload.new?.message_id || payload.old?.message_id;
+        getMessageReactions(String(messageId))
+          .then(reactions => {
+            if (isMounted) {
+              setMessageReactions(prev => ({
+                ...prev,
+                [messageId]: reactions.map((r: any) => ({
+                  emoji: r.emoji,
+                  userId: r.user_id
+                }))
+              }));
+            }
+          })
+          .catch(error => console.error('Failed to reload reactions:', error));
+      }
+    });
+
+    reactionSubscriptionRef.current = reactionSubscription;
+
+    // Cleanup subscription on unmount
+    return () => {
+      isMounted = false;
+      console.log('🔌 Cleaning up reaction subscription...');
+      if (reactionSubscription) {
+        unsubscribe(reactionSubscription);
+      }
+    };
+  }, [activeChat]);
+
   // Load messages when opening a chat
   useEffect(() => {
     const loadMessages = async () => {
@@ -244,12 +375,39 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
         setLoading(true);
         const conversation = conversations.find(c => c.id === activeChat);
         if (conversation) {
+          // Mark conversation as read when opening
+          await markConversationAsRead(profile.supabaseId, conversation.userId);
+
           // Load conversation from database
           const conversationMessages = await getConversation(
             profile.supabaseId,
             conversation.userId
           );
           setMessages(conversationMessages || []);
+
+          // Load reactions for all messages
+          const reactionsMap: Record<string | number, any[]> = {};
+          for (const msg of conversationMessages || []) {
+            const reactions = await getMessageReactions(String(msg.id));
+            reactionsMap[msg.id] = reactions.map((r: any) => ({
+              emoji: r.emoji,
+              userId: r.user_id
+            }));
+          }
+          setMessageReactions(reactionsMap);
+
+          // Reload conversations to update unread counts
+          const updatedConversations = await getUserConversations(profile.supabaseId);
+          // Filter out blocked users
+          const unblockedConversations = [];
+          for (const convo of updatedConversations) {
+            const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
+            const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
+            if (!blocked && !blockedBy) {
+              unblockedConversations.push(convo);
+            }
+          }
+          setConversations(unblockedConversations);
         }
         setLoading(false);
       }
@@ -322,7 +480,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       const savedMessage = await sendMessage(
         profile.supabaseId,
         conversation.userId,
-        messageContent
+        messageContent,
+        replyingTo?.id ? String(replyingTo.id) : undefined
       );
 
       if (savedMessage) {
@@ -375,13 +534,28 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           unlockSecret('messages_streak_7');
         }
 
-        // Reload messages to get the real data
+        // Reload messages to get the real data with correct timestamp
         const updatedMessages = await getConversation(
           profile.supabaseId,
           conversation.userId
         );
         console.log('Loaded messages from database:', updatedMessages);
         setMessages(updatedMessages || []);
+
+        // Clear reply state
+        setReplyingTo(null);
+
+        // Reload reactions for the new message
+        if (savedMessage?.id) {
+          const reactions = await getMessageReactions(String(savedMessage.id));
+          setMessageReactions(prev => ({
+            ...prev,
+            [savedMessage.id]: reactions.map((r: any) => ({
+              emoji: r.emoji,
+              userId: r.user_id
+            }))
+          }));
+        }
       } else {
         throw new Error('Failed to send message');
       }
@@ -435,7 +609,66 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
             </div>
             <span className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{conversation.name}</span>
           </div>
-          <div className="w-16"></div> {/* Spacer for centering */}
+          <div className="relative">
+            <button
+              onClick={() => setShowConversationMenu(!showConversationMenu)}
+              className={`p-2 rounded-lg transition-colors ${
+                nightMode ? 'hover:bg-white/10 text-slate-100' : 'hover:bg-white/20 text-black'
+              }`}
+              aria-label="Conversation options"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+            {showConversationMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowConversationMenu(false)}
+                />
+                <div
+                  className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-2xl z-50 border ${
+                    nightMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-white/25'
+                  }`}
+                  style={nightMode ? {
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+                  } : {
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  <button
+                    onClick={async () => {
+                      if (!profile?.supabaseId || !conversation.userId) return;
+                      const confirmMessage = `Block ${conversation.name}? They won't be able to message you, see your profile, or find you in searches.`;
+                      if (!window.confirm(confirmMessage)) {
+                        setShowConversationMenu(false);
+                        return;
+                      }
+                      try {
+                        await blockUser(profile.supabaseId, conversation.userId);
+                        showSuccess(`${conversation.name} has been blocked`);
+                        setShowConversationMenu(false);
+                        setActiveChat(null);
+                        // Reload conversations to remove blocked user
+                        const updatedConversations = await getUserConversations(profile.supabaseId);
+                        setConversations(updatedConversations || []);
+                      } catch (error) {
+                        console.error('Error blocking user:', error);
+                        showError('Failed to block user');
+                      }
+                    }}
+                    className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-t-xl ${
+                      nightMode
+                        ? 'hover:bg-white/10 text-red-400'
+                        : 'hover:bg-red-50 text-red-600'
+                    }`}
+                  >
+                    <UserX className="w-4 h-4" />
+                    <span className="text-sm font-medium">Block User</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Messages */}
@@ -486,7 +719,21 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                           {isMe ? profile?.displayName : conversation.name}
                         </span>
                         <span className={`text-[10px] ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
-                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {(() => {
+                            const msgDate = new Date(msg.created_at);
+                            const now = new Date();
+                            const diffMs = now.getTime() - msgDate.getTime();
+                            const diffMins = Math.floor(diffMs / 60000);
+                            
+                            // Show "Just now" for messages less than 1 minute old
+                            if (diffMins < 1) return 'Just now';
+                            // Show time for today's messages
+                            if (msgDate.toDateString() === now.toDateString()) {
+                              return msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            }
+                            // Show date and time for older messages
+                            return msgDate.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                          })()}
                         </span>
                       </div>
 
@@ -496,6 +743,17 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                           <div
                             ref={(el: HTMLDivElement | null) => { messageRefs.current[msg.id] = el; }}
                             className={nightMode ? 'bg-transparent hover:bg-white/5 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
+                            {/* Reply to message preview */}
+                            {msg.reply_to && (
+                              <div className={`mb-2 pl-3 border-l-2 ${nightMode ? 'border-white/20 bg-white/5' : 'border-white/30 bg-white/20'} rounded-r-md py-1.5 text-xs`}>
+                                <div className={`font-semibold mb-0.5 ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
+                                  {(msg.reply_to as any).sender?.display_name || (msg.reply_to as any).sender?.username || 'Unknown'}
+                                </div>
+                                <div className={`truncate ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                                  {(msg.reply_to as any).content || 'Message deleted'}
+                                </div>
+                              </div>
+                            )}
                             <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
 
                             {/* Reaction Picker */}
@@ -545,8 +803,20 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                             )}
                           </div>
 
-                          {/* Reaction button (shows on hover, on the right) */}
+                          {/* Action buttons (shows on hover, on the right) */}
                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => setReplyingTo(msg)}
+                              className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 border border-white/25 rounded text-black hover:text-black shadow-sm'}
+                              style={nightMode ? {} : {
+                                background: 'rgba(255, 255, 255, 0.2)',
+                                backdropFilter: 'blur(30px)',
+                                WebkitBackdropFilter: 'blur(30px)'
+                              }}
+                              title="Reply"
+                            >
+                              <Reply className="w-3.5 h-3.5" />
+                            </button>
                             <button
                               onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
                               className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 border border-white/25 rounded text-black hover:text-black shadow-sm'}
@@ -555,9 +825,33 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                                 backdropFilter: 'blur(30px)',
                                 WebkitBackdropFilter: 'blur(30px)'
                               }}
+                              title="React"
                             >
                               <Smile className="w-3.5 h-3.5" />
                             </button>
+                            {isMe && (
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm('Delete this message?')) return;
+                                  const result = await deleteMessage(String(msg.id), profile!.supabaseId);
+                                  if (result.success) {
+                                    setMessages(prev => prev.filter(m => m.id !== msg.id));
+                                    showSuccess('Message deleted');
+                                  } else {
+                                    showError(result.error || 'Failed to delete message');
+                                  }
+                                }}
+                                className={nightMode ? 'p-1 bg-white/5 border border-red-500/30 rounded text-red-400 hover:text-red-300' : 'p-1 border border-red-300 rounded text-red-600 hover:text-red-700 shadow-sm'}
+                                style={nightMode ? {} : {
+                                  background: 'rgba(255, 255, 255, 0.2)',
+                                  backdropFilter: 'blur(30px)',
+                                  WebkitBackdropFilter: 'blur(30px)'
+                                }}
+                                title="Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         </div>
 
@@ -649,46 +943,81 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Reply preview */}
+        {replyingTo && (
+          <div className={`px-4 py-2 border-t ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 bg-white/10'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Reply className={`w-4 h-4 flex-shrink-0 ${nightMode ? 'text-slate-400' : 'text-gray-600'}`} />
+                <div className="flex-1 min-w-0">
+                  <div className={`text-xs font-semibold ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
+                    Replying to {replyingTo.sender_id === profile?.supabaseId ? profile?.displayName : conversation.name}
+                  </div>
+                  <div className={`text-xs truncate ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                    {replyingTo.content}
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setReplyingTo(null)}
+                className={`p-1 rounded ${nightMode ? 'hover:bg-white/10' : 'hover:bg-white/20'}`}
+              >
+                <X className={`w-4 h-4 ${nightMode ? 'text-slate-400' : 'text-gray-600'}`} />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Input */}
         <form
           onSubmit={handleSendMessage}
-          className={`px-4 py-3 border-t flex gap-2 items-end ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
-          style={nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.2)',
+          className={`sticky bottom-0 px-4 py-3 border-t flex gap-2 items-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
+          style={nightMode ? {
+            background: 'rgba(10, 10, 10, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)'
+          } : {
+            background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(30px)',
             WebkitBackdropFilter: 'blur(30px)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
           }}
         >
-          <textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                // @ts-ignore - Event type mismatch between keyboard and form event
-                handleSendMessage(e);
-              }
-            }}
-            placeholder="Message..."
-            rows={1}
-            className={nightMode ? 'flex-1 px-3 py-2.5 bg-white/5 border border-white/10 text-slate-100 placeholder-gray-400 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[40px] max-h-[100px] overflow-y-auto text-[15px]' : 'flex-1 px-3 py-2.5 border border-white/25 text-black placeholder-black/50 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[40px] max-h-[100px] overflow-y-auto text-[15px]'}
-            style={nightMode ? {
-              height: 'auto',
-              minHeight: '40px'
-            } : {
-              height: 'auto',
-              minHeight: '40px',
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)'
-            }}
-            onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = 'auto';
-              target.style.height = Math.min(target.scrollHeight, 100) + 'px';
-            }}
-          />
+          <div className="flex-1 flex items-center">
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  // @ts-ignore - Event type mismatch between keyboard and form event
+                  handleSendMessage(e);
+                }
+              }}
+              placeholder="Message..."
+              rows={1}
+              className={nightMode ? 'w-full px-4 py-2.5 bg-white/5 border border-white/10 text-slate-100 placeholder-gray-400 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]' : 'w-full px-4 py-2.5 border border-white/25 text-black placeholder-black/50 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]'}
+              style={nightMode ? {
+                height: 'auto',
+                minHeight: '40px',
+                maxHeight: '100px',
+                overflowY: 'auto'
+              } : {
+                height: 'auto',
+                minHeight: '40px',
+                maxHeight: '100px',
+                overflowY: 'auto',
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(30px)',
+                WebkitBackdropFilter: 'blur(30px)'
+              }}
+              onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = Math.min(target.scrollHeight, 100) + 'px';
+              }}
+            />
+          </div>
           <button
             type="submit"
             disabled={!newMessage.trim()}
@@ -803,11 +1132,22 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? 'border-[#0a0a0a]' : 'border-white'}`}></div>
                 )}
               </div>
-              <div className="flex-1">
-                <h3 className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{chat.name}</h3>
-                <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{chat.lastMessage}</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{chat.name}</h3>
+                  {chat.unreadCount > 0 && (
+                    <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      nightMode 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-blue-500 text-white'
+                    }`}>
+                      {chat.unreadCount}
+                    </span>
+                  )}
+                </div>
+                <p className={`text-sm truncate ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{chat.lastMessage}</p>
               </div>
-              <span className={`text-xs ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{formatTimestamp(chat.timestamp)}</span>
+              <span className={`text-xs flex-shrink-0 ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{formatTimestamp(chat.timestamp)}</span>
             </div>
           </button>
         ))

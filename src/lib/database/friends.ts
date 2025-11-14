@@ -105,23 +105,45 @@ export const declineFriendRequest = async (requestId: string): Promise<boolean |
 };
 
 /**
- * Get user's friends (accepted friendships)
+ * Get user's friends (accepted friendships) - bidirectional
  */
 export const getFriends = async (userId: string): Promise<FriendWithUser[]> => {
   if (!supabase) return [];
 
-  const { data, error } = await supabase
+  // Get friends where user is user_id_1 (user initiated)
+  const { data: friends1, error: error1 } = await supabase
     .from('friendships')
     .select('*, friend:users!user_id_2(id, username, display_name, avatar_emoji, avatar_url, is_online, bio, location_city)')
     .eq('user_id_1', userId)
     .eq('status', 'accepted');
 
-  if (error) {
-    console.error('Error fetching friends:', error);
-    return [];
+  if (error1) {
+    console.error('Error fetching friends (user_id_1):', error1);
   }
 
-  return (data as any[]).map((friendship: any) => friendship.friend).filter(Boolean);
+  // Get friends where user is user_id_2 (friend initiated)
+  const { data: friends2, error: error2 } = await supabase
+    .from('friendships')
+    .select('*, friend:users!user_id_1(id, username, display_name, avatar_emoji, avatar_url, is_online, bio, location_city)')
+    .eq('user_id_2', userId)
+    .eq('status', 'accepted');
+
+  if (error2) {
+    console.error('Error fetching friends (user_id_2):', error2);
+  }
+
+  // Combine both lists and remove duplicates
+  const allFriends = [
+    ...((friends1 as any[]) || []).map((friendship: any) => friendship.friend),
+    ...((friends2 as any[]) || []).map((friendship: any) => friendship.friend)
+  ].filter(Boolean);
+
+  // Remove duplicates by id
+  const uniqueFriends = Array.from(
+    new Map(allFriends.map((friend: any) => [friend.id, friend])).values()
+  );
+
+  return uniqueFriends as FriendWithUser[];
 };
 
 /**
