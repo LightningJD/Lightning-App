@@ -13,8 +13,9 @@ const patterns = {
   alphanumeric: /^[a-zA-Z0-9\s]+$/,
   noSpecialChars: /^[a-zA-Z0-9\s.,!?'-]+$/,
   zipCode: /^\d{5}(-\d{4})?$/,
-  // Dangerous patterns to block
-  sqlInjection: /(DELETE|DROP|EXEC|INSERT|SELECT|UNION|UPDATE|CREATE|ALTER|;|--|\/\*|\*\/)/gi,
+  // Dangerous patterns to block - using word boundaries to avoid false positives
+  // Only match complete SQL keywords, not substrings in normal words
+  sqlInjection: /\b(DELETE|DROP|EXEC|INSERT|SELECT|UNION|UPDATE|CREATE|ALTER)\b.*?(FROM|WHERE|INTO|TABLE|DATABASE|SET|VALUES|JOIN|ON)\b|;\s*(DELETE|DROP|EXEC|INSERT|SELECT|UNION|UPDATE|CREATE|ALTER)\b|--\s|(\/\*|\*\/)/gi,
   scriptTag: /<script[^>]*>.*?<\/script>/gi,
   htmlTag: /<[^>]+>/g,
   dangerousChars: /[<>\"'`;]/g
@@ -234,12 +235,9 @@ export const validateMessage = (message: any, type: string = 'message'): {
     errors.push(`${type.charAt(0).toUpperCase() + type.slice(1)} must be less than ${limit.max} characters`);
   }
 
-  // Check for SQL injection
-  if (patterns.sqlInjection.test(message)) {
-    errors.push('Message contains invalid characters');
-  }
-
-  // Check for script tags
+  // Check for script tags (XSS protection)
+  // Note: SQL injection check removed for messages since Supabase uses parameterized queries
+  // and users should be able to type normal text containing words like "select", "create", etc.
   if (patterns.scriptTag.test(message)) {
     errors.push('HTML scripts are not allowed');
   }
