@@ -14,7 +14,8 @@ import {
   isUserBlocked,
   isBlockedBy,
   searchUsers,
-  getAllUsers
+  getAllUsers,
+  getPublicTestimonies
 } from '../lib/database';
 
 interface User {
@@ -53,6 +54,8 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [testimonies, setTestimonies] = useState<any[]>([]);
+  const [isLoadingTestimonies, setIsLoadingTestimonies] = useState<boolean>(false);
 
   // Load users and friends from database
   useEffect(() => {
@@ -144,6 +147,26 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     loadData();
   }, [profile?.supabaseId, profile?.location?.lat, profile?.location?.lng]);
 
+  // Load public testimonies when testimonies tab is active
+  useEffect(() => {
+    const loadTestimonies = async () => {
+      if (activeConnectTab === 'testimonies') {
+        setIsLoadingTestimonies(true);
+        try {
+          const publicTestimonies = await getPublicTestimonies(20, 0);
+          setTestimonies(publicTestimonies || []);
+        } catch (error) {
+          console.error('Error loading testimonies:', error);
+          setTestimonies([]);
+        } finally {
+          setIsLoadingTestimonies(false);
+        }
+      }
+    };
+
+    loadTestimonies();
+  }, [activeConnectTab]);
+
   // Search handler with debouncing
   useEffect(() => {
     const handleSearch = async () => {
@@ -158,23 +181,37 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
       try {
         const results = await searchUsers(searchQuery, profile?.supabaseId || null);
 
-        // Skip blocking and friendship checks - just show all search results
-        const enrichedResults = results.map((user) => ({
-          id: user.id,
-          display_name: user.display_name || '',
-          displayName: user.display_name || '',
-          username: user.username || '',
-          avatar_emoji: user.avatar_emoji || '👤',
-          avatar: user.avatar_emoji || '👤',
-          is_online: user.is_online || false,
-          online: user.is_online || false,
-          location_city: user.location_city,
-          location: user.location_city,
-          friendshipStatus: 'none', // Always show as "not friends" so Add button appears
-          mutualFriends: 0
-        }));
+        // Check friendship status and blocking for each search result
+        const enrichedResults = await Promise.all(
+          results.map(async (user) => {
+            // Check actual friendship status
+            const friendshipStatus = await checkFriendshipStatus(profile?.supabaseId || '', user.id);
+            const blocked = await isUserBlocked(profile?.supabaseId || '', user.id);
+            const blockedBy = await isBlockedBy(profile?.supabaseId || '', user.id);
+            
+            // Skip if blocked
+            if (blocked || blockedBy) return null;
+            
+            return {
+              id: user.id,
+              display_name: user.display_name || '',
+              displayName: user.display_name || '',
+              username: user.username || '',
+              avatar_emoji: user.avatar_emoji || '👤',
+              avatar: user.avatar_emoji || '👤',
+              avatarImage: user.avatar_url,
+              is_online: user.is_online || false,
+              online: user.is_online || false,
+              location_city: user.location_city,
+              location: user.location_city,
+              friendshipStatus: friendshipStatus,
+              mutualFriends: 0
+            };
+          })
+        );
 
-        setSearchResults(enrichedResults);
+        // Filter out null results (blocked users)
+        setSearchResults(enrichedResults.filter((u): u is User => u !== null));
       } catch (error) {
         console.error('Error searching users:', error);
         setSearchResults([]);
@@ -211,6 +248,13 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
 
       // Update recommended users to show pending status
       setRecommendedUsers(prev =>
+        prev.map(u =>
+          u.id === userId ? { ...u, friendshipStatus: 'pending' } : u
+        )
+      );
+
+      // Update search results to show pending status
+      setSearchResults(prev =>
         prev.map(u =>
           u.id === userId ? { ...u, friendshipStatus: 'pending' } : u
         )
@@ -333,6 +377,16 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
             aria-label="Show friends"
           >
             Friends
+          </button>
+          <button
+            onClick={() => setActiveConnectTab('testimonies')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'testimonies' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            style={{
+              background: 'transparent'
+            }}
+            aria-label="Show testimonies"
+          >
+            Testimonies
           </button>
         </div>
       </div>
@@ -491,7 +545,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               ))}
             </div>
           )
-        ) : (
+        ) : activeConnectTab === 'friends' ? (
           sortedFriends.length === 0 ? (
             <div
               className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
@@ -530,7 +584,110 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               ))}
             </div>
           )
-        )}
+        ) : activeConnectTab === 'testimonies' ? (
+          isLoadingTestimonies ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
+                >
+                  <div className="animate-pulse">
+                    <div className={`h-4 ${nightMode ? 'bg-white/10' : 'bg-slate-200'} rounded w-3/4 mb-2`}></div>
+                    <div className={`h-3 ${nightMode ? 'bg-white/10' : 'bg-slate-200'} rounded w-1/2 mb-4`}></div>
+                    <div className={`h-3 ${nightMode ? 'bg-white/10' : 'bg-slate-200'} rounded w-full mb-2`}></div>
+                    <div className={`h-3 ${nightMode ? 'bg-white/10' : 'bg-slate-200'} rounded w-5/6`}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : testimonies.length === 0 ? (
+            <div
+              className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+              style={nightMode ? {} : {
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(30px)',
+                WebkitBackdropFilter: 'blur(30px)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+              }}
+            >
+              <div className="text-6xl mb-4">📖</div>
+              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No testimonies yet</p>
+              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
+                Be the first to share your testimony and inspire others!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {testimonies.map((testimony: any) => {
+                const user = testimony.users || {};
+                return (
+                  <div
+                    key={testimony.id}
+                    className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+                    style={nightMode ? {} : {
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                    }}
+                  >
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="text-2xl">{user.avatar_emoji || '👤'}</div>
+                      <div className="flex-1">
+                        <h4 className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                          {user.display_name || user.username || 'Anonymous'}
+                        </h4>
+                        <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                          @{user.username || 'user'}
+                        </p>
+                      </div>
+                    </div>
+                    <h3 className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                      {testimony.title || 'My Testimony'}
+                    </h3>
+                    <p className={`text-sm leading-relaxed mb-3 ${nightMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                      {testimony.content?.substring(0, 300)}
+                      {testimony.content?.length > 300 && '...'}
+                    </p>
+                    {testimony.lesson && (
+                      <div className={`p-3 rounded-lg mb-3 ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
+                        <p className={`text-xs font-semibold mb-1 ${nightMode ? 'text-slate-300' : 'text-blue-900'}`}>
+                          💡 Key Lesson:
+                        </p>
+                        <p className={`text-xs ${nightMode ? 'text-slate-200' : 'text-blue-800'}`}>
+                          {testimony.lesson}
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-4 text-xs">
+                      <span className={nightMode ? 'text-slate-400' : 'text-slate-600'}>
+                        ❤️ {testimony.like_count || 0}
+                      </span>
+                      <span className={nightMode ? 'text-slate-400' : 'text-slate-600'}>
+                        👁️ {testimony.view_count || 0}
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (onNavigateToMessages && user.id) {
+                            onNavigateToMessages({
+                              id: user.id,
+                              displayName: user.display_name || user.username,
+                              avatar: user.avatar_emoji
+                            });
+                          }
+                        }}
+                        className={`text-blue-600 hover:text-blue-700 font-semibold ${nightMode ? 'text-blue-400 hover:text-blue-300' : ''}`}
+                      >
+                        View Profile
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        ) : null}
       </div>
 
       {/* Other User Profile Dialog */}
