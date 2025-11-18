@@ -20,6 +20,7 @@ import {
 
 interface User {
   id: string;
+  username: string;
   display_name: string;
   displayName?: string;
   avatar_url?: string;
@@ -116,6 +117,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
 
             return {
               ...user,
+              username: user.username || '',
               displayName: user.display_name,
               avatarImage: user.avatar_url,
               // @ts-ignore - user type compatibility
@@ -211,7 +213,10 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
         );
 
         // Filter out null results (blocked users)
-        setSearchResults(enrichedResults.filter((u): u is User => u !== null));
+        const filteredResults = enrichedResults.filter(
+          (u): u is NonNullable<typeof u> => u !== null
+        );
+        setSearchResults(filteredResults as User[]);
       } catch (error) {
         console.error('Error searching users:', error);
         setSearchResults([]);

@@ -59,6 +59,7 @@ interface Conversation {
   lastMessage: string;
   timestamp: string;
   online?: boolean;
+  unreadCount?: number;
 }
 
 interface Connection {
@@ -98,6 +99,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const [selectedConnections, setSelectedConnections] = useState<Connection[]>([]);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [showConversationMenu, setShowConversationMenu] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recipientInputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
@@ -135,6 +137,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       recipientInputRef.current.focus();
     }
   }, [showNewChatDialog]);
+
+  // Close conversation menu when switching chats
+  useEffect(() => {
+    setShowConversationMenu(false);
+  }, [activeChat]);
 
   // Open New Chat dialog prefilled when launched from Connect/Search
   useEffect(() => {
@@ -1135,13 +1142,13 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{chat.name}</h3>
-                  {chat.unreadCount > 0 && (
+                  {(chat.unreadCount ?? 0) > 0 && (
                     <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${
                       nightMode 
                         ? 'bg-blue-500 text-white' 
                         : 'bg-blue-500 text-white'
                     }`}>
-                      {chat.unreadCount}
+                      {chat.unreadCount ?? 0}
                     </span>
                   )}
                 </div>

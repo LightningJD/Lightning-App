@@ -32,12 +32,11 @@ export const sendMessage = async (senderId: string, recipientId: string, content
     // Get sender's display name for notification
     const { data: senderData } = await supabase
       .from('users')
-      .select('display_name, username, notify_messages')
+      .select('display_name, username')
       .eq('id', senderId)
       .single();
 
     const senderName = senderData?.display_name || senderData?.username || 'Someone';
-    const notifyMessages = senderData?.notify_messages !== false; // Default to true if null
 
     // Only create notification if recipient has notifications enabled
     const { data: recipientData } = await supabase
