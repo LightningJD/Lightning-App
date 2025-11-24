@@ -11,6 +11,7 @@ import NearbyTab from './components/NearbyTab';
 import MenuItem from './components/MenuItem';
 import ProfileCreationWizard from './components/ProfileCreationWizard';
 import ProfileEditDialog from './components/ProfileEditDialog';
+import ChangePictureModal from './components/ChangePictureModal';
 import EditTestimonyDialog from './components/EditTestimonyDialog';
 import ConfirmDialog from './components/ConfirmDialog';
 import SaveTestimonyModal from './components/SaveTestimonyModal';
@@ -74,6 +75,7 @@ function App() {
   const [showReportContent, setShowReportContent] = useState(false);
   const [reportData, setReportData] = useState<{ type: 'user' | 'testimony' | 'message' | 'group' | null; content: { id: string; ownerId?: string; name?: string; } | null }>({ type: null, content: null });
   const [showLinkSpotify, setShowLinkSpotify] = useState(false);
+  const [showChangePicture, setShowChangePicture] = useState(false);
 
   // Privacy & Notification Settings
   const [privacySettings, setPrivacySettings] = useState({
@@ -1008,7 +1010,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                     nightMode={nightMode}
                     onClick={() => {
                       setShowMenu(false);
-                      setShowProfileEdit(true);
+                      setShowChangePicture(true);
                     }}
                   />
                   <MenuItem
@@ -1615,6 +1617,59 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
           nightMode={nightMode}
           onSave={handleProfileEdit}
           onClose={() => setShowProfileEdit(false)}
+        />
+      )}
+
+      {/* Change Picture Modal */}
+      {showChangePicture && (
+        <ChangePictureModal
+          isOpen={showChangePicture}
+          onClose={() => setShowChangePicture(false)}
+          nightMode={nightMode}
+          currentAvatar={profile.avatar || '👤'}
+          currentAvatarUrl={profile.avatarImage || null}
+          onSave={async (avatarUrl, avatar) => {
+            if (!userProfile || !userProfile.supabaseId) {
+              throw new Error('No user profile found');
+            }
+
+            const toastId = showLoading('Updating profile picture...');
+
+            try {
+              const updated = await updateUserProfile(userProfile.supabaseId, {
+                avatar: avatar,
+                avatarUrl: avatarUrl
+              });
+
+              if (updated) {
+                // Update local profile
+                setLocalProfile((prev: any) => {
+                  if (!prev) return prev;
+                  const next = { ...prev };
+                  next.avatar = avatar;
+                  next.avatarImage = avatarUrl;
+                  return next;
+                });
+
+                // Track avatar change for secrets
+                if (avatar !== userProfile.avatar) {
+                  const changes = trackAvatarChange();
+                  if (changes === 5) {
+                    unlockSecret('avatar_changed_5x');
+                  }
+                }
+
+                updateToSuccess(toastId, 'Profile picture updated!');
+                window.dispatchEvent(new CustomEvent('profileUpdated'));
+              } else {
+                throw new Error('Failed to update profile picture');
+              }
+            } catch (error) {
+              console.error('Error updating profile picture:', error);
+              updateToError(toastId, error instanceof Error ? error.message : 'Failed to update profile picture');
+              throw error;
+            }
+          }}
         />
       )}
 

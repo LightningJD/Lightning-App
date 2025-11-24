@@ -636,7 +636,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
               setShowQR((prev) => !prev);
             }
           }}
-          className={`w-full mt-3 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 text-sm transition-all duration-200 border ${nightMode ? 'text-slate-100 border-white/20' : 'text-black border-white/30'}`}
+          className={`w-full mt-3 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 text-sm transition-all duration-200 border cursor-pointer ${nightMode ? 'text-slate-100 border-white/20' : 'text-black border-white/30'}`}
           style={nightMode ? {
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
             boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
@@ -651,16 +651,26 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
             if (nightMode) {
               e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
             } else {
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.35)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
             }
           }}
           onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
             if (nightMode) {
               e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)';
+              e.currentTarget.style.transform = 'translateY(0)';
             } else {
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+              e.currentTarget.style.transform = 'translateY(0)';
             }
+          }}
+          onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
+            e.currentTarget.style.transform = 'translateY(1px) scale(0.98)';
+          }}
+          onMouseUp={(e: React.MouseEvent<HTMLButtonElement>) => {
+            e.currentTarget.style.transform = 'translateY(-1px) scale(1)';
           }}
           aria-label="Share your testimony"
         >

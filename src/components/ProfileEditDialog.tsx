@@ -193,6 +193,10 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
+        style={{
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)'
+        }}
         onClick={onClose}
       />
 

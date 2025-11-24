@@ -27,6 +27,13 @@ const formatTimestamp = (timestamp: any): string => {
   return messageDate.toLocaleDateString();
 };
 
+// Helper function to decode HTML entities
+const decodeHTMLEntities = (text: string): string => {
+  const textArea = document.createElement('textarea');
+  textArea.innerHTML = text;
+  return textArea.value;
+};
+
 interface Message {
   id: number | string;
   sender_id: string;
@@ -614,7 +621,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                 <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? 'border-[#0a0a0a]' : 'border-white'}`}></div>
               )}
             </div>
-            <span className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{conversation.name}</span>
+            <div className="flex flex-col">
+              <span className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{conversation.name}</span>
+              <span className={`text-xs ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                {conversation.online ? '🟢 Online' : '⚫ Offline'}
+              </span>
+            </div>
           </div>
           <div className="relative">
             <button
@@ -757,11 +769,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                                   {(msg.reply_to as any).sender?.display_name || (msg.reply_to as any).sender?.username || 'Unknown'}
                                 </div>
                                 <div className={`truncate ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
-                                  {(msg.reply_to as any).content || 'Message deleted'}
+                                  {decodeHTMLEntities((msg.reply_to as any).content || 'Message deleted')}
                                 </div>
                               </div>
                             )}
-                            <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
+                            <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{decodeHTMLEntities(msg.content)}</p>
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
@@ -1053,7 +1065,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   }
 
   return (
-    <div className="py-4 space-y-4 px-4 pb-24">
+    <div className="py-4 space-y-3 px-4 pb-24">
       <style>{`
         @keyframes popOut {
           0% {
@@ -1116,7 +1128,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           <button
             key={chat.id}
             onClick={() => setActiveChat(chat.id)}
-            className={`w-full rounded-xl border p-4 text-left transition-all hover:-translate-y-1 ${
+            className={`w-full rounded-xl border px-3 py-3 text-left transition-all hover:-translate-y-1 ${
               nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)]'
             }`}
             style={nightMode ? {} : {
@@ -1152,9 +1164,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                     </span>
                   )}
                 </div>
-                <p className={`text-sm truncate ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{chat.lastMessage}</p>
+                <p className={`text-sm truncate ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{decodeHTMLEntities(chat.lastMessage)}</p>
               </div>
-              <span className={`text-xs flex-shrink-0 ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{formatTimestamp(chat.timestamp)}</span>
+              <span className={`text-xs flex-shrink-0 pr-1 ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{formatTimestamp(chat.timestamp)}</span>
             </div>
           </button>
         ))
@@ -1206,14 +1218,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
             </div>
 
             {/* Recipient */}
-            <div className="mb-4 relative">
+            <div className="mb-6 relative">
               <label className={`text-sm font-semibold mb-2 block ${nightMode ? 'text-slate-100' : 'text-black'}`}>
                 To: {selectedConnections.length > 1 && <span className="text-xs opacity-70">(Group Chat)</span>}
               </label>
 
               {/* Selected Recipients Chips */}
               {selectedConnections.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className="flex flex-wrap gap-2 mb-3">
                   {selectedConnections.map((conn) => (
                     <div
                       key={conn.id}
@@ -1257,14 +1269,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)'
                 }}
-                placeholder={selectedConnections.length > 0 ? "Add another person..." : "Type a name..."}
+                placeholder={selectedConnections.length > 0 ? "Search by name or username..." : "Search by name or username..."}
                 autoComplete="off"
               />
 
               {/* Suggestions Dropdown */}
               {showSuggestions && searchQuery && (
                 <div
-                  className={`absolute top-full left-0 right-0 mt-2 rounded-lg border max-h-48 overflow-y-auto z-10 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-white border-white/25'}`}
+                  className={`absolute top-full left-0 right-0 mt-3 rounded-lg border max-h-48 overflow-y-auto z-10 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-white border-white/25'}`}
                   style={nightMode ? {
                     backdropFilter: 'blur(30px)',
                     WebkitBackdropFilter: 'blur(30px)',
@@ -1321,7 +1333,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
             </div>
 
             {/* Message */}
-            <div className="mb-4">
+            <div className="mb-6">
               <label className={`text-sm font-semibold mb-2 block ${nightMode ? 'text-slate-100' : 'text-black'}`}>
                 Message:
               </label>
@@ -1373,6 +1385,13 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                     // Send direct message
                     try {
                       if (profile?.supabaseId) {
+                        // Check if user can send message (message privacy filter)
+                        const { allowed, reason } = await canSendMessage(String(selectedConnections[0].id), profile.supabaseId);
+                        if (!allowed) {
+                          showError(reason || 'Unable to send message');
+                          return;
+                        }
+
                         await sendMessage(profile.supabaseId, String(selectedConnections[0].id), newChatMessage.trim());
                         showSuccess('Message sent!');
                         // Reload conversations to show new conversation
