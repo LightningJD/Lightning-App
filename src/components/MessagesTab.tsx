@@ -899,13 +899,13 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                             ref={(el: HTMLDivElement | null) => { messageRefs.current[msg.id] = el; }}
                             className={nightMode ? 'bg-transparent hover:bg-white/5 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
                             {/* Reply to message preview - only show if reply_to is valid and has content */}
-                            {msg.reply_to && (msg.reply_to as any).id && (msg.reply_to as any).content && (
+                            {msg.reply_to && msg.reply_to.id && msg.reply_to.content && (
                               <div className={`mb-2 pl-3 border-l-2 ${nightMode ? 'border-white/20 bg-white/5' : 'border-white/30 bg-white/20'} rounded-r-md py-1.5 text-xs`}>
                                 <div className={`font-semibold mb-0.5 ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
-                                  {(msg.reply_to as any).sender?.display_name || (msg.reply_to as any).sender?.username || 'Unknown'}
+                                  {msg.reply_to.sender?.display_name || msg.reply_to.sender?.username || 'Unknown'}
                                 </div>
                                 <div className={`truncate ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
-                                  {decodeHTMLEntities((msg.reply_to as any).content)}
+                                  {decodeHTMLEntities(msg.reply_to.content)}
                                 </div>
                               </div>
                             )}
