@@ -41,6 +41,16 @@ interface Message {
   recipient_id: string;
   content: string;
   created_at: string;
+  reply_to_message_id?: string;
+  reply_to?: {
+    id: string | number;
+    content: string;
+    sender: {
+      username: string;
+      display_name: string;
+      avatar_emoji: string;
+    };
+  };
   sender?: {
     username: string;
     display_name: string;
@@ -509,7 +519,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     }
 
     // Optimistically add message to UI
-    const tempMessage = {
+    const tempMessage: Message = {
       id: Date.now(),
       sender_id: profile.supabaseId,
       recipient_id: conversation.userId,
@@ -519,16 +529,20 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       reply_to: replyTarget ? {
         id: replyTarget.id,
         content: replyTarget.content,
-        sender: replyTarget.sender || {
-          username: profile.username,
-          display_name: profile.displayName,
-          avatar_emoji: profile.avatar
+        sender: replyTarget.sender ? {
+          username: replyTarget.sender.username || '',
+          display_name: replyTarget.sender.display_name || '',
+          avatar_emoji: replyTarget.sender.avatar_emoji || '👤'
+        } : {
+          username: profile.username || '',
+          display_name: profile.displayName || '',
+          avatar_emoji: profile.avatar || '👤'
         }
       } : undefined,
       sender: {
-        username: profile.username,
-        display_name: profile.displayName,
-        avatar_emoji: profile.avatar
+        username: profile.username || '',
+        display_name: profile.displayName || '',
+        avatar_emoji: profile.avatar || '👤'
       }
     };
 
