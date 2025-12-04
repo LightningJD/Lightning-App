@@ -7,24 +7,41 @@ import { supabase } from '../supabase';
 /**
  * Send a direct message
  */
-export const sendMessage = async (senderId: string, recipientId: string, content: string, replyToMessageId?: string): Promise<any> => {
-  if (!supabase) return null;
+export const sendMessage = async (senderId: string, recipientId: string, content: string, replyToMessageId?: string): Promise<{ data: any; error: null } | { data: null; error: string }> => {
+  if (!supabase) {
+    console.error('Supabase client not initialized');
+    return { data: null, error: 'Database not initialized' };
+  }
+
+  const insertPayload: any = {
+    sender_id: senderId,
+    recipient_id: recipientId,
+    content
+  };
+
+  // Include reply_to_message_id if provided (for threaded replies)
+  if (replyToMessageId) {
+    insertPayload.reply_to_message_id = replyToMessageId;
+  }
 
   const { data, error } = await supabase
     .from('messages')
     // @ts-ignore - Supabase generated types are incomplete
-    .insert({
-      sender_id: senderId,
-      recipient_id: recipientId,
-      content,
-      reply_to_message_id: replyToMessageId || null
-    })
+    .insert(insertPayload)
     .select()
     .single();
 
   if (error) {
     console.error('Error sending message:', error);
-    return null;
+    const errorMessage = error.message || 'Failed to send message';
+    // Log more details for debugging
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
+    return { data: null, error: errorMessage };
   }
 
   // Create notification for the recipient
@@ -72,7 +89,7 @@ export const sendMessage = async (senderId: string, recipientId: string, content
     // Don't fail message send if notification creation fails
   }
 
-  return data;
+  return { data, error: null };
 };
 
 /**
@@ -120,47 +137,71 @@ export const deleteMessage = async (messageId: string, userId: string): Promise<
  * Get conversation between two users
  */
 export const getConversation = async (userId1: string, userId2: string, limit: number = 50): Promise<any[]> => {
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from('messages')
-    // @ts-ignore - Supabase generated types don't handle nested relations
-    .select('*, sender:users!sender_id(username, display_name, avatar_emoji), reply_to:messages!reply_to_message_id(id, content, sender:users!sender_id(username, display_name, avatar_emoji))')
-    .or(`and(sender_id.eq.${userId1},recipient_id.eq.${userId2}),and(sender_id.eq.${userId2},recipient_id.eq.${userId1})`)
-    .order('created_at', { ascending: true })
-    .limit(limit);
-
-  if (error) {
-    console.error('Error fetching conversation:', error);
+  if (!supabase) {
+    console.warn('Supabase client not initialized - cannot fetch conversation');
     return [];
   }
 
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('messages')
+      // @ts-ignore - Supabase generated types don't handle nested relations
+      .select('*, sender:users!sender_id(username, display_name, avatar_emoji), reply_to:messages!reply_to_message_id(id, content, sender:users!sender_id(username, display_name, avatar_emoji))')
+      .or(`and(sender_id.eq.${userId1},recipient_id.eq.${userId2}),and(sender_id.eq.${userId2},recipient_id.eq.${userId1})`)
+      .order('created_at', { ascending: true })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching conversation:', error);
+      if (error.message && error.message.includes('Failed to fetch')) {
+        console.error('Supabase connection error - check your internet connection and Supabase configuration');
+      }
+      return [];
+    }
+
+    return data || [];
+  } catch (error: any) {
+    console.error('Exception in getConversation:', error);
+    if (error?.message && error.message.includes('Failed to fetch')) {
+      console.error('Network/connection error - check Supabase configuration and internet connection');
+    }
+    return [];
+  }
 };
 
 /**
  * Get all conversations for a user (list of recent chats)
  */
 export const getUserConversations = async (userId: string): Promise<any[]> => {
-  if (!supabase) return [];
-
-  // Get all messages where user is either sender or recipient
-  const { data, error } = await supabase
-    .from('messages')
-    // @ts-ignore - Supabase generated types don't handle nested relations
-    .select('*, sender:users!sender_id(id, username, display_name, avatar_emoji, avatar_url, is_online), recipient:users!recipient_id(id, username, display_name, avatar_emoji, avatar_url, is_online)')
-    .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching conversations:', error);
+  if (!supabase) {
+    console.warn('Supabase client not initialized - cannot fetch conversations');
     return [];
   }
 
-  // Group messages by conversation partner
-  const conversationsMap = new Map<string, any>();
+  try {
+    // Get all messages where user is either sender or recipient
+    const { data, error } = await supabase
+      .from('messages')
+      // @ts-ignore - Supabase generated types don't handle nested relations
+      .select('*, sender:users!sender_id(id, username, display_name, avatar_emoji, avatar_url, is_online), recipient:users!recipient_id(id, username, display_name, avatar_emoji, avatar_url, is_online)')
+      .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
+      .order('created_at', { ascending: false });
 
-  (data as any[]).forEach((msg: any) => {
+    if (error) {
+      console.error('Error fetching conversations:', error);
+      // Check if it's a connection error
+      if (error.message && error.message.includes('Failed to fetch')) {
+        console.error('Supabase connection error - check your internet connection and Supabase configuration');
+      }
+      return [];
+    }
+
+    if (!data) return [];
+
+    // Group messages by conversation partner
+    const conversationsMap = new Map<string, any>();
+
+    (data as any[]).forEach((msg: any) => {
     // Determine the other user in the conversation
     const otherUser = msg.sender_id === userId ? msg.recipient : msg.sender;
     const otherUserId = msg.sender_id === userId ? msg.recipient_id : msg.sender_id;
@@ -205,9 +246,17 @@ export const getUserConversations = async (userId: string): Promise<any[]> => {
     delete conversation.messages;
   }
 
-  return conversations.sort((a: any, b: any) =>
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+    return conversations.sort((a: any, b: any) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  } catch (error: any) {
+    console.error('Exception in getUserConversations:', error);
+    // Return empty array on any exception to prevent app crash
+    if (error?.message && error.message.includes('Failed to fetch')) {
+      console.error('Network/connection error - check Supabase configuration and internet connection');
+    }
+    return [];
+  }
 };
 
 /**

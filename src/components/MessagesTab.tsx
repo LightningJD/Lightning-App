@@ -9,6 +9,7 @@ import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/
 import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
 import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
 import { validateMessage, sanitizeInput } from '../lib/inputValidation';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: any): string => {
@@ -40,16 +41,6 @@ interface Message {
   recipient_id: string;
   content: string;
   created_at: string;
-  reply_to_message_id?: string;
-  reply_to?: {
-    id: string;
-    content: string;
-    sender: {
-      username: string;
-      display_name: string;
-      avatar_emoji: string;
-    };
-  };
   sender?: {
     username: string;
     display_name: string;
@@ -193,15 +184,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           [messageId]: reactions
         }));
       } else {
-        // Reload reactions to get updated state
-        const updatedReactions = await getMessageReactions(String(messageId));
-        setMessageReactions(prev => ({
-          ...prev,
-          [messageId]: updatedReactions.map((r: any) => ({
-            emoji: r.emoji,
-            userId: r.user_id
-          }))
-        }));
+        // Don't reload immediately - let the subscription handle it
+        // This prevents the reaction from disappearing
+        console.log('✅ Reaction removed successfully');
       }
     } else {
       // Optimistically add reaction to UI immediately
@@ -220,15 +205,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           [messageId]: reactions
         }));
       } else {
-        // Reload reactions to get updated state
-        const updatedReactions = await getMessageReactions(String(messageId));
-        setMessageReactions(prev => ({
-          ...prev,
-          [messageId]: updatedReactions.map((r: any) => ({
-            emoji: r.emoji,
-            userId: r.user_id
-          }))
-        }));
+        // Don't reload immediately - let the subscription handle it
+        // This prevents the reaction from disappearing
+        console.log('✅ Reaction added successfully');
       }
     }
   };
@@ -245,21 +224,45 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   useEffect(() => {
     const loadConversations = async () => {
       if (profile?.supabaseId) {
-        const userConversations = await getUserConversations(profile.supabaseId);
+        try {
+          const userConversations = await getUserConversations(profile.supabaseId);
 
-        // Filter out conversations with blocked users
-        const unblockedConversations = [];
-        for (const convo of userConversations) {
-          const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
-          const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
-          if (!blocked && !blockedBy) {
-            unblockedConversations.push(convo);
+          // Filter out conversations with blocked users
+          const unblockedConversations = [];
+          for (const convo of userConversations) {
+            try {
+              const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
+              const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
+              if (!blocked && !blockedBy) {
+                unblockedConversations.push(convo);
+              }
+            } catch (blockError) {
+              // Continue even if block check fails
+              console.error('Error checking blocked status:', blockError);
+              unblockedConversations.push(convo);
+            }
+          }
+
+          setConversations(unblockedConversations);
+          // Inform parent for badge count based on total unread messages (0 when none)
+          const totalUnread = unblockedConversations.reduce(
+            (sum: number, convo: any) => sum + (convo.unreadCount || 0),
+            0
+          );
+          onConversationsCountChange?.(totalUnread);
+          setIsInitialLoad(false);
+        } catch (error: any) {
+          console.error('Error loading conversations:', error);
+          // Set empty conversations on error and stop loading
+          setConversations([]);
+          setIsInitialLoad(false);
+          onConversationsCountChange?.(0);
+          // Don't show error toast for connection issues - just log it
+          if (error?.message && !error.message.includes('Failed to fetch')) {
+            showError('Failed to load conversations. Please check your connection.');
           }
         }
-
-        setConversations(unblockedConversations);
-        // Inform parent for badge count (0 when none)
-        onConversationsCountChange?.(unblockedConversations.length || 0);
+      } else {
         setIsInitialLoad(false);
       }
     };
@@ -281,7 +284,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       // Reload conversations to update the list with new unread counts
       const updatedConversations = await getUserConversations(profile.supabaseId);
       // Filter out blocked users
-      const unblockedConversations = [];
+      const unblockedConversations: any[] = [];
       for (const convo of updatedConversations) {
         const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
         const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
@@ -289,18 +292,26 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           unblockedConversations.push(convo);
         }
       }
-      if (isMounted) setConversations(unblockedConversations);
+      if (isMounted) {
+        setConversations(unblockedConversations);
+        const totalUnread = unblockedConversations.reduce(
+          (sum: number, convo: any) => sum + (convo.unreadCount || 0),
+          0
+        );
+        onConversationsCountChange?.(totalUnread);
+      }
 
       // If the message is for the active chat, reload messages and mark as read
       // @ts-ignore - activeChat type compatibility
       if (activeChat && payload.new.sender_id === activeChat) {
         // Mark as read since user is viewing the conversation
         await markConversationAsRead(profile.supabaseId, payload.new.sender_id);
-        
+
         // @ts-ignore - activeChat type compatibility
         getConversation(profile.supabaseId, activeChat)
           .then(async (data) => {
-            if (isMounted) {
+            if (isMounted && data && data.length >= 0) {
+              // Only update if we got valid data (even if empty array)
               setMessages(data);
               // Reload reactions for all messages
               const reactionsMap: Record<string | number, any[]> = {};
@@ -312,10 +323,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                 }));
               }
               setMessageReactions(reactionsMap);
-              
+
               // Reload conversations again to update unread count after marking as read
               const refreshedConversations = await getUserConversations(profile.supabaseId);
-              const refreshedUnblocked = [];
+              const refreshedUnblocked: any[] = [];
               for (const convo of refreshedConversations) {
                 const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
                 const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
@@ -323,10 +334,20 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   refreshedUnblocked.push(convo);
                 }
               }
-              if (isMounted) setConversations(refreshedUnblocked);
+              if (isMounted) {
+                setConversations(refreshedUnblocked);
+                const totalUnread = refreshedUnblocked.reduce(
+                  (sum: number, convo: any) => sum + (convo.unreadCount || 0),
+                  0
+                );
+                onConversationsCountChange?.(totalUnread);
+              }
             }
           })
-          .catch(error => console.error('Failed to load messages:', error));
+          .catch(error => {
+            console.error('Failed to load messages from real-time subscription:', error);
+            // Don't clear messages on error - keep existing messages
+          });
       }
     });
 
@@ -354,9 +375,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       // Reload reactions for the affected message
       if (payload.new?.message_id || payload.old?.message_id) {
         const messageId = payload.new?.message_id || payload.old?.message_id;
+        
+        // Always update reactions - the subscription will only fire for relevant messages
         getMessageReactions(String(messageId))
           .then(reactions => {
             if (isMounted) {
+              // Use functional update to ensure we have the latest state
               setMessageReactions(prev => ({
                 ...prev,
                 [messageId]: reactions.map((r: any) => ({
@@ -364,9 +388,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   userId: r.user_id
                 }))
               }));
+              console.log(`✅ Updated reactions for message ${messageId}:`, reactions);
             }
           })
-          .catch(error => console.error('Failed to reload reactions:', error));
+          .catch(error => {
+            console.error('Failed to reload reactions:', error);
+          });
       }
     });
 
@@ -465,6 +492,21 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     // Sanitize and save the original message content and previous messages
     const messageContent = sanitizeInput(newMessage);
     const previousMessages = [...messages];
+    
+    // Capture reply target and clear reply state BEFORE sending
+    // Only reply if the message being replied to still exists in current messages AND has valid content
+    const replyTarget = replyingTo && 
+                       messages.some(m => m.id === replyingTo.id && m.content) && 
+                       replyingTo.content ? replyingTo : null;
+    const replyToId = replyTarget?.id ? String(replyTarget.id) : undefined;
+    
+    // Clear reply state immediately so UI updates
+    setReplyingTo(null);
+    
+    // Log for debugging
+    if (replyingTo && !replyTarget) {
+      console.log('⚠️ Reply target invalid or deleted, skipping reply');
+    }
 
     // Optimistically add message to UI
     const tempMessage = {
@@ -473,6 +515,16 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       recipient_id: conversation.userId,
       content: messageContent,
       created_at: new Date().toISOString(),
+      reply_to_message_id: replyToId,
+      reply_to: replyTarget ? {
+        id: replyTarget.id,
+        content: replyTarget.content,
+        sender: replyTarget.sender || {
+          username: profile.username,
+          display_name: profile.displayName,
+          avatar_emoji: profile.avatar
+        }
+      } : undefined,
       sender: {
         username: profile.username,
         display_name: profile.displayName,
@@ -488,94 +540,153 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       console.log('Sending message...', {
         from: profile.supabaseId,
         to: conversation.userId,
-        content: messageContent
+        content: messageContent,
+        replyTo: replyToId
       });
 
-      const savedMessage = await sendMessage(
+      const result = await sendMessage(
         profile.supabaseId,
         conversation.userId,
         messageContent,
-        replyingTo?.id ? String(replyingTo.id) : undefined
+        replyToId
       );
 
-      if (savedMessage) {
-        console.log('✅ Message sent to database!', savedMessage);
+      if (result.error) {
+        // Error occurred, throw with detailed message
+        throw new Error(result.error);
+      }
 
-        // Record rate limit attempt (after successful send)
-        recordAttempt('send_message');
+      const savedMessage = result.data;
+      if (!savedMessage) {
+        throw new Error('Failed to send message: No data returned');
+      }
 
-        // Check message milestone secrets
-        // Count total messages sent by this user (rough estimate from all conversations)
-        const allConvos = await getUserConversations(profile.supabaseId);
-        let totalMessages = 0;
-        if (allConvos) {
-          for (const convo of allConvos) {
-            try {
-              const convoMessages = await getConversation(profile.supabaseId, convo.userId) as Message[];
-              totalMessages += convoMessages?.filter(m => m.sender_id === profile.supabaseId).length || 0;
-            } catch (error) {
-              console.error(`Failed to load messages for conversation ${convo.id}:`, error);
-              // Continue to next conversation
-            }
+      console.log('✅ Message sent to database!', savedMessage);
+
+      // Record rate limit attempt (after successful send)
+      recordAttempt('send_message');
+
+      // Check message milestone secrets
+      // Count total messages sent by this user (rough estimate from all conversations)
+      const allConvos = await getUserConversations(profile.supabaseId);
+      let totalMessages = 0;
+      if (allConvos) {
+        for (const convo of allConvos) {
+          try {
+            const convoMessages = await getConversation(profile.supabaseId, convo.userId) as Message[];
+            totalMessages += convoMessages?.filter(m => m.sender_id === profile.supabaseId).length || 0;
+          } catch (error) {
+            console.error(`Failed to load messages for conversation ${convo.id}:`, error);
+            // Continue to next conversation
           }
         }
+      }
 
-        // Check milestones: 1st message, 100 messages
-        if (totalMessages === 1) {
-          checkMilestoneSecret('messages', 1);
-        } else if (totalMessages === 100) {
-          checkMilestoneSecret('messages', 100);
-        }
+      // Check milestones: 1st message, 100 messages
+      if (totalMessages === 1) {
+        checkMilestoneSecret('messages', 1);
+      } else if (totalMessages === 100) {
+        checkMilestoneSecret('messages', 100);
+      }
 
-        // Check message content for secrets (Amen 3x, scripture sharing)
-        checkMessageSecrets(messageContent);
+      // Check message content for secrets (Amen 3x, scripture sharing)
+      checkMessageSecrets(messageContent);
 
-        // Track message timing for early bird / night owl secrets
-        trackMessageByHour();
-        const earlyBirdCount = getEarlyBirdMessages();
-        const nightOwlCount = getNightOwlMessages();
+      // Track message timing for early bird / night owl secrets
+      trackMessageByHour();
+      const earlyBirdCount = getEarlyBirdMessages();
+      const nightOwlCount = getNightOwlMessages();
 
-        if (earlyBirdCount >= 10) {
-          unlockSecret('early_bird_messenger');
-        }
-        if (nightOwlCount >= 10) {
-          unlockSecret('night_owl_messenger');
-        }
+      if (earlyBirdCount >= 10) {
+        unlockSecret('early_bird_messenger');
+      }
+      if (nightOwlCount >= 10) {
+        unlockSecret('night_owl_messenger');
+      }
 
-        // Track message streak for consistent encourager
-        const streak = trackMessageStreak();
-        if (streak >= 7) {
-          unlockSecret('messages_streak_7');
-        }
+      // Track message streak for consistent encourager
+      const streak = trackMessageStreak();
+      if (streak >= 7) {
+        unlockSecret('messages_streak_7');
+      }
 
-        // Reload messages to get the real data with correct timestamp
-        const updatedMessages = await getConversation(
-          profile.supabaseId,
-          conversation.userId
+      // Immediately replace optimistic message with real message from database
+      // This ensures correct timestamp and all fields are accurate
+      setMessages(prev => {
+        const tempId = tempMessage.id;
+        const filtered = prev.filter(m => m.id !== tempId);
+        // Add the saved message with correct database timestamp
+        const updated = [...filtered, savedMessage];
+        // Sort by created_at to maintain chronological order
+        return updated.sort((a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         );
-        console.log('Loaded messages from database:', updatedMessages);
-        setMessages(updatedMessages || []);
+      });
 
-        // Clear reply state
-        setReplyingTo(null);
+      // Reload messages to get the real data with correct timestamp and reactions
+      // Do this in background, but don't clear messages if it fails
+      getConversation(profile.supabaseId, conversation.userId)
+        .then(async (updatedMessages) => {
+          if (updatedMessages && updatedMessages.length > 0 && activeChat === conversation.id) {
+            console.log('Loaded messages from database:', updatedMessages);
+            setMessages(updatedMessages);
+            
+            // Reload reactions for all messages, preserving existing optimistic updates
+            // Load reactions asynchronously without blocking
+            (async () => {
+              const reactionsMap: Record<string | number, any[]> = {};
+              for (const msg of updatedMessages || []) {
+                try {
+                  const reactions = await getMessageReactions(String(msg.id));
+                  reactionsMap[msg.id] = reactions.map((r: any) => ({
+                    emoji: r.emoji,
+                    userId: r.user_id
+                  }));
+                } catch (error) {
+                  console.error(`Failed to load reactions for message ${msg.id}:`, error);
+                  // Keep existing reactions if load fails
+                }
+              }
+              
+              // Update reactions, merging with existing to preserve optimistic updates
+              setMessageReactions(prev => {
+                const merged: Record<string | number, any[]> = { ...prev };
+                // Only update reactions for messages we successfully loaded
+                Object.keys(reactionsMap).forEach(msgId => {
+                  merged[msgId] = reactionsMap[msgId];
+                });
+                return merged;
+              });
+            })();
+          }
+        })
+        .catch(error => {
+          console.error('Error reloading messages (non-critical):', error);
+          // Don't clear messages on error - we already have the saved message in state
+        });
 
-        // Reload reactions for the new message
-        if (savedMessage?.id) {
-          const reactions = await getMessageReactions(String(savedMessage.id));
-          setMessageReactions(prev => ({
-            ...prev,
-            [savedMessage.id]: reactions.map((r: any) => ({
-              emoji: r.emoji,
-              userId: r.user_id
-            }))
-          }));
-        }
-      } else {
-        throw new Error('Failed to send message');
+      // Reply state will be cleared after successful send
+
+      // Reload reactions for the new message
+      if (savedMessage?.id) {
+        const reactions = await getMessageReactions(String(savedMessage.id));
+        setMessageReactions(prev => ({
+          ...prev,
+          [savedMessage.id]: reactions.map((r: any) => ({
+            emoji: r.emoji,
+            userId: r.user_id
+          }))
+        }));
       }
     } catch (error: any) {
       console.error('❌ Failed to send message:', error);
-      showError(error?.message || 'Failed to send message. Please try again.');
+      console.error('Error stack:', error?.stack);
+      console.error('Full error object:', error);
+
+      // Show detailed error message
+      const errorMessage = error?.message || error?.error || 'Failed to send message. Please try again.';
+      showError(errorMessage);
+
       // Revert to previous messages (remove optimistic message)
       setMessages(previousMessages);
       // Restore the message text so user can try again
@@ -594,7 +705,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       <div className="flex flex-col h-[calc(100vh-140px)]">
         {/* Header */}
         <div
-          className={`px-4 py-2.5 border-b flex items-center justify-between ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
+          className={`px-4 py-2.5 border-b flex items-center justify-between relative z-50 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
           style={nightMode ? {} : {
             background: 'rgba(255, 255, 255, 0.2)',
             backdropFilter: 'blur(30px)',
@@ -610,7 +721,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           </button>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl overflow-hidden ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
+                nightMode
+                  ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500 text-white'
+                  : 'bg-gradient-to-br from-purple-400 to-pink-400 text-white'
+              }`}>
                 {conversation.avatarImage ? (
                   <img src={conversation.avatarImage} alt={conversation.name} className="w-full h-full object-cover" />
                 ) : (
@@ -631,9 +746,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           <div className="relative">
             <button
               onClick={() => setShowConversationMenu(!showConversationMenu)}
-              className={`p-2 rounded-lg transition-colors ${
-                nightMode ? 'hover:bg-white/10 text-slate-100' : 'hover:bg-white/20 text-black'
-              }`}
+              className={`p-2 rounded-lg transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-100' : 'hover:bg-white/20 text-black'
+                }`}
               aria-label="Conversation options"
             >
               <MoreVertical className="w-5 h-5" />
@@ -645,7 +759,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   onClick={() => setShowConversationMenu(false)}
                 />
                 <div
-                  className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-2xl z-50 border ${
+                  className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-2xl z-[60] border ${
                     nightMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-white/25'
                   }`}
                   style={nightMode ? {
@@ -675,11 +789,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         showError('Failed to block user');
                       }
                     }}
-                    className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-t-xl ${
-                      nightMode
+                    className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-t-xl ${nightMode
                         ? 'hover:bg-white/10 text-red-400'
                         : 'hover:bg-red-50 text-red-600'
-                    }`}
+                      }`}
                   >
                     <UserX className="w-4 h-4" />
                     <span className="text-sm font-medium">Block User</span>
@@ -739,14 +852,23 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         </span>
                         <span className={`text-[10px] ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
                           {(() => {
-                            const msgDate = new Date(msg.created_at);
+                            // Parse the timestamp - handle both ISO strings and Date objects
+                            const msgDate = msg.created_at ? new Date(msg.created_at) : new Date();
                             const now = new Date();
                             const diffMs = now.getTime() - msgDate.getTime();
                             const diffMins = Math.floor(diffMs / 60000);
-                            
+                            const diffHours = Math.floor(diffMs / 3600000);
+                            const diffDays = Math.floor(diffMs / 86400000);
+
                             // Show "Just now" for messages less than 1 minute old
                             if (diffMins < 1) return 'Just now';
-                            // Show time for today's messages
+                            // Show minutes ago for messages less than 1 hour old
+                            if (diffMins < 60) return `${diffMins}m ago`;
+                            // Show hours ago for messages less than 24 hours old
+                            if (diffHours < 24) return `${diffHours}h ago`;
+                            // Show days ago for messages less than 7 days old
+                            if (diffDays < 7) return `${diffDays}d ago`;
+                            // Show time for today's messages (fallback)
                             if (msgDate.toDateString() === now.toDateString()) {
                               return msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                             }
@@ -762,14 +884,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                           <div
                             ref={(el: HTMLDivElement | null) => { messageRefs.current[msg.id] = el; }}
                             className={nightMode ? 'bg-transparent hover:bg-white/5 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
-                            {/* Reply to message preview */}
-                            {msg.reply_to && (
+                            {/* Reply to message preview - only show if reply_to is valid and has content */}
+                            {msg.reply_to && (msg.reply_to as any).id && (msg.reply_to as any).content && (
                               <div className={`mb-2 pl-3 border-l-2 ${nightMode ? 'border-white/20 bg-white/5' : 'border-white/30 bg-white/20'} rounded-r-md py-1.5 text-xs`}>
                                 <div className={`font-semibold mb-0.5 ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
                                   {(msg.reply_to as any).sender?.display_name || (msg.reply_to as any).sender?.username || 'Unknown'}
                                 </div>
                                 <div className={`truncate ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
-                                  {decodeHTMLEntities((msg.reply_to as any).content || 'Message deleted')}
+                                  {decodeHTMLEntities((msg.reply_to as any).content)}
                                 </div>
                               </div>
                             )}
@@ -902,21 +1024,19 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                                     <button
                                       key={emoji}
                                       onClick={() => handleReaction(msg.id, emoji)}
-                                      className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
-                                        data.hasReacted
+                                      className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${data.hasReacted
                                           ? nightMode
                                             ? 'bg-[rgba(88,101,242,0.15)] border border-[#5865f2]'
                                             : 'bg-blue-100 border border-blue-400'
                                           : nightMode
                                             ? 'bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)]'
                                             : 'bg-transparent border border-white/25 hover:bg-white/20'
-                                      }`}
+                                        }`}
                                     >
                                       <span className="text-sm leading-none">{emoji}</span>
-                                      <span className={`text-[11px] font-medium leading-none ${
-                                        data.hasReacted ? nightMode ? 'text-[#dee0fc]' : 'text-blue-700'
-                                                        : nightMode ? 'text-[#b5bac1]' : 'text-black'
-                                      }`}>{data.count}</span>
+                                      <span className={`text-[11px] font-medium leading-none ${data.hasReacted ? nightMode ? 'text-[#dee0fc]' : 'text-blue-700'
+                                          : nightMode ? 'text-[#b5bac1]' : 'text-black'
+                                        }`}>{data.count}</span>
                                     </button>
                                   ))}
 
@@ -924,11 +1044,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                                   {!isExpanded && hiddenCount > 0 && (
                                     <button
                                       onClick={() => setExpandedReactions(prev => ({ ...prev, [msg.id]: true }))}
-                                      className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
-                                        nightMode
+                                      className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${nightMode
                                           ? 'bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)] text-[#b5bac1]'
                                           : 'bg-transparent border border-white/25 hover:bg-white/20 text-black'
-                                      }`}
+                                        }`}
                                     >
                                       <span className="text-[11px] font-medium">+{hiddenCount}</span>
                                     </button>
@@ -938,11 +1057,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                                   {isExpanded && sortedReactions.length > 5 && (
                                     <button
                                       onClick={() => setExpandedReactions(prev => ({ ...prev, [msg.id]: false }))}
-                                      className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
-                                        nightMode
+                                      className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${nightMode
                                           ? 'bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)] text-[#b5bac1]'
                                           : 'bg-transparent border border-white/25 hover:bg-white/20 text-black'
-                                      }`}
+                                        }`}
                                     >
                                       <span className="text-[11px] font-medium">−</span>
                                     </button>
@@ -1113,24 +1231,39 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           }}
         >
           <div className="text-6xl mb-4">💬</div>
-          <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No conversations yet</p>
-          <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
-            Connect with others in the Connect tab to start messaging!
-          </p>
-          <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
-            <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-              💡 Tip: Visit the <span className="font-bold">Connect</span> tab to find nearby believers
-            </p>
-          </div>
+          {!isSupabaseConfigured() ? (
+            <>
+              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>Database Not Configured</p>
+              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
+                Supabase connection is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env.local file to enable messaging.
+              </p>
+              <div className={`p-4 rounded-lg ${nightMode ? 'bg-yellow-500/20 border border-yellow-500/30' : 'bg-yellow-50 border border-yellow-200'}`}>
+                <p className={`text-xs font-medium ${nightMode ? 'text-yellow-300' : 'text-yellow-800'}`}>
+                  ⚠️ Check the console for detailed setup instructions
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No conversations yet</p>
+              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
+                Connect with others in the Connect tab to start messaging!
+              </p>
+              <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
+                <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                  💡 Tip: Visit the <span className="font-bold">Connect</span> tab to find nearby believers
+                </p>
+              </div>
+            </>
+          )}
         </div>
       ) : (
         conversations.map((chat) => (
           <button
             key={chat.id}
             onClick={() => setActiveChat(chat.id)}
-            className={`w-full rounded-xl border px-3 py-3 text-left transition-all hover:-translate-y-1 ${
-              nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)]'
-            }`}
+            className={`w-full rounded-xl border px-3 py-3 text-left transition-all hover:-translate-y-1 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)]'
+              }`}
             style={nightMode ? {} : {
               background: 'rgba(255, 255, 255, 0.2)',
               backdropFilter: 'blur(30px)',
@@ -1140,7 +1273,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           >
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl overflow-hidden ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
+                  nightMode
+                    ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500 text-white'
+                    : 'bg-gradient-to-br from-purple-400 to-pink-400 text-white'
+                }`}>
                   {chat.avatarImage ? (
                     <img src={chat.avatarImage} alt={chat.name} className="w-full h-full object-cover" />
                   ) : (
@@ -1155,11 +1292,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                 <div className="flex items-center gap-2">
                   <h3 className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{chat.name}</h3>
                   {(chat.unreadCount ?? 0) > 0 && (
-                    <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      nightMode 
-                        ? 'bg-blue-500 text-white' 
+                    <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${nightMode
+                        ? 'bg-blue-500 text-white'
                         : 'bg-blue-500 text-white'
-                    }`}>
+                      }`}>
                       {chat.unreadCount ?? 0}
                     </span>
                   )}
@@ -1229,11 +1365,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   {selectedConnections.map((conn) => (
                     <div
                       key={conn.id}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm ${
-                        nightMode
+                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm ${nightMode
                           ? 'bg-blue-500/20 border border-blue-500/30 text-slate-100'
                           : 'bg-blue-100 border border-blue-200 text-black'
-                      }`}
+                        }`}
                     >
                       <span>{conn.avatar}</span>
                       <span className="font-medium">{conn.name.split(' ')[0]}</span>
@@ -1302,11 +1437,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                           setSearchQuery('');
                           setShowSuggestions(false);
                         }}
-                        className={`w-full px-4 py-3 flex items-center gap-3 transition-colors border-b last:border-b-0 ${
-                          nightMode
+                        className={`w-full px-4 py-3 flex items-center gap-3 transition-colors border-b last:border-b-0 ${nightMode
                             ? 'hover:bg-white/10 border-white/5'
                             : 'hover:bg-white/50 border-white/20'
-                        }`}
+                          }`}
                       >
                         <div className="text-2xl">{conn.avatar}</div>
                         <div className="flex-1 text-left">
@@ -1324,10 +1458,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                     conn.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
                     !selectedConnections.some(sc => sc.id === conn.id)
                   ).length === 0 && (
-                    <div className={`px-4 py-6 text-center text-sm ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
-                      {selectedConnections.length > 0 ? 'All matching friends already added' : 'No connections found'}
-                    </div>
-                  )}
+                      <div className={`px-4 py-6 text-center text-sm ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
+                        {selectedConnections.length > 0 ? 'All matching friends already added' : 'No connections found'}
+                      </div>
+                    )}
                 </div>
               )}
             </div>
@@ -1392,7 +1526,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                           return;
                         }
 
-                        await sendMessage(profile.supabaseId, String(selectedConnections[0].id), newChatMessage.trim());
+                        const result = await sendMessage(profile.supabaseId, String(selectedConnections[0].id), newChatMessage.trim());
+                        if (result.error) {
+                          throw new Error(result.error);
+                        }
                         showSuccess('Message sent!');
                         // Reload conversations to show new conversation
                         const userConversations = await getUserConversations(profile.supabaseId);
@@ -1406,9 +1543,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         }
                         setConversations(unblockedConversations);
                       }
-                    } catch (error) {
+                    } catch (error: any) {
                       console.error('Error sending message:', error);
-                      showError('Failed to send message');
+                      showError(error?.message || 'Failed to send message');
                     }
                   }
                   setShowNewChatDialog(false);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Flag, AlertTriangle } from 'lucide-react';
 import { reportUser, reportTestimony, reportMessage, reportGroup, REPORT_REASONS } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
@@ -28,6 +28,18 @@ const ReportContent: React.FC<ReportContentProps> = ({
   const [reason, setReason] = useState('');
   const [details, setDetails] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Lock body scroll when dialog is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,17 +137,15 @@ const ReportContent: React.FC<ReportContentProps> = ({
       {/* Dialog */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
-          className={`w-full max-w-lg max-h-[85vh] rounded-2xl shadow-2xl pointer-events-auto overflow-hidden ${
-            nightMode
+          className={`w-full max-w-lg max-h-[85vh] flex flex-col rounded-2xl shadow-2xl pointer-events-auto overflow-hidden ${nightMode
               ? 'bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10'
               : 'bg-white border border-slate-200'
-          }`}
+            }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className={`flex items-center justify-between px-6 py-4 border-b ${
-            nightMode ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'
-          }`}>
+          <div className={`flex items-center justify-between px-6 py-4 border-b flex-shrink-0 ${nightMode ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'
+            }`}>
             <div className="flex items-center gap-3">
               <Flag className={`w-5 h-5 ${nightMode ? 'text-red-400' : 'text-red-500'}`} />
               <h2 className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
@@ -144,22 +154,20 @@ const ReportContent: React.FC<ReportContentProps> = ({
             </div>
             <button
               onClick={onClose}
-              className={`p-2 rounded-lg transition-colors ${
-                nightMode
+              className={`p-2 rounded-lg transition-colors ${nightMode
                   ? 'hover:bg-white/10 text-slate-100'
                   : 'hover:bg-slate-100 text-slate-600'
-              }`}
+                }`}
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Content */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
             {/* Warning Banner */}
-            <div className={`flex items-start gap-3 p-3 rounded-lg ${
-              nightMode ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-yellow-50 border border-yellow-200'
-            }`}>
+            <div className={`flex items-start gap-3 p-3 rounded-lg ${nightMode ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-yellow-50 border border-yellow-200'
+              }`}>
               <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${nightMode ? 'text-yellow-400' : 'text-yellow-600'}`} />
               <div>
                 <p className={`text-sm font-medium ${nightMode ? 'text-yellow-300' : 'text-yellow-900'}`}>
@@ -180,11 +188,10 @@ const ReportContent: React.FC<ReportContentProps> = ({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 required
-                className={`w-full px-4 py-3 rounded-lg border transition-colors ${
-                  nightMode
+                className={`w-full px-4 py-3 rounded-lg border transition-colors ${nightMode
                     ? 'bg-white/5 border-white/10 text-slate-100 focus:border-blue-500'
                     : 'bg-white border-slate-200 text-slate-900 focus:border-blue-500'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
               >
                 <option value="">Select a reason...</option>
                 {reasons.map((r) => (
@@ -210,11 +217,10 @@ const ReportContent: React.FC<ReportContentProps> = ({
                 placeholder="Provide any additional context that would help us understand the issue..."
                 rows={4}
                 maxLength={500}
-                className={`w-full px-4 py-3 rounded-lg border transition-colors resize-none ${
-                  nightMode
+                className={`w-full px-4 py-3 rounded-lg border transition-colors resize-none ${nightMode
                     ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500 focus:border-blue-500'
                     : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
               />
               <p className={`text-xs mt-1 ${nightMode ? 'text-slate-500' : 'text-slate-500'}`}>
                 {details.length}/500 characters
@@ -240,26 +246,24 @@ const ReportContent: React.FC<ReportContentProps> = ({
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
-                  nightMode
+                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${nightMode
                     ? 'bg-white/5 hover:bg-white/10 text-slate-100'
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!reason || submitting}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
-                  !reason || submitting
+                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${!reason || submitting
                     ? nightMode
                       ? 'bg-white/5 text-slate-500 cursor-not-allowed'
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                     : nightMode
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-red-500 hover:bg-red-600 text-white'
-                }`}
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-red-500 hover:bg-red-600 text-white'
+                  }`}
               >
                 {submitting ? 'Submitting Report...' : 'Submit Report'}
               </button>

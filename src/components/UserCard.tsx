@@ -26,7 +26,11 @@ const UserCard: React.FC<UserCardProps> = ({ user, showReason, isFriend, nightMo
       <div className="flex items-start gap-3">
         <button
           onClick={() => onViewProfile && onViewProfile(user)}
-          className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl relative flex-shrink-0 overflow-hidden ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'} transition-transform hover:scale-105 cursor-pointer`}
+          className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl relative flex-shrink-0 overflow-hidden ${
+            nightMode
+              ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500 text-white'
+              : 'bg-gradient-to-br from-purple-400 to-pink-400 text-white'
+          } transition-transform hover:scale-105 cursor-pointer`}
           aria-label={`View ${user.displayName}'s profile`}
         >
           {user.avatarImage ? (

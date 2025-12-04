@@ -106,7 +106,21 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
     try {
       await blockUser(currentUserProfile.supabaseId, user.id);
       setIsBlocked(true);
-      showSuccess(`${user.displayName || user.username} has been blocked`);
+      showSuccess(`${user.displayName || user.username} has been blocked`, {
+        style: {
+          background: '#ef4444',
+          color: '#fff',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: '500',
+          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
+        },
+        iconTheme: {
+          primary: '#fff',
+          secondary: '#ef4444',
+        }
+      });
       // Close the dialog after blocking
       setTimeout(() => {
         onClose();
@@ -132,9 +146,8 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
 
       {/* Dialog */}
       <div
-        className={`fixed inset-x-4 top-20 bottom-20 max-w-2xl mx-auto z-50 rounded-2xl overflow-hidden animate-in zoom-in-95 duration-300 ${
-          nightMode ? 'bg-[#0a0a0a]' : 'bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50'
-        }`}
+        className={`fixed inset-x-4 top-20 bottom-20 max-w-2xl mx-auto z-50 rounded-2xl overflow-hidden animate-in zoom-in-95 duration-300 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50'
+          }`}
         style={{
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)'
@@ -146,9 +159,8 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className={`absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
-            nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100' : 'bg-white/50 hover:bg-white/70 text-black'
-          }`}
+          className={`absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100' : 'bg-white/50 hover:bg-white/70 text-black'
+            }`}
           aria-label="Close profile"
         >
           <X className="w-5 h-5" />
@@ -160,9 +172,8 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
             {/* Profile Header */}
             <div className="flex flex-col items-center text-center pt-4">
               <div
-                className={`w-28 h-28 rounded-full flex items-center justify-center text-6xl shadow-lg border-4 ${
-                  nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'
-                } mb-4 overflow-hidden`}
+                className={`w-28 h-28 rounded-full flex items-center justify-center text-6xl shadow-lg border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'
+                  } mb-4 overflow-hidden`}
               >
                 {user.avatarImage ? (
                   <img src={user.avatarImage} alt={`${user.displayName}'s avatar`} className="w-full h-full object-cover" />
@@ -214,9 +225,8 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               {!isBlocked && (
                 <button
                   onClick={() => onMessage(user)}
-                  className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-100 border ${
-                    nightMode ? 'border-white/20' : 'border-white/30'
-                  }`}
+                  className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-100 border ${nightMode ? 'border-white/20' : 'border-white/30'
+                    }`}
                   style={{
                     background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
                     boxShadow: nightMode
@@ -231,9 +241,8 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               )}
 
               {isBlocked && (
-                <div className={`flex-1 px-6 py-3 rounded-xl border text-center ${
-                  nightMode ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-white/50 border-white/30 text-slate-500'
-                }`}>
+                <div className={`flex-1 px-6 py-3 rounded-xl border text-center ${nightMode ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-white/50 border-white/30 text-slate-500'
+                  }`}>
                   <UserX className="w-5 h-5 inline-block mr-2" />
                   <span className="text-sm font-medium">Blocked</span>
                 </div>
@@ -244,10 +253,10 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                   setReportData({ type: 'user', content: { id: user.id, name: user.displayName || user.username } });
                   setShowReport(true);
                 }}
-                className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${
-                  nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10' : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
-                }`}
+                className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10' : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
+                  }`}
                 aria-label={`Report ${user.displayName}`}
+                title={`Report ${user.displayName}`}
               >
                 <Flag className="w-5 h-5" />
               </button>
@@ -256,12 +265,12 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                 <button
                   onClick={handleBlockUser}
                   disabled={blocking}
-                  className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${
-                    nightMode 
-                      ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10' 
-                      : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
-                  } ${blocking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${nightMode
+                    ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10'
+                    : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
+                    } ${blocking ? 'opacity-50 cursor-not-allowed' : ''}`}
                   aria-label={`Block ${user.displayName}`}
+                  title={`Block ${user.displayName}`}
                 >
                   <UserX className="w-5 h-5" />
                 </button>
@@ -288,9 +297,8 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                   <button
                     onClick={handleSendFriendRequest}
                     disabled={friendStatus !== 'none' || sendingRequest}
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${
-                      nightMode ? 'border-white/20' : 'border-white/30'
-                    } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${nightMode ? 'border-white/20' : 'border-white/30'
+                      } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
                     style={nightMode ? {
                       background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
                       boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
@@ -347,11 +355,11 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                   nightMode
                     ? {}
                     : {
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        backdropFilter: 'blur(30px)',
-                        WebkitBackdropFilter: 'blur(30px)',
-                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-                      }
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                    }
                 }
               >
                 <div className="flex items-center justify-between mb-3">
@@ -372,11 +380,10 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                         setShowReport(true);
                       }
                     }}
-                    className={`p-2 rounded-lg transition-colors ${
-                      nightMode
-                        ? 'hover:bg-white/10 text-slate-400 hover:text-red-400'
-                        : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
-                    }`}
+                    className={`p-2 rounded-lg transition-colors ${nightMode
+                      ? 'hover:bg-white/10 text-slate-400 hover:text-red-400'
+                      : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
+                      }`}
                     aria-label="Report testimony"
                   >
                     <Flag className="w-4 h-4" />
@@ -409,9 +416,9 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                   nightMode
                     ? {}
                     : {
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)'
-                      }
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)'
+                    }
                 }
               >
                 <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>

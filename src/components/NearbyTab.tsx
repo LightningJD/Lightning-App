@@ -87,6 +87,12 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
             profile.supabaseId
           );
           usersToShow = nearby || [];
+
+          // Fallback: if no nearby users found, show all users
+          if (usersToShow.length === 0) {
+            const allUsers = await getAllUsers(profile.supabaseId, 50);
+            usersToShow = allUsers || [];
+          }
         } else {
           // Fallback: show all users when location is not available
           const allUsers = await getAllUsers(profile.supabaseId, 50);
@@ -102,8 +108,14 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
         // Filter out blocked users and users who blocked current user
         const unblockedUsers = [];
         for (const user of filteredUsers) {
-          const blocked = await isUserBlocked(profile.supabaseId, user.id);
-          const blockedBy = await isBlockedBy(profile.supabaseId, user.id);
+          let blocked = false;
+          let blockedBy = false;
+
+          if (profile?.supabaseId) {
+            blocked = await isUserBlocked(profile.supabaseId, user.id);
+            blockedBy = await isBlockedBy(profile.supabaseId, user.id);
+          }
+
           if (!blocked && !blockedBy) {
             unblockedUsers.push(user);
           }
@@ -112,8 +124,13 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
         // Add mutual friends count and friendship status
         const enrichedUsers = await Promise.all(
           unblockedUsers.map(async (user) => {
-            const mutualFriends = await getMutualFriends(profile.supabaseId, user.id);
-            const friendshipStatus = await checkFriendshipStatus(profile.supabaseId, user.id);
+            let mutualFriends = [];
+            let friendshipStatus = null;
+
+            if (profile?.supabaseId) {
+              mutualFriends = await getMutualFriends(profile.supabaseId, user.id);
+              friendshipStatus = await checkFriendshipStatus(profile.supabaseId, user.id);
+            }
 
             return {
               ...user,
@@ -129,10 +146,11 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               // @ts-ignore - user type compatibility
               is_online: user.online || false,
               location: user.location_city || 'Unknown',
+              distance: (user as any).distance_miles?.toString(),
               mutualFriends: mutualFriends?.length || 0,
               reason: mutualFriends?.length > 0
                 ? `${mutualFriends.length} mutual friend${mutualFriends.length > 1 ? 's' : ''}`
-                : profile.location?.lat && profile.location?.lng ? 'Nearby' : 'Recommended',
+                : profile.location?.lat && profile.location?.lng && (user as any).distance_miles ? 'Nearby' : 'Recommended',
               friendshipStatus // 'pending', 'accepted', null
             };
           })
@@ -186,14 +204,19 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
         // Check friendship status and blocking for each search result
         const enrichedResults = await Promise.all(
           results.map(async (user) => {
-            // Check actual friendship status
-            const friendshipStatus = await checkFriendshipStatus(profile?.supabaseId || '', user.id);
-            const blocked = await isUserBlocked(profile?.supabaseId || '', user.id);
-            const blockedBy = await isBlockedBy(profile?.supabaseId || '', user.id);
-            
+            let friendshipStatus = null;
+            let blocked = false;
+            let blockedBy = false;
+
+            if (profile?.supabaseId) {
+              friendshipStatus = await checkFriendshipStatus(profile.supabaseId, user.id);
+              blocked = await isUserBlocked(profile.supabaseId, user.id);
+              blockedBy = await isBlockedBy(profile.supabaseId, user.id);
+            }
+
             // Skip if blocked
             if (blocked || blockedBy) return null;
-            
+
             return {
               id: user.id,
               display_name: user.display_name || '',
@@ -335,16 +358,14 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name or username..."
-              className={`flex-1 bg-transparent border-none outline-none text-sm ${
-                nightMode ? 'text-slate-100 placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'
-              }`}
+              className={`flex-1 bg-transparent border-none outline-none text-sm ${nightMode ? 'text-slate-100 placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'
+                }`}
             />
             {searchQuery && (
               <button
                 onClick={handleClearSearch}
-                className={`p-1 rounded-md transition-colors ${
-                  nightMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
-                }`}
+                className={`p-1 rounded-md transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
+                  }`}
               >
                 <X className="w-4 h-4" />
               </button>
