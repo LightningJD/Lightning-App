@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useClerk } from '@clerk/clerk-react';
-import { User, MessageCircle, Users, MapPin, Zap, Plus, X, ArrowRight, ArrowLeft, Sparkles, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
+import { User, MessageCircle, Users, MapPin, Zap, Plus, X, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
@@ -43,10 +43,6 @@ function App() {
   const [currentTab, setCurrentTab] = useState('profile');
   const [showMenu, setShowMenu] = useState(false);
   const [showTestimonyPrompt, setShowTestimonyPrompt] = useState(false);
-  const [testimonyStep, setTestimonyStep] = useState(0);
-  const [testimonyAnswers, setTestimonyAnswers] = useState<Record<number, string>>({});
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedTestimony, setGeneratedTestimony] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('recommended');
   const [activeConnectTab, setActiveConnectTab] = useState('recommended');
   const selectedTheme = localStorage.getItem('lightningTheme') || 'periwinkle';
@@ -1748,7 +1744,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
             onClose={handleSaveTestimonyModalClose}
             onContinueAsGuest={handleContinueAsGuest}
             nightMode={nightMode}
-            testimonyPreview={generatedTestimony || ''}
+            testimonyPreview={''}
           />
 
           {/* Secret Museum */}
