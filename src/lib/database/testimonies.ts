@@ -72,6 +72,7 @@ export const getTestimonyByUserId = async (userId: string): Promise<any> => {
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
+    .limit(1)
     .single();
 
   if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned

@@ -24,6 +24,7 @@ import ContactSupport from './components/ContactSupport';
 import BlockedUsers from './components/BlockedUsers';
 import ReportContent from './components/ReportContent';
 import LinkSpotify from './components/LinkSpotify';
+import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
@@ -32,6 +33,7 @@ import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimo
 import { trackDailyLogin, trackThemeChange, trackNightModeUsage, trackAvatarChange } from './lib/activityTracker';
 import { initSentry, setUser as setSentryUser } from './lib/sentry';
 import type { UserUpdate } from './types';
+import type { TestimonyAnswers } from './lib/api/claude';
 
 function App() {
   const { signOut } = useClerk();
@@ -54,6 +56,7 @@ function App() {
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showTestimonyEdit, setShowTestimonyEdit] = useState(false);
   const [testimonyData, setTestimonyData] = useState<any>(null);
+  const [showTestimonyQuestionnaire, setShowTestimonyQuestionnaire] = useState(false);
   const [notificationCounts, setNotificationCounts] = React.useState({
     messages: 0,
     groups: 0,
@@ -324,32 +327,7 @@ function App() {
     );
   }
 
-  const testimonyQuestions = [
-    {
-      id: 1,
-      question: "How was your life like before you were saved?",
-      placeholder: "Describe your background growing up or if you were always saved...",
-      hint: "As in what was your background growing up or were you always saved?"
-    },
-    {
-      id: 2,
-      question: "What led you to salvation or your own personal relationship with God?",
-      placeholder: "Share what drew you to a relationship with God...",
-      hint: "This could be a person, event, realization, or series of circumstances"
-    },
-    {
-      id: 3,
-      question: "Was there a specific moment where you encountered God or a special situation that was the turning point to your relationship with God?",
-      placeholder: "Describe this experience in detail...",
-      hint: "If so, please describe this specific experience in detail"
-    },
-    {
-      id: 4,
-      question: "What do you do now and what do you believe is your current mission or calling from God in your current place now?",
-      placeholder: "Share your current calling, ministry, or mission...",
-      hint: "Tell us about what you do now such as your current job position, ministry, or role"
-    }
-  ];
+  // Old testimony questions array - now using TestimonyQuestionnaire component with Claude AI
 
   // Auto-save guest testimony when user signs up
   React.useEffect(() => {
@@ -419,9 +397,9 @@ function App() {
   React.useEffect(() => {
     if (isAuthenticated && userProfile && userProfile.supabaseId) {
       // Check if profile is incomplete - prioritize database profile_completed field
-      const isProfileIncomplete = !userProfile.profileCompleted && 
-                                 (!userProfile.location ||
-                                  userProfile.bio === 'Welcome to Lightning! Share your testimony to inspire others.');
+      const isProfileIncomplete = !userProfile.profileCompleted &&
+        (!userProfile.location ||
+          userProfile.bio === 'Welcome to Lightning! Share your testimony to inspire others.');
 
       // Only show wizard if profile is incomplete and user hasn't completed it in this session
       if (isProfileIncomplete && !profileCompleted) {
@@ -438,7 +416,10 @@ function App() {
     }
   }, [isAuthenticated, userProfile, profileCompleted]);
 
-
+  // Old testimony wizard code - replaced by TestimonyQuestionnaire component
+  // The handleTestimonyAnswer, nextTestimonyStep, previousTestimonyStep functions
+  // are no longer used but kept here for reference
+  /*
   const handleTestimonyAnswer = (answer: string): void => {
     setTestimonyAnswers({
       ...testimonyAnswers,
@@ -573,6 +554,7 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
       setTestimonyStep(testimonyStep - 1);
     }
   };
+  */
 
   const handleProfileComplete = async (profileData: UserUpdate): Promise<void> => {
     if (!userProfile || !userProfile.supabaseId) {
@@ -787,8 +769,79 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
     }
   };
 
+  // Handler for AI-powered testimony questionnaire completion
+  const handleTestimonyQuestionnaireComplete = async (testimonyData: { content: string; answers: TestimonyAnswers }): Promise<void> => {
+    setShowTestimonyQuestionnaire(false);
+
+    const toastId = showLoading('Saving your testimony...');
+
+    try {
+      // Calculate time spent
+      const timeSpent = testimonyStartTime ? Date.now() - testimonyStartTime : null;
+
+      // Check testimony secrets
+      checkTestimonySecrets({
+        content: testimonyData.content
+      }, timeSpent ?? undefined);
+
+      // For authenticated users: Save to database immediately
+      // For guests: Show save modal (Testimony-First Conversion)
+      if (isAuthenticated && userProfile?.supabaseId) {
+        console.log('Authenticated user -saving AI-generated testimony to database');
+        const saved = await createTestimony(userProfile.supabaseId, {
+          content: testimonyData.content,
+          question1: testimonyData.answers.question1,
+          question2: testimonyData.answers.question2,
+          question3: testimonyData.answers.question3,
+          question4: testimonyData.answers.question4,
+          lesson: 'My journey taught me that transformation is possible through faith.',
+          isPublic: true
+        });
+
+        if (saved) {
+          console.log('✅ AI-generated testimony saved to database!', saved);
+          updateToSuccess(toastId, 'Testimony saved to your profile!');
+
+          // First Testimony Secret
+          unlockSecret('first_testimony');
+
+          // Dispatch custom event to trigger profile refresh
+          window.dispatchEvent(new CustomEvent('profileUpdated'));
+        } else {
+          console.error('❌ Failed to save testimony');
+          updateToError(toastId, 'Failed to save testimony. Please try again.');
+        }
+      } else {
+        // Guest user - save to localStorage and show conversion modal
+        console.log('💡 Guest user - saving AI-generated testimony to localStorage');
+        const guestTestimonyData = {
+          content: testimonyData.content,
+          answers: {
+            question1: testimonyData.answers.question1,
+            question2: testimonyData.answers.question2,
+            question3: testimonyData.answers.question3,
+            question4: testimonyData.answers.question4
+          },
+          lesson: 'My journey taught me that transformation is possible through faith.'
+        };
+
+        saveGuestTestimony(guestTestimonyData);
+        updateToSuccess(toastId, 'Testimony created!');
+
+        // Show save testimony modal after a brief delay
+        setTimeout(() => {
+          setShowSaveTestimonyModal(true);
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Error saving testimony:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save testimony. Please try again.';
+      updateToError(toastId, errorMessage);
+    }
+  };
+
   const renderContent = () => {
-    switch(currentTab) {
+    switch (currentTab) {
       case 'messages':
         return (
           <ComponentErrorBoundary name="Messages" nightMode={nightMode}>
@@ -832,7 +885,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         return (
           <ComponentErrorBoundary name="Profile" nightMode={nightMode}>
             <ProfileTab profile={profile} nightMode={nightMode} currentUserProfile={profile} onAddTestimony={() => {
-              setShowTestimonyPrompt(true);
+              setShowTestimonyQuestionnaire(true);
               setTestimonyStartTime(Date.now());
             }} onEditTestimony={handleEditTestimony} />
           </ComponentErrorBoundary>
@@ -841,7 +894,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         return (
           <ComponentErrorBoundary name="Profile" nightMode={nightMode}>
             <ProfileTab profile={profile} nightMode={nightMode} currentUserProfile={profile} onAddTestimony={() => {
-              setShowTestimonyPrompt(true);
+              setShowTestimonyQuestionnaire(true);
               setTestimonyStartTime(Date.now());
             }} onEditTestimony={handleEditTestimony} />
           </ComponentErrorBoundary>
@@ -860,513 +913,508 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
     >
       <GuestModalProvider nightMode={nightMode}>
         <div className="min-h-screen pb-12 relative">
-        {/* Toast Notifications */}
-        <Toaster />
+          {/* Toast Notifications */}
+          <Toaster />
 
-      {/* Full-Screen Periwinkle Glossmorphic Gradient Background */}
-      <div
-        className="fixed inset-0"
-        style={{
-          background: nightMode ? themes[selectedTheme].darkGradient : themes[selectedTheme].lightGradient
-        }}
-      />
-
-      {/* Floating Logo/Menu Header */}
-      {!nightMode && (
-        <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20">
-          <div className="px-5 py-3">
-            <div className="flex items-center justify-between">
-              {currentTab === 'profile' && (
-                <div
-                  className="flex items-center gap-2 cursor-pointer select-none"
-                  onClick={handleLogoClick}
-                  title="Click me 10 times quickly..."
-                >
-                  <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" style={{ filter: 'brightness(0)' }} />
-                  <span className="font-semibold text-black">Lightning</span>
-                </div>
-              )}
-
-              {currentTab === 'messages' && (
-                <div className="font-semibold text-black text-xl">Messages</div>
-              )}
-              {currentTab === 'groups' && (
-                <div className="font-semibold text-black text-xl">Groups</div>
-              )}
-              {currentTab === 'connect' && (
-                <div className="font-semibold text-black text-xl">Connect</div>
-              )}
-
-              {currentTab === 'connect' && (
-                <button
-                  onClick={() => setShowMenu(true)}
-                  className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
-                  aria-label="Open settings menu"
-                >
-                  <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Night Mode Header */}
-      {nightMode && (
-        <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/10 border-b border-white/10">
-          <div className="px-5 py-3">
-            <div className="flex items-center justify-between">
-              {currentTab === 'profile' && (
-                <div
-                  className="flex items-center gap-2 cursor-pointer select-none"
-                  onClick={handleLogoClick}
-                  title="Click me 10 times quickly..."
-                >
-                  <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  <span className="font-semibold text-white">Lightning</span>
-                </div>
-              )}
-
-              {currentTab === 'messages' && (
-                <div className="font-semibold text-slate-100 text-xl">Messages</div>
-              )}
-              {currentTab === 'groups' && (
-                <div className="font-semibold text-slate-100 text-xl">Groups</div>
-              )}
-              {currentTab === 'connect' && (
-                <div className="font-semibold text-slate-100 text-xl">Connect</div>
-              )}
-
-              {currentTab === 'connect' && (
-                <button
-                  onClick={() => setShowMenu(true)}
-                  className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
-                  aria-label="Open settings menu"
-                >
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="max-w-3xl mx-auto px-4 relative z-10">
-        {renderContent()}
-      </div>
-
-      {/* Settings Menu */}
-      {showMenu && (
-        <>
+          {/* Full-Screen Periwinkle Glossmorphic Gradient Background */}
           <div
-            className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
-            onClick={() => setShowMenu(false)}
+            className="fixed inset-0"
+            style={{
+              background: nightMode ? themes[selectedTheme].darkGradient : themes[selectedTheme].lightGradient
+            }}
           />
-          <div className={`fixed inset-y-0 left-0 w-80 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-slate-50'} z-50 shadow-2xl animate-in slide-in-from-left duration-300`}>
-            <div className="flex flex-col h-full">
-              <div className="sticky top-0 z-10 px-4 pt-6 pb-4">
+
+          {/* Floating Logo/Menu Header */}
+          {!nightMode && (
+            <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20">
+              <div className="px-5 py-3">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'}`}>Settings</h2>
-                    <p className={`text-sm ${nightMode ? 'text-white/80' : 'text-black/80'}`}>@{profile.username}</p>
-                  </div>
-                  <button
-                    onClick={() => setShowMenu(false)}
-                    className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100' : 'bg-black/5 hover:bg-black/10 text-black'}`}
-                    aria-label="Close settings menu"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  {currentTab === 'profile' && (
+                    <div
+                      className="flex items-center gap-2 cursor-pointer select-none"
+                      onClick={handleLogoClick}
+                      title="Click me 10 times quickly..."
+                    >
+                      <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" style={{ filter: 'brightness(0)' }} />
+                      <span className="font-semibold text-black">Lightning</span>
+                    </div>
+                  )}
+
+                  {currentTab === 'messages' && (
+                    <div className="font-semibold text-black text-xl">Messages</div>
+                  )}
+                  {currentTab === 'groups' && (
+                    <div className="font-semibold text-black text-xl">Groups</div>
+                  )}
+                  {currentTab === 'connect' && (
+                    <div className="font-semibold text-black text-xl">Connect</div>
+                  )}
+
+                  {currentTab === 'connect' && (
+                    <button
+                      onClick={() => setShowMenu(true)}
+                      className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
+                      aria-label="Open settings menu"
+                    >
+                      <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
+            </div>
+          )}
 
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-                <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
-                  <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
-                    <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Account</h3>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowProfileEdit(true);
-                      setShowMenu(false);
-                    }}
-                    className={`w-full px-4 py-3 flex items-center justify-between transition-colors border-b ${nightMode ? 'hover:bg-white/5 border-white/10' : 'hover:bg-slate-50 border-slate-100'}`}
-                    aria-label="Edit your profile"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Edit3 className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-600'}`} />
-                      <div className="text-left">
-                        <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>Edit Profile</p>
-                      </div>
+          {/* Night Mode Header */}
+          {nightMode && (
+            <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/10 border-b border-white/10">
+              <div className="px-5 py-3">
+                <div className="flex items-center justify-between">
+                  {currentTab === 'profile' && (
+                    <div
+                      className="flex items-center gap-2 cursor-pointer select-none"
+                      onClick={handleLogoClick}
+                      title="Click me 10 times quickly..."
+                    >
+                      <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                      <span className="font-semibold text-white">Lightning</span>
                     </div>
-                  </button>
-                  <MenuItem
-                    icon={Camera}
-                    label="Change Profile Picture"
-                    nightMode={nightMode}
-                    onClick={() => {
-                      setShowMenu(false);
-                      setShowChangePicture(true);
-                    }}
-                  />
-                  <MenuItem
-                    icon={Music}
-                    label="Profile Song"
-                    nightMode={nightMode}
-                    subtext={userProfile?.spotifyUrl ? 'Linked' : 'Add a YouTube song'}
-                    onClick={() => setShowLinkSpotify(true)}
-                  />
-                  {/* Email & Password removed - using Google OAuth only per roadmap */}
+                  )}
+
+                  {currentTab === 'messages' && (
+                    <div className="font-semibold text-slate-100 text-xl">Messages</div>
+                  )}
+                  {currentTab === 'groups' && (
+                    <div className="font-semibold text-slate-100 text-xl">Groups</div>
+                  )}
+                  {currentTab === 'connect' && (
+                    <div className="font-semibold text-slate-100 text-xl">Connect</div>
+                  )}
+
+                  {currentTab === 'connect' && (
+                    <button
+                      onClick={() => setShowMenu(true)}
+                      className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
+                      aria-label="Open settings menu"
+                    >
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
+              </div>
+            </div>
+          )}
 
-                <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
-                  <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
-                    <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Privacy & Safety</h3>
-                  </div>
-                  <MenuItem
-                    icon={Lock}
-                    label="Make Profile Private"
-                    toggle
-                    nightMode={nightMode}
-                    isOn={privacySettings.isPrivate}
-                    onToggle={(value) => handlePrivacyToggle('isPrivate', value)}
-                  />
-                  <MenuItem
-                    icon={Eye}
-                    label="Who Can See Testimony"
-                    nightMode={nightMode}
-                    dropdown
-                    dropdownOptions={[
-                      { value: 'everyone', label: 'Everyone' },
-                      { value: 'friends', label: 'Friends Only' },
-                      { value: 'private', label: 'Just Me' }
-                    ]}
-                    selectedValue={privacySettings.testimonyVisibility}
-                    onDropdownChange={(value) => handlePrivacyToggle('testimonyVisibility', value)}
-                  />
-                  <MenuItem
-                    icon={MessageCircle}
-                    label="Who Can Message You"
-                    nightMode={nightMode}
-                    dropdown
-                    dropdownOptions={[
-                      { value: 'everyone', label: 'Everyone' },
-                      { value: 'friends', label: 'Friends Only' },
-                      { value: 'none', label: 'No One' }
-                    ]}
-                    selectedValue={privacySettings.messagePrivacy}
-                    onDropdownChange={(value) => handlePrivacyToggle('messagePrivacy', value)}
-                  />
-                  <MenuItem
-                    icon={Ban}
-                    label="Blocked Users"
-                    nightMode={nightMode}
-                    onClick={() => setShowBlockedUsers(true)}
-                  />
-                  <MenuItem
-                    icon={Flag}
-                    label="Report Content"
-                    nightMode={nightMode}
-                    subtext="Report users, messages, or inappropriate content"
-                    onClick={() => {
-                      // Open a simple info dialog explaining how to report
-                      alert('To report content:\n\n• Tap the 3-dot menu on any profile, testimony, message, or group\n• Select "Report"\n• Choose a reason and submit\n\nOur team reviews all reports within 24-48 hours.');
-                    }}
-                  />
-                </div>
+          <div className="max-w-3xl mx-auto px-4 relative z-10">
+            {renderContent()}
+          </div>
 
-                <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
-                  <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
-                    <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Notifications</h3>
-                  </div>
-                  <MenuItem
-                    icon={Bell}
-                    label="Message Notifications"
-                    toggle
-                    nightMode={nightMode}
-                    isOn={notificationSettings.notifyMessages}
-                    onToggle={(value) => handleNotificationToggle('notifyMessages', value)}
-                  />
-                  <MenuItem
-                    icon={Users}
-                    label="Connection Requests"
-                    toggle
-                    nightMode={nightMode}
-                    isOn={notificationSettings.notifyFriendRequests}
-                    onToggle={(value) => handleNotificationToggle('notifyFriendRequests', value)}
-                  />
-                  <MenuItem
-                    icon={MapPin}
-                    label="Nearby Users"
-                    toggle
-                    nightMode={nightMode}
-                    isOn={notificationSettings.notifyNearby}
-                    onToggle={(value) => handleNotificationToggle('notifyNearby', value)}
-                  />
-                </div>
-
-                <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
-                  <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
-                    <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Preferences</h3>
-                  </div>
-
-                  {/* Night Mode Toggle */}
-                  <div className={`px-4 py-3 border-b ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+          {/* Settings Menu */}
+          {showMenu && (
+            <>
+              <div
+                className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
+                onClick={() => setShowMenu(false)}
+              />
+              <div className={`fixed inset-y-0 left-0 w-80 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-slate-50'} z-50 shadow-2xl animate-in slide-in-from-left duration-300`}>
+                <div className="flex flex-col h-full">
+                  <div className="sticky top-0 z-10 px-4 pt-6 pb-4">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <svg className={`w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-slate-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                        </svg>
-                        <div>
-                          <span className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>Night Mode</span>
-                          <p className={`text-xs ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>Dark theme for comfortable viewing</p>
+                      <div>
+                        <h2 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'}`}>Settings</h2>
+                        <p className={`text-sm ${nightMode ? 'text-white/80' : 'text-black/80'}`}>@{profile.username}</p>
+                      </div>
+                      <button
+                        onClick={() => setShowMenu(false)}
+                        className={`w-9 h-9 flex items-center justify-center rounded-full transition-colors ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100' : 'bg-black/5 hover:bg-black/10 text-black'}`}
+                        aria-label="Close settings menu"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+                    <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
+                      <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
+                        <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Account</h3>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowProfileEdit(true);
+                          setShowMenu(false);
+                        }}
+                        className={`w-full px-4 py-3 flex items-center justify-between transition-colors border-b ${nightMode ? 'hover:bg-white/5 border-white/10' : 'hover:bg-slate-50 border-slate-100'}`}
+                        aria-label="Edit your profile"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Edit3 className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-600'}`} />
+                          <div className="text-left">
+                            <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>Edit Profile</p>
+                          </div>
+                        </div>
+                      </button>
+                      <MenuItem
+                        icon={Camera}
+                        label="Change Profile Picture"
+                        nightMode={nightMode}
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowChangePicture(true);
+                        }}
+                      />
+                      <MenuItem
+                        icon={Music}
+                        label="Profile Song"
+                        nightMode={nightMode}
+                        subtext={userProfile?.spotifyUrl ? 'Linked' : 'Add a YouTube song'}
+                        onClick={() => setShowLinkSpotify(true)}
+                      />
+                      {/* Email & Password removed - using Google OAuth only per roadmap */}
+                    </div>
+
+                    <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
+                      <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
+                        <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Privacy & Safety</h3>
+                      </div>
+                      <MenuItem
+                        icon={Lock}
+                        label="Make Profile Private"
+                        toggle
+                        nightMode={nightMode}
+                        isOn={privacySettings.isPrivate}
+                        onToggle={(value) => handlePrivacyToggle('isPrivate', value)}
+                      />
+                      <MenuItem
+                        icon={Eye}
+                        label="Who Can See Testimony"
+                        nightMode={nightMode}
+                        dropdown
+                        dropdownOptions={[
+                          { value: 'everyone', label: 'Everyone' },
+                          { value: 'friends', label: 'Friends Only' },
+                          { value: 'private', label: 'Just Me' }
+                        ]}
+                        selectedValue={privacySettings.testimonyVisibility}
+                        onDropdownChange={(value) => handlePrivacyToggle('testimonyVisibility', value)}
+                      />
+                      <MenuItem
+                        icon={MessageCircle}
+                        label="Who Can Message You"
+                        nightMode={nightMode}
+                        dropdown
+                        dropdownOptions={[
+                          { value: 'everyone', label: 'Everyone' },
+                          { value: 'friends', label: 'Friends Only' },
+                          { value: 'none', label: 'No One' }
+                        ]}
+                        selectedValue={privacySettings.messagePrivacy}
+                        onDropdownChange={(value) => handlePrivacyToggle('messagePrivacy', value)}
+                      />
+                      <MenuItem
+                        icon={Ban}
+                        label="Blocked Users"
+                        nightMode={nightMode}
+                        onClick={() => setShowBlockedUsers(true)}
+                      />
+                      <MenuItem
+                        icon={Flag}
+                        label="Report Content"
+                        nightMode={nightMode}
+                        subtext="Report users, messages, or inappropriate content"
+                        onClick={() => {
+                          // Open a simple info dialog explaining how to report
+                          alert('To report content:\n\n• Tap the 3-dot menu on any profile, testimony, message, or group\n• Select "Report"\n• Choose a reason and submit\n\nOur team reviews all reports within 24-48 hours.');
+                        }}
+                      />
+                    </div>
+
+                    <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
+                      <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
+                        <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Notifications</h3>
+                      </div>
+                      <MenuItem
+                        icon={Bell}
+                        label="Message Notifications"
+                        toggle
+                        nightMode={nightMode}
+                        isOn={notificationSettings.notifyMessages}
+                        onToggle={(value) => handleNotificationToggle('notifyMessages', value)}
+                      />
+                      <MenuItem
+                        icon={Users}
+                        label="Connection Requests"
+                        toggle
+                        nightMode={nightMode}
+                        isOn={notificationSettings.notifyFriendRequests}
+                        onToggle={(value) => handleNotificationToggle('notifyFriendRequests', value)}
+                      />
+                      <MenuItem
+                        icon={MapPin}
+                        label="Nearby Users"
+                        toggle
+                        nightMode={nightMode}
+                        isOn={notificationSettings.notifyNearby}
+                        onToggle={(value) => handleNotificationToggle('notifyNearby', value)}
+                      />
+                    </div>
+
+                    <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
+                      <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
+                        <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Preferences</h3>
+                      </div>
+
+                      {/* Night Mode Toggle */}
+                      <div className={`px-4 py-3 border-b ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <svg className={`w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-slate-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                            <div>
+                              <span className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>Night Mode</span>
+                              <p className={`text-xs ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>Dark theme for comfortable viewing</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleNightModeToggle}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${nightMode ? 'bg-blue-600' : 'bg-slate-300'
+                              }`}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${nightMode ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                            />
+                          </button>
                         </div>
                       </div>
-                      <button
-                        onClick={handleNightModeToggle}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          nightMode ? 'bg-blue-600' : 'bg-slate-300'
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            nightMode ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                        />
-                      </button>
-                    </div>
-                  </div>
 
-                  {/* Search Radius Input */}
-                  <div className={`px-4 py-4 border-b transition-colors ${
-                    nightMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'
-                  }`}>
-                    <div className="flex items-center gap-3 mb-2">
-                      <MapPin className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-400'}`} />
-                      <div className="flex-1">
-                        <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                          Search Radius
-                        </p>
-                        <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                          5-100 miles
-                        </p>
+                      {/* Search Radius Input */}
+                      <div className={`px-4 py-4 border-b transition-colors ${nightMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'
+                        }`}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <MapPin className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-400'}`} />
+                          <div className="flex-1">
+                            <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                              Search Radius
+                            </p>
+                            <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                              5-100 miles
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="5"
+                            max="100"
+                            value={searchRadius}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '') {
+                                setSearchRadius(0); // Allow clearing
+                              } else {
+                                setSearchRadius(parseInt(val));
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleSaveSearchRadius();
+                              }
+                            }}
+                            className={`flex-1 px-4 py-2 rounded-lg border text-center ${nightMode
+                              ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500'
+                              : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
+                              } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            placeholder="25"
+                          />
+                          <button
+                            onClick={handleSaveSearchRadius}
+                            className={`flex-shrink-0 p-2 rounded-lg border transition-all ${nightMode
+                              ? 'border-blue-500/30 text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/10'
+                              : 'border-blue-500/40 text-blue-600 hover:border-blue-500/60 hover:bg-blue-500/10'
+                              }`}
+                            style={nightMode ? {
+                              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
+                              boxShadow: '0 1px 4px rgba(59, 130, 246, 0.2), inset 0 0.5px 0 rgba(59, 130, 246, 0.2)',
+                              backdropFilter: 'blur(10px)',
+                              WebkitBackdropFilter: 'blur(10px)'
+                            } : {
+                              background: 'rgba(59, 130, 246, 0.1)',
+                              backdropFilter: 'blur(30px)',
+                              WebkitBackdropFilter: 'blur(30px)',
+                              boxShadow: '0 1px 4px rgba(59, 130, 246, 0.15), inset 0 0.5px 1px rgba(59, 130, 246, 0.3)'
+                            }}
+                            title="Save search radius"
+                          >
+                            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          </button>
+                        </div>
                       </div>
+                      <MenuItem icon={Globe} label="Language" subtext="English" nightMode={nightMode} comingSoon />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="5"
-                        max="100"
-                        value={searchRadius}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === '') {
-                            setSearchRadius(0); // Allow clearing
-                          } else {
-                            setSearchRadius(parseInt(val));
-                          }
+
+                    <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
+                      <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
+                        <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>About & Support</h3>
+                      </div>
+                      <MenuItem
+                        icon={FileText}
+                        label="Terms of Service"
+                        nightMode={nightMode}
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowTerms(true);
                         }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleSaveSearchRadius();
-                          }
-                        }}
-                        className={`flex-1 px-4 py-2 rounded-lg border text-center ${
-                          nightMode
-                            ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500'
-                            : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
-                        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                        placeholder="25"
                       />
-                      <button
-                        onClick={handleSaveSearchRadius}
-                        className={`flex-shrink-0 p-2 rounded-lg border transition-all ${
-                          nightMode
-                            ? 'border-blue-500/30 text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/10'
-                            : 'border-blue-500/40 text-blue-600 hover:border-blue-500/60 hover:bg-blue-500/10'
-                        }`}
-                        style={nightMode ? {
-                          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
-                          boxShadow: '0 1px 4px rgba(59, 130, 246, 0.2), inset 0 0.5px 0 rgba(59, 130, 246, 0.2)',
-                          backdropFilter: 'blur(10px)',
-                          WebkitBackdropFilter: 'blur(10px)'
-                        } : {
-                          background: 'rgba(59, 130, 246, 0.1)',
-                          backdropFilter: 'blur(30px)',
-                          WebkitBackdropFilter: 'blur(30px)',
-                          boxShadow: '0 1px 4px rgba(59, 130, 246, 0.15), inset 0 0.5px 1px rgba(59, 130, 246, 0.3)'
+                      <MenuItem
+                        icon={Shield}
+                        label="Privacy Policy"
+                        nightMode={nightMode}
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowPrivacy(true);
                         }}
-                        title="Save search radius"
+                      />
+                      <MenuItem
+                        icon={HelpCircle}
+                        label="Help Center"
+                        nightMode={nightMode}
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowHelp(true);
+                        }}
+                      />
+                      <MenuItem
+                        icon={Phone}
+                        label="Contact Support"
+                        nightMode={nightMode}
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowContactSupport(true);
+                        }}
+                      />
+                      <MenuItem icon={Flag} label="Report a Bug" nightMode={nightMode} onClick={() => setShowBugReport(true)} />
+                      <MenuItem icon={Info} label="App Version" subtext="1.0.0" nightMode={nightMode} />
+                      <button
+                        onClick={() => setShowLogoutConfirm(true)}
+                        className={`w-full px-4 py-3 flex items-center justify-between transition-colors border-t ${nightMode ? 'hover:bg-white/5 border-white/10' : 'hover:bg-slate-50 border-slate-100'}`}
+                        aria-label="Sign out of your account"
                       >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
+                        <div className="flex items-center gap-3">
+                          <LogOut className={`w-5 h-5 text-red-500`} />
+                          <div className="text-left">
+                            <p className={`text-sm font-medium text-red-600`}>Sign Out</p>
+                          </div>
+                        </div>
                       </button>
                     </div>
                   </div>
-                  <MenuItem icon={Globe} label="Language" subtext="English" nightMode={nightMode} comingSoon />
-                </div>
 
-                <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
-                  <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
-                    <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>About & Support</h3>
-                  </div>
-                  <MenuItem
-                    icon={FileText}
-                    label="Terms of Service"
-                    nightMode={nightMode}
-                    onClick={() => {
-                      setShowMenu(false);
-                      setShowTerms(true);
-                    }}
-                  />
-                  <MenuItem
-                    icon={Shield}
-                    label="Privacy Policy"
-                    nightMode={nightMode}
-                    onClick={() => {
-                      setShowMenu(false);
-                      setShowPrivacy(true);
-                    }}
-                  />
-                  <MenuItem
-                    icon={HelpCircle}
-                    label="Help Center"
-                    nightMode={nightMode}
-                    onClick={() => {
-                      setShowMenu(false);
-                      setShowHelp(true);
-                    }}
-                  />
-                  <MenuItem
-                    icon={Phone}
-                    label="Contact Support"
-                    nightMode={nightMode}
-                    onClick={() => {
-                      setShowMenu(false);
-                      setShowContactSupport(true);
-                    }}
-                  />
-                  <MenuItem icon={Flag} label="Report a Bug" nightMode={nightMode} onClick={() => setShowBugReport(true)} />
-                  <MenuItem icon={Info} label="App Version" subtext="1.0.0" nightMode={nightMode} />
-                  <button
-                    onClick={() => setShowLogoutConfirm(true)}
-                    className={`w-full px-4 py-3 flex items-center justify-between transition-colors border-t ${nightMode ? 'hover:bg-white/5 border-white/10' : 'hover:bg-slate-50 border-slate-100'}`}
-                    aria-label="Sign out of your account"
-                  >
-                    <div className="flex items-center gap-3">
-                      <LogOut className={`w-5 h-5 text-red-500`} />
-                      <div className="text-left">
-                        <p className={`text-sm font-medium text-red-600`}>Sign Out</p>
-                      </div>
-                    </div>
-                  </button>
                 </div>
               </div>
+            </>
+          )}
 
+          {/* Bottom Navigation - Glossmorphic */}
+          <div
+            className={`fixed bottom-0 left-0 right-0 z-40 border-t ${nightMode ? 'border-white/10' : 'border-white/15'}`}
+            style={nightMode ? {
+              background: 'rgba(10, 10, 10, 0.9)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.3)'
+            } : {
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
+            }}
+          >
+            <div className="max-w-3xl mx-auto px-2 flex justify-around items-center h-14">
+              <button
+                onClick={() => setCurrentTab('profile')}
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'profile' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
+                style={currentTab === 'profile' ? {
+                  background: 'rgba(79, 150, 255, 0.85)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
+                } : {}}
+                aria-label="Profile"
+              >
+                <User className="w-5 h-5" />
+                <span className="text-[10px] font-medium">Profile</span>
+              </button>
+              <button
+                onClick={() => setCurrentTab('messages')}
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'messages' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
+                style={currentTab === 'messages' ? {
+                  background: 'rgba(79, 150, 255, 0.85)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
+                } : {}}
+                aria-label={`Messages${notificationCounts.messages > 0 ? ` (${notificationCounts.messages} unread)` : ''}`}
+              >
+                <div className="relative">
+                  <MessageCircle className="w-5 h-5" />
+                  {notificationCounts.messages > 0 && (
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
+                      <span className="text-[9px] font-bold text-white">{notificationCounts.messages}</span>
+                    </div>
+                  )}
+                </div>
+                <span className="text-[10px] font-medium">Messages</span>
+              </button>
+              <button
+                onClick={() => setCurrentTab('groups')}
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'groups' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
+                style={currentTab === 'groups' ? {
+                  background: 'rgba(79, 150, 255, 0.85)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
+                } : {}}
+                aria-label={`Groups${notificationCounts.groups > 0 ? ` (${notificationCounts.groups} unread)` : ''}`}
+              >
+                <div className="relative">
+                  <Users className="w-5 h-5" />
+                  {notificationCounts.groups > 0 && (
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
+                      <span className="text-[9px] font-bold text-white">{notificationCounts.groups}</span>
+                    </div>
+                  )}
+                </div>
+                <span className="text-[10px] font-medium">Groups</span>
+              </button>
+              <button
+                onClick={() => setCurrentTab('connect')}
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'connect' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
+                style={currentTab === 'connect' ? {
+                  background: 'rgba(79, 150, 255, 0.85)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
+                } : {}}
+                aria-label={`Connect${notificationCounts.connect > 0 ? ` (${notificationCounts.connect} new)` : ''}`}
+              >
+                <div className="relative">
+                  <MapPin className="w-5 h-5" />
+                  {notificationCounts.connect > 0 && (
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
+                      <span className="text-[9px] font-bold text-white">{notificationCounts.connect}</span>
+                    </div>
+                  )}
+                </div>
+                <span className="text-[10px] font-medium">Connect</span>
+              </button>
             </div>
           </div>
-        </>
-      )}
 
-      {/* Bottom Navigation - Glossmorphic */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 z-40 border-t ${nightMode ? 'border-white/10' : 'border-white/15'}`}
-        style={nightMode ? {
-          background: 'rgba(10, 10, 10, 0.9)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.3)'
-        } : {
-          background: 'rgba(255, 255, 255, 0.15)',
-          backdropFilter: 'blur(40px)',
-          WebkitBackdropFilter: 'blur(40px)',
-          boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
-        }}
-      >
-        <div className="max-w-3xl mx-auto px-2 flex justify-around items-center h-14">
-          <button
-            onClick={() => setCurrentTab('profile')}
-            className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'profile' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
-            style={currentTab === 'profile' ? {
-              background: 'rgba(79, 150, 255, 0.85)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)'
-            } : {}}
-            aria-label="Profile"
-          >
-            <User className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Profile</span>
-          </button>
-          <button
-            onClick={() => setCurrentTab('messages')}
-            className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'messages' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
-            style={currentTab === 'messages' ? {
-              background: 'rgba(79, 150, 255, 0.85)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)'
-            } : {}}
-            aria-label={`Messages${notificationCounts.messages > 0 ? ` (${notificationCounts.messages} unread)` : ''}`}
-          >
-            <div className="relative">
-              <MessageCircle className="w-5 h-5" />
-              {notificationCounts.messages > 0 && (
-                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
-                  <span className="text-[9px] font-bold text-white">{notificationCounts.messages}</span>
-                </div>
-              )}
-            </div>
-            <span className="text-[10px] font-medium">Messages</span>
-          </button>
-          <button
-            onClick={() => setCurrentTab('groups')}
-            className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'groups' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
-            style={currentTab === 'groups' ? {
-              background: 'rgba(79, 150, 255, 0.85)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)'
-            } : {}}
-            aria-label={`Groups${notificationCounts.groups > 0 ? ` (${notificationCounts.groups} unread)` : ''}`}
-          >
-            <div className="relative">
-              <Users className="w-5 h-5" />
-              {notificationCounts.groups > 0 && (
-                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
-                  <span className="text-[9px] font-bold text-white">{notificationCounts.groups}</span>
-                </div>
-              )}
-            </div>
-            <span className="text-[10px] font-medium">Groups</span>
-          </button>
-          <button
-            onClick={() => setCurrentTab('connect')}
-            className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'connect' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
-            style={currentTab === 'connect' ? {
-              background: 'rgba(79, 150, 255, 0.85)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)'
-            } : {}}
-            aria-label={`Connect${notificationCounts.connect > 0 ? ` (${notificationCounts.connect} new)` : ''}`}
-          >
-            <div className="relative">
-              <MapPin className="w-5 h-5" />
-              {notificationCounts.connect > 0 && (
-                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
-                  <span className="text-[9px] font-bold text-white">{notificationCounts.connect}</span>
-                </div>
-              )}
-            </div>
-            <span className="text-[10px] font-medium">Connect</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Testimony Animation Styles */}
-      <style>{`
+          {/* Testimony Animation Styles */}
+          <style>{`
         @keyframes popOut {
           0% {
             transform: scale(0);
@@ -1382,406 +1430,415 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         }
       `}</style>
 
-      {/* Testimony Prompt Button */}
-      {!profile.hasTestimony && !showTestimonyPrompt && (
-        <button
-          onClick={() => {
-            setShowTestimonyPrompt(true);
-            setTestimonyStartTime(Date.now());
-          }}
-          className="fixed bottom-20 right-6 w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-110 z-40 text-slate-100 border border-white/20"
-          style={{
-            background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
-            boxShadow: nightMode
-              ? '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-              : '0 8px 24px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)';
-            e.currentTarget.style.boxShadow = nightMode
-              ? '0 12px 32px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-              : '0 12px 32px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)';
-            e.currentTarget.style.boxShadow = nightMode
-              ? '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-              : '0 8px 24px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
-          }}
-        >
-          <Plus className="w-7 h-7 text-white" />
-        </button>
-      )}
+          {/* Testimony Prompt Button */}
+          {!profile.hasTestimony && !showTestimonyPrompt && (
+            <button
+              onClick={() => {
+                setShowTestimonyPrompt(true);
+                setTestimonyStartTime(Date.now());
+              }}
+              className="fixed bottom-20 right-6 w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-110 z-40 text-slate-100 border border-white/20"
+              style={{
+                background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                boxShadow: nightMode
+                  ? '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                  : '0 8px 24px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)';
+                e.currentTarget.style.boxShadow = nightMode
+                  ? '0 12px 32px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                  : '0 12px 32px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)';
+                e.currentTarget.style.boxShadow = nightMode
+                  ? '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                  : '0 8px 24px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
+              }}
+            >
+              <Plus className="w-7 h-7 text-white" />
+            </button>
+          )}
 
-      {/* Testimony Creation Modal */}
-      {showTestimonyPrompt && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
-            onClick={() => {
-              setShowTestimonyPrompt(false);
-              setTestimonyStep(0);
-              setTestimonyAnswers({});
-            }}
-          />
-          <div
-            className={`fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] rounded-2xl shadow-2xl z-50 max-h-[80vh] overflow-hidden flex flex-col ${nightMode ? 'bg-[#0a0a0a]' : 'bg-white'}`}
-            style={{
-              animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-              transformOrigin: 'bottom right'
-            }}
-          >
-            <div className={`p-6 ${nightMode ? '' : ''}`} style={{ background: nightMode ? 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)' : themes[selectedTheme].lightGradient }}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-6 h-6 text-white" />
-                  <h2 className="text-xl font-bold text-white">Share Your Story</h2>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowTestimonyPrompt(false);
-                    setTestimonyStep(0);
-                    setTestimonyAnswers({});
-                  }}
-                  className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors"
-                >
-                  <X className="w-5 h-5 text-white" />
-                </button>
-              </div>
-              <p className="text-sm mt-2 text-white/90">Sharing the power of testimonies</p>
-
-              <div className="flex gap-1 mt-4">
-                {testimonyQuestions.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`flex-1 h-1 rounded-full transition-all ${index <= testimonyStep ? 'bg-white' : 'bg-white/30'}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6">
-              {!generatedTestimony ? (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className={`text-lg font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                      Question {testimonyStep + 1} of {testimonyQuestions.length}
-                    </h3>
-                    <p className={`font-medium mb-1 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                      {testimonyQuestions[testimonyStep].question}
-                    </p>
-                    <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
-                      💡 {testimonyQuestions[testimonyStep].hint}
-                    </p>
+          {/* OLD Testimony Creation Modal - REPLACED BY TestimonyQuestionnaire Component 
+          {showTestimonyPrompt && (
+            <>
+              <div
+                className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
+                onClick={() => {
+                  setShowTestimonyPrompt(false);
+                  setTestimonyStep(0);
+                  setTestimonyAnswers({});
+                }}
+              />
+              <div
+                className={`fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] rounded-2xl shadow-2xl z-50 max-h-[80vh] overflow-hidden flex flex-col ${nightMode ? 'bg-[#0a0a0a]' : 'bg-white'}`}
+                style={{
+                  animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                  transformOrigin: 'bottom right'
+                }}
+              >
+                <div className={`p-6 ${nightMode ? '' : ''}`} style={{ background: nightMode ? 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)' : themes[selectedTheme].lightGradient }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-6 h-6 text-white" />
+                      <h2 className="text-xl font-bold text-white">Share Your Story</h2>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowTestimonyPrompt(false);
+                        setTestimonyStep(0);
+                        setTestimonyAnswers({});
+                      }}
+                      className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+                    >
+                      <X className="w-5 h-5 text-white" />
+                    </button>
                   </div>
+                  <p className="text-sm mt-2 text-white/90">Sharing the power of testimonies</p>
 
-                  <textarea
-                    key={testimonyStep}
-                    value={testimonyAnswers[testimonyStep] || ''}
-                    onChange={(e) => handleTestimonyAnswer(e.target.value)}
-                    placeholder={testimonyQuestions[testimonyStep].placeholder}
-                    className={`w-full h-40 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm ${
-                      nightMode
-                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                        : 'bg-white border-slate-200 text-slate-900'
-                    }`}
-                    autoFocus
-                  />
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-green-600 mb-4">
-                    <Sparkles className="w-5 h-5" />
-                    <h3 className="text-lg font-semibold">Your Testimony is Ready!</h3>
+                  <div className="flex gap-1 mt-4">
+                    {testimonyQuestions.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`flex-1 h-1 rounded-full transition-all ${index <= testimonyStep ? 'bg-white' : 'bg-white/30'}`}
+                      />
+                    ))}
                   </div>
-                  <div className={`rounded-lg p-6 border-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'}`}>
-                    <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>{generatedTestimony}</p>
-                  </div>
-                  <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>You can edit this testimony in your profile settings.</p>
                 </div>
-              )}
-            </div>
 
-            {!generatedTestimony ? (
-              <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
-                {testimonyStep > 0 && (
-                  <button
-                    onClick={previousTestimonyStep}
-                    disabled={isGenerating}
-                    className={`px-4 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 ${
-                      nightMode
-                        ? 'bg-white/5 hover:bg-white/10 text-slate-100'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                    }`}
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Back
-                  </button>
-                )}
-                <button
-                  onClick={nextTestimonyStep}
-                  disabled={!testimonyAnswers[testimonyStep]?.trim() || isGenerating}
-                  className={`flex-1 px-5 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border shadow-sm ${
-                    testimonyAnswers[testimonyStep]?.trim() && !isGenerating
-                      ? nightMode
-                        ? 'text-slate-100 border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400'
-                        : 'text-white border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400'
-                      : nightMode
-                        ? 'bg-white/5 text-slate-100/60 cursor-not-allowed border-white/10'
-                        : 'bg-slate-200 text-slate-500 cursor-not-allowed border-slate-300'
-                  }`}
-                  style={testimonyAnswers[testimonyStep]?.trim() && !isGenerating ? {
-                    background: nightMode ? 'rgba(59, 130, 246, 0.95)' : 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
-                    boxShadow: nightMode
-                      ? '0 6px 18px rgba(59, 130, 246, 0.35)'
-                      : '0 6px 18px rgba(59, 130, 246, 0.35)',
-                    transform: 'translateY(0)'
-                  } : {}}
-                  onMouseEnter={(e) => {
-                    if (testimonyAnswers[testimonyStep]?.trim() && !isGenerating) {
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (testimonyAnswers[testimonyStep]?.trim() && !isGenerating) {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }
-                  }}
-                  aria-label="Next"
-                >
-                  {isGenerating ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Generating...
-                    </>
-                  ) : testimonyStep === testimonyQuestions.length - 1 ? (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      Generate Story
-                    </>
+                <div className="flex-1 overflow-y-auto p-6">
+                  {!generatedTestimony ? (
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className={`text-lg font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                          Question {testimonyStep + 1} of {testimonyQuestions.length}
+                        </h3>
+                        <p className={`font-medium mb-1 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                          {testimonyQuestions[testimonyStep].question}
+                        </p>
+                        <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
+                          💡 {testimonyQuestions[testimonyStep].hint}
+                        </p>
+                      </div>
+
+                      <textarea
+                        key={testimonyStep}
+                        value={testimonyAnswers[testimonyStep] || ''}
+                        onChange={(e) => handleTestimonyAnswer(e.target.value)}
+                        placeholder={testimonyQuestions[testimonyStep].placeholder}
+                        className={`w-full h-40 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm ${nightMode
+                          ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
+                          : 'bg-white border-slate-200 text-slate-900'
+                          }`}
+                        autoFocus
+                      />
+                    </div>
                   ) : (
-                    <>
-                      Next
-                      <ArrowRight className="w-4 h-4" />
-                    </>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-green-600 mb-4">
+                        <Sparkles className="w-5 h-5" />
+                        <h3 className="text-lg font-semibold">Your Testimony is Ready!</h3>
+                      </div>
+                      <div className={`rounded-lg p-6 border-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'}`}>
+                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>{generatedTestimony}</p>
+                      </div>
+                      <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>You can edit this testimony in your profile settings.</p>
+                    </div>
                   )}
-                </button>
+                </div>
+
+                {!generatedTestimony ? (
+                  <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+                    {testimonyStep > 0 && (
+                      <button
+                        onClick={previousTestimonyStep}
+                        disabled={isGenerating}
+                        className={`px-4 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 ${nightMode
+                          ? 'bg-white/5 hover:bg-white/10 text-slate-100'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                          }`}
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back
+                      </button>
+                    )}
+                    <button
+                      onClick={nextTestimonyStep}
+                      disabled={!testimonyAnswers[testimonyStep]?.trim() || isGenerating}
+                      className={`flex-1 px-5 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border shadow-sm ${testimonyAnswers[testimonyStep]?.trim() && !isGenerating
+                        ? nightMode
+                          ? 'text-slate-100 border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400'
+                          : 'text-white border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400'
+                        : nightMode
+                          ? 'bg-white/5 text-slate-100/60 cursor-not-allowed border-white/10'
+                          : 'bg-slate-200 text-slate-500 cursor-not-allowed border-slate-300'
+                        }`}
+                      style={testimonyAnswers[testimonyStep]?.trim() && !isGenerating ? {
+                        background: nightMode ? 'rgba(59, 130, 246, 0.95)' : 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
+                        boxShadow: nightMode
+                          ? '0 6px 18px rgba(59, 130, 246, 0.35)'
+                          : '0 6px 18px rgba(59, 130, 246, 0.35)',
+                        transform: 'translateY(0)'
+                      } : {}}
+                      onMouseEnter={(e) => {
+                        if (testimonyAnswers[testimonyStep]?.trim() && !isGenerating) {
+                          e.currentTarget.style.transform = 'translateY(-1px)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (testimonyAnswers[testimonyStep]?.trim() && !isGenerating) {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }
+                      }}
+                      aria-label="Next"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Generating...
+                        </>
+                      ) : testimonyStep === testimonyQuestions.length - 1 ? (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          Generate Story
+                        </>
+                      ) : (
+                        <>
+                          Next
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+                    <button
+                      onClick={() => {
+                        setShowTestimonyPrompt(false);
+                        setTestimonyStep(0);
+                        setTestimonyAnswers({});
+                        setGeneratedTestimony(null);
+                      }}
+                      className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors text-slate-100 border ${nightMode ? 'border-white/20' : 'border-white/30'}`}
+                      style={{
+                        background: nightMode ? 'rgba(79, 150, 255, 0.85)' : themes[selectedTheme].lightGradient,
+                        backdropFilter: 'blur(30px)',
+                        WebkitBackdropFilter: 'blur(30px)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (nightMode) {
+                          e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (nightMode) {
+                          e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
+                        }
+                      }}
+                    >
+                      Save to Profile
+                    </button>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
-                <button
-                  onClick={() => {
-                    setShowTestimonyPrompt(false);
-                    setTestimonyStep(0);
-                    setTestimonyAnswers({});
-                    setGeneratedTestimony(null);
-                  }}
-                  className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors text-slate-100 border ${nightMode ? 'border-white/20' : 'border-white/30'}`}
-                  style={{
-                    background: nightMode ? 'rgba(79, 150, 255, 0.85)' : themes[selectedTheme].lightGradient,
-                    backdropFilter: 'blur(30px)',
-                    WebkitBackdropFilter: 'blur(30px)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (nightMode) {
-                      e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (nightMode) {
-                      e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
-                    }
-                  }}
-                >
-                  Save to Profile
-                </button>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+            </>
+          )} */}
 
-      {/* Profile Creation Wizard */}
-      {showProfileWizard && (
-        <ProfileCreationWizard
-          nightMode={nightMode}
-          onComplete={handleProfileComplete}
-          onSkip={handleSkipProfileWizard}
-        />
-      )}
 
-      {/* Profile Edit Dialog */}
-      {showProfileEdit && (
-        <ProfileEditDialog
-          profile={profile}
-          nightMode={nightMode}
-          onSave={handleProfileEdit}
-          onClose={() => setShowProfileEdit(false)}
-        />
-      )}
+          {/* Profile Creation Wizard */}
+          {showProfileWizard && (
+            <ProfileCreationWizard
+              nightMode={nightMode}
+              onComplete={handleProfileComplete}
+              onSkip={handleSkipProfileWizard}
+            />
+          )}
 
-      {/* Change Picture Modal */}
-      {showChangePicture && (
-        <ChangePictureModal
-          isOpen={showChangePicture}
-          onClose={() => setShowChangePicture(false)}
-          nightMode={nightMode}
-          currentAvatar={profile.avatar || '👤'}
-          currentAvatarUrl={profile.avatarImage || null}
-          onSave={async (avatarUrl, avatar) => {
-            if (!userProfile || !userProfile.supabaseId) {
-              throw new Error('No user profile found');
-            }
+          {/* Profile Edit Dialog */}
+          {showProfileEdit && (
+            <ProfileEditDialog
+              profile={profile}
+              nightMode={nightMode}
+              onSave={handleProfileEdit}
+              onClose={() => setShowProfileEdit(false)}
+            />
+          )}
 
-            const toastId = showLoading('Updating profile picture...');
-
-            try {
-              const updated = await updateUserProfile(userProfile.supabaseId, {
-                avatar: avatar,
-                avatarUrl: avatarUrl
-              });
-
-              if (updated) {
-                // Update local profile
-                setLocalProfile((prev: any) => {
-                  if (!prev) return prev;
-                  const next = { ...prev };
-                  next.avatar = avatar;
-                  next.avatarImage = avatarUrl;
-                  return next;
-                });
-
-                // Track avatar change for secrets
-                if (avatar !== userProfile.avatar) {
-                  const changes = trackAvatarChange();
-                  if (changes === 5) {
-                    unlockSecret('avatar_changed_5x');
-                  }
+          {/* Change Picture Modal */}
+          {showChangePicture && (
+            <ChangePictureModal
+              isOpen={showChangePicture}
+              onClose={() => setShowChangePicture(false)}
+              nightMode={nightMode}
+              currentAvatar={profile.avatar || '👤'}
+              currentAvatarUrl={profile.avatarImage || null}
+              onSave={async (avatarUrl, avatar) => {
+                if (!userProfile || !userProfile.supabaseId) {
+                  throw new Error('No user profile found');
                 }
 
-                updateToSuccess(toastId, 'Profile picture updated!');
-                window.dispatchEvent(new CustomEvent('profileUpdated'));
-              } else {
-                throw new Error('Failed to update profile picture');
-              }
-            } catch (error) {
-              console.error('Error updating profile picture:', error);
-              updateToError(toastId, error instanceof Error ? error.message : 'Failed to update profile picture');
-              throw error;
-            }
-          }}
-        />
-      )}
+                const toastId = showLoading('Updating profile picture...');
 
-      {/* Edit Testimony Dialog */}
-      {showTestimonyEdit && testimonyData && (
-        <EditTestimonyDialog
-          testimony={testimonyData}
-          nightMode={nightMode}
-          onSave={handleTestimonySave}
-          onClose={() => setShowTestimonyEdit(false)}
-        />
-      )}
+                try {
+                  const updated = await updateUserProfile(userProfile.supabaseId, {
+                    avatar: avatar,
+                    avatarUrl: avatarUrl
+                  });
 
-      {/* Logout Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
-        onConfirm={signOut}
-        title="Sign Out"
-        message="Are you sure you want to sign out? You'll need to sign in again to access your account."
-        confirmText="Sign Out"
-        cancelText="Cancel"
-        variant="danger"
-        nightMode={nightMode}
-      />
+                  if (updated) {
+                    // Update local profile
+                    setLocalProfile((prev: any) => {
+                      if (!prev) return prev;
+                      const next = { ...prev };
+                      next.avatar = avatar;
+                      next.avatarImage = avatarUrl;
+                      return next;
+                    });
 
-      {/* Save Testimony Modal (Testimony-First Conversion) */}
-      <SaveTestimonyModal
-        isOpen={showSaveTestimonyModal}
-        onClose={handleSaveTestimonyModalClose}
-        onContinueAsGuest={handleContinueAsGuest}
-        nightMode={nightMode}
-        testimonyPreview={generatedTestimony || ''}
-      />
+                    // Track avatar change for secrets
+                    if (avatar !== userProfile.avatar) {
+                      const changes = trackAvatarChange();
+                      if (changes === 5) {
+                        unlockSecret('avatar_changed_5x');
+                      }
+                    }
 
-      {/* Secret Museum */}
-      <SecretsMuseum
-        isOpen={showSecretsMuseum}
-        onClose={() => setShowSecretsMuseum(false)}
-        nightMode={nightMode}
-      />
+                    updateToSuccess(toastId, 'Profile picture updated!');
+                    window.dispatchEvent(new CustomEvent('profileUpdated'));
+                  } else {
+                    throw new Error('Failed to update profile picture');
+                  }
+                } catch (error) {
+                  console.error('Error updating profile picture:', error);
+                  updateToError(toastId, error instanceof Error ? error.message : 'Failed to update profile picture');
+                  throw error;
+                }
+              }}
+            />
+          )}
 
-      {/* Bug Report Dialog */}
-      {showBugReport && (
-        <BugReportDialog
-          onClose={() => setShowBugReport(false)}
-          nightMode={nightMode}
-          currentTab={currentTab}
-          userProfile={userProfile}
-        />
-      )}
+          {/* Edit Testimony Dialog */}
+          {showTestimonyEdit && testimonyData && (
+            <EditTestimonyDialog
+              testimony={testimonyData}
+              nightMode={nightMode}
+              onSave={handleTestimonySave}
+              onClose={() => setShowTestimonyEdit(false)}
+            />
+          )}
 
-      {/* Terms of Service Dialog */}
-      <TermsOfService
-        isOpen={showTerms}
-        onClose={() => setShowTerms(false)}
-        nightMode={nightMode}
-      />
+          {/* Logout Confirmation Dialog */}
+          <ConfirmDialog
+            isOpen={showLogoutConfirm}
+            onClose={() => setShowLogoutConfirm(false)}
+            onConfirm={signOut}
+            title="Sign Out"
+            message="Are you sure you want to sign out? You'll need to sign in again to access your account."
+            confirmText="Sign Out"
+            cancelText="Cancel"
+            variant="danger"
+            nightMode={nightMode}
+          />
 
-      {/* Privacy Policy Dialog */}
-      <PrivacyPolicy
-        isOpen={showPrivacy}
-        onClose={() => setShowPrivacy(false)}
-        nightMode={nightMode}
-      />
+          {/* Save Testimony Modal (Testimony-First Conversion) */}
+          <SaveTestimonyModal
+            isOpen={showSaveTestimonyModal}
+            onClose={handleSaveTestimonyModalClose}
+            onContinueAsGuest={handleContinueAsGuest}
+            nightMode={nightMode}
+            testimonyPreview={generatedTestimony || ''}
+          />
 
-      {/* Help Center Dialog */}
-      <HelpCenter
-        isOpen={showHelp}
-        onClose={() => setShowHelp(false)}
-        nightMode={nightMode}
-        onContactSupport={() => setShowContactSupport(true)}
-      />
+          {/* Secret Museum */}
+          <SecretsMuseum
+            isOpen={showSecretsMuseum}
+            onClose={() => setShowSecretsMuseum(false)}
+            nightMode={nightMode}
+          />
 
-      {/* Contact Support Dialog */}
-      <ContactSupport
-        isOpen={showContactSupport}
-        onClose={() => setShowContactSupport(false)}
-        nightMode={nightMode}
-        userProfile={userProfile}
-      />
+          {/* Bug Report Dialog */}
+          {showBugReport && (
+            <BugReportDialog
+              onClose={() => setShowBugReport(false)}
+              nightMode={nightMode}
+              currentTab={currentTab}
+              userProfile={userProfile}
+            />
+          )}
 
-      {/* Blocked Users Dialog */}
-      <BlockedUsers
-        isOpen={showBlockedUsers}
-        onClose={() => setShowBlockedUsers(false)}
-        nightMode={nightMode}
-        userProfile={userProfile}
-      />
+          {/* Terms of Service Dialog */}
+          <TermsOfService
+            isOpen={showTerms}
+            onClose={() => setShowTerms(false)}
+            nightMode={nightMode}
+          />
 
-      {/* Report Content Dialog */}
-      <ReportContent
-        isOpen={showReportContent}
-        onClose={() => {
-          setShowReportContent(false);
-          setReportData({ type: null, content: null });
-        }}
-        nightMode={nightMode}
-        userProfile={userProfile}
-        reportType={reportData.type || 'user'}
-        reportedContent={reportData.content || { id: '' }}
-      />
+          {/* Privacy Policy Dialog */}
+          <PrivacyPolicy
+            isOpen={showPrivacy}
+            onClose={() => setShowPrivacy(false)}
+            nightMode={nightMode}
+          />
 
-      {/* Link Spotify Dialog */}
-      <LinkSpotify
-        isOpen={showLinkSpotify}
-        onClose={() => setShowLinkSpotify(false)}
-        nightMode={nightMode}
-        userProfile={userProfile}
-      />
-      </div>
-    </GuestModalProvider>
+          {/* Help Center Dialog */}
+          <HelpCenter
+            isOpen={showHelp}
+            onClose={() => setShowHelp(false)}
+            nightMode={nightMode}
+            onContactSupport={() => setShowContactSupport(true)}
+          />
+
+          {/* Contact Support Dialog */}
+          <ContactSupport
+            isOpen={showContactSupport}
+            onClose={() => setShowContactSupport(false)}
+            nightMode={nightMode}
+            userProfile={userProfile}
+          />
+
+          {/* Blocked Users Dialog */}
+          <BlockedUsers
+            isOpen={showBlockedUsers}
+            onClose={() => setShowBlockedUsers(false)}
+            nightMode={nightMode}
+            userProfile={userProfile}
+          />
+
+          {/* Report Content Dialog */}
+          <ReportContent
+            isOpen={showReportContent}
+            onClose={() => {
+              setShowReportContent(false);
+              setReportData({ type: null, content: null });
+            }}
+            nightMode={nightMode}
+            userProfile={userProfile}
+            reportType={reportData.type || 'user'}
+            reportedContent={reportData.content || { id: '' }}
+          />
+
+          {/* Link Spotify Dialog */}
+          <LinkSpotify
+            isOpen={showLinkSpotify}
+            onClose={() => setShowLinkSpotify(false)}
+            nightMode={nightMode}
+            userProfile={userProfile}
+          />
+
+          {/* AI-Powered Testimony Questionnaire */}
+          {showTestimonyQuestionnaire && (
+            <TestimonyQuestionnaire
+              nightMode={nightMode}
+              userName={profile.displayName}
+              userAge={undefined}
+              onComplete={handleTestimonyQuestionnaireComplete}
+              onCancel={() => setShowTestimonyQuestionnaire(false)}
+            />
+          )}
+        </div>
+      </GuestModalProvider>
     </ErrorBoundary>
   );
 }
