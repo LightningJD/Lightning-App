@@ -27,7 +27,7 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
 
   const { data, error } = await supabase
     .from('testimonies')
-    .insert({
+    .upsert({
       user_id: userId,
       title: testimonyData.title || 'My Testimony',
       content: testimonyData.content,
@@ -41,8 +41,9 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
       music_spotify_url: testimonyData.musicSpotifyUrl,
       music_track_name: testimonyData.musicTrackName,
       music_artist: testimonyData.musicArtist,
-      music_audio_url: testimonyData.musicAudioUrl
-    } as any)
+      music_audio_url: testimonyData.musicAudioUrl,
+      updated_at: new Date().toISOString()
+    } as any, { onConflict: 'user_id' })
     .select()
     .single();
 

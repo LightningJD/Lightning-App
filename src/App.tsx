@@ -782,8 +782,14 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
 
       // For authenticated users: Save to database immediately
       // For guests: Show save modal (Testimony-First Conversion)
-      if (isAuthenticated && userProfile?.supabaseId) {
-        console.log('Authenticated user -saving AI-generated testimony to database');
+      if (isAuthenticated) {
+        if (!userProfile?.supabaseId) {
+          console.error('❌ Cannot save testimony: Missing Supabase ID for user');
+          updateToError(toastId, 'Failed to identify user profile. Please refresh and try again.');
+          return;
+        }
+
+        console.log('Authenticated user - saving AI-generated testimony to database');
         const saved = await createTestimony(userProfile.supabaseId, {
           content: testimonyData.content,
           question1: testimonyData.answers.question1,
@@ -803,8 +809,11 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
 
           // Dispatch custom event to trigger profile refresh
           window.dispatchEvent(new CustomEvent('profileUpdated'));
+
+          // Force reload to show new testimony
+          setTimeout(() => window.location.reload(), 1000);
         } else {
-          console.error('❌ Failed to save testimony');
+          console.error('❌ Database returned null when saving testimony');
           updateToError(toastId, 'Failed to save testimony. Please try again.');
         }
       } else {

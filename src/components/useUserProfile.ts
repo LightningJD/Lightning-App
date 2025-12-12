@@ -10,27 +10,40 @@ export const useUserProfile = () => {
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [testimony, setTestimony] = useState<any>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isSyncing, setIsSyncing] = useState(true);
 
   // Sync user to Supabase when they sign in or when refresh is triggered
   useEffect(() => {
     const syncUser = async () => {
-      if (isLoaded && isSignedIn && user) {
-        // Sync Clerk user to Supabase
-        // @ts-ignore - Clerk user type compatibility
-        const dbUser = await syncUserToSupabase(user);
-        setSupabaseUser(dbUser);
+      // Wait for Clerk to load
+      if (!isLoaded) return;
 
-        // Load testimony if user has one
-        if (dbUser && dbUser.id) {
-          const userTestimony = await getTestimonyByUserId(dbUser.id);
-          if (userTestimony) {
-            console.log('✅ Testimony loaded:', userTestimony.id);
-            setTestimony(userTestimony);
-          } else {
-            console.log('ℹ️ No testimony found for user:', dbUser.id);
-            setTestimony(null);
+      if (isSignedIn && user) {
+        try {
+          // Sync Clerk user to Supabase
+          // @ts-ignore - Clerk user type compatibility
+          const dbUser = await syncUserToSupabase(user);
+          setSupabaseUser(dbUser);
+
+          // Load testimony if user has one
+          if (dbUser && dbUser.id) {
+            const userTestimony = await getTestimonyByUserId(dbUser.id);
+            if (userTestimony) {
+              console.log('✅ Testimony loaded:', userTestimony.id);
+              setTestimony(userTestimony);
+            } else {
+              console.log('ℹ️ No testimony found for user:', dbUser.id);
+              setTestimony(null);
+            }
           }
+        } catch (error) {
+          console.error('Error syncing user profile:', error);
+        } finally {
+          setIsSyncing(false);
         }
+      } else {
+        // Not signed in, so we are done "syncing"
+        setIsSyncing(false);
       }
     };
 
@@ -47,9 +60,9 @@ export const useUserProfile = () => {
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
   }, []);
 
-  if (!isLoaded || !isSignedIn) {
+  if (!isLoaded || !isSignedIn || isSyncing) {
     return {
-      isLoading: !isLoaded,
+      isLoading: true,
       isAuthenticated: false,
       profile: null
     };
