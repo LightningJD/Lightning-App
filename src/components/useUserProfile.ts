@@ -60,9 +60,17 @@ export const useUserProfile = () => {
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
   }, []);
 
-  if (!isLoaded || !isSignedIn || isSyncing) {
+  if (!isLoaded || (isSignedIn && isSyncing)) {
     return {
       isLoading: true,
+      isAuthenticated: false,
+      profile: null
+    };
+  }
+
+  if (!isSignedIn || !user) {
+    return {
+      isLoading: false,
       isAuthenticated: false,
       profile: null
     };
