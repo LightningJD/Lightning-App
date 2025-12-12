@@ -239,92 +239,6 @@ function App() {
     return () => stopTimeBasedSecrets();
   }, []);
 
-  // Logo click secret handler
-  const handleLogoClick = () => {
-    const newCount = logoClicks + 1;
-    setLogoClicks(newCount);
-
-    // Clear existing timer
-    if (logoClickTimer) {
-      clearTimeout(logoClickTimer);
-    }
-
-    // Check if reached 10 clicks
-    if (newCount === 10) {
-      unlockSecret('logo_10_clicks');
-      setLogoClicks(0);
-    } else {
-      // Reset counter after 2 seconds of no clicks
-      const timer = setTimeout(() => {
-        setLogoClicks(0);
-      }, 2000);
-      setLogoClickTimer(timer);
-    }
-  };
-
-  // Periwinkle Theme - Blue-Purple Glossmorphic Gradient (Reduced 30% for daily use)
-  const themes: Record<string, { name: string; lightGradient: string; darkGradient: string; description: string }> = {
-    periwinkle: {
-      name: 'Periwinkle',
-      lightGradient: `linear-gradient(135deg, rgba(219, 234, 254, 0.63) 0%, transparent 100%),
-                      radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.175) 0%, transparent 60%),
-                      linear-gradient(45deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%)`,
-      darkGradient: `linear-gradient(135deg, rgba(17, 24, 39, 0.42) 0%, transparent 100%),
-                     radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.035) 0%, transparent 60%),
-                     linear-gradient(45deg, #0a0a0a 0%, #15121c 50%, #191e27 100%)`,
-      description: 'Periwinkle blue with purple accents'
-    }
-  };
-
-  // Toggle night mode
-  const handleNightModeToggle = () => {
-    const newNightMode = !nightMode;
-    setNightMode(newNightMode);
-    localStorage.setItem('lightningNightMode', newNightMode.toString());
-
-    // Track theme changes
-    const changes = trackThemeChange(newNightMode ? 'night' : 'day');
-    if (changes === 10) {
-      unlockSecret('theme_switcher');
-    }
-
-    // Track night mode usage for 7-day streak
-    trackNightModeUsage(newNightMode);
-  };
-
-  // Use local mirror first, then hook profile, else demo profile for development
-  const profile = localProfile || userProfile || {
-    username: "king_david",
-    displayName: "David",
-    avatar: "👑",
-    bio: "Shepherd. Warrior. King. A man after God's own heart, saved by His grace.",
-    hasTestimony: false,
-    music: {
-      trackName: "Amazing Grace",
-      artist: "Various Artists",
-      spotifyUrl: "https://open.spotify.com/track/1AWQoqb9bSvzTjaLralEka",
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-    },
-    story: {
-      title: "My Testimony",
-      content: "Today, I lead God's people as king over all Israel, called to shepherd a nation and point them toward the heart of the LORD. But my journey here began in darkness I never imagined I'd create.\n\nI was the youngest of eight sons in Bethlehem, overlooked and forgotten—just a shepherd boy tending flocks while my brothers prepared for greatness. When the prophet Samuel came to anoint Israel's next king, no one thought to call me in from the fields. But God saw something in me no one else did. He anointed me that day, and suddenly I was thrust into a world of giant-slaying victories and rising fame. Warrior. Commander. King. Success came fast, and I thought I had it all figured out. But pride was already taking root, and I was becoming careless with the gift God had given me.\n\nThen came the night that shattered everything. I should have been at war with my men, but instead I stood restless on my palace roof. That's when I saw Bathsheba. I knew she was another man's wife. I knew it was wrong. But I was king—who could stop me? One sinful choice led to another, and before I knew it, I'd committed adultery and murdered Uriah, one of my most faithful soldiers, to cover my tracks. For months, I buried the guilt. Then God sent the prophet Nathan, who told me a story about a rich man stealing a poor man's only lamb. Rage burned in my chest until Nathan looked me in the eye and said four words: 'You are that man.' In that moment, the weight of what I'd done crushed me. I fell to my knees with no excuses, crying out, 'I have sinned against the LORD. Create in me a clean heart, O God.' I expected judgment. I deserved destruction. But God showed mercy. He didn't erase the consequences—my family suffered, my son died—but He didn't abandon me. He began the painful, beautiful work of restoration.\n\nNow I lead not as a perfect king, but as a broken man who knows the depths of God's grace. My sin cost me dearly, but God has used my story to show that no one is beyond His reach. I write psalms from the ashes of my worst failures, and my greatest legacy isn't my victories—it's knowing that being 'a man after God's own heart' doesn't mean never falling. It means always returning.",
-      lesson: "My life taught me that being 'a man after God's own heart' doesn't mean never falling—it means always returning. When Nathan confronted me, I had a choice: defend myself or confess. Psalm 51:17 became my anthem: 'The sacrifices of God are a broken spirit; a broken and contrite heart, O God, you will not despise.' God doesn't want our perfection; He wants our honesty. I learned that the same God who lifted a shepherd boy to defeat giants is the same God who restores a king who's become the villain. My sin with Bathsheba cost me dearly—my son, my family's peace, my reputation. But God's mercy met me in my mess. He didn't erase the consequences, but He didn't abandon me either. The greatest lesson? Your worst moment doesn't have to be your final chapter. God's grace is sufficient, His mercy is new every morning, and no matter how far you've fallen, genuine repentance opens the door to restoration."
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: nightMode ? themes[selectedTheme].darkGradient : themes[selectedTheme].lightGradient }}>
-        <div className="text-center">
-          <Zap className="w-16 h-16 text-slate-100 animate-pulse mx-auto mb-4" />
-          <p className="text-slate-100 text-xl font-semibold">Loading Lightning...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Old testimony questions array - now using TestimonyQuestionnaire component with Claude AI
-
   // Auto-save guest testimony when user signs up
   React.useEffect(() => {
     let isMounted = true; // Track if component is still mounted
@@ -411,6 +325,94 @@ function App() {
       }
     }
   }, [isAuthenticated, userProfile, profileCompleted]);
+
+  // Logo click secret handler
+  const handleLogoClick = () => {
+    const newCount = logoClicks + 1;
+    setLogoClicks(newCount);
+
+    // Clear existing timer
+    if (logoClickTimer) {
+      clearTimeout(logoClickTimer);
+    }
+
+    // Check if reached 10 clicks
+    if (newCount === 10) {
+      unlockSecret('logo_10_clicks');
+      setLogoClicks(0);
+    } else {
+      // Reset counter after 2 seconds of no clicks
+      const timer = setTimeout(() => {
+        setLogoClicks(0);
+      }, 2000);
+      setLogoClickTimer(timer);
+    }
+  };
+
+  // Periwinkle Theme - Blue-Purple Glossmorphic Gradient (Reduced 30% for daily use)
+  const themes: Record<string, { name: string; lightGradient: string; darkGradient: string; description: string }> = {
+    periwinkle: {
+      name: 'Periwinkle',
+      lightGradient: `linear-gradient(135deg, rgba(219, 234, 254, 0.63) 0%, transparent 100%),
+                      radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.175) 0%, transparent 60%),
+                      linear-gradient(45deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%)`,
+      darkGradient: `linear-gradient(135deg, rgba(17, 24, 39, 0.42) 0%, transparent 100%),
+                     radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.035) 0%, transparent 60%),
+                     linear-gradient(45deg, #0a0a0a 0%, #15121c 50%, #191e27 100%)`,
+      description: 'Periwinkle blue with purple accents'
+    }
+  };
+
+  // Toggle night mode
+  const handleNightModeToggle = () => {
+    const newNightMode = !nightMode;
+    setNightMode(newNightMode);
+    localStorage.setItem('lightningNightMode', newNightMode.toString());
+
+    // Track theme changes
+    const changes = trackThemeChange(newNightMode ? 'night' : 'day');
+    if (changes === 10) {
+      unlockSecret('theme_switcher');
+    }
+
+    // Track night mode usage for 7-day streak
+    trackNightModeUsage(newNightMode);
+  };
+
+  // Use local mirror first, then hook profile, else demo profile for development
+  const profile = localProfile || userProfile || {
+    username: "king_david",
+    displayName: "David",
+    avatar: "👑",
+    bio: "Shepherd. Warrior. King. A man after God's own heart, saved by His grace.",
+    hasTestimony: false,
+    music: {
+      trackName: "Amazing Grace",
+      artist: "Various Artists",
+      spotifyUrl: "https://open.spotify.com/track/1AWQoqb9bSvzTjaLralEka",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    },
+    story: {
+      title: "My Testimony",
+      content: "Today, I lead God's people as king over all Israel, called to shepherd a nation and point them toward the heart of the LORD. But my journey here began in darkness I never imagined I'd create.\n\nI was the youngest of eight sons in Bethlehem, overlooked and forgotten—just a shepherd boy tending flocks while my brothers prepared for greatness. When the prophet Samuel came to anoint Israel's next king, no one thought to call me in from the fields. But God saw something in me no one else did. He anointed me that day, and suddenly I was thrust into a world of giant-slaying victories and rising fame. Warrior. Commander. King. Success came fast, and I thought I had it all figured out. But pride was already taking root, and I was becoming careless with the gift God had given me.\n\nThen came the night that shattered everything. I should have been at war with my men, but instead I stood restless on my palace roof. That's when I saw Bathsheba. I knew she was another man's wife. I knew it was wrong. But I was king—who could stop me? One sinful choice led to another, and before I knew it, I'd committed adultery and murdered Uriah, one of my most faithful soldiers, to cover my tracks. For months, I buried the guilt. Then God sent the prophet Nathan, who told me a story about a rich man stealing a poor man's only lamb. Rage burned in my chest until Nathan looked me in the eye and said four words: 'You are that man.' In that moment, the weight of what I'd done crushed me. I fell to my knees with no excuses, crying out, 'I have sinned against the LORD. Create in me a clean heart, O God.' I expected judgment. I deserved destruction. But God showed mercy. He didn't erase the consequences—my family suffered, my son died—but He didn't abandon me. He began the painful, beautiful work of restoration.\n\nNow I lead not as a perfect king, but as a broken man who knows the depths of God's grace. My sin cost me dearly, but God has used my story to show that no one is beyond His reach. I write psalms from the ashes of my worst failures, and my greatest legacy isn't my victories—it's knowing that being 'a man after God's own heart' doesn't mean never falling. It means always returning.",
+      lesson: "My life taught me that being 'a man after God's own heart' doesn't mean never falling—it means always returning. When Nathan confronted me, I had a choice: defend myself or confess. Psalm 51:17 became my anthem: 'The sacrifices of God are a broken spirit; a broken and contrite heart, O God, you will not despise.' God doesn't want our perfection; He wants our honesty. I learned that the same God who lifted a shepherd boy to defeat giants is the same God who restores a king who's become the villain. My sin with Bathsheba cost me dearly—my son, my family's peace, my reputation. But God's mercy met me in my mess. He didn't erase the consequences, but He didn't abandon me either. The greatest lesson? Your worst moment doesn't have to be your final chapter. God's grace is sufficient, His mercy is new every morning, and no matter how far you've fallen, genuine repentance opens the door to restoration."
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: nightMode ? themes[selectedTheme].darkGradient : themes[selectedTheme].lightGradient }}>
+        <div className="text-center">
+          <Zap className="w-16 h-16 text-slate-100 animate-pulse mx-auto mb-4" />
+          <p className="text-slate-100 text-xl font-semibold">Loading Lightning...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Old testimony questions array - now using TestimonyQuestionnaire component with Claude AI
+
+
 
   // Old testimony wizard code - replaced by TestimonyQuestionnaire component
   // The handleTestimonyAnswer, nextTestimonyStep, previousTestimonyStep functions
