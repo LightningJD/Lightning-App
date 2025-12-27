@@ -1,12 +1,22 @@
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useSession } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
 import { syncUserToSupabase, getTestimonyByUserId } from '../lib/database';
+
 
 /**
  * Custom hook to sync Clerk user data with Lightning app profile
  */
-export const useUserProfile = () => {
+export interface UseUserProfileReturn {
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  isSyncing: boolean;
+  profile: any | null;
+  user?: any;
+}
+
+export const useUserProfile = (): UseUserProfileReturn => {
   const { user, isLoaded, isSignedIn } = useUser();
+  const { session } = useSession();
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [testimony, setTestimony] = useState<any>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -18,8 +28,36 @@ export const useUserProfile = () => {
       // Wait for Clerk to load
       if (!isLoaded) return;
 
-      if (isSignedIn && user) {
+      if (isSignedIn && user && session) {
         try {
+          // Get Supabase token from Clerk
+          let token = null;
+          try {
+            token = await session.getToken({ template: 'supabase' });
+          } catch (tokenError) {
+            console.warn('⚠️ Failed to retrieve Supabase token (template might be missing):', tokenError);
+          }
+
+          if (token) {
+            console.log('✅ Retrieving Supabase token from Clerk success');
+            // Set session on Supabase client to enable RLS
+            // We use the same token for refresh_token as a workaround since Clerk handles auth
+            const { error } = await import('../lib/supabase').then(m =>
+              m.supabase?.auth.setSession({
+                access_token: token,
+                refresh_token: token
+              }) || { data: { user: null, session: null }, error: null }
+            );
+
+            if (error) {
+              console.error('❌ Error setting Supabase session:', error);
+            } else {
+              console.log('✅ Supabase session set successfully');
+            }
+          } else {
+            console.warn('⚠️ No Supabase token available - ensuring Supabase client is ready for public/anon access');
+          }
+
           // Sync Clerk user to Supabase
           // @ts-ignore - Clerk user type compatibility
           const dbUser = await syncUserToSupabase(user);
@@ -35,9 +73,11 @@ export const useUserProfile = () => {
               console.log('ℹ️ No testimony found for user:', dbUser.id);
               setTestimony(null);
             }
+          } else {
+            console.error('❌ Sync failed: No Database User returned from syncUserToSupabase');
           }
-        } catch (error) {
-          console.error('Error syncing user profile:', error);
+        } catch (error: any) {
+          console.error('❌ Error syncing user profile:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
         } finally {
           setIsSyncing(false);
         }
@@ -48,7 +88,7 @@ export const useUserProfile = () => {
     };
 
     syncUser();
-  }, [isLoaded, isSignedIn, user, refreshTrigger]);
+  }, [isLoaded, isSignedIn, user, session, refreshTrigger]);
 
   // Listen for profile updates via custom event
   useEffect(() => {
@@ -64,7 +104,9 @@ export const useUserProfile = () => {
     return {
       isLoading: true,
       isAuthenticated: false,
-      profile: null
+      isSyncing: true,
+      profile: null,
+      user: undefined
     };
   }
 
@@ -72,7 +114,9 @@ export const useUserProfile = () => {
     return {
       isLoading: false,
       isAuthenticated: false,
-      profile: null
+      isSyncing: false,
+      profile: null,
+      user: undefined
     };
   }
 
@@ -148,6 +192,7 @@ export const useUserProfile = () => {
   return {
     isLoading: false,
     isAuthenticated: true,
+    isSyncing: false,
     profile,
     user // Original Clerk user object for advanced usage
   };
