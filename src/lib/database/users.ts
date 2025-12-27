@@ -33,7 +33,12 @@ interface ProfileUpdateData {
  * Create or update user in Supabase when they sign up with Clerk
  */
 export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | null> => {
-  if (!supabase) return null;
+  if (!supabase) {
+    console.error('❌ Supabase client is not initialized');
+    return null;
+  }
+
+  console.log('🔄 Syncing user to Supabase:', clerkUser.id);
 
   // Check if user already exists to avoid overwriting profile fields like display_name
   const { data: existing, error: fetchError } = await supabase
@@ -43,13 +48,14 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
     .single();
 
   if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = No rows
-    console.error('Error checking existing Supabase user:', fetchError);
+    console.error('❌ Error checking existing Supabase user:', JSON.stringify(fetchError, null, 2));
     return null;
   }
 
   const now = new Date().toISOString();
 
   if (existing) {
+    console.log('✅ Found existing user:', existing.id);
     // Only set fields that are missing; do NOT override display_name or other user-edited fields
     const updates: any = { updated_at: now };
     if (!existing.username && (clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress)) {
@@ -66,6 +72,7 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
     }
 
     if (Object.keys(updates).length > 1) {
+      console.log('📝 Updating existing user with missing fields...');
       const { data: updated, error } = await supabase
         .from('users')
         // @ts-ignore dynamic updates
@@ -74,7 +81,7 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
         .select()
         .single();
       if (error) {
-        console.error('Error updating existing Supabase user:', error);
+        console.error('❌ Error updating existing Supabase user:', error);
         return existing as unknown as User; // Return existing to avoid breaking UI
       }
       return updated as unknown as User;
@@ -83,10 +90,12 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
     return existing as unknown as User;
   }
 
+  console.log('🆕 User not found, creating new record...');
+
   // Create new record for first-time users
   const newUser: any = {
     clerk_user_id: clerkUser.id,
-    username: clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress.split('@')[0],
+    username: clerkUser.username || `${clerkUser.emailAddresses[0]?.emailAddress.split('@')[0]}_${clerkUser.id.slice(-4)}`,
     display_name: clerkUser.fullName || clerkUser.firstName || 'User',
     email: clerkUser.primaryEmailAddress?.emailAddress,
     avatar_emoji: clerkUser.publicMetadata?.customAvatar || clerkUser.firstName?.charAt(0)?.toUpperCase() || '👤',
@@ -101,10 +110,11 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
     .single();
 
   if (createError) {
-    console.error('Error creating Supabase user:', createError);
+    console.error('❌ Error creating Supabase user:', createError);
     return null;
   }
 
+  console.log('✅ Successfully created new user:', created.id);
   return created as unknown as User;
 };
 
@@ -148,7 +158,7 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   if (profileData.profileCompleted !== undefined) updates.profile_completed = profileData.profileCompleted;
   if (profileData.search_radius !== undefined) updates.search_radius = profileData.search_radius;
 
-  const { data, error} = await supabase
+  const { data, error } = await supabase
     .from('users')
     // @ts-ignore - Supabase generated types don't allow dynamic updates
     .update(updates)
@@ -281,7 +291,7 @@ export const getAllUsers = async (
 ): Promise<User[]> => {
   if (!supabase) return [];
 
-  const { data, error} = await supabase
+  const { data, error } = await supabase
     .from('users')
     .select('*')
     .neq('id', currentUserId || '')

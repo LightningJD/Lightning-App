@@ -26,7 +26,7 @@ import ReportContent from './components/ReportContent';
 import LinkSpotify from './components/LinkSpotify';
 import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
 import { useUserProfile } from './components/useUserProfile';
-import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId } from './lib/database';
+import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId, syncUserToSupabase } from './lib/database';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
 import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets, checkMilestoneSecret, checkActivitySecrets } from './lib/secrets';
@@ -37,7 +37,7 @@ import type { TestimonyAnswers } from './lib/api/claude';
 
 function App() {
   const { signOut } = useClerk();
-  const { isLoading, isAuthenticated, profile: userProfile } = useUserProfile();
+  const { isLoading, isAuthenticated, isSyncing, profile: userProfile, user: clerkUser } = useUserProfile();
   const [localProfile, setLocalProfile] = useState<any | null>(null);
 
   const [currentTab, setCurrentTab] = useState('profile');
@@ -785,14 +785,65 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       // For authenticated users: Save to database immediately
       // For guests: Show save modal (Testimony-First Conversion)
       if (isAuthenticated) {
-        if (!userProfile?.supabaseId) {
+        // Check if user sync is still in progress
+        if (isSyncing) {
+          console.log('⏳ User sync in progress, waiting...');
+          updateToSuccess(toastId, 'Setting up your profile...');
+
+          // Wait for sync to complete (max 10 seconds)
+          const maxWaitTime = 10000;
+          const startTime = Date.now();
+          const checkInterval = 500;
+
+          await new Promise<void>((resolve, reject) => {
+            const intervalId = setInterval(() => {
+              const elapsed = Date.now() - startTime;
+
+              // Check if we've exceeded max wait time
+              if (elapsed > maxWaitTime) {
+                clearInterval(intervalId);
+                reject(new Error('Profile sync timeout. Please refresh and try again.'));
+                return;
+              }
+
+              // Check if sync is complete by verifying supabaseId exists
+              if (userProfile?.supabaseId) {
+                clearInterval(intervalId);
+                console.log('✅ User sync complete!');
+                resolve();
+              }
+            }, checkInterval);
+          });
+        }
+
+
+        // Resolve Supabase ID (handle new user race conditions)
+        let targetUserId = userProfile?.supabaseId;
+
+        if (!targetUserId && clerkUser) {
+          console.log('⚠️ Missing Supabase ID, attempting on-demand sync...');
+          try {
+            // @ts-ignore - Clerk user type mismatch
+            const syncedUser = await syncUserToSupabase(clerkUser);
+            if (syncedUser?.id) {
+              targetUserId = syncedUser.id;
+              console.log('✅ On-demand sync successful, ID:', targetUserId);
+              // Trigger profile refresh to update UI in background
+              window.dispatchEvent(new CustomEvent('profileUpdated'));
+            }
+          } catch (syncErr) {
+            console.error('❌ On-demand sync failed:', syncErr);
+          }
+        }
+
+        if (!targetUserId) {
           console.error('❌ Cannot save testimony: Missing Supabase ID for user');
           updateToError(toastId, 'Failed to identify user profile. Please refresh and try again.');
           return;
         }
 
         console.log('Authenticated user - saving AI-generated testimony to database');
-        const saved = await createTestimony(userProfile.supabaseId, {
+        const saved = await createTestimony(targetUserId, {
           content: testimonyData.content,
           question1: testimonyData.answers.question1,
           question2: testimonyData.answers.question2,
