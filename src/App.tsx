@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useClerk } from '@clerk/clerk-react';
+import { useClerk, useSession } from '@clerk/clerk-react';
 import { User, MessageCircle, Users, MapPin, Zap, Plus, X, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
@@ -26,7 +26,8 @@ import ReportContent from './components/ReportContent';
 import LinkSpotify from './components/LinkSpotify';
 import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
 import { useUserProfile } from './components/useUserProfile';
-import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId, syncUserToSupabase } from './lib/database';
+import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId } from './lib/database';
+import { supabase } from './lib/supabase';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
 import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets, checkMilestoneSecret, checkActivitySecrets } from './lib/secrets';
@@ -37,6 +38,7 @@ import type { TestimonyAnswers } from './lib/api/claude';
 
 function App() {
   const { signOut } = useClerk();
+  const { session } = useSession();
   const { isLoading, isAuthenticated, isSyncing, profile: userProfile, user: clerkUser } = useUserProfile();
   const [localProfile, setLocalProfile] = useState<any | null>(null);
 
@@ -767,6 +769,41 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
     }
   };
 
+  const ensureSupabaseSession = async (): Promise<boolean> => {
+    if (!session || !supabase) return false;
+
+    try {
+      const token = await session.getToken({ template: 'supabase' });
+      if (!token) {
+        console.warn('Supabase token missing: ensure Clerk template "supabase" is configured');
+        return false;
+      }
+
+      const { error } = await supabase.auth.setSession({
+        access_token: token,
+        refresh_token: token
+      });
+
+      if (error) {
+        console.error('Error setting Supabase session:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Failed to set Supabase session:', error);
+      return false;
+    }
+  };
+
+  const getExistingSupabaseUserId = async (): Promise<string | null> => {
+    if (userProfile?.supabaseId) return userProfile.supabaseId;
+    if (!clerkUser?.id) return null;
+
+    const existing = await getUserByClerkId(clerkUser.id);
+    return existing?.id || null;
+  };
+
   // Handler for AI-powered testimony questionnaire completion
   const handleTestimonyQuestionnaireComplete = async (testimonyData: { content: string; answers: TestimonyAnswers }): Promise<void> => {
     setShowTestimonyQuestionnaire(false);
@@ -785,63 +822,44 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
       // For authenticated users: Save to database immediately
       // For guests: Show save modal (Testimony-First Conversion)
       if (isAuthenticated) {
-        // Check if user sync is still in progress
-        if (isSyncing) {
-          console.log('⏳ User sync in progress, waiting...');
+        let targetUserId = await getExistingSupabaseUserId();
+
+        if (!targetUserId && isSyncing) {
+          console.log('User sync in progress, waiting...');
           updateToSuccess(toastId, 'Setting up your profile...');
 
-          // Wait for sync to complete (max 10 seconds)
           const maxWaitTime = 10000;
-          const startTime = Date.now();
           const checkInterval = 500;
+          const startTime = Date.now();
 
-          await new Promise<void>((resolve, reject) => {
-            const intervalId = setInterval(() => {
-              const elapsed = Date.now() - startTime;
-
-              // Check if we've exceeded max wait time
-              if (elapsed > maxWaitTime) {
-                clearInterval(intervalId);
-                reject(new Error('Profile sync timeout. Please refresh and try again.'));
-                return;
-              }
-
-              // Check if sync is complete by verifying supabaseId exists
-              if (userProfile?.supabaseId) {
-                clearInterval(intervalId);
-                console.log('✅ User sync complete!');
-                resolve();
-              }
-            }, checkInterval);
-          });
+          while (!targetUserId && Date.now() - startTime < maxWaitTime) {
+            await new Promise(resolve => setTimeout(resolve, checkInterval));
+            targetUserId = await getExistingSupabaseUserId();
+          }
         }
 
-
-        // Resolve Supabase ID (handle new user race conditions)
-        let targetUserId = userProfile?.supabaseId;
-
         if (!targetUserId && clerkUser) {
-          console.log('⚠️ Missing Supabase ID, attempting on-demand sync...');
+          console.log('Missing Supabase ID, attempting on-demand sync...');
           try {
+            await ensureSupabaseSession();
             // @ts-ignore - Clerk user type mismatch
             const syncedUser = await syncUserToSupabase(clerkUser);
             if (syncedUser?.id) {
               targetUserId = syncedUser.id;
-              console.log('✅ On-demand sync successful, ID:', targetUserId);
+              console.log('On-demand sync successful, ID:', targetUserId);
               // Trigger profile refresh to update UI in background
               window.dispatchEvent(new CustomEvent('profileUpdated'));
             }
           } catch (syncErr) {
-            console.error('❌ On-demand sync failed:', syncErr);
+            console.error('On-demand sync failed:', syncErr);
           }
         }
 
         if (!targetUserId) {
-          console.error('❌ Cannot save testimony: Missing Supabase ID for user');
+          console.error('Cannot save testimony: Missing Supabase ID for user');
           updateToError(toastId, 'Failed to identify user profile. Please refresh and try again.');
           return;
         }
-
         console.log('Authenticated user - saving AI-generated testimony to database');
         const saved = await createTestimony(targetUserId, {
           content: testimonyData.content,
@@ -1902,3 +1920,4 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
 }
 
 export default App;
+
