@@ -2094,7 +2094,7 @@ This plan will guide you from where you are now (70% frontend, 0% backend) to a 
 **Modules:**
 1. **Database Layer Refactoring** (Week 1) - Break monolithic database.js into SOLID modules
 2. **TypeScript Migration** (Week 2) - Add type safety and IDE support
-3. **Testing Infrastructure** (Week 3) - Unit, integration, and E2E tests
+3. **Testing Infrastructure** (Week 3) - Unit and integration tests
 4. **Error Boundaries** (Week 4, Days 1-3) - Graceful failure handling
 5. **Testimony Formatting Helper** (Week 4, Days 4-5) - OPTIONAL: Basic grammar/punctuation fixes only
 6. **Caching & Performance** (Week 4, Days 4-7) - React Query for intelligent caching
@@ -2445,13 +2445,12 @@ src/lib/database/
 
 **Target:**
 - Comprehensive test coverage (>80%)
-- Unit tests, integration tests, E2E tests
+- Unit tests, integration tests
 - CI/CD integration ready
 
 **Testing Stack:**
 - **Vitest** - Fast unit testing (Vite-native)
 - **React Testing Library** - Component testing
-- **Playwright** - E2E testing
 - **MSW (Mock Service Worker)** - API mocking
 
 **Implementation Plan:**
@@ -2461,7 +2460,6 @@ src/lib/database/
   ```bash
   npm install --save-dev vitest @vitest/ui jsdom
   npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event
-  npm install --save-dev @playwright/test
   npm install --save-dev msw
   ```
 - [ ] Create `vitest.config.ts`:
@@ -2516,8 +2514,7 @@ src/lib/database/
     "scripts": {
       "test": "vitest",
       "test:ui": "vitest --ui",
-      "test:coverage": "vitest run --coverage",
-      "test:e2e": "playwright test"
+      "test:coverage": "vitest run --coverage"
     }
   }
   ```
@@ -2666,59 +2663,9 @@ src/lib/database/
 - [ ] 📸 Screenshot of component test results
 - [ ] ⚠️ Components must be thoroughly tested
 
-**Day 7: E2E Tests with Playwright**
-- [ ] Setup Playwright: `npx playwright install`
-- [ ] Create E2E test file: `tests/e2e/auth-flow.spec.ts`
-  ```typescript
-  import { test, expect } from '@playwright/test';
-
-  test.describe('Authentication Flow', () => {
-    test('should allow user to sign up and create profile', async ({ page }) => {
-      await page.goto('http://localhost:5173');
-
-      // Click sign up
-      await page.click('text=Join Lightning');
-
-      // Fill in Google OAuth (mocked in test environment)
-      await page.fill('input[name="email"]', 'test@example.com');
-      await page.click('text=Continue with Google');
-
-      // Should redirect to profile creation
-      await expect(page).toHaveURL(/.*profile/);
-
-      // Fill profile form
-      await page.fill('input[name="displayName"]', 'Test User');
-      await page.fill('textarea[name="bio"]', 'Test bio');
-      await page.click('button:has-text("Save Profile")');
-
-      // Should see profile tab
-      await expect(page.locator('text=Test User')).toBeVisible();
-    });
-  });
-  ```
-- [ ] Write E2E tests for critical flows:
-  - [ ] Authentication (signup, login, logout)
-  - [ ] Profile creation and editing
-  - [ ] Testimony generation and saving
-  - [ ] Sending friend requests
-  - [ ] Sending messages
-  - [ ] Creating groups
-  - [ ] Real-time messaging (two browser contexts)
-- [ ] Run E2E tests on CI/CD pipeline
-
-**🧪 TESTING CHECKPOINT - E2E TESTS (60 min):**
-- [ ] ✅ All E2E tests pass locally
-- [ ] ✅ Critical user flows tested
-- [ ] ✅ Real-time features tested (multi-tab)
-- [ ] ✅ Tests run in headless mode (CI-ready)
-- [ ] 📸 Screenshot of E2E test results
-- [ ] 📸 Video recording of test execution
-- [ ] ⚠️ E2E tests validate entire system works
-
 **Final Testing Checkpoint:**
 - [ ] ✅ Overall test coverage >80%
 - [ ] ✅ All tests pass: `npm run test`
-- [ ] ✅ E2E tests pass: `npm run test:e2e`
 - [ ] ✅ Coverage report clean
 - [ ] ✅ CI/CD pipeline ready
 - [ ] 📊 Coverage breakdown:
@@ -2726,13 +2673,12 @@ src/lib/database/
   - Services: >85%
   - Components: >80%
   - Utils: >95%
-- [ ] ✅ Commit changes: "Add comprehensive test coverage (unit, integration, E2E)"
+- [ ] ✅ Commit changes: "Add comprehensive test coverage (unit, integration)"
 
 **Success Criteria:**
 - ✅ Test coverage >80%
 - ✅ All critical flows tested
 - ✅ Tests run fast (<30 seconds for unit tests)
-- ✅ E2E tests validate real user flows
 - ✅ CI/CD integration ready
 
 ---
@@ -3293,7 +3239,7 @@ AI content generation was rejected due to testimony integrity concerns. Users' e
 **Before Proceeding to Phase 2:**
 - ✅ Database layer refactored into SOLID-compliant modules (<500 lines each)
 - ✅ TypeScript migration complete (>90% type coverage)
-- ✅ Test coverage >80% (unit, integration, E2E)
+- ✅ Test coverage >80% (unit, integration)
 - ✅ Error boundaries implemented (graceful failures)
 - ✅ Caching layer working (React Query)
 - ✅ All tests passing
@@ -4643,7 +4589,7 @@ serve(async () => {
 - [ ] Monitoring alerts verified
 - [ ] Rate limits tested and tuned
 - [ ] Image optimization verified
-- [ ] All tests passing (unit, integration, E2E)
+- [ ] All tests passing (unit, integration)
 - [ ] Documentation updated
 
 ---
