@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Save, User, MapPin, Book } from 'lucide-react';
 import ImageUploadButton from './ImageUploadButton';
-import { showError, showLoading, updateToSuccess, updateToError } from '../lib/toast';
+import { showError } from '../lib/toast';
 import { validateProfile, sanitizeInput } from '../lib/inputValidation';
 
 interface FormData {
@@ -33,6 +33,22 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
     testimonyContent: profile?.testimony || '',
     testimonyLesson: profile?.testimonyLesson || ''
   });
+
+  // Update form data when profile changes to prevent stale data
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        displayName: profile.displayName || '',
+        username: profile.username || '',
+        bio: profile.bio || '',
+        location: profile.location || '',
+        avatar: profile.avatar || '👤',
+        avatarUrl: profile.avatarImage || null,
+        testimonyContent: profile.testimony || '',
+        testimonyLesson: profile.testimonyLesson || ''
+      });
+    }
+  }, [profile?.displayName, profile?.username, profile?.bio, profile?.location, profile?.avatar, profile?.avatarImage]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -56,7 +72,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
   // Track if form has changes
   useEffect(() => {
     const changed =
-      formData.displayName !== profile?.displayName ||
+      formData.displayName.trim() !== (profile?.displayName || '').trim() ||
       formData.username !== profile?.username ||
       formData.bio !== profile?.bio ||
       formData.location !== profile?.location ||
@@ -76,6 +92,12 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
 
     if (!formData.displayName.trim()) {
       newErrors.displayName = 'Name is required';
+    } else {
+      // Check if name contains only special characters (no letters or numbers)
+      const hasLettersOrNumbers = /[a-zA-Z0-9]/.test(formData.displayName.trim());
+      if (!hasLettersOrNumbers) {
+        newErrors.displayName = 'Name must contain at least one letter or number';
+      }
     }
 
     if (!formData.username.trim()) {
@@ -104,7 +126,6 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
       return;
     }
 
-    const toastId = showLoading('Saving profile...');
     setIsSaving(true);
 
     try {
@@ -120,22 +141,50 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
       };
 
       await onSave(sanitizedData);
-      updateToSuccess(toastId, 'Profile updated successfully!');
     } catch (error) {
       console.error('Error saving profile:', error);
-      updateToError(toastId, error instanceof Error ? error.message : 'Failed to save profile. Please try again.');
+      showError(error instanceof Error ? error.message : 'Failed to save profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleInputChange = (field: keyof FormData, value: string | null) => {
-    setFormData({ ...formData, [field]: value });
-    // Clear error for this field when user starts typing
-    if (errors[field]) {
-      const newErrors = { ...errors };
-      delete newErrors[field];
-      setErrors(newErrors);
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Real-time validation for displayName
+    if (field === 'displayName') {
+      const trimmedValue = (value || '').trim();
+      if (!trimmedValue) {
+        // Empty field - clear error during typing, will be caught on submit
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      } else if (!/[a-zA-Z0-9]/.test(trimmedValue)) {
+        // Only special characters - show error immediately
+        setErrors(prev => ({
+          ...prev,
+          displayName: 'Name must contain at least one letter or number'
+        }));
+      } else {
+        // Valid input - clear error
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }
+    } else {
+      // Clear error for other fields when user starts typing
+      if (errors[field]) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }
     }
   };
 
@@ -144,6 +193,10 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
+        style={{
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)'
+        }}
         onClick={onClose}
       />
 
@@ -228,7 +281,10 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
                     <input
                       type="text"
                       value={formData.username}
-                      onChange={(e) => handleInputChange('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                      onChange={(e) => {
+                        const cleanValue = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+                        handleInputChange('username', cleanValue);
+                      }}
                       placeholder="johndoe"
                       className={`w-full pl-8 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         nightMode
@@ -407,52 +463,73 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
           </div>
 
           {/* Footer */}
-          <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
-            <button
-              onClick={onClose}
-              disabled={isSaving}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 ${
-                nightMode
-                  ? 'bg-white/5 hover:bg-white/10 text-slate-100'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-              }`}
-            >
-              Cancel
-            </button>
+          <div className={`p-6 border-t ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+            {/* Status message */}
+            {!hasChanges && Object.keys(errors).length === 0 && (
+              <div className={`mb-3 text-sm text-center ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                No changes to save
+              </div>
+            )}
+            {Object.keys(errors).length > 0 && (
+              <div className="mb-3 text-sm text-center text-red-500">
+                Please fix the errors above before saving
+              </div>
+            )}
+            
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                disabled={isSaving}
+                className={`px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 ${
+                  nightMode
+                    ? 'bg-white/5 hover:bg-white/10 text-slate-100'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+              >
+                Cancel
+              </button>
 
-            <button
-              onClick={handleSave}
-              disabled={!hasChanges || isSaving}
-              className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-slate-100 border border-white/20`}
-              style={hasChanges && !isSaving ? {
-                background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
-                boxShadow: nightMode
-                  ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                  : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-              } : {}}
-              onMouseEnter={(e) => {
-                if (hasChanges && !isSaving && nightMode) {
-                  e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (hasChanges && !isSaving && nightMode) {
-                  e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
-                }
-              }}
-            >
-              {isSaving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  Save Changes
-                </>
-              )}
-            </button>
+              <button
+                onClick={handleSave}
+                disabled={!hasChanges || isSaving || Object.keys(errors).length > 0}
+                className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-white border ${
+                  (!hasChanges || isSaving || Object.keys(errors).length > 0)
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'opacity-100 cursor-pointer'
+                } border-white/20`}
+                style={(hasChanges && !isSaving && Object.keys(errors).length === 0) ? {
+                  background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                  boxShadow: nightMode
+                    ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                    : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                } : {
+                  background: nightMode ? 'rgba(100, 100, 100, 0.3)' : 'rgba(150, 150, 150, 0.3)',
+                  boxShadow: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  if (hasChanges && !isSaving && Object.keys(errors).length === 0) {
+                    e.currentTarget.style.background = nightMode ? 'rgba(79, 150, 255, 1.0)' : 'linear-gradient(135deg, #5BA3FF 0%, #4F96FF 50%, #3b82f6 100%)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (hasChanges && !isSaving && Object.keys(errors).length === 0) {
+                    e.currentTarget.style.background = nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)';
+                  }
+                }}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

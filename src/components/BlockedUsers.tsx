@@ -10,7 +10,7 @@ interface BlockedUser {
   user: {
     id: string;
     username?: string;
-    full_name?: string;
+    display_name?: string;
     avatar_url?: string;
   };
 }
@@ -40,10 +40,16 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({ isOpen, onClose, nightMode,
     try {
       const blocked = await getBlockedUsers(userProfile.supabaseId);
       // @ts-ignore - blocked users type compatibility
-      setBlockedUsers(blocked);
+      setBlockedUsers(blocked || []);
     } catch (error) {
       console.error('Error loading blocked users:', error);
-      showError('Failed to load blocked users');
+      // Only show error if it's not a table/relation issue (which is expected for new users)
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (!errorMessage.includes('relation') && !errorMessage.includes('table')) {
+        showError('Failed to load blocked users');
+      }
+      // Set empty array on error to show proper empty state
+      setBlockedUsers([]);
     } finally {
       setLoading(false);
     }
@@ -59,7 +65,7 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({ isOpen, onClose, nightMode,
       // Remove from local state
       setBlockedUsers(prev => prev.filter(bu => bu.user.id !== blockedUser.user.id));
 
-      showSuccess(`Unblocked ${blockedUser.user.username || blockedUser.user.full_name}`);
+      showSuccess(`Unblocked ${blockedUser.user.username || blockedUser.user.display_name}`);
     } catch (error) {
       console.error('Error unblocking user:', error);
       showError('Failed to unblock user');
@@ -183,14 +189,14 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({ isOpen, onClose, nightMode,
                           {user.avatar_url ? (
                             <img
                               src={user.avatar_url}
-                              alt={user.username || user.full_name}
+                              alt={user.username || user.display_name}
                               className="w-12 h-12 rounded-full object-cover"
                             />
                           ) : (
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${
                               nightMode ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white' : 'bg-gradient-to-br from-blue-400 to-purple-500 text-white'
                             }`}>
-                              {(user.username || user.full_name || 'U')[0].toUpperCase()}
+                              {(user.username || user.display_name || 'U')[0].toUpperCase()}
                             </div>
                           )}
                         </div>
@@ -198,11 +204,11 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({ isOpen, onClose, nightMode,
                         {/* Name & Details */}
                         <div className="flex-1 min-w-0">
                           <p className={`font-semibold truncate ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                            {user.username || user.full_name || 'Unknown User'}
+                            {user.username || user.display_name || 'Unknown User'}
                           </p>
-                          {user.username && user.full_name && (
+                          {user.username && user.display_name && (
                             <p className={`text-sm truncate ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                              {user.full_name}
+                              {user.display_name}
                             </p>
                           )}
                           <p className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-500'}`}>

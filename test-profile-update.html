@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Update Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #4faaf8;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #3b82f6;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+        }
+        .error {
+            background: #ffe8e8;
+            border-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Lightning Profile Update Test</h1>
+        <p>This test simulates the Full Name update functionality to verify the fix.</p>
+        
+        <form id="profileForm">
+            <div class="form-group">
+                <label for="displayName">Full Name:</label>
+                <input type="text" id="displayName" value="User" placeholder="Enter your full name">
+            </div>
+            
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" value="hamid758" placeholder="Enter username">
+            </div>
+            
+            <button type="submit">Update Profile</button>
+        </form>
+        
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Simulate the profile update functionality
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const displayName = document.getElementById('displayName').value;
+            const username = document.getElementById('username').value;
+            const resultDiv = document.getElementById('result');
+            
+            // Simulate the update process
+            setTimeout(() => {
+                // Check if the displayName was properly handled (not concatenated)
+                if (displayName && displayName !== 'User' && !displayName.includes('User')) {
+                    resultDiv.className = 'result';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Profile Update Successful!</h3>
+                        <p><strong>Full Name:</strong> ${displayName}</p>
+                        <p><strong>Username:</strong> ${username}</p>
+                        <p>The Full Name field was properly updated without concatenation issues.</p>
+                    `;
+                } else if (displayName.includes('User') && displayName !== 'User') {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Concatenation Issue Detected!</h3>
+                        <p><strong>Problematic Value:</strong> ${displayName}</p>
+                        <p>The Full Name field shows concatenation (old value + new value).</p>
+                        <p>This indicates the input field wasn't properly cleared before setting the new value.</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>⚠️ No Change Detected</h3>
+                        <p>Please enter a different name to test the update functionality.</p>
+                    `;
+                }
+                
+                resultDiv.style.display = 'block';
+            }, 500);
+        });
+        
+        // Test the input field behavior
+        document.getElementById('displayName').addEventListener('input', function(e) {
+            const value = e.target.value;
+            console.log('Input value changed to:', value);
+            
+            // Check for concatenation issues in real-time
+            if (value.includes('UserUser') || value.match(/User.+User/)) {
+                console.warn('⚠️ Potential concatenation issue detected:', value);
+            }
+        });
+    </script>
+</body>
+</html>

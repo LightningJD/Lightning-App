@@ -141,11 +141,14 @@ export interface GroupJoinRequest {
 
 export interface Friend {
   id: string;
-  user_id: string;
-  friend_id: string;
+  user_id: string | null;
+  friend_id: string | null;
+  user_id_1: string;
+  user_id_2: string;
+  requested_by: string;
   status: 'pending' | 'accepted' | 'declined' | 'rejected'; // 'declined' is used in database
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface BlockedUser {
@@ -153,7 +156,7 @@ export interface BlockedUser {
   blocker_id: string;
   blocked_id: string;
   reason?: string;
-  created_at: string;
+  created_at: string | null;
 }
 
 export interface Report {

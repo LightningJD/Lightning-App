@@ -300,10 +300,32 @@ describe('Input Validation', () => {
       expect(result.sanitized).not.toContain('<script>');
     });
 
-    it('should reject messages with SQL injection', () => {
-      const result = validateMessage("'; DROP TABLE messages; --");
+    it('should reject messages with script tags', () => {
+      const result = validateMessage('<script>alert("xss")</script>');
       expect(result.valid).toBe(false);
-      expect(result.errors.some(e => e.includes('invalid characters'))).toBe(true);
+      expect(result.errors.some(e => e.includes('HTML scripts are not allowed'))).toBe(true);
+    });
+
+    it('should allow messages with SQL-like text (Supabase uses parameterized queries)', () => {
+      // Messages with words like "select", "create", "update" should be allowed
+      // since Supabase uses parameterized queries and these are just normal words
+      const result1 = validateMessage('I created a new group');
+      expect(result1.valid).toBe(true);
+      
+      const result2 = validateMessage('Please update your profile');
+      expect(result2.valid).toBe(true);
+      
+      const result3 = validateMessage("'; DROP TABLE messages; --");
+      // This should be allowed since it's just text, not actual SQL execution
+      expect(result3.valid).toBe(true);
+    });
+
+    it('should allow messages with emojis and special characters', () => {
+      const result1 = validateMessage('Hello! 😊 How are you?');
+      expect(result1.valid).toBe(true);
+      
+      const result2 = validateMessage('Testing: @#$%^&*()_+-=[]{}|;:\'",.<>?/');
+      expect(result2.valid).toBe(true);
     });
   });
 

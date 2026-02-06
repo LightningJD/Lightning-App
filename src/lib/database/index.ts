@@ -12,7 +12,8 @@ export {
   updateUserLocation,
   findNearbyUsers,
   updateOnlineStatus,
-  searchUsers
+  searchUsers,
+  getAllUsers
 } from './users.js';
 
 // Testimony Management
@@ -20,6 +21,7 @@ export {
   createTestimony,
   getTestimonyByUserId,
   updateTestimony,
+  deleteTestimony,
   trackTestimonyView,
   getTestimonyViewCount,
   toggleTestimonyLike,
@@ -27,7 +29,8 @@ export {
   getTestimonyLikeCount,
   addTestimonyComment,
   getTestimonyComments,
-  deleteTestimonyComment
+  deleteTestimonyComment,
+  getPublicTestimonies
 } from './testimonies.js';
 
 // Messaging
@@ -36,9 +39,11 @@ export {
   getConversation,
   getUserConversations,
   markMessageAsRead,
+  markConversationAsRead,
   addReaction,
   removeReaction,
-  getMessageReactions
+  getMessageReactions,
+  deleteMessage
 } from './messages.js';
 
 // Groups
@@ -57,6 +62,7 @@ export {
   searchPublicGroups,
   requestToJoinGroup,
   getGroupJoinRequests,
+  getUserJoinRequests,
   approveJoinRequest,
   denyJoinRequest,
   pinMessage,
@@ -124,6 +130,7 @@ export {
   subscribeToMessages,
   subscribeToGroupMessages,
   subscribeToChannelMessages,
+  subscribeToMessageReactions,
   unsubscribe
 } from './subscriptions.js';
 

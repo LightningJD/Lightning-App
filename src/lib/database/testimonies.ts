@@ -27,8 +27,7 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
 
   const { data, error } = await supabase
     .from('testimonies')
-    // @ts-ignore - Supabase generated types are incomplete
-    .insert({
+    .upsert({
       user_id: userId,
       title: testimonyData.title || 'My Testimony',
       content: testimonyData.content,
@@ -42,8 +41,9 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
       music_spotify_url: testimonyData.musicSpotifyUrl,
       music_track_name: testimonyData.musicTrackName,
       music_artist: testimonyData.musicArtist,
-      music_audio_url: testimonyData.musicAudioUrl
-    })
+      music_audio_url: testimonyData.musicAudioUrl,
+      updated_at: new Date().toISOString()
+    } as any, { onConflict: 'user_id' })
     .select()
     .single();
 
@@ -337,6 +337,27 @@ export const getTestimonyComments = async (testimonyId: string): Promise<{ comme
 };
 
 /**
+ * Delete a testimony (owner only)
+ */
+export const deleteTestimony = async (testimonyId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
+  if (!supabase) return { success: false, error: 'Database not initialized' };
+
+  try {
+    const { error } = await supabase
+      .from('testimonies')
+      .delete()
+      .eq('id', testimonyId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting testimony:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+/**
  * Delete testimony comment
  */
 export const deleteTestimonyComment = async (commentId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
@@ -355,5 +376,48 @@ export const deleteTestimonyComment = async (commentId: string, userId: string):
   } catch (error) {
     console.error('Error deleting testimony comment:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};
+
+/**
+ * Get public testimonies for browsing (with user info)
+ */
+export const getPublicTestimonies = async (limit: number = 20, offset: number = 0): Promise<any[]> => {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('testimonies')
+      .select(`
+        id,
+        user_id,
+        title,
+        content,
+        lesson,
+        view_count,
+        like_count,
+        created_at,
+        updated_at,
+        users:user_id (
+          id,
+          username,
+          display_name,
+          avatar_emoji,
+          avatar_url
+        )
+      `)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Error fetching public testimonies:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching public testimonies:', error);
+    return [];
   }
 };

@@ -30,7 +30,9 @@ const SignInPage = () => {
                 socialButtonsBlockButton: 'border-slate-300 hover:bg-slate-50',
                 formFieldLabel: 'text-slate-700 font-semibold',
                 formFieldInput: 'border-slate-300 focus:border-blue-500',
-                footerActionLink: 'text-blue-500 hover:text-blue-600'
+                footerActionLink: 'text-blue-600 hover:text-blue-700 font-semibold',
+                footerActionText: 'text-slate-600',
+                footer: 'mt-4 pt-4 border-t border-slate-200'
               }
             }}
             routing="path"

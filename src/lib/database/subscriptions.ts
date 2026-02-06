@@ -77,6 +77,28 @@ export const subscribeToChannelMessages = (channelId: string, callback: Realtime
 };
 
 /**
+ * Subscribe to message reactions for real-time updates
+ */
+export const subscribeToMessageReactions = (callback: RealtimeCallback): RealtimeChannel | null => {
+  if (!supabase) return null;
+
+  const subscription = supabase
+    .channel('message_reactions')
+    .on(
+      'postgres_changes',
+      {
+        event: '*', // Listen to INSERT, UPDATE, DELETE
+        schema: 'public',
+        table: 'message_reactions'
+      },
+      callback
+    )
+    .subscribe();
+
+  return subscription;
+};
+
+/**
  * Unsubscribe from a channel
  */
 export const unsubscribe = async (subscription: RealtimeChannel): Promise<void> => {

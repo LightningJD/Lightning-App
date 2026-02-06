@@ -19,7 +19,11 @@ import {
   getMessageReactions,
   pinMessage,
   unpinMessage,
-  getPinnedMessages
+  getPinnedMessages,
+  getFriends,
+  getUserJoinRequests,
+  approveJoinRequest,
+  denyJoinRequest
 } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { GroupCardSkeleton } from './SkeletonLoader';
@@ -29,6 +33,7 @@ import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMes
 
 interface GroupsTabProps {
   nightMode: boolean;
+  onGroupsCountChange?: (count: number) => void;
 }
 
 interface GroupMessage {
@@ -75,13 +80,14 @@ interface MessageReaction {
   };
 }
 
-const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
+const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<'list' | 'chat' | 'settings' | 'members'>('list');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [myGroups, setMyGroups] = useState<GroupData[]>([]);
+  const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
   const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<GroupMessage[]>([]);
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
@@ -93,10 +99,15 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
   const [newMessage, setNewMessage] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDescription, setNewGroupDescription] = useState('');
+  const [inviteCandidates, setInviteCandidates] = useState<any[]>([]);
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
   const [editGroupName, setEditGroupName] = useState('');
   const [editGroupDescription, setEditGroupDescription] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [isGroupsLoading, setIsGroupsLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pinnedSectionRef = useRef<HTMLDivElement>(null);
   const subscriptionRef = useRef<any>(null);
@@ -133,17 +144,38 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     }
   }, [isGuest, checkAndShowModal]);
 
-  // Load user's groups
+  // Load user's groups and pending invitations
   useEffect(() => {
     const loadGroups = async () => {
-      if (profile?.supabaseId) {
-        const groups = await getUserGroups(profile.supabaseId);
+      if (!profile?.supabaseId) return;
+      try {
+        const [groups, invitations] = await Promise.all([
+          getUserGroups(profile.supabaseId),
+          getUserJoinRequests(profile.supabaseId)
+        ]);
         setMyGroups(groups || []);
+        setPendingInvitations(invitations || []);
+        if (onGroupsCountChange) {
+          onGroupsCountChange(groups?.length || 0);
+        }
+      } catch (error) {
+        console.error('Failed to load groups:', error);
+        setMyGroups([]);
+        setPendingInvitations([]);
       }
     };
 
     loadGroups();
   }, [profile?.supabaseId]);
+
+  // Keep parent badge in sync when myGroups changes locally
+  useEffect(() => {
+    if (onGroupsCountChange) {
+      onGroupsCountChange(myGroups.length);
+    }
+    // Intentionally exclude onGroupsCountChange from deps to avoid render loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myGroups]);
 
   // Simulate initial loading state
   useEffect(() => {
@@ -273,7 +305,8 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       name: sanitizeInput(newGroupName),
       description: sanitizeInput(newGroupDescription),
       avatarEmoji: '✨',
-      isPrivate: false
+      isPrivate: false,
+      memberIds: selectedMemberIds
     });
 
     if (newGroup) {
@@ -288,12 +321,29 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       setShowCreateGroup(false);
       setNewGroupName('');
       setNewGroupDescription('');
+      setSelectedMemberIds([]);
     } else {
       console.error('❌ Failed to create group');
     }
 
     setLoading(false);
   };
+
+  // Load friend list when opening the create group modal
+  useEffect(() => {
+    const loadFriends = async () => {
+      if (!showCreateGroup || !profile?.supabaseId) return;
+      try {
+        const friends = await getFriends(profile.supabaseId);
+        // @ts-ignore - type compatibility from DB
+        setInviteCandidates(friends || []);
+      } catch (error) {
+        console.error('Failed to load friends for invite list:', error);
+        setInviteCandidates([]);
+      }
+    };
+    loadFriends();
+  }, [showCreateGroup, profile?.supabaseId]);
 
   const handleSendGroupMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -361,7 +411,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
     e.preventDefault();
     if (!editGroupName.trim() || !activeGroup) return;
 
-    setLoading(true);
+    setIsSaving(true);
 
     const updated = await updateGroup(activeGroup as string, {
       name: editGroupName,
@@ -376,13 +426,19 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       setActiveView('chat');
     }
 
-    setLoading(false);
+    setIsSaving(false);
   };
 
-  const handleDeleteGroup = async () => {
+  const handleDeleteGroup = async (e?: React.MouseEvent) => {
+    // Prevent form submission if Delete button is inside a form
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     if (!window.confirm('Are you sure you want to delete this group? This cannot be undone.')) return;
 
-    setLoading(true);
+    setIsDeleting(true);
 
     const deleted = await deleteGroup(activeGroup as string);
 
@@ -395,13 +451,13 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       setActiveView('list');
     }
 
-    setLoading(false);
+    setIsDeleting(false);
   };
 
   const handleLeaveGroup = async () => {
     if (!window.confirm('Are you sure you want to leave this group?')) return;
 
-    setLoading(true);
+    setIsLeaving(true);
 
     const left = await leaveGroup(activeGroup as string, profile!.supabaseId);
 
@@ -414,7 +470,37 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
       setActiveView('list');
     }
 
-    setLoading(false);
+    setIsLeaving(false);
+  };
+
+  const handleAcceptInvitation = async (requestId: string, groupId: string) => {
+    if (!profile?.supabaseId) return;
+    
+    const result = await approveJoinRequest(requestId, groupId, profile.supabaseId);
+    
+    if (result) {
+      console.log('✅ Invitation accepted!');
+      // Reload groups and invitations
+      const [groups, invitations] = await Promise.all([
+        getUserGroups(profile.supabaseId),
+        getUserJoinRequests(profile.supabaseId)
+      ]);
+      setMyGroups(groups || []);
+      setPendingInvitations(invitations || []);
+    }
+  };
+
+  const handleDeclineInvitation = async (requestId: string) => {
+    if (!profile?.supabaseId) return;
+    
+    const result = await denyJoinRequest(requestId);
+    
+    if (result) {
+      console.log('✅ Invitation declined!');
+      // Reload invitations
+      const invitations = await getUserJoinRequests(profile.supabaseId);
+      setPendingInvitations(invitations || []);
+    }
   };
 
   const handleRemoveMember = async (userId: string) => {
@@ -594,6 +680,80 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
               />
             </div>
 
+            {/* Member selection */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className={nightMode ? 'block text-sm font-semibold text-slate-100' : 'block text-sm font-semibold text-black'}>
+                  Add Members (optional)
+                </label>
+                {selectedMemberIds.length > 0 && (
+                  <span className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {selectedMemberIds.length} selected
+                  </span>
+                )}
+              </div>
+              
+              {inviteCandidates.length === 0 ? (
+                <div className={`rounded-xl border p-4 text-center ${nightMode ? 'border-white/10 bg-white/5' : 'border-white/30 bg-white/60'}`}>
+                  <p className={nightMode ? 'text-sm text-slate-400' : 'text-sm text-slate-700'}>
+                    No friends to invite yet. Add friends from the Connect tab first.
+                  </p>
+                </div>
+              ) : (
+                <div className={`max-h-48 overflow-auto rounded-xl border ${nightMode ? 'border-white/10 bg-white/5' : 'border-white/30 bg-white/60'} p-3 space-y-2`}>
+                  {inviteCandidates.map((u) => {
+                    const checked = selectedMemberIds.includes(u.id);
+                    return (
+                      <label 
+                        key={u.id} 
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                          checked 
+                            ? nightMode ? 'bg-blue-500/20 border border-blue-500/30' : 'bg-blue-50 border border-blue-200'
+                            : nightMode ? 'hover:bg-white/5' : 'hover:bg-white/40'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedMemberIds((prev) => [...prev, String(u.id)]);
+                            } else {
+                              setSelectedMemberIds((prev) => prev.filter((id) => id !== String(u.id)));
+                            }
+                          }}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className={`text-base ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                            {u.avatar_emoji || '👤'}
+                          </span>
+                          <div className="flex-1">
+                            <span className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                              {u.display_name || u.username}
+                            </span>
+                            {u.location_city && (
+                              <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                                {u.location_city}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              
+              {selectedMemberIds.length > 0 && (
+                <div className="mt-2">
+                  <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'} mb-1`}>
+                    Selected members will receive a notification to join the group.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
@@ -696,7 +856,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
 
               <button
                 type="submit"
-                disabled={loading || !editGroupName.trim()}
+                disabled={isSaving || !editGroupName.trim()}
                 className={`w-full px-4 py-3 border rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
                 style={{
                   background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
@@ -705,7 +865,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                     : '0 4px 12px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
                 }}
                 onMouseEnter={(e) => {
-                  if (!loading && editGroupName.trim()) {
+                  if (!isSaving && editGroupName.trim()) {
                     e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)';
                   }
                 }}
@@ -713,7 +873,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
                   e.currentTarget.style.background = 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)';
                 }}
               >
-                {loading ? 'Saving...' : 'Save Changes'}
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
 
@@ -732,12 +892,12 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
               </p>
               <button
                 type="button"
-                onClick={handleDeleteGroup}
-                disabled={loading}
+                onClick={(e) => handleDeleteGroup(e)}
+                disabled={isDeleting}
                 className="w-full px-4 py-3 bg-red-500 text-slate-100 rounded-xl font-semibold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md transition-all"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete Group
+                {isDeleting ? 'Deleting...' : 'Delete Group'}
               </button>
             </div>
           </form>
@@ -757,11 +917,11 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
             </p>
             <button
               onClick={handleLeaveGroup}
-              disabled={loading}
+              disabled={isLeaving}
               className={`w-full px-4 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md transition-all ${nightMode ? 'bg-slate-500 hover:bg-slate-600 text-slate-100' : 'bg-slate-500 hover:bg-slate-600 text-white'}`}
             >
               <LogOut className="w-4 h-4" />
-              Leave Group
+              {isLeaving ? 'Leaving...' : 'Leave Group'}
             </button>
           </div>
         )}
@@ -1630,6 +1790,70 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode }) => {
           </button>
         </div>
       </div>
+
+      {/* Pending Invitations */}
+      {pendingInvitations.length > 0 && (
+        <div>
+          <h3 className={nightMode ? 'text-sm font-semibold text-slate-100 mb-2' : 'text-sm font-semibold text-black mb-2'}>
+            Group Invitations ({pendingInvitations.length})
+          </h3>
+          <div className="space-y-2">
+            {pendingInvitations.map((invitation) => (
+              <div
+                key={invitation.id}
+                className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+                style={nightMode ? {} : {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
+                }}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="text-3xl">{invitation.group?.avatar_emoji || '✝️'}</div>
+                  <div className="flex-1">
+                    <h4 className={nightMode ? 'font-semibold text-slate-100' : 'font-semibold text-black'}>
+                      {invitation.group?.name || 'Group'}
+                    </h4>
+                    <p className={nightMode ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>
+                      You've been invited to join this group
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAcceptInvitation(invitation.id, invitation.group_id)}
+                    className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all border text-slate-100 ${nightMode ? 'border-white/20' : 'border-white/30'}`}
+                    style={{
+                      background: 'rgba(79, 150, 255, 0.85)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
+                    }}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleDeclineInvitation(invitation.id)}
+                    className={`flex-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all border ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100 border-white/10' : 'text-black hover:bg-white/30 border-white/30'}`}
+                    style={nightMode ? {} : {
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)'
+                    }}
+                  >
+                    Decline
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* My Groups */}
       <div>
