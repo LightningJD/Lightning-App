@@ -1904,6 +1904,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
               nightMode={nightMode}
               userName={profile.displayName}
               userAge={undefined}
+              userId={userProfile?.supabaseId}
               onComplete={handleTestimonyQuestionnaireComplete}
               onCancel={() => setShowTestimonyQuestionnaire(false)}
             />

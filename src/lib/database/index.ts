@@ -161,5 +161,13 @@ export {
   isUserVisible
 } from './privacy.js';
 
+// Testimony Generation Rate Limiting
+export {
+  checkUserGenerationLimit,
+  checkGuestGenerationLimit,
+  logTestimonyGeneration,
+  getUserGenerationStats
+} from './testimonyRateLimit.js';
+
 // Re-export Supabase client for backward compatibility
 export { supabase } from '../supabase.js';

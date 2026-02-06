@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, Sparkles, Loader } from 'lucide-react';
 import { TESTIMONY_QUESTIONS, validateAnswers, getWordCount } from '../config/testimonyQuestions';
 import { generateTestimony, type TestimonyAnswers } from '../lib/api/claude';
+import { checkRateLimit, recordAttempt } from '../lib/rateLimiter';
 
 interface TestimonyQuestionnaireProps {
     nightMode: boolean;
     userName?: string;
     userAge?: number;
+    userId?: string; // Supabase user UUID for server-side rate limiting
     onComplete: (testimonyData: { content: string; answers: TestimonyAnswers }) => void;
     onCancel: () => void;
 }
@@ -15,6 +17,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
     nightMode,
     userName,
     userAge,
+    userId,
     onComplete,
     onCancel
 }) => {
@@ -81,6 +84,15 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
     };
 
     const handleGenerateTestimony = async () => {
+        // Layer 1: Client-side rate limit check
+        const rateLimitCheck = checkRateLimit('generate_testimony');
+        if (!rateLimitCheck.allowed) {
+            setErrors({
+                general: rateLimitCheck.reason || 'Too many generation attempts. Please wait before trying again.'
+            });
+            return;
+        }
+
         setIsGenerating(true);
         setErrors({});
 
@@ -88,10 +100,13 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
             const result = await generateTestimony({
                 answers: answers,
                 userName,
-                userAge
+                userAge,
+                userId
             });
 
             if (result.success && result.testimony) {
+                // Record the successful attempt for client-side rate limiting
+                recordAttempt('generate_testimony');
                 setGeneratedTestimony(result.testimony);
                 setEditedTestimony(result.testimony);
             } else {
@@ -101,7 +116,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
             }
         } catch (error) {
             setErrors({
-                general: 'An unexpectederror occurred. Please try again.'
+                general: 'An unexpected error occurred. Please try again.'
             });
         } finally {
             setIsGenerating(false);
