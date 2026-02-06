@@ -6,7 +6,7 @@ import { showError, showSuccess, showLoading, updateToSuccess, updateToError } f
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
 import ProfileTab from './components/ProfileTab';
 import MessagesTab from './components/MessagesTab';
-import GroupsTab from './components/GroupsTab';
+import ServersTab from './components/servers/ServersTab';
 import NearbyTab from './components/NearbyTab';
 import MenuItem from './components/MenuItem';
 import ProfileCreationWizard from './components/ProfileCreationWizard';
@@ -738,8 +738,8 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         );
       case 'groups':
         return (
-          <ComponentErrorBoundary name="Groups" nightMode={nightMode}>
-            <GroupsTab nightMode={nightMode} />
+          <ComponentErrorBoundary name="Servers" nightMode={nightMode}>
+            <ServersTab nightMode={nightMode} />
           </ComponentErrorBoundary>
         );
       case 'connect':
@@ -811,7 +811,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                 <div className="font-semibold text-black text-xl">Messages</div>
               )}
               {currentTab === 'groups' && (
-                <div className="font-semibold text-black text-xl">Groups</div>
+                <div className="font-semibold text-black text-xl">Servers</div>
               )}
               {currentTab === 'connect' && (
                 <div className="font-semibold text-black text-xl">Connect</div>
@@ -853,7 +853,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                 <div className="font-semibold text-slate-100 text-xl">Messages</div>
               )}
               {currentTab === 'groups' && (
-                <div className="font-semibold text-slate-100 text-xl">Groups</div>
+                <div className="font-semibold text-slate-100 text-xl">Servers</div>
               )}
               {currentTab === 'connect' && (
                 <div className="font-semibold text-slate-100 text-xl">Connect</div>
@@ -1260,7 +1260,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
                 </div>
               )}
             </div>
-            <span className="text-[10px] font-medium">Groups</span>
+            <span className="text-[10px] font-medium">Servers</span>
           </button>
           <button
             onClick={() => setCurrentTab('connect')}

@@ -77,10 +77,53 @@ export {
   getMutualFriends
 } from './friends.js';
 
+// Servers (Discord-style)
+export {
+  createServer,
+  getServer,
+  getUserServers,
+  updateServer,
+  deleteServer,
+  leaveServer,
+  searchPublicServers,
+  generateInviteCode,
+  joinByInviteCode,
+  createChannel,
+  getChannelsByServer,
+  updateChannel,
+  deleteChannel,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  reorderCategories,
+  createRole,
+  getServerRoles,
+  updateRole,
+  deleteRole,
+  updateRolePermissions,
+  assignRole,
+  getServerMembers,
+  removeMember,
+  getMemberPermissions,
+  sendChannelMessage,
+  getChannelMessages,
+  pinChannelMessage,
+  unpinChannelMessage,
+  getPinnedChannelMessages,
+  addChannelReaction,
+  removeChannelReaction,
+  getChannelMessageReactions,
+  requestToJoinServer,
+  getServerJoinRequests,
+  approveServerJoinRequest,
+  denyServerJoinRequest
+} from './servers.js';
+
 // Real-time Subscriptions
 export {
   subscribeToMessages,
   subscribeToGroupMessages,
+  subscribeToChannelMessages,
   unsubscribe
 } from './subscriptions.js';
 

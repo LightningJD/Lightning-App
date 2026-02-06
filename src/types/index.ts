@@ -407,3 +407,29 @@ export type Database = {
 
 // Helper type aliases for common operations
 export type UserUpdate = Database['public']['Tables']['users']['Update'];
+
+// Re-export server types
+export type {
+  Server,
+  ServerCategory,
+  ServerChannel,
+  ServerRole,
+  ServerRolePermissions,
+  ServerMember,
+  ChannelMessage,
+  ChannelMessageReaction,
+  ServerJoinRequest,
+  ServerWithRole,
+  ServerChannelWithCategory,
+  ServerMemberWithUser,
+  ChannelMessageWithSender,
+  ServerRoleWithPermissions,
+  ChannelsByCategory,
+  CreateServerData,
+  CreateChannelData,
+  CreateRoleData,
+  UpdateServerData,
+  UpdateChannelData,
+  UpdateRoleData,
+  UpdatePermissionsData,
+} from './servers';
