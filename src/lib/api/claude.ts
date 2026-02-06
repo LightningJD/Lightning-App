@@ -1,23 +1,40 @@
 /**
  * Claude AI Service for Testimony Generation
- * 
- * This service uses the Anthropic Claude API to generate compelling,
- * authentic Christian testimonies based on user answers to 4 questions.
+ *
+ * Uses Anthropic Claude API (Sonnet 4) to generate authentic Christian
+ * testimonies based on user answers to 4 questions.
+ *
+ * Authenticity-first approach: the AI rephrases and polishes the user's
+ * own words into narrative prose, but NEVER invents details, emotions,
+ * or experiences they didn't describe.
+ *
+ * 3-Layer Rate Limiting:
+ *   Layer 1: Client-side localStorage (rateLimiter.ts) — checked in TestimonyQuestionnaire
+ *   Layer 2: Supabase testimony_generations table — checked in this file + backend proxy
+ *   Layer 3: Cloudflare Pages Function proxy (/api/generate-testimony) — server-side enforcement
+ *
+ * Architecture: tries backend proxy first (API key hidden server-side).
+ * Falls back to direct client-side call only if proxy is unavailable.
  */
 
 import Anthropic from '@anthropic-ai/sdk';
 
 const CLAUDE_API_KEY = import.meta.env.VITE_CLAUDE_API_KEY;
 
-// Initialize Anthropic client
+// Initialize Anthropic client (fallback only — proxy is preferred)
 const anthropic = CLAUDE_API_KEY ? new Anthropic({
     apiKey: CLAUDE_API_KEY,
-    dangerouslyAllowBrowser: true // Required for client-side usage
+    dangerouslyAllowBrowser: true // Required for client-side usage (fallback only)
 }) : null;
+
+const TESTIMONY_MODEL = 'claude-sonnet-4-20250514';
+
+// Backend proxy URL — Cloudflare Pages Function
+const PROXY_URL = '/api/generate-testimony';
 
 export interface TestimonyAnswers {
     question1: string; // Background/pre-crisis life
-    question2: string; // Struggles/crisis experienced  
+    question2: string; // Struggles/crisis experienced
     question3: string; // Turning point/transformation
     question4: string; // Current calling/mission
 }
@@ -26,6 +43,7 @@ export interface TestimonyGenerationOptions {
     answers: TestimonyAnswers;
     userAge?: number;
     userName?: string;
+    userId?: string; // Supabase user UUID for server-side rate limiting
 }
 
 export interface TestimonyGenerationResult {
@@ -36,229 +54,215 @@ export interface TestimonyGenerationResult {
 }
 
 /**
- * The complete testimony generation prompt from gistfile1.txt
- * This comprehensive prompt ensures high-quality, authentic testimonies
+ * Authenticity-first testimony generation prompt.
+ *
+ * Key principle: the AI is a ghostwriter, not an author.
+ * It polishes and structures what the user said — it does NOT
+ * add details, emotions, or events they didn't mention.
  */
-const TESTIMONY_GENERATION_PROMPT = `# COMPLETE ENHANCED TESTIMONY GENERATION PROMPT
+const TESTIMONY_GENERATION_PROMPT = `You are a ghostwriter who transforms a person's raw answers into a polished first-person Christian testimony. Your job is to restructure and rephrase their words into flowing narrative prose — NOT to invent their story for them.
 
-You are an expert testimony writer who crafts compelling, authentic Christian testimonies that honor each person's unique journey with God. Your role is to transform raw answers into a powerful first-person narrative that draws readers in and glorifies God.
+## CORE RULE: AUTHENTICITY OVER DRAMA
 
----
+This is someone's real faith journey. Accuracy is sacred.
 
-## FRAMEWORK STRUCTURE
+- ONLY include details, emotions, struggles, and events the user explicitly described
+- NEVER invent specifics they didn't mention (don't add "depression" if they said "lost", don't add "suicidal thoughts" if they said "hard time")
+- NEVER fabricate supernatural experiences (no visions, voices, or miracles unless they described them)
+- If an answer is brief, write a shorter but genuine paragraph — do NOT pad with invented content
+- When in doubt, stay closer to what they said rather than embellishing
 
-Every testimony is written in FIRST PERSON and follows this 4-paragraph arc with an IMPACT-FIRST opening:
+## WHAT YOU SHOULD DO
 
-### 1. IMPACT OPENING (1 paragraph)
-- Start with what they're doing NOW (their current calling/mission from Question 4)
-- Make it compelling and specific in first person: "Today, I lead..." "I'm currently..." "God has me..."
-- Create curiosity with a transition: "But this wasn't always my story..." or "But my journey here began in darkness..." or "A few years ago, my life looked completely different..."
-- Brief setup: quickly establish their background/pre-crisis life
-- Keep this paragraph punchy and engaging (3-6 sentences)
+- Rephrase their words into polished, flowing first-person prose
+- Fix grammar, spelling, and awkward phrasing
+- Add natural transitions between paragraphs
+- Use varied sentence structure (mix short and long sentences)
+- Make it sound like the person telling their story naturally to a friend
+- Keep their tone — if they're casual, stay casual; if they're intense, stay intense
 
-### 2. THE DESCENT/CRISIS (1 paragraph)
-- Name specific struggles authentically in first person (depression, addiction, doubt, trauma, loneliness, etc.)
-- Show the weight of what they were carrying: "I felt..." "I was drowning in..." "I couldn't escape..."
-- Build tension toward the breaking point
-- Use concrete details, not vague generalities
-- This paragraph should feel heavy and honest (3-6 sentences)
+## NEVER DO THESE THINGS
 
-### 3. THE PIVOTAL MOMENT & TRANSFORMATION (1 paragraph)
-- The turning point in first person: "I cried out to God..." "I hit rock bottom when..." "Then God..."
-- This is where everything shifts
-- May include: prophetic word, vision, voice of God, circumstantial miracle, Spirit encounter
-- **ONLY include supernatural elements if the user explicitly mentions them**
-- Show specific freedom/healing/deliverance received: "God broke..." "I experienced..." "The weight lifted..."
-- Create a "BUT GOD..." moment
-- Show the transformation clearly (4-7 sentences)
+- Never copy their raw text verbatim — always rephrase into proper narrative sentences
+- Never insert a phrase like "God has me..." followed by their unedited words
+- Never use Christian cliches: "God showed up", "on fire for God", "wrecked me in the best way", "fell in love with Jesus", "radical encounter", "poured out His love"
+- Never over-spiritualize practical experiences (if they said "a friend invited me to church", don't turn it into a mystical encounter)
+- Never add "My past pain fuels my present purpose" or similar generic closing lines
+- Never start consecutive sentences with "I"
 
-### 4. FULL CIRCLE CLOSE (1 paragraph)
-- Circle back to their current mission with new context
-- Show how their past pain now fuels their purpose: "Now I..." "Today I get to..." "God uses my story to..."
-- End with Kingdom impact and forward momentum
-- Make the connection between their pain and their purpose explicit (3-5 sentences)
+## STRUCTURE
 
----
+Write 4 paragraphs in first person:
 
-## STYLE GUIDELINES
+1. OPENING — Start with where they are now (from Q4), then transition to their background (from Q1). If Q4 is brief (e.g. "I'm in school"), simply state it naturally and move into their background. Don't force a dramatic opening from thin material.
 
-### SENTENCE VARIETY
-- Mix short, punchy sentences with longer flowing narrative
-- Use fragments for dramatic effect: "But God had other plans."
-- Vary paragraph length naturally
-- Start sentences differently (avoid repetitive "I" starts when possible)
+2. THE STRUGGLE — Describe what they went through (from Q2). Only name the struggles THEY named. If they said "I was lost", say they felt lost — don't escalate to "drowning in darkness" unless they said that.
 
-### HOOKS & PACING
-- Open with an attention-grabbing statement about current impact
-- Use transitional phrases that create anticipation:
-  * "But my journey here began in darkness."
-  * "A few years ago, my life looked completely different."
-  * "Then everything changed."
-  * "In that moment..."
-  * "But God wasn't done with me."
-  * "Little did I know..."
-  * "What happened next..."
+3. THE TURNING POINT — What changed (from Q3). Describe their encounter/transformation exactly as they described it. If they said "a friend invited me to church and I started going", that IS the turning point. Don't dramatize it into something it wasn't.
 
-### AUTHENTICITY MARKERS
-- Use the person's actual name naturally (sparingly, only when it flows)
-- Include specific details: locations, events, ages, relationships
-- Quote God's voice or prophetic words exactly as user provides them
-- Name raw emotions honestly: devastated, shattered, numb, suffocating, empty
-- Don't sugarcoat the darkness
-- Avoid Christian clichés (see "What to Avoid" section)
+4. WHERE THEY ARE NOW — Circle back to the present (Q4 again, plus Q1 context). Connect their journey to where they are today. If their current situation is simple (school, sports, growing in faith), honor that simplicity.
 
-### THEOLOGICAL DEPTH
-- Emphasize God's character: faithful, pursuing, redeeming, speaking, healing
-- Show God's initiative, not just human seeking
-- Reference Scripture naturally when relevant (but don't force it)
-- Focus on Jesus, Holy Spirit, and personal relationship over religion
-- Show transformation as God's work, not self-improvement
+## LENGTH
 
-### TONE
-- Dramatic and intense
-- Emotionally resonant but not manipulative
-- Conversational yet powerful
-- Raw honesty over polish
-- Vulnerable without being self-pitying
+- If answers are detailed: 250-400 words across 4 paragraphs
+- If answers are brief: 150-250 words across 4 paragraphs — shorter is better than fabricated
+- Never pad length with invented content
 
----
+## OUTPUT
 
-## VARIETY MECHANISMS
-
-To ensure each testimony feels unique, use these variations:
-
-### OPENING VARIATIONS (rotate these styles):
-- Mission statement: "Today, I lead a recovery ministry for women..."
-- Impact with contrast: "I now counsel men through addiction. Five years ago, I was the one who needed saving."
-- Present action: "Every week, I share my testimony with college students searching for hope."
-- Calling reveal: "God called me to plant churches in forgotten neighborhoods—a calling born from my own season of feeling forgotten."
-- Specific ministry: "I run a home for women escaping trafficking, a mission that emerged from my own rescue."
-- Journey statement: "My journey to wholehearted faith required walking away from everything I thought I wanted."
-
-### TRANSITIONAL PHRASES (use variety across testimonies):
-- "Then my world collapsed."
-- "But one night, everything changed."
-- "Everything came to a head when..."
-- "In that moment, something shifted."
-- "God wasn't finished with my story."
-- "What happened next altered the trajectory of my life."
-- "Little did I know..."
-- "But God had other plans."
-
-### EMOTIONAL LANGUAGE (avoid repetition):
-- Instead of always "broken": shattered, lost, empty, desperate, numb, consumed, destroyed
-- Instead of always "encountered": met, experienced, felt, heard, sensed, touched by
-- Instead of always "freedom": liberation, release, breakthrough, deliverance, healing, peace
-- Instead of always "changed": transformed, shifted, altered, revolutionized, redeemed
-
-### CRISIS DESCRIPTORS (vary these):
-- "The weight was crushing me."
-- "I was drowning and couldn't find air."
-- "Darkness had become my normal."
-- "I felt like I was disappearing."
-- "The pain was suffocating."
-- "I was completely lost."
-- "Emptiness consumed me."
-
----
-
-## WHAT TO AVOID
-
-### ❌ CHRISTIAN CLICHÉS
-Never use these overused phrases:
-- "God showed up"
-- "Jesus met me where I was"
-- "Sweet fellowship"
-- "Poured out His love"
-- "Fell in love with Jesus"
-- "On fire for God"
-- "Radical encounter"
-- "Wrecked me in the best way"
-- "Set my heart on fire"
-
-### ❌ VAGUE LANGUAGE
-Don't use generic descriptions:
-- "struggled with some things" → Be specific: "struggled with depression and suicidal thoughts"
-- "had a hard time" → "couldn't get out of bed for weeks"
-- "went through stuff" → Name the actual struggle
-
-### ❌ OVER-SPIRITUALIZATION
-- Don't make everything sound mystical if the user described it practically
-- If they said "I read the Bible and felt peace," don't turn it into "I was swept into the throne room"
-- Match their tone and experience level
-
-### ❌ FORMULAIC PATTERNS
-- Don't start every paragraph with "I"
-- Don't use the same transitional phrase twice in one testimony
-- Vary sentence structure throughout
-- Don't repeat emotional words (if you used "shattered" once, use "broken" next time)
-
-### ❌ FORCED SUPERNATURAL ELEMENTS
-- ONLY include visions/voices/miracles if the user explicitly mentioned them
-- Don't add prophetic words they didn't receive
-- Don't embellish their experience
-
-### ❌ WEAK ENDINGS
-Avoid generic conclusions:
-- "And now I'm living for Jesus every day" (too vague)
-- "My life has never been the same" (cliché)
-- "I'm so grateful for what God did" (weak impact)
-
-Instead, end with specific Kingdom impact and purpose connection.
-
----
-
-## LENGTH REQUIREMENTS
-
-- **Target: 4 paragraphs (250-350 words total)**
-- Paragraph 1 (Impact Opening): 3-6 sentences
-- Paragraph 2 (Crisis): 3-6 sentences
-- Paragraph 3 (Pivot & Transformation): 4-7 sentences
-- Paragraph 4 (Full Circle): 3-5 sentences
-
-Can extend up to 600 words if answers are detailed.
-Prioritize impact and clarity and flow over hitting exact word count.
-
----
-
-## OUTPUT FORMAT
-
-- Write in **FIRST PERSON** using "I" throughout
-- Use the person's name only in natural contexts (if at all)
-- Use **proper capitalization** (no all caps)
-- Write in **past tense** for past events, **present tense** for current mission
-- Create clear **paragraph breaks** for readability
-- Make it feel like the person is telling their own story directly
-- Mix short, punchy sentences with longer flowing narrative
-- Conversational yet powerful, vulnerable without self-pity
-- Show on God's work and power, not self-work
-- Do not reuse phrases within the same paragraph
-- Rotate phrases across submissions to maintain uniqueness
-
----
-
-## QUALITY CHECKLIST
-
-Before finalizing, ensure the testimony has:
-
-✅ Impact-first opening that hooks the reader
-✅ Specific details from the user's answers (not generic)
-✅ Clear story arc (now → before → crisis → pivot → transformation → full circle)
-✅ Emotional authenticity (names real struggles and feelings)
-✅ NO Christian clichés 
-✅ Varied sentence structure and length
-✅ Strong transitional phrases
-✅ Supernatural elements ONLY if user mentioned them
-✅ Clear connection between pain and purpose
-✅ Kingdom impact in the closing
-✅ 4 paragraphs, 250-350 up to 600 if needed for detailed or descriptive moments of the turning point or encounter with God
-✅ First-person voice throughout
-✅ Proper capitalization`;
+- Write ONLY the testimony text — no titles, headers, labels, or preambles
+- First person throughout ("I", not "they")
+- Past tense for past events, present tense for current life
+- Clear paragraph breaks between the 4 sections`;
 
 /**
- * Generate a testimony story from user answers using Claude AI
+ * Profanity check using word boundaries to avoid false positives
+ * (e.g. "class" matching "ass", "hello" matching "hell")
+ */
+function containsProfanity(text: string): boolean {
+    const lowerText = text.toLowerCase();
+    const profanityWords = [
+        'fuck', 'fucking', 'fucked',
+        'shit', 'shitty',
+        'bitch',
+        'bastard',
+        'cunt',
+    ];
+
+    return profanityWords.some(word => {
+        const regex = new RegExp(`\\b${word}\\b`, 'i');
+        return regex.test(lowerText);
+    });
+}
+
+/**
+ * Clean up AI output — remove any preambles, markdown artifacts, etc.
+ */
+function sanitizeTestimonyOutput(raw: string): string {
+    let text = raw.trim();
+
+    // Remove common AI preambles
+    const preambles = [
+        /^here(?:'s| is) (?:your |the )?(?:generated )?testimony[:\s]*/i,
+        /^testimony[:\s]*/i,
+        /^---\s*/,
+        /^#+\s*.+\n/,
+    ];
+    for (const pattern of preambles) {
+        text = text.replace(pattern, '');
+    }
+
+    // Remove trailing artifacts
+    text = text.replace(/\n---\s*$/, '');
+    text = text.replace(/\n#+\s*$/, '');
+
+    // Normalize whitespace but preserve paragraph breaks
+    text = text.replace(/\n{3,}/g, '\n\n');
+
+    return text.trim();
+}
+
+/**
+ * Generate a testimony story from user answers using Claude AI.
+ *
+ * Strategy: Try backend proxy first (Layer 3 — API key hidden server-side).
+ * If proxy is unavailable (e.g., local dev), fall back to direct client-side call.
  */
 export async function generateTestimony(
+    options: TestimonyGenerationOptions
+): Promise<TestimonyGenerationResult> {
+    const { answers } = options;
+
+    // Basic validation (shared between proxy and direct)
+    if (!answers.question1 || !answers.question2 || !answers.question3 || !answers.question4) {
+        return {
+            success: false,
+            error: 'All 4 questions must be answered to generate a testimony.'
+        };
+    }
+
+    // Content moderation - word-boundary profanity check (client-side pre-check)
+    const combinedText = Object.values(answers).join(' ');
+    if (containsProfanity(combinedText)) {
+        return {
+            success: false,
+            error: 'Please remove any profanity or inappropriate language from your answers and try again.'
+        };
+    }
+
+    // Try backend proxy first (Layer 3)
+    try {
+        const proxyResult = await generateViaProxy(options);
+        if (proxyResult !== null) {
+            return proxyResult;
+        }
+    } catch (e) {
+        console.warn('Backend proxy unavailable, falling back to direct API call:', e);
+    }
+
+    // Fallback: direct client-side API call (for local dev or if proxy is down)
+    return generateDirect(options);
+}
+
+/**
+ * Generate via Cloudflare Pages Function proxy (preferred — hides API key)
+ * Returns null if proxy is unavailable (404, network error, etc.)
+ */
+async function generateViaProxy(
+    options: TestimonyGenerationOptions
+): Promise<TestimonyGenerationResult | null> {
+    try {
+        const response = await fetch(PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                answers: options.answers,
+                userName: options.userName,
+                userAge: options.userAge,
+                userId: options.userId,
+            }),
+        });
+
+        // If proxy doesn't exist (404), return null to trigger fallback
+        if (response.status === 404) {
+            return null;
+        }
+
+        const data = await response.json();
+
+        // Rate limit hit (429) — return the error directly
+        if (response.status === 429) {
+            return {
+                success: false,
+                error: data.error || 'Rate limit exceeded. Please try again later.',
+            };
+        }
+
+        // Any other error from proxy
+        if (!response.ok) {
+            return {
+                success: false,
+                error: data.error || 'Failed to generate testimony. Please try again.',
+            };
+        }
+
+        return {
+            success: data.success,
+            testimony: data.testimony,
+            wordCount: data.wordCount,
+            error: data.error,
+        };
+    } catch (error) {
+        // Network error, proxy unreachable — return null for fallback
+        console.warn('Proxy fetch failed:', error);
+        return null;
+    }
+}
+
+/**
+ * Generate directly via Anthropic SDK (fallback for local dev)
+ */
+async function generateDirect(
     options: TestimonyGenerationOptions
 ): Promise<TestimonyGenerationResult> {
     // Validate API key
@@ -277,59 +281,39 @@ export async function generateTestimony(
     }
 
     const { answers, userAge, userName } = options;
+    const combinedText = Object.values(answers).join(' ');
 
-    // Basic validation
-    if (!answers.question1 || !answers.question2 || !answers.question3 || !answers.question4) {
-        return {
-            success: false,
-            error: 'All 4 questions must be answered to generate a testimony.'
-        };
-    }
-
-    // Content moderation - check for profanity or explicit content
-    const combinedText = Object.values(answers).join(' ').toLowerCase();
-    const profanityPatterns = [
-        // Add basic patterns - real implementation would use a proper filter library
-        'fuck', 'shit', 'damn', 'bitch', 'ass', 'hell'
-    ];
-
-    const hasProfanity = profanityPatterns.some(word =>
-        combinedText.includes(word)
-    );
-
-    if (hasProfanity) {
-        return {
-            success: false,
-            error: 'Please remove any profanity or inappropriate language from your answers and try again.'
-        };
-    }
+    // Assess input detail level to guide the model
+    const totalWords = combinedText.trim().split(/\s+/).length;
+    const detailLevel = totalWords > 200 ? 'detailed' : totalWords > 100 ? 'moderate' : 'brief';
 
     try {
         // Construct the user message with their answers
-        const userMessage = `Please generate a testimony based on these answers:
+        const userMessage = `Here are this person's answers. Transform them into a testimony following the system instructions.
 
-**Question 1 (Background/Life Before Christ):**
-${answers.question1}
+Question 1 — Life before encountering Christ:
+"${answers.question1}"
 
-**Question 2 (Struggles/Crisis):**
-${answers.question2}
+Question 2 — Struggles and challenges faced:
+"${answers.question2}"
 
-**Question 3 (Pivotal Moment/Transformation):**
-${answers.question3}
+Question 3 — The pivotal moment of transformation:
+"${answers.question3}"
 
-**Question 4 (Current Mission/Calling):**
-${answers.question4}
+Question 4 — Where they are now / current calling:
+"${answers.question4}"
 
-${userName ? `**User's Name:** ${userName}` : ''}
-${userAge && userAge < 18 ? `**Note:** This user is under 18 years old. Please use age-appropriate language and tone down graphic content.` : ''}
+${userName ? `Their name: ${userName}` : ''}
+${userAge && userAge < 18 ? 'Note: This person is under 18. Use age-appropriate language.' : ''}
+Detail level of their answers: ${detailLevel} (${totalWords} total words). ${detailLevel === 'brief' ? 'Their answers are short — write a shorter, tighter testimony (150-250 words). Do NOT invent details to fill space.' : detailLevel === 'moderate' ? 'Write a medium-length testimony (200-350 words). Stay faithful to what they provided.' : 'Their answers are detailed — you have rich material to work with (250-400 words).'}
 
-Generate a compelling, authentic testimony following all the guidelines in the system prompt.`;
+Remember: rephrase their words into polished prose, but never add experiences or emotions they didn't describe.`;
 
-        // Call Claude API
+        // Call Claude API — Sonnet 4 for better creative rewriting
         const message = await anthropic.messages.create({
-            model: 'claude-3-haiku-20240307',
-            max_tokens: 2000,
-            temperature: 0.7,
+            model: TESTIMONY_MODEL,
+            max_tokens: 1500,
+            temperature: 0.6,
             system: TESTIMONY_GENERATION_PROMPT,
             messages: [
                 {
@@ -340,23 +324,26 @@ Generate a compelling, authentic testimony following all the guidelines in the s
         });
 
         // Extract the testimony text from the response
-        const testimony = message.content[0].type === 'text'
+        const rawTestimony = message.content[0].type === 'text'
             ? message.content[0].text
             : '';
 
-        if (!testimony) {
+        if (!rawTestimony) {
             return {
                 success: false,
                 error: 'Failed to generate testimony. The AI response was empty.'
             };
         }
 
+        // Sanitize output — remove preambles, markdown artifacts
+        const testimony = sanitizeTestimonyOutput(rawTestimony);
+
         // Calculate word count
         const wordCount = testimony.trim().split(/\s+/).length;
 
         return {
             success: true,
-            testimony: testimony.trim(),
+            testimony,
             wordCount
         };
 
@@ -365,16 +352,22 @@ Generate a compelling, authentic testimony following all the guidelines in the s
 
         // Provide user-friendly error messages
         if (error instanceof Error) {
-            if (error.message.includes('API key')) {
+            if (error.message.includes('API key') || error.message.includes('authentication')) {
                 return {
                     success: false,
                     error: 'Invalid API key. Please check your Claude API configuration.'
                 };
             }
-            if (error.message.includes('rate limit')) {
+            if (error.message.includes('rate limit') || error.message.includes('429')) {
                 return {
                     success: false,
                     error: 'Too many requests. Please wait a moment and try again.'
+                };
+            }
+            if (error.message.includes('overloaded') || error.message.includes('529')) {
+                return {
+                    success: false,
+                    error: 'The AI service is temporarily busy. Please try again in a moment.'
                 };
             }
             return {
@@ -413,7 +406,7 @@ export async function testClaudeConnection(): Promise<{
 
     try {
         await anthropic.messages.create({
-            model: 'claude-3-haiku-20240307',
+            model: TESTIMONY_MODEL,
             max_tokens: 10,
             messages: [
                 {
