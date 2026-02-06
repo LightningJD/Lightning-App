@@ -54,6 +54,29 @@ export const subscribeToGroupMessages = (groupId: string, callback: RealtimeCall
 };
 
 /**
+ * Subscribe to server channel messages
+ */
+export const subscribeToChannelMessages = (channelId: string, callback: RealtimeCallback): RealtimeChannel | null => {
+  if (!supabase) return null;
+
+  const subscription = supabase
+    .channel(`channel_messages:${channelId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'channel_messages',
+        filter: `channel_id=eq.${channelId}`
+      },
+      callback
+    )
+    .subscribe();
+
+  return subscription;
+};
+
+/**
  * Subscribe to message reactions for real-time updates
  */
 export const subscribeToMessageReactions = (callback: RealtimeCallback): RealtimeChannel | null => {
