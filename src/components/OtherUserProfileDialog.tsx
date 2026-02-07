@@ -248,7 +248,6 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                   favoriteVerse: user.favoriteVerse,
                   favoriteVerseRef: user.favoriteVerseRef,
                   faithInterests: user.faithInterests,
-                  entryNumber: user.entryNumber,
                   story: user.story ? {
                     id: user.story.id,
                     viewCount: 0,

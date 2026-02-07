@@ -12,7 +12,6 @@ interface ProfileCardProps {
     favoriteVerse?: string | null;
     favoriteVerseRef?: string | null;
     faithInterests?: string[];
-    entryNumber?: number | null;
     story?: {
       id?: string | null;
       viewCount?: number;
@@ -51,7 +50,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 }) => {
   const currentYear = new Date().getFullYear();
   const yearsWalking = profile.yearSaved ? currentYear - profile.yearSaved : null;
-  const entryNum = profile.entryNumber ? `#${String(profile.entryNumber).padStart(4, '0')}` : null;
 
   const hasChurchInfo = profile.churchName;
   const hasVerse = profile.favoriteVerse && profile.favoriteVerseRef;
@@ -61,7 +59,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
   return (
     <div className="relative">
-      {/* Glow border - gradient outline (V4) */}
+      {/* Glow border */}
       <div
         className="absolute inset-[-1px] rounded-[17px] pointer-events-none"
         style={{
@@ -89,8 +87,17 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           boxShadow: '0 4px 20px rgba(0,0,0,0.05), inset 0 1px 2px rgba(255,255,255,0.4)',
         }}
       >
-        {/* V11 STACKED SECTIONS + V15 VERSE */}
         <div className="p-4 flex flex-col gap-3">
+
+          {/* Card Header */}
+          <div className="flex items-center gap-2 pb-1">
+            <span className={`text-xs font-bold uppercase tracking-widest ${
+              nightMode ? 'text-blue-400' : 'text-blue-600'
+            }`}>
+              ⚡ Faith Profile
+            </span>
+            <div className={`flex-1 h-px ${nightMode ? 'bg-white/[0.08]' : 'bg-black/[0.06]'}`} />
+          </div>
 
           {/* Church Section */}
           {hasChurchInfo && (
@@ -135,7 +142,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <div className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${
                 nightMode ? 'text-slate-500' : 'text-slate-400'
               }`}>
-                Verse
+                Favorite Verse
               </div>
               <div className={`text-[13px] italic leading-relaxed ${
                 nightMode ? 'text-slate-300' : 'text-slate-600'
@@ -160,16 +167,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               }`}
               style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
             >
-              <div className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${
+              <div className={`text-[11px] font-bold uppercase tracking-wide mb-2.5 ${
                 nightMode ? 'text-slate-500' : 'text-slate-400'
               }`}>
                 Faith Interests
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {profile.faithInterests!.map((interest, i) => (
                   <span
                     key={i}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
                       nightMode
                         ? 'bg-[rgba(79,150,255,0.1)] border-[rgba(79,150,255,0.2)] text-[#93bbff]'
                         : 'bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.2)] text-blue-700'
@@ -242,56 +249,39 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           )}
 
-          {/* Stats */}
+          {/* Stats - compact inline style */}
           {hasStats && (
-            <div className="flex gap-2">
-              <StatBox nightMode={nightMode} value={profile.story?.viewCount || 0} label="Views" />
-              <StatBox nightMode={nightMode} value={profile.story?.likeCount || 0} label="Likes" />
-              <StatBox nightMode={nightMode} value={profile.story?.commentCount || 0} label="Comments" />
+            <div className={`flex items-center justify-center gap-4 py-2 px-3 rounded-xl ${
+              nightMode ? 'bg-white/[0.03]' : 'bg-white/20'
+            }`}>
+              <StatItem nightMode={nightMode} value={profile.story?.viewCount || 0} label="Views" />
+              <div className={`w-px h-4 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+              <StatItem nightMode={nightMode} value={profile.story?.likeCount || 0} label="Likes" />
+              <div className={`w-px h-4 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+              <StatItem nightMode={nightMode} value={profile.story?.commentCount || 0} label="Comments" />
             </div>
           )}
 
-          {/* Footer */}
-          <div className="flex justify-between items-center pt-1 px-1">
-            {entryNum && (
-              <span className={`text-xs font-bold tracking-wide ${
-                nightMode ? 'text-blue-400' : 'text-blue-600'
-              }`}>
-                ⚡ Lightning Entry {entryNum}
-              </span>
-            )}
-            <span className={`text-[11px] font-semibold ${
-              nightMode ? 'text-white/20' : 'text-black/20'
-            }`}>
-              {!entryNum && '⚡ '}Lightning
-            </span>
-          </div>
         </div>
       </div>
     </div>
   );
 };
 
-const StatBox: React.FC<{
+const StatItem: React.FC<{
   nightMode: boolean;
   value: number;
   label: string;
 }> = ({ nightMode, value, label }) => (
-  <div
-    className={`flex-1 text-center py-2.5 px-1 rounded-xl border ${
-      nightMode
-        ? 'bg-white/[0.03] border-white/[0.06]'
-        : 'bg-white/30 border-white/40'
-    }`}
-  >
-    <div className={`text-base font-bold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+  <div className="flex items-center gap-1.5">
+    <span className={`text-sm font-bold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
       {value}
-    </div>
-    <div className={`text-[9px] font-medium uppercase tracking-wide mt-0.5 ${
+    </span>
+    <span className={`text-[10px] font-medium uppercase tracking-wide ${
       nightMode ? 'text-slate-500' : 'text-slate-400'
     }`}>
       {label}
-    </div>
+    </span>
   </div>
 );
 
