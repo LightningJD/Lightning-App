@@ -19,7 +19,7 @@ const ServerSidebar: React.FC<ServerSidebarProps> = ({
 }) => {
   return (
     <div
-      className="flex flex-col items-center py-4 gap-3 overflow-y-auto"
+      className="flex flex-col items-center py-4 gap-3 overflow-y-auto overflow-x-hidden"
       style={{
         width: '68px',
         minWidth: '68px',
