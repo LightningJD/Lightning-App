@@ -80,6 +80,8 @@ This is someone's real faith journey. Accuracy is sacred.
 - Use varied sentence structure (mix short and long sentences)
 - Make it sound like the person telling their story naturally to a friend
 - Keep their tone — if they're casual, stay casual; if they're intense, stay intense
+- If they describe a supernatural encounter (vision, dream, voice of God, healing, miracle), give it WEIGHT — this is the climax of their story. Spend 2-3 sentences on it. Let the reader feel the significance of that moment without adding details the person didn't share.
+- Let the most powerful moment in their story breathe — don't rush past it in a single sentence
 
 ## NEVER DO THESE THINGS
 
@@ -89,6 +91,7 @@ This is someone's real faith journey. Accuracy is sacred.
 - Never over-spiritualize practical experiences (if they said "a friend invited me to church", don't turn it into a mystical encounter)
 - Never add "My past pain fuels my present purpose" or similar generic closing lines
 - Never start consecutive sentences with "I"
+- Never end with a generic wrap-up like "they're no longer the whole story" or "everything is different now" — the last sentence should connect their present specifically to what God did in their life
 
 ## STRUCTURE
 
@@ -100,7 +103,7 @@ Write 4 paragraphs in first person:
 
 3. THE TURNING POINT — What changed (from Q3). Describe their encounter/transformation exactly as they described it. If they said "a friend invited me to church and I started going", that IS the turning point. Don't dramatize it into something it wasn't.
 
-4. WHERE THEY ARE NOW — Circle back to the present (Q4 again, plus Q1 context). Connect their journey to where they are today. If their current situation is simple (school, sports, growing in faith), honor that simplicity.
+4. WHERE THEY ARE NOW — Circle back to the present (Q4 again, plus Q1 context). Connect their journey to where they are today. End with a sentence that carries weight — tie their present back to what God did in their turning point. Even simple lives have purpose when viewed through the lens of transformation. Don't use generic closers — make the final sentence specific to THEIR story.
 
 ## LENGTH
 
