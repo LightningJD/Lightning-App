@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2, Globe, Lock, Eye, EyeOff } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
 import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
-import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony } from '../lib/database';
+import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony, updateUserProfile, leaveChurch, regenerateChurchInviteCode } from '../lib/database';
 import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
 import TestimonyShareModal from './TestimonyShareModal';
 import { deleteTestimony } from '../lib/database';
 import ProfileCard from './ProfileCard';
+import ChurchCard from './ChurchCard';
 
 interface ProfileTabProps {
   profile: any;
@@ -258,6 +259,78 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
               } : null,
             }}
           />
+        </div>
+      )}
+
+      {/* Church Card — only on own profile */}
+      {profile?.church && profile?.supabaseId === currentUserProfile?.supabaseId && (
+        <div className="px-4 mt-3">
+          <ChurchCard
+            nightMode={nightMode}
+            church={profile.church}
+            isCreator={profile.church.createdBy === profile.supabaseId}
+            onLeave={async () => {
+              if (confirm('Are you sure you want to leave this church?')) {
+                await leaveChurch(profile.supabaseId);
+                window.dispatchEvent(new CustomEvent('profileUpdated'));
+              }
+            }}
+            onRegenerateCode={profile.church.createdBy === profile.supabaseId ? async () => {
+              const newCode = await regenerateChurchInviteCode(profile.church.id, profile.supabaseId);
+              if (newCode) {
+                window.dispatchEvent(new CustomEvent('profileUpdated'));
+              }
+            } : undefined}
+          />
+        </div>
+      )}
+
+      {/* Profile Visibility Toggle — only on own profile */}
+      {profile?.supabaseId === currentUserProfile?.supabaseId && (
+        <div className="px-4 mt-3">
+          <div
+            className={`flex items-center justify-between p-3 rounded-xl ${
+              nightMode ? 'bg-white/[0.04]' : 'bg-white/20'
+            }`}
+            style={nightMode ? {} : {
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+            }}
+          >
+            <div className="flex items-center gap-2">
+              {profile.profileVisibility === 'public' ? (
+                <Eye className={`w-4 h-4 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
+              ) : (
+                <EyeOff className={`w-4 h-4 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`} />
+              )}
+              <div>
+                <div className={`text-xs font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                  Profile: {profile.profileVisibility === 'public' ? 'Public' : 'Private'}
+                </div>
+                <div className={`text-[10px] ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  {profile.profileVisibility === 'public'
+                    ? 'Anyone can find and follow you'
+                    : 'Only friends & church members can see you'}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={async () => {
+                const newVisibility = profile.profileVisibility === 'public' ? 'private' : 'public';
+                await updateUserProfile(profile.supabaseId, {
+                  profile_visibility: newVisibility
+                } as any);
+                window.dispatchEvent(new CustomEvent('profileUpdated'));
+              }}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
+                profile.profileVisibility === 'public'
+                  ? nightMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600'
+                  : nightMode ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'
+              }`}
+            >
+              {profile.profileVisibility === 'public' ? 'Make Private' : 'Make Public'}
+            </button>
+          </div>
         </div>
       )}
 

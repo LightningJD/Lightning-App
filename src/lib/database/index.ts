@@ -30,7 +30,10 @@ export {
   addTestimonyComment,
   getTestimonyComments,
   deleteTestimonyComment,
-  getPublicTestimonies
+  getPublicTestimonies,
+  getDiscoverTestimonies,
+  getChurchTestimonies,
+  getFeedTestimonies
 } from './testimonies.js';
 
 // Messaging
@@ -223,6 +226,29 @@ export {
   getUpcomingEvents,
   getEventsNeedingReminders
 } from './events.js';
+
+// Churches
+export {
+  createChurch,
+  joinChurchByCode,
+  getChurchById,
+  getChurchMembers,
+  leaveChurch,
+  regenerateInviteCode as regenerateChurchInviteCode,
+  getUserChurch,
+  updateChurch
+} from './churches.js';
+
+// Followers
+export {
+  followUser,
+  unfollowUser,
+  getFollowers,
+  getFollowing,
+  isFollowing,
+  getFollowerCount,
+  getFollowingCount
+} from './followers.js';
 
 // Re-export Supabase client for backward compatibility
 export { supabase } from '../supabase.js';
