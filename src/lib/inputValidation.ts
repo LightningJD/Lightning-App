@@ -27,7 +27,7 @@ const limits = {
   password: { min: 8, max: 128 },
   bio: { min: 0, max: 500 },
   testimony: { min: 10, max: 5000 },
-  message: { min: 1, max: 1000 },
+  message: { min: 1, max: 5000 },
   groupName: { min: 3, max: 50 },
   groupDescription: { min: 0, max: 200 },
   comment: { min: 1, max: 500 },

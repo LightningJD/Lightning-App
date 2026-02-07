@@ -4,6 +4,7 @@ import UserCard from './UserCard';
 import { UserCardSkeleton } from './SkeletonLoader';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
 import { useUserProfile } from './useUserProfile';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
   getFriends,
   findNearbyUsers,
@@ -15,8 +16,10 @@ import {
   isBlockedBy,
   searchUsers,
   getAllUsers,
-  getDiscoverTestimonies,
-  getFeedTestimonies
+  getFeedTestimonies,
+  getTrendingTestimony,
+  getChurchMembers,
+  getFriendsOfFriends
 } from '../lib/database';
 
 interface User {
@@ -59,6 +62,14 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
   const [testimonies, setTestimonies] = useState<any[]>([]);
   const [isLoadingTestimonies, setIsLoadingTestimonies] = useState<boolean>(false);
   const [expandedTestimonies, setExpandedTestimonies] = useState<Set<string>>(new Set());
+  const [trendingTestimony, setTrendingTestimony] = useState<any>(null);
+
+  // People tab state
+  const [churchMembersList, setChurchMembersList] = useState<User[]>([]);
+  const [friendsOfFriendsList, setFriendsOfFriendsList] = useState<User[]>([]);
+  const [nearbyPeople, setNearbyPeople] = useState<User[]>([]);
+  const [isLoadingPeople, setIsLoadingPeople] = useState<boolean>(false);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   // Load users and friends from database
   useEffect(() => {
@@ -170,32 +181,27 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
   // Load testimonies based on active tab (home = church feed, discover = all)
   useEffect(() => {
     const loadTestimonies = async () => {
-      if (activeConnectTab === 'home' || activeConnectTab === 'discover' || activeConnectTab === 'testimonies') {
+      if (activeConnectTab === 'home') {
         setIsLoadingTestimonies(true);
         try {
-          let feedTestimonies: any[] = [];
-
-          if (activeConnectTab === 'home') {
-            // Home feed: church testimonies + friends' cross-church testimonies
-            if (!profile?.supabaseId) {
-              setTestimonies([]);
-              setIsLoadingTestimonies(false);
-              return;
-            }
-            const friendIds = friends.map(f => f.id);
-            feedTestimonies = await getFeedTestimonies(
-              profile.supabaseId,
-              (profile as any)?.churchId || null,
-              friendIds,
-              20,
-              0
-            );
-          } else {
-            // Discover / legacy testimonies tab: platform-wide
-            feedTestimonies = await getDiscoverTestimonies(20, 0);
+          // Home feed: church testimonies + friends' cross-church testimonies
+          if (!profile?.supabaseId) {
+            setTestimonies([]);
+            setTrendingTestimony(null);
+            setIsLoadingTestimonies(false);
+            return;
           }
+          const friendIds = friends.map(f => f.id);
+          const churchId = (profile as any)?.churchId || null;
 
-          setTestimonies(feedTestimonies || []);
+          // Fetch feed + trending in parallel
+          const [feed, trending] = await Promise.all([
+            getFeedTestimonies(profile.supabaseId, churchId, friendIds, 20, 0),
+            getTrendingTestimony(churchId)
+          ]);
+
+          setTestimonies(feed || []);
+          setTrendingTestimony(trending);
         } catch (error) {
           console.error('Error loading testimonies:', error);
           setTestimonies([]);
@@ -206,6 +212,111 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     };
 
     loadTestimonies();
+  }, [activeConnectTab, profile?.supabaseId, friends]);
+
+  // Load People tab data (church members, friends of friends, nearby)
+  useEffect(() => {
+    const loadPeople = async () => {
+      if (activeConnectTab !== 'people' || !profile?.supabaseId) return;
+
+      setIsLoadingPeople(true);
+      try {
+        const friendIds = friends.map(f => f.id);
+        const friendIdSet = new Set(friendIds);
+        const churchId = (profile as any)?.churchId || null;
+
+        // Fetch all three sections in parallel
+        const [churchMembers, fof, nearby] = await Promise.all([
+          churchId ? getChurchMembers(churchId) : Promise.resolve([]),
+          friendIds.length > 0 ? getFriendsOfFriends(profile.supabaseId, friendIds) : Promise.resolve([]),
+          profile.locationLat && profile.locationLng
+            ? findNearbyUsers(profile.locationLat, profile.locationLng, profile.searchRadius || 25, profile.supabaseId)
+            : getAllUsers(profile.supabaseId, 30)
+        ]);
+
+        // Filter church members: remove self, existing friends, and blocked users
+        const filteredChurchMembers: any[] = [];
+        for (const u of (churchMembers || []) as any[]) {
+          if (u.id === profile.supabaseId || friendIdSet.has(u.id)) continue;
+          let blocked = false;
+          let blockedBy = false;
+          try {
+            blocked = await isUserBlocked(profile.supabaseId, u.id);
+            blockedBy = await isBlockedBy(profile.supabaseId, u.id);
+          } catch {}
+          if (!blocked && !blockedBy) {
+            filteredChurchMembers.push({
+              ...u,
+              displayName: u.display_name,
+              avatar: u.avatar_emoji || '👤',
+              online: u.is_online || false,
+              location: u.location_city || '',
+              reason: '⛪ Church member',
+            });
+          }
+        }
+
+        // Filter friends of friends: remove blocked users
+        const filteredFof: User[] = [];
+        for (const u of (fof || []) as any[]) {
+          if (u.id === profile.supabaseId || friendIdSet.has(u.id)) continue;
+          let blocked = false;
+          let blockedBy = false;
+          if (profile?.supabaseId) {
+            blocked = await isUserBlocked(profile.supabaseId, u.id);
+            blockedBy = await isBlockedBy(profile.supabaseId, u.id);
+          }
+          if (!blocked && !blockedBy) {
+            filteredFof.push({
+              ...u,
+              displayName: u.display_name,
+              avatar: u.avatar_emoji || '👤',
+              online: u.is_online || false,
+              location: u.location_city || '',
+              mutualFriends: u.mutualFriendCount || 0,
+              reason: `🤝 ${u.mutualFriendCount || 0} mutual friend${(u.mutualFriendCount || 0) !== 1 ? 's' : ''}`,
+            } as User);
+          }
+        }
+
+        // Filter nearby: remove self, friends, already shown users, and blocked users
+        const shownIds = new Set([
+          ...filteredChurchMembers.map((u: any) => u.id),
+          ...filteredFof.map(u => u.id)
+        ]);
+        const filteredNearby: any[] = [];
+        for (const u of (nearby || []) as any[]) {
+          if (u.id === profile.supabaseId || friendIdSet.has(u.id) || shownIds.has(u.id)) continue;
+          let blocked = false;
+          let blockedBy = false;
+          try {
+            blocked = await isUserBlocked(profile.supabaseId, u.id);
+            blockedBy = await isBlockedBy(profile.supabaseId, u.id);
+          } catch {}
+          if (!blocked && !blockedBy) {
+            filteredNearby.push({
+              ...u,
+              displayName: u.display_name,
+              avatar: u.avatar_emoji || '👤',
+              online: u.is_online || u.online || false,
+              location: u.location_city || '',
+              distance: u.distance_miles?.toString(),
+              reason: u.distance_miles ? `📍 ${parseFloat(u.distance_miles).toFixed(1)} mi away` : '📍 Nearby',
+            });
+          }
+        }
+
+        setChurchMembersList(filteredChurchMembers as User[]);
+        setFriendsOfFriendsList(filteredFof);
+        setNearbyPeople(filteredNearby as User[]);
+      } catch (error) {
+        console.error('Error loading people:', error);
+      } finally {
+        setIsLoadingPeople(false);
+      }
+    };
+
+    loadPeople();
   }, [activeConnectTab, profile?.supabaseId, friends]);
 
   // Search handler with debouncing
@@ -353,7 +464,6 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     return [...online, ...offline];
   };
 
-  const sortedRecommended = sortWithOnlineFirst(recommendedUsers);
   const sortedFriends = sortWithOnlineFirst(friends);
 
   return (
@@ -416,14 +526,14 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
             Home
           </button>
           <button
-            onClick={() => setActiveConnectTab('discover')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'discover' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            onClick={() => setActiveConnectTab('people')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'people' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
             style={{
               background: 'transparent'
             }}
-            aria-label="Show discover feed"
+            aria-label="Discover people"
           >
-            Discover
+            People
           </button>
           <button
             onClick={() => setActiveConnectTab('friends')}
@@ -458,79 +568,10 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
         </div>
       )}
 
-      {(activeConnectTab === 'home' || activeConnectTab === 'discover') && (
+      {activeConnectTab === 'home' && (
         <div className="px-4 mb-3" />
       )}
 
-      {activeConnectTab === 'recommended' && (
-        <div className="px-4">
-          <div className="mb-3">
-            <h3 className={`text-sm font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>Sort by:</h3>
-            <div className="flex gap-1.5 flex-wrap">
-              <button
-                onClick={() => setSortBy('recommended')}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${sortBy === 'recommended' ? nightMode ? 'text-slate-100 border-white/20' : 'text-blue-700 shadow-md border-white/30' : nightMode ? 'bg-white/5 text-slate-100 hover:bg-white/10 border-white/10' : 'text-black shadow-sm border-white/30'}`}
-                style={sortBy === 'recommended' ? nightMode ? {
-                  background: 'rgba(79, 150, 255, 0.85)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : {
-                  background: 'rgba(219, 234, 254, 0.7)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : !nightMode ? {
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : {}}
-                aria-label="Sort by recommended"
-              >
-                Recommended
-              </button>
-              <button
-                onClick={() => setSortBy('nearby')}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${sortBy === 'nearby' ? nightMode ? 'text-slate-100 border-white/20' : 'text-blue-700 shadow-md border-white/30' : nightMode ? 'bg-white/5 text-slate-100 hover:bg-white/10 border-white/10' : 'text-black shadow-sm border-white/30'}`}
-                style={sortBy === 'nearby' ? nightMode ? {
-                  background: 'rgba(79, 150, 255, 0.85)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : {
-                  background: 'rgba(219, 234, 254, 0.7)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : !nightMode ? {
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : {}}
-                aria-label="Sort by distance"
-              >
-                Nearby
-              </button>
-              <button
-                onClick={() => setSortBy('mutual')}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all border ${sortBy === 'mutual' ? nightMode ? 'text-slate-100 border-white/20' : 'text-blue-700 shadow-md border-white/30' : nightMode ? 'bg-white/5 text-slate-100 hover:bg-white/10 border-white/10' : 'text-black shadow-sm border-white/30'}`}
-                style={sortBy === 'mutual' ? nightMode ? {
-                  background: 'rgba(79, 150, 255, 0.85)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : {
-                  background: 'rgba(219, 234, 254, 0.7)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : !nightMode ? {
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : {}}
-                aria-label="Sort by mutual friends"
-              >
-                Mutual
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="px-4 pb-20" key={activeConnectTab}>
         {searchQuery ? (
@@ -577,45 +618,6 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               <UserCardSkeleton key={i} nightMode={nightMode} />
             ))}
           </div>
-        ) : activeConnectTab === 'recommended' ? (
-          sortedRecommended.length === 0 ? (
-            <div
-              className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-              style={nightMode ? {} : {
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(30px)',
-                WebkitBackdropFilter: 'blur(30px)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-              }}
-            >
-              <div className="text-6xl mb-4">🔍</div>
-              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No users nearby</p>
-              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
-                We couldn't find any believers near you right now.
-              </p>
-              <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
-                <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                  💡 Tip: Try adjusting your search radius in Settings or check back later
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {sortedRecommended.map((user) => (
-                <UserCard
-                  key={user.id}
-                  user={user}
-                  showReason={true}
-                  isFriend={false}
-                  nightMode={nightMode}
-                  onViewProfile={handleViewProfile}
-                  onMessage={handleMessage}
-                  onAddFriend={handleAddFriend}
-                  onUnfriend={handleUnfriend}
-                />
-              ))}
-            </div>
-          )
         ) : activeConnectTab === 'friends' ? (
           sortedFriends.length === 0 ? (
             <div
@@ -630,11 +632,11 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               <div className="text-6xl mb-4">👥</div>
               <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No friends yet</p>
               <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
-                Connect with users from the Recommended tab to add them as friends!
+                Browse the People tab to discover and connect with believers near you!
               </p>
               <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
                 <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                  💡 Tip: Visit the <span className="font-bold">Recommended</span> tab to find believers near you
+                  💡 Tip: Visit the <span className="font-bold">People</span> tab to find believers near you
                 </p>
               </div>
             </div>
@@ -655,7 +657,135 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               ))}
             </div>
           )
-        ) : (activeConnectTab === 'home' || activeConnectTab === 'discover' || activeConnectTab === 'testimonies') ? (
+        ) : activeConnectTab === 'people' ? (
+          isLoadingPeople ? (
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <UserCardSkeleton key={i} nightMode={nightMode} />
+              ))}
+            </div>
+          ) : (churchMembersList.length === 0 && friendsOfFriendsList.length === 0 && nearbyPeople.length === 0) ? (
+            <div
+              className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+              style={nightMode ? {} : {
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(30px)',
+                WebkitBackdropFilter: 'blur(30px)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+              }}
+            >
+              <div className="text-6xl mb-4">🌍</div>
+              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No people to discover yet</p>
+              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
+                Join a church or add friends to discover people in your community!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Church Members Section */}
+              {churchMembersList.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className={`text-sm font-bold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                      ⛪ Church Members
+                    </h3>
+                    {churchMembersList.length > 5 && (
+                      <button
+                        onClick={() => setExpandedSection(expandedSection === 'church' ? null : 'church')}
+                        className={`text-xs font-medium flex items-center gap-1 ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                      >
+                        {expandedSection === 'church' ? 'Show less' : `See all (${churchMembersList.length})`}
+                        {expandedSection === 'church' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    {(expandedSection === 'church' ? churchMembersList : churchMembersList.slice(0, 5)).map((user) => (
+                      <UserCard
+                        key={user.id}
+                        user={user}
+                        showReason={true}
+                        isFriend={false}
+                        nightMode={nightMode}
+                        onViewProfile={handleViewProfile}
+                        onMessage={handleMessage}
+                        onAddFriend={handleAddFriend}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Friends of Friends Section */}
+              {friendsOfFriendsList.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className={`text-sm font-bold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                      🤝 Friends of Friends
+                    </h3>
+                    {friendsOfFriendsList.length > 5 && (
+                      <button
+                        onClick={() => setExpandedSection(expandedSection === 'fof' ? null : 'fof')}
+                        className={`text-xs font-medium flex items-center gap-1 ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                      >
+                        {expandedSection === 'fof' ? 'Show less' : `See all (${friendsOfFriendsList.length})`}
+                        {expandedSection === 'fof' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    {(expandedSection === 'fof' ? friendsOfFriendsList : friendsOfFriendsList.slice(0, 5)).map((user) => (
+                      <UserCard
+                        key={user.id}
+                        user={user}
+                        showReason={true}
+                        isFriend={false}
+                        nightMode={nightMode}
+                        onViewProfile={handleViewProfile}
+                        onMessage={handleMessage}
+                        onAddFriend={handleAddFriend}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Nearby Section */}
+              {nearbyPeople.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className={`text-sm font-bold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                      📍 Nearby
+                    </h3>
+                    {nearbyPeople.length > 5 && (
+                      <button
+                        onClick={() => setExpandedSection(expandedSection === 'nearby' ? null : 'nearby')}
+                        className={`text-xs font-medium flex items-center gap-1 ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                      >
+                        {expandedSection === 'nearby' ? 'Show less' : `See all (${nearbyPeople.length})`}
+                        {expandedSection === 'nearby' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    {(expandedSection === 'nearby' ? nearbyPeople : nearbyPeople.slice(0, 5)).map((user) => (
+                      <UserCard
+                        key={user.id}
+                        user={user}
+                        showReason={true}
+                        isFriend={false}
+                        nightMode={nightMode}
+                        onViewProfile={handleViewProfile}
+                        onMessage={handleMessage}
+                        onAddFriend={handleAddFriend}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        ) : activeConnectTab === 'home' ? (
           isLoadingTestimonies ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -690,7 +820,96 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
             </div>
           ) : (
             <div className="space-y-4">
-              {testimonies.map((testimony: any) => {
+              {/* Trending testimony card */}
+              {activeConnectTab === 'home' && trendingTestimony && (
+                <div
+                  className={`rounded-xl border p-4 relative overflow-hidden ${nightMode ? 'border-amber-500/30' : 'border-amber-300/60 shadow-[0_4px_20px_rgba(245,158,11,0.15)]'}`}
+                  style={{
+                    background: nightMode
+                      ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(255, 255, 255, 0.05))'
+                      : 'linear-gradient(135deg, rgba(255, 237, 213, 0.6), rgba(255, 255, 255, 0.3))',
+                    backdropFilter: 'blur(30px)',
+                    WebkitBackdropFilter: 'blur(30px)',
+                  }}
+                >
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold mb-3 ${nightMode ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
+                    🔥 Trending in your church
+                  </div>
+                  <div className="flex items-start gap-3 mb-3">
+                    <button
+                      onClick={() => trendingTestimony.users?.id && handleViewProfile({
+                        id: trendingTestimony.users.id,
+                        username: trendingTestimony.users.username,
+                        display_name: trendingTestimony.users.display_name,
+                        displayName: trendingTestimony.users.display_name,
+                        avatar_emoji: trendingTestimony.users.avatar_emoji,
+                        avatar: trendingTestimony.users.avatar_emoji,
+                        is_online: false,
+                        online: false,
+                      } as any)}
+                      className="text-2xl hover:scale-110 transition-transform cursor-pointer"
+                    >
+                      {trendingTestimony.users?.avatar_emoji || '👤'}
+                    </button>
+                    <div className="flex-1">
+                      <button
+                        onClick={() => trendingTestimony.users?.id && handleViewProfile({
+                          id: trendingTestimony.users.id,
+                          username: trendingTestimony.users.username,
+                          display_name: trendingTestimony.users.display_name,
+                          displayName: trendingTestimony.users.display_name,
+                          avatar_emoji: trendingTestimony.users.avatar_emoji,
+                          avatar: trendingTestimony.users.avatar_emoji,
+                          is_online: false,
+                          online: false,
+                        } as any)}
+                        className={`font-semibold cursor-pointer text-left transition-colors ${nightMode ? 'text-slate-100 hover:text-blue-400' : 'text-black hover:text-blue-600'}`}
+                      >
+                        {trendingTestimony.users?.display_name || trendingTestimony.users?.username || 'Anonymous'}
+                      </button>
+                      <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                        @{trendingTestimony.users?.username || 'user'}
+                      </p>
+                    </div>
+                  </div>
+                  <h3 className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                    {trendingTestimony.title || 'My Testimony'}
+                  </h3>
+                  <p className={`text-sm leading-relaxed mb-3 ${nightMode ? 'text-slate-200' : 'text-slate-700'}`}>
+                    {expandedTestimonies.has(trendingTestimony.id)
+                      ? trendingTestimony.content
+                      : trendingTestimony.content?.substring(0, 300)}
+                    {!expandedTestimonies.has(trendingTestimony.id) && trendingTestimony.content?.length > 300 && '...'}
+                  </p>
+                  {trendingTestimony.content?.length > 300 && (
+                    <button
+                      onClick={() => setExpandedTestimonies(prev => {
+                        const next = new Set(prev);
+                        if (next.has(trendingTestimony.id)) {
+                          next.delete(trendingTestimony.id);
+                        } else {
+                          next.add(trendingTestimony.id);
+                        }
+                        return next;
+                      })}
+                      className={`text-xs font-medium mb-3 ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} transition-colors`}
+                    >
+                      {expandedTestimonies.has(trendingTestimony.id) ? 'Show Less' : 'Read More'}
+                    </button>
+                  )}
+                  <div className="flex items-center gap-4 text-xs">
+                    <span className={nightMode ? 'text-amber-400' : 'text-amber-600'}>
+                      ❤️ {trendingTestimony.like_count || 0}
+                    </span>
+                    <span className={nightMode ? 'text-slate-400' : 'text-slate-600'}>
+                      👁️ {trendingTestimony.view_count || 0}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Regular testimony feed — filter out trending to avoid duplication */}
+              {testimonies.filter((t: any) => !trendingTestimony || t.id !== trendingTestimony.id).map((testimony: any) => {
                 const user = testimony.users || {};
                 return (
                   <div

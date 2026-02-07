@@ -287,3 +287,58 @@ export const getMutualFriends = async (userId1: string, userId2: string): Promis
 
   return mutualFriends as FriendWithUser[];
 };
+
+/**
+ * Get friends-of-friends (2nd degree connections)
+ * For each of the user's friends, get their friends, excluding self and existing friends.
+ * Returns deduplicated list with mutual friend count.
+ */
+export const getFriendsOfFriends = async (
+  userId: string,
+  friendIds: string[]
+): Promise<(FriendWithUser & { mutualFriendCount: number })[]> => {
+  if (!supabase || friendIds.length === 0) return [];
+
+  try {
+    // Get all friendships where one of the user's friends is user_id_1
+    const { data: fofData, error } = await supabase
+      .from('friendships')
+      .select('user_id_1, user_id_2')
+      .in('user_id_1', friendIds)
+      .eq('status', 'accepted');
+
+    if (error || !fofData) return [];
+
+    // Collect friend-of-friend IDs and count mutual connections
+    const excludeIds = new Set([userId, ...friendIds]);
+    const fofCounts = new Map<string, number>();
+
+    for (const row of fofData as any[]) {
+      const fofId = row.user_id_2;
+      if (excludeIds.has(fofId)) continue;
+      fofCounts.set(fofId, (fofCounts.get(fofId) || 0) + 1);
+    }
+
+    if (fofCounts.size === 0) return [];
+
+    // Get user details for friend-of-friend IDs (limit to 20)
+    const fofIds = Array.from(fofCounts.keys()).slice(0, 20);
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id, username, display_name, avatar_emoji, avatar_url, is_online, bio, location_city')
+      .in('id', fofIds);
+
+    if (usersError || !users) return [];
+
+    // Attach mutual friend count and sort by it descending
+    return (users as any[])
+      .map(u => ({
+        ...u,
+        mutualFriendCount: fofCounts.get(u.id) || 0
+      }))
+      .sort((a, b) => b.mutualFriendCount - a.mutualFriendCount) as (FriendWithUser & { mutualFriendCount: number })[];
+  } catch (error) {
+    console.error('Error getting friends of friends:', error);
+    return [];
+  }
+};

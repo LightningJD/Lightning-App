@@ -1,0 +1,416 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, MessageCircle } from 'lucide-react';
+import { useUserProfile } from './useUserProfile';
+import { getUserConversations, getUserServers, subscribeToMessages, unsubscribe, isUserBlocked, isBlockedBy } from '../lib/database';
+import MessagesTab from './MessagesTab';
+import ServersTab from './servers/ServersTab';
+import OtherUserProfileDialog from './OtherUserProfileDialog';
+import { ConversationSkeleton } from './SkeletonLoader';
+
+// ============================================
+// TYPES
+// ============================================
+
+interface ChatTabProps {
+  nightMode: boolean;
+  onConversationsCountChange?: (count: number) => void;
+  startChatWith?: { id: string; name: string; avatar?: string } | null;
+  onStartChatConsumed?: () => void;
+  onActiveServerChange?: (serverName: string | null, serverEmoji?: string) => void;
+}
+
+interface Conversation {
+  id: number | string;
+  userId: string;
+  name: string;
+  avatar: string;
+  avatarImage?: string;
+  lastMessage: string;
+  timestamp: string;
+  online?: boolean;
+  unreadCount?: number;
+}
+
+interface Server {
+  id: string;
+  name: string;
+  description?: string;
+  icon_emoji: string;
+  icon_url?: string;
+  creator_id: string;
+}
+
+type ChatView = 'list' | 'dm' | 'server';
+
+// ============================================
+// HELPERS
+// ============================================
+
+const formatTimestamp = (timestamp: any): string => {
+  const now = new Date();
+  const messageDate = new Date(timestamp);
+  const diffMs = now.getTime() - messageDate.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Now';
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays === 1) return 'Yday';
+  if (diffDays < 7) return `${diffDays}d`;
+  return messageDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
+
+// ============================================
+// COMPONENT
+// ============================================
+
+const ChatTab: React.FC<ChatTabProps> = ({
+  nightMode,
+  onConversationsCountChange,
+  startChatWith,
+  onStartChatConsumed,
+  onActiveServerChange,
+}) => {
+  const { profile } = useUserProfile();
+
+  // View state
+  const [view, setView] = useState<ChatView>('list');
+  const [dmConversations, setDmConversations] = useState<Conversation[]>([]);
+  const [servers, setServers] = useState<Server[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Selected items
+  const [selectedConversation, setSelectedConversation] = useState<{ id: string | number; userId: string } | null>(null);
+  const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
+
+  // For passing through to MessagesTab when a new chat is needed
+  const [dmStartChatWith, setDmStartChatWith] = useState<{ id: string; name: string; avatar?: string } | null>(null);
+
+  // For viewing a user's profile
+  const [viewingUser, setViewingUser] = useState<any>(null);
+
+  // ── Fetch data ──────────────────────────────────────────────
+
+  const loadData = useCallback(async () => {
+    if (!profile?.supabaseId) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const [convos, srvs] = await Promise.all([
+        getUserConversations(profile.supabaseId),
+        getUserServers(profile.supabaseId),
+      ]);
+
+      // Filter blocked users from conversations
+      const filteredConvos: Conversation[] = [];
+      for (const c of convos || []) {
+        let blocked = false;
+        let blockedBy = false;
+        try {
+          blocked = await isUserBlocked(profile.supabaseId, c.userId || c.id);
+          blockedBy = await isBlockedBy(profile.supabaseId, c.userId || c.id);
+        } catch {}
+        if (!blocked && !blockedBy) {
+          filteredConvos.push(c as Conversation);
+        }
+      }
+
+      setDmConversations(filteredConvos);
+      setServers((srvs || []) as Server[]);
+
+      // Report unread count
+      const totalUnread = filteredConvos.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
+      onConversationsCountChange?.(totalUnread);
+    } catch (error) {
+      console.error('Error loading chat data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [profile?.supabaseId, onConversationsCountChange]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // ── Real-time subscriptions ─────────────────────────────────
+
+  useEffect(() => {
+    if (!profile?.supabaseId) return;
+
+    const channel = subscribeToMessages(profile.supabaseId, () => {
+      // Reload conversations when new messages arrive
+      loadData();
+    });
+
+    return () => {
+      if (channel) unsubscribe(channel);
+    };
+  }, [profile?.supabaseId, loadData]);
+
+  // ── Handle startChatWith from Connect tab ───────────────────
+
+  useEffect(() => {
+    if (startChatWith?.id && startChatWith?.name) {
+      // Check if we already have a conversation with this user
+      const existingConvo = dmConversations.find(c => String(c.userId) === String(startChatWith.id));
+      if (existingConvo) {
+        setSelectedConversation({ id: existingConvo.id, userId: existingConvo.userId });
+        setView('dm');
+      } else {
+        // Open MessagesTab with startChatWith to create new conversation
+        setDmStartChatWith(startChatWith);
+        setSelectedConversation(null);
+        setView('dm');
+      }
+      // Signal that we've consumed the startChatWith so App.tsx clears it
+      onStartChatConsumed?.();
+    }
+  }, [startChatWith, dmConversations, onStartChatConsumed]);
+
+  // ── Back handlers ───────────────────────────────────────────
+
+  const handleBackFromDm = useCallback(() => {
+    setView('list');
+    setSelectedConversation(null);
+    setDmStartChatWith(null);
+    onActiveServerChange?.(null);
+    // Refresh conversation list
+    loadData();
+  }, [loadData, onActiveServerChange]);
+
+  const handleBackFromServer = useCallback(() => {
+    setView('list');
+    setSelectedServerId(null);
+    onActiveServerChange?.(null);
+    loadData();
+  }, [loadData, onActiveServerChange]);
+
+  // ── DM View ─────────────────────────────────────────────────
+
+  if (view === 'dm') {
+    return (
+      <MessagesTab
+        nightMode={nightMode}
+        onConversationsCountChange={onConversationsCountChange}
+        startChatWith={dmStartChatWith}
+        initialConversation={selectedConversation}
+        onBack={handleBackFromDm}
+      />
+    );
+  }
+
+  // ── Server View ─────────────────────────────────────────────
+
+  if (view === 'server' && selectedServerId) {
+    return (
+      <ServersTab
+        nightMode={nightMode}
+        initialServerId={selectedServerId}
+        onBack={handleBackFromServer}
+        onActiveServerChange={onActiveServerChange}
+      />
+    );
+  }
+
+  // ── List View ───────────────────────────────────────────────
+
+  return (
+    <div className="space-y-4 pb-20">
+      {/* Server Icon Strip */}
+      {servers.length > 0 && (
+        <div className="px-4">
+          <div
+            className={`rounded-xl border p-3 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
+            style={nightMode ? {} : {
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+            }}
+          >
+            <p className={`text-[10px] font-semibold uppercase tracking-wider mb-2 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              Servers
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+              {servers.map((server) => (
+                <button
+                  key={server.id}
+                  onClick={() => {
+                    setSelectedServerId(server.id);
+                    onActiveServerChange?.(server.name, server.icon_emoji);
+                    setView('server');
+                  }}
+                  className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-all active:scale-95 hover:rounded-xl ${
+                    nightMode ? 'bg-white/10 hover:bg-white/15' : 'bg-black/5 hover:bg-black/10'
+                  }`}
+                  style={{
+                    boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)',
+                  }}
+                  title={server.name}
+                >
+                  {server.icon_url ? (
+                    <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-2xl object-cover" />
+                  ) : (
+                    server.icon_emoji || '⛪'
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DM Conversations List */}
+      <div className="px-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+            Messages
+          </p>
+          <button
+            onClick={() => {
+              setDmStartChatWith(null);
+              setSelectedConversation(null);
+              setView('dm');
+            }}
+            className={`p-1.5 rounded-lg transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'}`}
+            title="New message"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <ConversationSkeleton key={i} nightMode={nightMode} />
+            ))}
+          </div>
+        ) : dmConversations.length === 0 ? (
+          <div
+            className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
+            style={nightMode ? {} : {
+              background: 'rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+            }}
+          >
+            <MessageCircle className={`w-12 h-12 mx-auto mb-3 ${nightMode ? 'text-white/20' : 'text-black/20'}`} />
+            <p className={`font-semibold text-base mb-1 ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+              No conversations yet
+            </p>
+            <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              Start chatting with someone from the Connect tab!
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {dmConversations.map((convo) => (
+              <div
+                key={convo.id}
+                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                  nightMode
+                    ? 'hover:bg-white/5'
+                    : 'hover:bg-white/30'
+                }`}
+                style={nightMode ? {} : {
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                }}
+              >
+                {/* Avatar - tappable to view profile */}
+                <button
+                  className="relative flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewingUser({
+                      id: convo.userId,
+                      displayName: convo.name,
+                      avatar: convo.avatar,
+                      avatarImage: convo.avatarImage,
+                      online: convo.online,
+                    });
+                  }}
+                  aria-label={`View ${convo.name}'s profile`}
+                >
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl overflow-hidden ${
+                    nightMode ? 'bg-white/10' : 'bg-white/50'
+                  }`}
+                  style={{ boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }}
+                  >
+                    {convo.avatarImage ? (
+                      <img src={convo.avatarImage} alt={convo.name} className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      convo.avatar || '👤'
+                    )}
+                  </div>
+                  {convo.online && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2"
+                         style={{ borderColor: nightMode ? '#1a1a2e' : '#f0f4ff' }}
+                    />
+                  )}
+                </button>
+
+                {/* Content - tappable to open chat */}
+                <button
+                  className="flex-1 min-w-0 text-left active:scale-[0.98] transition-all"
+                  onClick={() => {
+                    setSelectedConversation({ id: convo.id, userId: convo.userId });
+                    setDmStartChatWith(null);
+                    setView('dm');
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`font-semibold text-sm truncate ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                      {convo.name}
+                    </p>
+                    <span className={`text-[10px] flex-shrink-0 ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                      {convo.timestamp ? formatTimestamp(convo.timestamp) : ''}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-xs truncate ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {convo.lastMessage || 'No messages yet'}
+                    </p>
+                    {(convo.unreadCount || 0) > 0 && (
+                      <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-[9px] font-bold text-white">{convo.unreadCount}</span>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Other User Profile Dialog */}
+      {viewingUser && (
+        <OtherUserProfileDialog
+          user={viewingUser}
+          onClose={() => setViewingUser(null)}
+          nightMode={nightMode}
+          onMessage={(user: any) => {
+            setViewingUser(null);
+            const existingConvo = dmConversations.find(c => String(c.userId) === String(user.id));
+            if (existingConvo) {
+              setSelectedConversation({ id: existingConvo.id, userId: existingConvo.userId });
+              setView('dm');
+            } else {
+              setDmStartChatWith({ id: user.id, name: user.displayName || user.name || 'User', avatar: user.avatar });
+              setSelectedConversation(null);
+              setView('dm');
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+export default ChatTab;
