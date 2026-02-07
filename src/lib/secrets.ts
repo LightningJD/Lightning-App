@@ -300,15 +300,6 @@ export const secrets = {
   },
 
   // === SPIRITUAL SECRETS ===
-  prayer_request_first: {
-    id: 'prayer_request_first',
-    name: 'Prayer Warrior Initiate',
-    description: 'Posted your first prayer request',
-    icon: '🙏',
-    unlockMessage: 'Vulnerability leads to breakthrough!',
-    rarity: 'common',
-    funFact: 'Shared prayers are 2x more likely to be answered!'
-  },
   scripture_shared_5: {
     id: 'scripture_shared_5',
     name: 'Scripture Sharer',
@@ -611,7 +602,6 @@ export const checkMilestoneSecret = (type: string, count: number): void => {
     messages_streak_days: { 7: 'messages_streak_7' },
     daily_login_streak: { 30: 'daily_login_30', 100: 'daily_login_100' },
     group_created: { 1: 'group_creator' },
-    prayer_requests: { 1: 'prayer_request_first' },
     scriptures_shared: { 5: 'scripture_shared_5' },
     devotional_streak: { 7: 'daily_devotional_7' },
     avatar_changes: { 5: 'avatar_changed_5x' },
