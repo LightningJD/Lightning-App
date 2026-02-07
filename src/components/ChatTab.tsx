@@ -151,7 +151,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
     };
   }, [profile?.supabaseId, loadData]);
 
-  // ── Handle startChatWith from Connect tab ───────────────────
+  // ── Handle startChatWith from Find tab ───────────────────
 
   useEffect(() => {
     if (startChatWith?.id && startChatWith?.name) {
@@ -216,177 +216,214 @@ const ChatTab: React.FC<ChatTabProps> = ({
     );
   }
 
-  // ── List View ───────────────────────────────────────────────
+  // ── List View (Discord-style sidebar) ──────────────────────
 
   return (
-    <div className="space-y-4 pb-20">
-      {/* Server Icon Strip */}
-      {servers.length > 0 && (
-        <div className="px-4">
-          <div
-            className={`rounded-xl border p-3 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
-            style={nightMode ? {} : {
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+    <div className="flex" style={{ height: 'calc(100vh - 7.5rem)' }}>
+      {/* Server Rail (left sidebar) */}
+      <div
+        className={`w-[72px] flex-shrink-0 flex flex-col items-center py-3 gap-1.5 overflow-y-auto border-r ${
+          nightMode ? 'border-white/10' : 'border-white/20'
+        }`}
+        style={nightMode ? {
+          background: 'rgba(0, 0, 0, 0.3)',
+        } : {
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}
+      >
+        {/* DM Button (always highlighted in list view) */}
+        <button
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${
+            nightMode
+              ? 'bg-blue-500/30 text-blue-300'
+              : 'bg-blue-500/20 text-blue-600'
+          }`}
+          style={{
+            boxShadow: nightMode ? '0 0 12px rgba(59, 130, 246, 0.2)' : '0 0 12px rgba(59, 130, 246, 0.15)',
+          }}
+          title="Direct Messages"
+        >
+          <MessageCircle className="w-5 h-5" />
+        </button>
+
+        {/* Divider */}
+        {servers.length > 0 && (
+          <div className={`w-8 h-[2px] rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+        )}
+
+        {/* Server Icons */}
+        {servers.map((server) => (
+          <button
+            key={server.id}
+            onClick={() => {
+              setSelectedServerId(server.id);
+              onActiveServerChange?.(server.name, server.icon_emoji);
+              setView('server');
             }}
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg transition-all active:scale-95 hover:rounded-xl ${
+              nightMode ? 'bg-white/10 hover:bg-white/15' : 'bg-white/30 hover:bg-white/50'
+            }`}
+            style={{
+              boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)',
+            }}
+            title={server.name}
           >
-            <p className={`text-[10px] font-semibold uppercase tracking-wider mb-2 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              Servers
+            {server.icon_url ? (
+              <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-2xl object-cover" />
+            ) : (
+              server.icon_emoji || '⛪'
+            )}
+          </button>
+        ))}
+
+        {/* Divider before + button */}
+        <div className={`w-8 h-[2px] rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+
+        {/* Create Server / New Chat button */}
+        <button
+          onClick={() => {
+            setDmStartChatWith(null);
+            setSelectedConversation(null);
+            setView('dm');
+          }}
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-95 hover:rounded-xl ${
+            nightMode ? 'bg-white/10 hover:bg-green-500/30 text-green-400 hover:text-green-300' : 'bg-white/30 hover:bg-green-500/20 text-green-600 hover:text-green-700'
+          }`}
+          title="New message"
+        >
+          <Plus className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Main Panel (DM Conversations) */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-4 py-3">
+          {/* Messages Header */}
+          <div className="flex items-center justify-between mb-3">
+            <p className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+              Messages
             </p>
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-              {servers.map((server) => (
-                <button
-                  key={server.id}
-                  onClick={() => {
-                    setSelectedServerId(server.id);
-                    onActiveServerChange?.(server.name, server.icon_emoji);
-                    setView('server');
-                  }}
-                  className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-all active:scale-95 hover:rounded-xl ${
-                    nightMode ? 'bg-white/10 hover:bg-white/15' : 'bg-black/5 hover:bg-black/10'
-                  }`}
-                  style={{
-                    boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)',
-                  }}
-                  title={server.name}
-                >
-                  {server.icon_url ? (
-                    <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-2xl object-cover" />
-                  ) : (
-                    server.icon_emoji || '⛪'
-                  )}
-                </button>
+            <button
+              onClick={() => {
+                setDmStartChatWith(null);
+                setSelectedConversation(null);
+                setView('dm');
+              }}
+              className={`p-1.5 rounded-lg transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'}`}
+              title="New message"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Conversation List */}
+          {isLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <ConversationSkeleton key={i} nightMode={nightMode} />
               ))}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* DM Conversations List */}
-      <div className="px-4">
-        <div className="flex items-center justify-between mb-3">
-          <p className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-            Messages
-          </p>
-          <button
-            onClick={() => {
-              setDmStartChatWith(null);
-              setSelectedConversation(null);
-              setView('dm');
-            }}
-            className={`p-1.5 rounded-lg transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'}`}
-            title="New message"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-
-        {isLoading ? (
-          <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <ConversationSkeleton key={i} nightMode={nightMode} />
-            ))}
-          </div>
-        ) : dmConversations.length === 0 ? (
-          <div
-            className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
-            style={nightMode ? {} : {
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-            }}
-          >
-            <MessageCircle className={`w-12 h-12 mx-auto mb-3 ${nightMode ? 'text-white/20' : 'text-black/20'}`} />
-            <p className={`font-semibold text-base mb-1 ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-              No conversations yet
-            </p>
-            <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              Start chatting with someone from the Connect tab!
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-1">
-            {dmConversations.map((convo) => (
-              <div
-                key={convo.id}
-                className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                  nightMode
-                    ? 'hover:bg-white/5'
-                    : 'hover:bg-white/30'
-                }`}
-                style={nightMode ? {} : {
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                }}
-              >
-                {/* Avatar - tappable to view profile */}
-                <button
-                  className="relative flex-shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setViewingUser({
-                      id: convo.userId,
-                      displayName: convo.name,
-                      avatar: convo.avatar,
-                      avatarImage: convo.avatarImage,
-                      online: convo.online,
-                    });
-                  }}
-                  aria-label={`View ${convo.name}'s profile`}
-                >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl overflow-hidden ${
-                    nightMode ? 'bg-white/10' : 'bg-white/50'
+          ) : dmConversations.length === 0 ? (
+            <div
+              className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
+              style={nightMode ? {} : {
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(30px)',
+                WebkitBackdropFilter: 'blur(30px)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+              }}
+            >
+              <MessageCircle className={`w-12 h-12 mx-auto mb-3 ${nightMode ? 'text-white/20' : 'text-black/20'}`} />
+              <p className={`font-semibold text-base mb-1 ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                No conversations yet
+              </p>
+              <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                Start chatting with someone from the Find tab!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {dmConversations.map((convo) => (
+                <div
+                  key={convo.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                    nightMode
+                      ? 'hover:bg-white/5'
+                      : 'hover:bg-white/30'
                   }`}
-                  style={{ boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }}
-                  >
-                    {convo.avatarImage ? (
-                      <img src={convo.avatarImage} alt={convo.name} className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      convo.avatar || '👤'
-                    )}
-                  </div>
-                  {convo.online && (
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2"
-                         style={{ borderColor: nightMode ? '#1a1a2e' : '#f0f4ff' }}
-                    />
-                  )}
-                </button>
-
-                {/* Content - tappable to open chat */}
-                <button
-                  className="flex-1 min-w-0 text-left active:scale-[0.98] transition-all"
-                  onClick={() => {
-                    setSelectedConversation({ id: convo.id, userId: convo.userId });
-                    setDmStartChatWith(null);
-                    setView('dm');
+                  style={nightMode ? {} : {
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
                   }}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className={`font-semibold text-sm truncate ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                      {convo.name}
-                    </p>
-                    <span className={`text-[10px] flex-shrink-0 ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                      {convo.timestamp ? formatTimestamp(convo.timestamp) : ''}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className={`text-xs truncate ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                      {convo.lastMessage || 'No messages yet'}
-                    </p>
-                    {(convo.unreadCount || 0) > 0 && (
-                      <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-[9px] font-bold text-white">{convo.unreadCount}</span>
-                      </div>
+                  {/* Avatar - tappable to view profile */}
+                  <button
+                    className="relative flex-shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewingUser({
+                        id: convo.userId,
+                        displayName: convo.name,
+                        avatar: convo.avatar,
+                        avatarImage: convo.avatarImage,
+                        online: convo.online,
+                      });
+                    }}
+                    aria-label={`View ${convo.name}'s profile`}
+                  >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl overflow-hidden ${
+                      nightMode ? 'bg-white/10' : 'bg-white/50'
+                    }`}
+                    style={{ boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }}
+                    >
+                      {convo.avatarImage ? (
+                        <img src={convo.avatarImage} alt={convo.name} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        convo.avatar || '👤'
+                      )}
+                    </div>
+                    {convo.online && (
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2"
+                           style={{ borderColor: nightMode ? '#1a1a2e' : '#f0f4ff' }}
+                      />
                     )}
-                  </div>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+                  </button>
+
+                  {/* Content - tappable to open chat */}
+                  <button
+                    className="flex-1 min-w-0 text-left active:scale-[0.98] transition-all"
+                    onClick={() => {
+                      setSelectedConversation({ id: convo.id, userId: convo.userId });
+                      setDmStartChatWith(null);
+                      setView('dm');
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`font-semibold text-sm truncate ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                        {convo.name}
+                      </p>
+                      <span className={`text-[10px] flex-shrink-0 ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {convo.timestamp ? formatTimestamp(convo.timestamp) : ''}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`text-xs truncate ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {convo.lastMessage || 'No messages yet'}
+                      </p>
+                      {(convo.unreadCount || 0) > 0 && (
+                        <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-[9px] font-bold text-white">{convo.unreadCount}</span>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Other User Profile Dialog */}

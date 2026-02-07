@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useClerk, useSession } from '@clerk/clerk-react';
-import { User, MessageCircle, Users, MapPin, Zap, Plus, X, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
+import { User, MessageCircle, Users, Home, Search, Zap, Plus, X, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
@@ -46,7 +46,7 @@ function App() {
   const { isLoading, isAuthenticated, isSyncing, profile: userProfile, user: clerkUser } = useUserProfile();
   const [localProfile, setLocalProfile] = useState<any | null>(null);
 
-  const [currentTab, setCurrentTab] = useState('profile');
+  const [currentTab, setCurrentTab] = useState('home');
   const [showMenu, setShowMenu] = useState(false);
   const [showTestimonyPrompt, setShowTestimonyPrompt] = useState(false);
   const [sortBy, setSortBy] = useState('recommended');
@@ -62,7 +62,7 @@ function App() {
   const [notificationCounts, setNotificationCounts] = React.useState({
     messages: 0,
     groups: 0,
-    connect: 0
+    find: 0
   });
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
@@ -188,10 +188,10 @@ function App() {
     };
   }, [userProfile?.supabaseId]);
 
-  // Clear connect badge when user opens Connect tab
+  // Clear find badge when user opens Find tab
   React.useEffect(() => {
-    if (currentTab === 'connect') {
-      setNotificationCounts(prev => ({ ...prev, connect: 0 }));
+    if (currentTab === 'find') {
+      setNotificationCounts(prev => ({ ...prev, find: 0 }));
     }
   }, [currentTab]);
 
@@ -998,9 +998,9 @@ function App() {
 
   const renderContent = () => {
     switch (currentTab) {
-      case 'chat':
+      case 'home':
         return (
-          <ComponentErrorBoundary name="Chat" nightMode={nightMode}>
+          <ComponentErrorBoundary name="Home" nightMode={nightMode}>
             <ChatTab
               nightMode={nightMode}
               onConversationsCountChange={handleConversationsCountChange}
@@ -1010,9 +1010,9 @@ function App() {
             />
           </ComponentErrorBoundary>
         );
-      case 'connect':
+      case 'find':
         return (
-          <ComponentErrorBoundary name="Connect" nightMode={nightMode}>
+          <ComponentErrorBoundary name="Find" nightMode={nightMode}>
             <NearbyTab
               sortBy={sortBy}
               setSortBy={setSortBy}
@@ -1021,12 +1021,12 @@ function App() {
               nightMode={nightMode}
               onNavigateToMessages={(user: any) => {
                 setStartChatWith({ id: String(user.id), name: user.displayName || user.username || 'User', avatar: user.avatar || user.avatar_emoji || '👤' });
-                setCurrentTab('chat');
+                setCurrentTab('home');
               }}
             />
           </ComponentErrorBoundary>
         );
-      case 'profile':
+      case 'you':
         return (
           <ComponentErrorBoundary name="Profile" nightMode={nightMode}>
             <ProfileTab profile={profile} nightMode={nightMode} currentUserProfile={profile} onAddTestimony={() => {
@@ -1037,11 +1037,14 @@ function App() {
         );
       default:
         return (
-          <ComponentErrorBoundary name="Profile" nightMode={nightMode}>
-            <ProfileTab profile={profile} nightMode={nightMode} currentUserProfile={profile} onAddTestimony={() => {
-              setShowTestimonyQuestionnaire(true);
-              setTestimonyStartTime(Date.now());
-            }} onEditTestimony={handleEditTestimony} />
+          <ComponentErrorBoundary name="Home" nightMode={nightMode}>
+            <ChatTab
+              nightMode={nightMode}
+              onConversationsCountChange={handleConversationsCountChange}
+              startChatWith={startChatWith}
+              onStartChatConsumed={() => setStartChatWith(null)}
+              onActiveServerChange={(name, emoji) => { setActiveServerName(name); setActiveServerEmoji(emoji || null); }}
+            />
           </ComponentErrorBoundary>
         );
     }
@@ -1074,7 +1077,7 @@ function App() {
             <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20">
               <div className="px-5 sm:px-6 lg:px-8 py-3">
                 <div className="flex items-center justify-between">
-                  {currentTab === 'profile' && (
+                  {currentTab === 'you' && (
                     <div
                       className="flex items-center gap-2 cursor-pointer select-none"
                       onClick={handleLogoClick}
@@ -1085,21 +1088,21 @@ function App() {
                     </div>
                   )}
 
-                  {currentTab === 'chat' && (
+                  {currentTab === 'home' && (
                     <div className="font-semibold text-black text-xl flex items-center gap-2">
                       {activeServerName ? (
                         <>
                           {activeServerEmoji && <span className="text-lg">{activeServerEmoji}</span>}
                           <span className="truncate max-w-[200px]">{activeServerName}</span>
                         </>
-                      ) : 'Chat'}
+                      ) : 'Home'}
                     </div>
                   )}
-                  {currentTab === 'connect' && (
-                    <div className="font-semibold text-black text-xl">Connect</div>
+                  {currentTab === 'find' && (
+                    <div className="font-semibold text-black text-xl">Find</div>
                   )}
 
-                  {currentTab === 'connect' && (
+                  {currentTab === 'find' && (
                     <button
                       onClick={() => setShowMenu(true)}
                       className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
@@ -1120,7 +1123,7 @@ function App() {
             <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/10 border-b border-white/10">
               <div className="px-5 sm:px-6 lg:px-8 py-3">
                 <div className="flex items-center justify-between">
-                  {currentTab === 'profile' && (
+                  {currentTab === 'you' && (
                     <div
                       className="flex items-center gap-2 cursor-pointer select-none"
                       onClick={handleLogoClick}
@@ -1131,21 +1134,21 @@ function App() {
                     </div>
                   )}
 
-                  {currentTab === 'chat' && (
+                  {currentTab === 'home' && (
                     <div className="font-semibold text-slate-100 text-xl flex items-center gap-2">
                       {activeServerName ? (
                         <>
                           {activeServerEmoji && <span className="text-lg">{activeServerEmoji}</span>}
                           <span className="truncate max-w-[200px]">{activeServerName}</span>
                         </>
-                      ) : 'Chat'}
+                      ) : 'Home'}
                     </div>
                   )}
-                  {currentTab === 'connect' && (
-                    <div className="font-semibold text-slate-100 text-xl">Connect</div>
+                  {currentTab === 'find' && (
+                    <div className="font-semibold text-slate-100 text-xl">Find</div>
                   )}
 
-                  {currentTab === 'connect' && (
+                  {currentTab === 'find' && (
                     <button
                       onClick={() => setShowMenu(true)}
                       className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
@@ -1508,57 +1511,57 @@ function App() {
           >
             <div className="px-2 sm:px-6 lg:px-8 flex justify-around items-center h-14">
               <button
-                onClick={() => setCurrentTab('profile')}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'profile' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
-                style={currentTab === 'profile' ? {
+                onClick={() => setCurrentTab('home')}
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'home' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
+                style={currentTab === 'home' ? {
                   background: 'rgba(79, 150, 255, 0.85)',
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)'
                 } : {}}
-                aria-label="Profile"
-              >
-                <User className="w-5 h-5" />
-                <span className="text-[10px] font-medium">Profile</span>
-              </button>
-              <button
-                onClick={() => setCurrentTab('chat')}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'chat' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
-                style={currentTab === 'chat' ? {
-                  background: 'rgba(79, 150, 255, 0.85)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : {}}
-                aria-label={`Chat${notificationCounts.messages > 0 ? ` (${notificationCounts.messages} unread)` : ''}`}
+                aria-label={`Home${notificationCounts.messages > 0 ? ` (${notificationCounts.messages} unread)` : ''}`}
               >
                 <div className="relative">
-                  <MessageCircle className="w-5 h-5" />
+                  <Home className="w-5 h-5" />
                   {notificationCounts.messages > 0 && (
                     <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20 badge-pulse">
                       <span className="text-[9px] font-bold text-white">{notificationCounts.messages}</span>
                     </div>
                   )}
                 </div>
-                <span className="text-[10px] font-medium">Chat</span>
+                <span className="text-[10px] font-medium">Home</span>
               </button>
               <button
-                onClick={() => setCurrentTab('connect')}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'connect' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
-                style={currentTab === 'connect' ? {
+                onClick={() => setCurrentTab('find')}
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'find' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
+                style={currentTab === 'find' ? {
                   background: 'rgba(79, 150, 255, 0.85)',
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)'
                 } : {}}
-                aria-label={`Connect${notificationCounts.connect > 0 ? ` (${notificationCounts.connect} new)` : ''}`}
+                aria-label={`Find${notificationCounts.find > 0 ? ` (${notificationCounts.find} new)` : ''}`}
               >
                 <div className="relative">
-                  <MapPin className="w-5 h-5" />
-                  {notificationCounts.connect > 0 && (
+                  <Search className="w-5 h-5" />
+                  {notificationCounts.find > 0 && (
                     <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20 badge-pulse">
-                      <span className="text-[9px] font-bold text-white">{notificationCounts.connect}</span>
+                      <span className="text-[9px] font-bold text-white">{notificationCounts.find}</span>
                     </div>
                   )}
                 </div>
-                <span className="text-[10px] font-medium">Connect</span>
+                <span className="text-[10px] font-medium">Find</span>
+              </button>
+              <button
+                onClick={() => setCurrentTab('you')}
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'you' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
+                style={currentTab === 'you' ? {
+                  background: 'rgba(79, 150, 255, 0.85)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)'
+                } : {}}
+                aria-label="You"
+              >
+                <User className="w-5 h-5" />
+                <span className="text-[10px] font-medium">You</span>
               </button>
             </div>
           </div>

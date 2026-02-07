@@ -37,7 +37,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ isOpen, onClose, nightMode, onC
       faqs: [
         {
           question: 'How do I make my profile private?',
-          answer: 'Go to Settings > Privacy & Safety > Make Profile Private. When enabled, only your friends can see your full profile and testimony. You won\'t appear in the Connect tab to users who aren\'t your friends.'
+          answer: 'Go to Settings > Privacy & Safety > Make Profile Private. When enabled, only your friends can see your full profile and testimony. You won\'t appear in the Find tab to users who aren\'t your friends.'
         },
         {
           question: 'Who can see my testimony?',
@@ -59,7 +59,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ isOpen, onClose, nightMode, onC
       faqs: [
         {
           question: 'How do I connect with someone?',
-          answer: 'Go to the Connect tab to find Christians near you. Tap on someone\'s profile and select "Send Friend Request". Once they accept, you\'ll be connected and can message each other.'
+          answer: 'Go to the Find tab to find Christians near you. Tap on someone\'s profile and select "Send Friend Request". Once they accept, you\'ll be connected and can message each other.'
         },
         {
           question: 'What\'s the difference between followers and friends?',
