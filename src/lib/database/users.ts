@@ -158,6 +158,8 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   if (profileData.profileCompleted !== undefined) updates.profile_completed = profileData.profileCompleted;
   if (profileData.search_radius !== undefined) updates.search_radius = profileData.search_radius;
   if ((profileData as any).spotify_url !== undefined) updates.spotify_url = (profileData as any).spotify_url;
+  if ((profileData as any).song_name !== undefined) updates.song_name = (profileData as any).song_name;
+  if ((profileData as any).song_artist !== undefined) updates.song_artist = (profileData as any).song_artist;
   // Profile card fields
   if ((profileData as any).church_name !== undefined) updates.church_name = (profileData as any).church_name;
   if ((profileData as any).church_location !== undefined) updates.church_location = (profileData as any).church_location;

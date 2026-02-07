@@ -157,6 +157,8 @@ export const useUserProfile = (): UseUserProfileReturn => {
     // Search settings
     searchRadius: supabaseUser?.search_radius || 25,
     spotifyUrl: supabaseUser?.spotify_url || null,
+    songName: (supabaseUser as any)?.song_name || null,
+    songArtist: (supabaseUser as any)?.song_artist || null,
     // Profile card fields
     churchName: supabaseUser?.church_name || null,
     churchLocation: supabaseUser?.church_location || null,
@@ -169,19 +171,14 @@ export const useUserProfile = (): UseUserProfileReturn => {
     faithInterests: supabaseUser?.faith_interests || [],
     entryNumber: supabaseUser?.entry_number || null,
     music: (() => {
-      // User's linked YouTube song takes priority over testimony music
-      const userSongUrl = supabaseUser?.spotify_url;
-      const testimonySongUrl = testimony?.music_spotify_url;
-      const songUrl = userSongUrl || testimonySongUrl || "https://www.youtube.com/watch?v=T1LRsp8qBY0";
-      const isUserSong = !!userSongUrl;
+      const songUrl = supabaseUser?.spotify_url;
+      if (!songUrl) return null;
 
       return {
-        platform: (isUserSong ? 'youtube' : testimony?.music_platform || 'youtube') as 'youtube' | 'spotify',
-        trackName: isUserSong ? 'Profile Song' : (testimony?.music_track_name || "YOUR WAY'S BETTER"),
-        artist: isUserSong ? '' : (testimony?.music_artist || "Forrest Frank"),
+        platform: 'youtube' as const,
+        trackName: (supabaseUser as any)?.song_name || 'My Song',
+        artist: (supabaseUser as any)?.song_artist || '',
         spotifyUrl: songUrl,
-        audioUrl: testimony?.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-        startTime: isUserSong ? 0 : (testimony?.music_start_time || 0)
       };
     })(),
     story: testimony ? {
