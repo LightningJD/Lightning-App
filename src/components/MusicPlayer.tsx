@@ -1,5 +1,6 @@
-import React from 'react';
-import { ExternalLink, Music } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ExternalLink, Play, Pause } from 'lucide-react';
+import { getYouTubeVideoId, getYouTubeEmbedUrl } from '../lib/musicUtils';
 
 interface MusicPlayerProps {
   platform: 'spotify' | 'youtube';
@@ -10,6 +11,32 @@ interface MusicPlayerProps {
 }
 
 const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, artist, nightMode }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const videoId = platform === 'youtube' ? getYouTubeVideoId(url) : null;
+
+  const handlePlayPause = () => {
+    if (!videoId) return;
+
+    if (!isLoaded) {
+      // First tap — load the iframe, it autoplays
+      setIsLoaded(true);
+      setIsPlaying(true);
+      return;
+    }
+
+    if (iframeRef.current?.contentWindow) {
+      const func = isPlaying ? 'pauseVideo' : 'playVideo';
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func, args: [] }),
+        '*'
+      );
+      setIsPlaying(!isPlaying);
+    }
+  };
+
   const platformIcon = platform === 'youtube' ? (
     <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
       <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -21,19 +48,33 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
   );
 
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+    <div
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
         nightMode
-          ? 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]'
-          : 'bg-white/30 border-white/40 hover:bg-white/40'
+          ? 'bg-white/[0.03] border-white/[0.06]'
+          : 'bg-white/30 border-white/40'
       }`}
       style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
     >
-      {/* Platform icon */}
-      {platformIcon}
+      {/* Play/Pause button */}
+      {videoId ? (
+        <button
+          onClick={handlePlayPause}
+          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+            isPlaying
+              ? nightMode
+                ? 'bg-blue-500/20 text-blue-400'
+                : 'bg-blue-500/15 text-blue-600'
+              : nightMode
+                ? 'bg-white/10 text-slate-300 hover:bg-white/15'
+                : 'bg-black/5 text-slate-600 hover:bg-black/10'
+          }`}
+        >
+          {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
+        </button>
+      ) : (
+        platformIcon
+      )}
 
       {/* Song info */}
       <div className="flex-1 min-w-0">
@@ -47,12 +88,35 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
         )}
       </div>
 
-      {/* Subtle music note + external link indicator */}
-      <div className={`flex items-center gap-1.5 flex-shrink-0 ${nightMode ? 'text-slate-600' : 'text-slate-300'}`}>
-        <Music className="w-3.5 h-3.5" />
-        <ExternalLink className="w-3.5 h-3.5" />
+      {/* Platform icon (when play button is showing) + external link */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {videoId && platformIcon}
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`p-1 rounded-md transition-colors ${
+            nightMode ? 'text-slate-600 hover:text-slate-400' : 'text-slate-300 hover:text-slate-500'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
       </div>
-    </a>
+
+      {/* Hidden YouTube iframe — only loaded on first play */}
+      {isLoaded && videoId && (
+        <iframe
+          ref={iframeRef}
+          width="0"
+          height="0"
+          src={getYouTubeEmbedUrl(videoId)}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          className="hidden"
+        />
+      )}
+    </div>
   );
 };
 
