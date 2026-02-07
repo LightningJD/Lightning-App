@@ -153,29 +153,31 @@ const MemberList: React.FC<MemberListProps> = ({
         </div>
       )}
 
-      {/* Search */}
-      <div className="px-4 py-3">
-        <div
-          className="flex items-center gap-2.5 px-4 py-2.5 rounded-full transition-all"
-          style={{
-            background: nm ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)',
-            border: `1px solid ${nm ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-          }}
-        >
-          <Search className={`w-4 h-4 flex-shrink-0 ${nm ? 'text-white/30' : 'text-black/30'}`} />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search members..."
-            className={`flex-1 bg-transparent outline-none text-sm ${
-              nm ? 'text-white placeholder-white/30' : 'text-black placeholder-black/30'
-            }`}
-          />
+      {/* Search — only shown on Members tab */}
+      {!showBanned && (
+        <div className="px-4 py-3">
+          <div
+            className="flex items-center gap-2.5 px-4 py-2.5 rounded-full transition-all"
+            style={{
+              background: nm ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)',
+              border: `1px solid ${nm ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+          >
+            <Search className={`w-4 h-4 flex-shrink-0 ${nm ? 'text-white/30' : 'text-black/30'}`} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search members..."
+              className={`flex-1 bg-transparent outline-none text-sm ${
+                nm ? 'text-white placeholder-white/30' : 'text-black placeholder-black/30'
+              }`}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Member list */}
       {!showBanned ? (
@@ -308,143 +310,146 @@ const MemberRow: React.FC<{
   onSetBanReason?: (reason: string) => void;
 }> = ({ member, nightMode: nm, canManage, roles, permissions, isDropdownOpen, onToggleDropdown, onAssignRole, onRemoveMember, canBan, onBanMember, banConfirmUserId, onSetBanConfirm, banReasonInput, onSetBanReason }) => {
   const user = member.user;
+  const showBanConfirm = banConfirmUserId === member.user_id && canBan && onBanMember && onSetBanConfirm && onSetBanReason;
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 transition-all ${
-      nm ? 'hover:bg-white/[0.03]' : 'hover:bg-black/[0.02]'
-    }`}>
-      {/* Avatar — Lightning gradient style */}
-      <div className="relative flex-shrink-0">
-        {user?.avatar_url ? (
-          <img src={user.avatar_url} alt={user.display_name} className="w-10 h-10 rounded-full object-cover" />
-        ) : (
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
-            style={{
-              background: nm
-                ? 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))'
-                : 'linear-gradient(135deg, rgba(0,0,0,0.06), rgba(0,0,0,0.03))',
-            }}
-          >
-            {user?.avatar_emoji || user?.display_name?.charAt(0)?.toUpperCase() || '?'}
-          </div>
-        )}
-        {user?.is_online && (
-          <span
-            className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2"
-            style={{
-              background: '#22c55e',
-              borderColor: nm ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)',
-              boxShadow: '0 0 8px rgba(34, 197, 94, 0.5)',
-            }}
-          />
-        )}
-      </div>
-
-      {/* Name & username */}
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-semibold truncate ${nm ? 'text-white' : 'text-black'}`}>
-          {user?.display_name || 'Unknown'}
-        </p>
-        <p className={`text-xs truncate ${nm ? 'text-white/40' : 'text-black/40'}`}>
-          @{user?.username || 'unknown'}
-        </p>
-      </div>
-
-      {/* Role badge — pill style */}
-      {member.role && (
-        <span
-          className="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0"
-          style={{
-            color: member.role.color,
-            background: `${member.role.color}15`,
-            border: `1px solid ${member.role.color}30`,
-          }}
-        >
-          {member.role.name}
-        </span>
-      )}
-
-      {/* Management controls */}
-      {canManage && (
-        <div className="relative flex items-center gap-1 flex-shrink-0">
-          {permissions.manage_roles && (
-            <div className="relative">
-              <button
-                onClick={onToggleDropdown}
-                className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                  nm ? 'hover:bg-white/10 text-white/50 hover:text-white/80' : 'hover:bg-black/5 text-black/40 hover:text-black/70'
-                }`}
-              >
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              {isDropdownOpen && (
-                <div
-                  className="absolute right-0 top-full mt-2 z-30 w-48 rounded-2xl shadow-2xl overflow-hidden"
-                  style={{
-                    background: nm ? 'rgba(20, 20, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(30px)',
-                    WebkitBackdropFilter: 'blur(30px)',
-                    border: `1px solid ${nm ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
-                    boxShadow: nm ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.1)',
-                  }}
-                >
-                  <div className={`px-4 py-2.5 text-xs font-bold ${nm ? 'text-white/40' : 'text-black/40'}`}>
-                    Assign Role
-                  </div>
-                  {roles.map(role => (
-                    <button
-                      key={role.id}
-                      onClick={() => { onAssignRole(member.user_id, role.id); onToggleDropdown(); }}
-                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5 transition-all ${
-                        role.id === member.role_id
-                          ? nm ? 'bg-white/10' : 'bg-black/5'
-                          : nm ? 'hover:bg-white/5' : 'hover:bg-black/[0.03]'
-                      }`}
-                    >
-                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: role.color, boxShadow: `0 0 6px ${role.color}40` }} />
-                      <span className={nm ? 'text-white' : 'text-black'}>{role.name}</span>
-                      {role.id === member.role_id && (
-                        <span className={`ml-auto text-xs font-semibold ${nm ? 'text-white/30' : 'text-black/30'}`}>current</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
+    <div>
+      <div className={`flex items-center gap-3 px-4 py-3 transition-all ${
+        nm ? 'hover:bg-white/[0.03]' : 'hover:bg-black/[0.02]'
+      }`}>
+        {/* Avatar — Lightning gradient style */}
+        <div className="relative flex-shrink-0">
+          {user?.avatar_url ? (
+            <img src={user.avatar_url} alt={user.display_name} className="w-10 h-10 rounded-full object-cover" />
+          ) : (
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
+              style={{
+                background: nm
+                  ? 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))'
+                  : 'linear-gradient(135deg, rgba(0,0,0,0.06), rgba(0,0,0,0.03))',
+              }}
+            >
+              {user?.avatar_emoji || user?.display_name?.charAt(0)?.toUpperCase() || '?'}
             </div>
           )}
-          {permissions.kick_members && (
-            <button
-              onClick={() => onRemoveMember(member.user_id)}
-              className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                nm ? 'hover:bg-red-500/15 text-white/30 hover:text-red-400' : 'hover:bg-red-50 text-black/25 hover:text-red-500'
-              }`}
-              title="Remove member"
-            >
-              <UserX className="w-4 h-4" />
-            </button>
-          )}
-          {canBan && onBanMember && onSetBanConfirm && (
-            <button
-              onClick={() => onSetBanConfirm(banConfirmUserId === member.user_id ? null : member.user_id)}
-              className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                nm ? 'hover:bg-red-500/15 text-white/30 hover:text-red-400' : 'hover:bg-red-50 text-black/25 hover:text-red-500'
-              }`}
-              title="Ban member"
-            >
-              <Ban className="w-4 h-4" />
-            </button>
+          {user?.is_online && (
+            <span
+              className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2"
+              style={{
+                background: '#22c55e',
+                borderColor: nm ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)',
+                boxShadow: '0 0 8px rgba(34, 197, 94, 0.5)',
+              }}
+            />
           )}
         </div>
-      )}
 
-      {/* Ban confirmation */}
-      {banConfirmUserId === member.user_id && canBan && onBanMember && onSetBanConfirm && onSetBanReason && (
+        {/* Name & username */}
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-semibold truncate ${nm ? 'text-white' : 'text-black'}`}>
+            {user?.display_name || 'Unknown'}
+          </p>
+          <p className={`text-xs truncate ${nm ? 'text-white/40' : 'text-black/40'}`}>
+            @{user?.username || 'unknown'}
+          </p>
+        </div>
+
+        {/* Role badge — pill style */}
+        {member.role && (
+          <span
+            className="text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+            style={{
+              color: member.role.color,
+              background: `${member.role.color}15`,
+              border: `1px solid ${member.role.color}30`,
+            }}
+          >
+            {member.role.name}
+          </span>
+        )}
+
+        {/* Management controls */}
+        {canManage && (
+          <div className="relative flex items-center gap-1 flex-shrink-0">
+            {permissions.manage_roles && (
+              <div className="relative">
+                <button
+                  onClick={onToggleDropdown}
+                  className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                    nm ? 'hover:bg-white/10 text-white/50 hover:text-white/80' : 'hover:bg-black/5 text-black/40 hover:text-black/70'
+                  }`}
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                {isDropdownOpen && (
+                  <div
+                    className="absolute right-0 top-full mt-2 z-30 w-48 rounded-2xl shadow-2xl overflow-hidden"
+                    style={{
+                      background: nm ? 'rgba(20, 20, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)',
+                      border: `1px solid ${nm ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+                      boxShadow: nm ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    <div className={`px-4 py-2.5 text-xs font-bold ${nm ? 'text-white/40' : 'text-black/40'}`}>
+                      Assign Role
+                    </div>
+                    {roles.map(role => (
+                      <button
+                        key={role.id}
+                        onClick={() => { onAssignRole(member.user_id, role.id); onToggleDropdown(); }}
+                        className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-2.5 transition-all ${
+                          role.id === member.role_id
+                            ? nm ? 'bg-white/10' : 'bg-black/5'
+                            : nm ? 'hover:bg-white/5' : 'hover:bg-black/[0.03]'
+                        }`}
+                      >
+                        <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: role.color, boxShadow: `0 0 6px ${role.color}40` }} />
+                        <span className={nm ? 'text-white' : 'text-black'}>{role.name}</span>
+                        {role.id === member.role_id && (
+                          <span className={`ml-auto text-xs font-semibold ${nm ? 'text-white/30' : 'text-black/30'}`}>current</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {permissions.kick_members && (
+              <button
+                onClick={() => onRemoveMember(member.user_id)}
+                className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                  nm ? 'hover:bg-red-500/15 text-white/30 hover:text-red-400' : 'hover:bg-red-50 text-black/25 hover:text-red-500'
+                }`}
+                title="Remove member"
+              >
+                <UserX className="w-4 h-4" />
+              </button>
+            )}
+            {canBan && onBanMember && onSetBanConfirm && (
+              <button
+                onClick={() => onSetBanConfirm(banConfirmUserId === member.user_id ? null : member.user_id)}
+                className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                  nm ? 'hover:bg-red-500/15 text-white/30 hover:text-red-400' : 'hover:bg-red-50 text-black/25 hover:text-red-500'
+                }`}
+                title="Ban member"
+              >
+                <Ban className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Ban confirmation — rendered below the member row */}
+      {showBanConfirm && (
         <div
-          className="col-span-full px-4 pb-3 pt-1"
+          className="px-4 pb-3 pt-2 mx-4 mb-2 rounded-xl"
           style={{
-            borderTop: `1px solid ${nm ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.08)'}`,
-            background: nm ? 'rgba(239,68,68,0.04)' : 'rgba(239,68,68,0.03)',
+            background: nm ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)',
+            border: `1px solid ${nm ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.1)'}`,
           }}
         >
           <p className={`text-xs font-semibold mb-1.5 ${nm ? 'text-red-300' : 'text-red-600'}`}>
@@ -457,7 +462,7 @@ const MemberRow: React.FC<{
             placeholder="Reason (optional)..."
             className={`w-full px-3 py-1.5 rounded-lg text-xs mb-2 ${
               nm ? 'text-white placeholder-white/30 bg-white/5 border border-white/10'
-              : 'text-black placeholder-black/30 bg-white/50 border border-black/08'
+              : 'text-black placeholder-black/30 bg-white/50 border border-black/10'
             }`}
           />
           <div className="flex gap-2">
