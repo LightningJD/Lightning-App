@@ -1366,6 +1366,9 @@ export const getTypingIndicators = async (channelId: string, currentUserId: stri
 export const searchChannelMessages = async (serverId: string, query: string, limit: number = 50): Promise<any[]> => {
   if (!supabase || !query.trim()) return [];
 
+  // Escape SQL LIKE wildcards in user input
+  const escapedQuery = query.replace(/%/g, '\\%').replace(/_/g, '\\_');
+
   // First get all channel IDs for this server
   const { data: channels } = await supabase
     .from('server_channels')
@@ -1381,7 +1384,7 @@ export const searchChannelMessages = async (serverId: string, query: string, lim
     // @ts-ignore
     .select('*, sender:users!sender_id(id, username, display_name, avatar_emoji), channel:server_channels!channel_id(id, name)')
     .in('channel_id', channelIds)
-    .ilike('content', `%${query}%`)
+    .ilike('content', `%${escapedQuery}%`)
     .order('created_at', { ascending: false })
     .limit(limit);
 

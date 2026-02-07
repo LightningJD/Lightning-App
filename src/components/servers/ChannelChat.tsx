@@ -336,7 +336,9 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   const handleMentionSelect = useCallback((member: any) => {
     const displayName = member.user?.display_name || member.user?.username || 'unknown';
     const before = newMessage.substring(0, mentionCursorPos);
-    const after = newMessage.substring(textareaRef.current?.selectionStart || mentionCursorPos + mentionFilter.length + 1);
+    // Skip past the @ symbol + whatever filter text was typed
+    const afterIndex = mentionCursorPos + 1 + mentionFilter.length;
+    const after = newMessage.substring(afterIndex);
     const newVal = `${before}@${displayName} ${after}`;
     setNewMessage(newVal);
     setShowMentionPicker(false);
@@ -608,8 +610,8 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   const renderMessageContent = (content: string) => {
     if (!content || content === '\u{1F4F7} Image') return null;
 
-    // Parse @mentions in message text
-    const parts = content.split(/(@\w[\w\s]*?)(?=\s|$)/g);
+    // Parse @mentions in message text — match @ followed by non-whitespace characters
+    const parts = content.split(/(@[^\s@]+(?:\s[^\s@]+)*)(?=\s|$)/g);
     return (
       <p className={`text-[15px] break-words whitespace-pre-wrap mt-0.5 leading-relaxed ${
         nightMode ? 'text-white/80' : 'text-black/80'

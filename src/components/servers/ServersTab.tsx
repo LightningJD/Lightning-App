@@ -343,12 +343,14 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
 
   const handleDeleteChannel = useCallback(async (channelId: string) => {
     await deleteChannelDb(channelId);
-    await refreshChannels();
+    const result = await getChannelsByServer(activeServerId || '');
+    const refreshedChannels = result.channels || [];
+    setCategories(result.categories || []);
+    setChannels(refreshedChannels);
     if (activeChannelId === channelId) {
-      const remaining = channels.filter(c => c.id !== channelId);
-      setActiveChannelId(remaining.length > 0 ? remaining[0].id : null);
+      setActiveChannelId(refreshedChannels.length > 0 ? refreshedChannels[0].id : null);
     }
-  }, [refreshChannels, activeChannelId, channels]);
+  }, [activeServerId, activeChannelId]);
 
   // Ban handlers
   const handleBanMember = useCallback(async (memberId: string, reason?: string) => {

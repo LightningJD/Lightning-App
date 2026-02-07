@@ -256,7 +256,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
 
   // Group channels by category
   const uncategorizedChannels = channels.filter(c => !c.category_id);
-  const categorizedGroups = categories
+  const categorizedGroups = [...categories]
     .sort((a, b) => a.position - b.position)
     .map(cat => ({
       ...cat,
@@ -320,14 +320,6 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                 onLongPress={(e) => handleChannelLongPress(channel.id, e)}
                 onTouchEnd={handleTouchEnd}
                 unreadCount={unreadCounts?.[channel.id] || 0}
-                isEditing={editingChannelId === channel.id}
-                editName={editChannelName}
-                editTopic={editChannelTopic}
-                onEditNameChange={setEditChannelName}
-                onEditTopicChange={setEditChannelTopic}
-                onSaveEdit={handleSaveChannelEdit}
-                onCancelEdit={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); }}
-                editNameRef={editingChannelId === channel.id ? channelEditNameRef : undefined}
               />
             ))}
           </div>
@@ -424,14 +416,6 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                     onLongPress={(e) => handleChannelLongPress(channel.id, e)}
                     onTouchEnd={handleTouchEnd}
                     unreadCount={unreadCounts?.[channel.id] || 0}
-                    isEditing={editingChannelId === channel.id}
-                    editName={editChannelName}
-                    editTopic={editChannelTopic}
-                    onEditNameChange={setEditChannelName}
-                    onEditTopicChange={setEditChannelTopic}
-                    onSaveEdit={handleSaveChannelEdit}
-                    onCancelEdit={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); }}
-                    editNameRef={editingChannelId === channel.id ? channelEditNameRef : undefined}
                   />
                 ))}
               </div>
@@ -746,15 +730,7 @@ const ChannelItem: React.FC<{
   onLongPress?: (e: React.TouchEvent) => void;
   onTouchEnd?: () => void;
   unreadCount?: number;
-  isEditing?: boolean;
-  editName?: string;
-  editTopic?: string;
-  onEditNameChange?: (v: string) => void;
-  onEditTopicChange?: (v: string) => void;
-  onSaveEdit?: () => void;
-  onCancelEdit?: () => void;
-  editNameRef?: React.RefObject<HTMLInputElement | null>;
-}> = ({ channel, isActive, nightMode, onClick, onContextMenu, onLongPress, onTouchEnd, unreadCount, isEditing: _isEditing, editNameRef: _editNameRef }) => {
+}> = ({ channel, isActive, nightMode, onClick, onContextMenu, onLongPress, onTouchEnd, unreadCount }) => {
   const hasUnread = (unreadCount || 0) > 0;
 
   return (
