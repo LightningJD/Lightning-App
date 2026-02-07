@@ -77,12 +77,10 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
         // Load nearby users (if location available) or all users as fallback
         let usersToShow = [];
 
-        // @ts-ignore - location type from profile
-        if (profile.location?.lat && profile.location?.lng) {
-          // @ts-ignore - location type from profile
+        if (profile.locationLat && profile.locationLng) {
           const nearby = await findNearbyUsers(
-            profile.location.lat,
-            profile.location.lng,
+            profile.locationLat,
+            profile.locationLng,
             profile.searchRadius || 25,
             profile.supabaseId
           );
@@ -150,7 +148,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               mutualFriends: mutualFriends?.length || 0,
               reason: mutualFriends?.length > 0
                 ? `${mutualFriends.length} mutual friend${mutualFriends.length > 1 ? 's' : ''}`
-                : profile.location?.lat && profile.location?.lng && (user as any).distance_miles ? 'Nearby' : 'Recommended',
+                : profile.locationLat && profile.locationLng && (user as any).distance_miles ? 'Nearby' : 'Recommended',
               friendshipStatus // 'pending', 'accepted', null
             };
           })
@@ -165,7 +163,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     };
 
     loadData();
-  }, [profile?.supabaseId, profile?.location?.lat, profile?.location?.lng]);
+  }, [profile?.supabaseId, profile?.locationLat, profile?.locationLng]);
 
   // Load public testimonies when testimonies tab is active
   useEffect(() => {

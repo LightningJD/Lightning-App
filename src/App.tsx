@@ -27,7 +27,7 @@ import LinkSpotify from './components/LinkSpotify';
 import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
 import { generateTestimony } from './lib/api/claude';
 import { useUserProfile } from './components/useUserProfile';
-import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId } from './lib/database';
+import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId } from './lib/database';
 import { supabase } from './lib/supabase';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
@@ -495,6 +495,17 @@ function App() {
 
       if (updated) {
         console.log('✅ Profile updated successfully!', updated);
+
+        // Save GPS coordinates if provided during profile creation
+        if ((profileData as any)._coords?.lat && (profileData as any)._coords?.lng) {
+          try {
+            await updateUserLocation(userProfile.supabaseId, (profileData as any)._coords.lat, (profileData as any)._coords.lng);
+            console.log('📍 Saved location coordinates during profile creation');
+          } catch (locErr) {
+            console.error('Failed to save location coordinates:', locErr);
+          }
+        }
+
         updateToSuccess(toastId, 'Profile setup complete! Welcome to Lightning!');
         setProfileCompleted(true);
         setShowProfileWizard(false);
@@ -552,6 +563,17 @@ function App() {
       if (updated) {
         console.log('✅ Profile updated successfully!', updated);
 
+        // Save GPS coordinates if provided
+        if (profileData._coords?.lat && profileData._coords?.lng) {
+          try {
+            await updateUserLocation(userProfile.supabaseId, profileData._coords.lat, profileData._coords.lng);
+            console.log('📍 Updated user location coordinates');
+          } catch (locErr) {
+            console.error('Failed to update location coordinates:', locErr);
+            // Non-fatal: profile was saved, just coordinates failed
+          }
+        }
+
         // Optimistically update local profile so changes reflect immediately
         setLocalProfile((prev: any) => {
           if (!prev) return prev;
@@ -562,6 +584,10 @@ function App() {
           if (profileData.location !== undefined) next.location = profileData.location;
           if (profileData.avatar !== undefined) next.avatar = profileData.avatar;
           if (profileData.avatarUrl !== undefined) next.avatarImage = profileData.avatarUrl;
+          if (profileData._coords) {
+            next.locationLat = profileData._coords.lat;
+            next.locationLng = profileData._coords.lng;
+          }
           return next;
         });
 

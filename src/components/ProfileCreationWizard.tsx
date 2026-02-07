@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, Check } from 'lucide-react';
+import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, Check, Navigation } from 'lucide-react';
+import { useGeolocation } from '../hooks/useGeolocation';
 
 interface FormData {
   displayName: string;
@@ -26,6 +27,8 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [detectedCoords, setDetectedCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const { detect, isDetecting, error: geoError } = useGeolocation();
 
   // Avatar options (emojis)
   const avatarOptions = [
@@ -123,8 +126,8 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Pass form data to parent component
-      await onComplete(formData);
+      // Pass form data to parent component (with GPS coords if detected)
+      await onComplete({ ...formData, _coords: detectedCoords } as any);
     } catch (error) {
       console.error('Error creating profile:', error);
       setErrors({ submit: 'Failed to create profile. Please try again.' });
@@ -241,6 +244,41 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                   } ${errors.location ? 'border-red-500' : ''}`}
                 />
               </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const result = await detect();
+                    if (result.cityName) {
+                      handleInputChange('location', result.cityName);
+                    }
+                    setDetectedCoords({ lat: result.lat, lng: result.lng });
+                  } catch {
+                    // Error is already set in the hook
+                  }
+                }}
+                disabled={isDetecting}
+                className={`mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  nightMode
+                    ? 'bg-white/5 hover:bg-white/10 text-blue-400 border border-white/10'
+                    : 'bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200'
+                } ${isDetecting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {isDetecting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Detecting location...
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-4 h-4" />
+                    Use my location
+                  </>
+                )}
+              </button>
+              {geoError && (
+                <p className="text-amber-500 text-xs mt-1">{geoError}</p>
+              )}
               {errors.location && (
                 <p className="text-red-500 text-xs mt-1">{errors.location}</p>
               )}
