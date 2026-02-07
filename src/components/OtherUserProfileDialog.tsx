@@ -335,10 +335,27 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               </button>
             )}
 
+            {/* Dot connector to testimony */}
+            {(user.bio || user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved || (user.music && user.music.spotifyUrl)) && user.story && user.story.content && (
+              <div className="flex flex-col items-center py-1">
+                <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    background: nightMode ? 'rgba(96,165,250,0.5)' : 'rgba(59,130,246,0.45)',
+                    boxShadow: nightMode
+                      ? '0 0 8px rgba(96,165,250,0.4)'
+                      : '0 0 6px rgba(59,130,246,0.3)',
+                  }}
+                />
+                <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
+              </div>
+            )}
+
             {/* Testimony Section */}
             {user.story && user.story.content && (
               <div
-                className={`p-6 rounded-xl border mt-6 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/30 shadow-lg'}`}
+                className={`p-6 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/30 shadow-lg'}`}
                 style={
                   nightMode
                     ? {}

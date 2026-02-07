@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import MusicPlayer from './MusicPlayer';
 
 interface ProfileCardProps {
@@ -55,6 +56,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   compact = false,
   hideStats = false,
 }) => {
+  const [expanded, setExpanded] = useState(false);
   const currentYear = new Date().getFullYear();
   const yearsWalking = profile.yearSaved ? currentYear - profile.yearSaved : null;
 
@@ -63,6 +65,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const hasInterests = profile.faithInterests && profile.faithInterests.length > 0;
   const hasJourney = profile.yearSaved || profile.isBaptized;
   const hasStats = profile.story?.id && !hideStats;
+  const hasBio = profile.bio && profile.bio !== 'Welcome to Lightning! Share your testimony to inspire others.';
+  const hasMusic = profile.music && profile.music.spotifyUrl;
+
+  // Expandable sections: church, interests, journey
+  const hasExpandable = hasChurchInfo || hasInterests || hasJourney;
 
   return (
     <div className="relative">
@@ -106,8 +113,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <div className={`flex-1 h-px ${nightMode ? 'bg-white/[0.08]' : 'bg-black/[0.06]'}`} />
           </div>
 
-          {/* Bio */}
-          {profile.bio && profile.bio !== 'Welcome to Lightning! Share your testimony to inspire others.' && (
+          {/* Bio — Always visible */}
+          {hasBio && (
             <p className={`text-sm leading-relaxed ${
               nightMode ? 'text-slate-300' : 'text-slate-600'
             }`}>
@@ -115,7 +122,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </p>
           )}
 
-          {/* Favorite Verse (V15 style - left border accent) */}
+          {/* Favorite Verse — Always visible */}
           {hasVerse && (
             <div
               className="rounded-xl p-4"
@@ -142,132 +149,176 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           )}
 
-          {/* Church Section */}
-          {hasChurchInfo && (
-            <div
-              className={`rounded-xl p-3 border ${
-                nightMode
-                  ? 'bg-white/[0.03] border-white/[0.06]'
-                  : 'bg-white/30 border-white/40'
-              }`}
-              style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
-            >
-              <div className={`text-[11px] font-bold uppercase tracking-wide mb-1.5 ${
-                nightMode ? 'text-slate-500' : 'text-slate-400'
-              }`}>
-                Church
-              </div>
-              <div className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                ⛪ {profile.churchName}
-              </div>
-              {profile.denomination && (
-                <div className={`text-xs mt-0.5 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                  ✝️ {profile.denomination}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Music Player */}
-          {profile.music && profile.music.spotifyUrl && (
+          {/* Music Player — Always visible */}
+          {hasMusic && (
             <MusicPlayer
-              url={profile.music.spotifyUrl}
-              trackName={profile.music.trackName}
-              artist={profile.music.artist}
+              url={profile.music!.spotifyUrl!}
+              trackName={profile.music!.trackName}
+              artist={profile.music!.artist}
               nightMode={nightMode}
             />
           )}
 
-          {/* Faith Interests */}
-          {hasInterests && (
-            <div
-              className={`rounded-xl p-3 border ${
-                nightMode
-                  ? 'bg-white/[0.03] border-white/[0.06]'
-                  : 'bg-white/30 border-white/40'
-              }`}
-              style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
-            >
-              <div className={`text-[11px] font-bold uppercase tracking-wide mb-2.5 ${
-                nightMode ? 'text-slate-500' : 'text-slate-400'
-              }`}>
-                Faith Interests
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {profile.faithInterests!.map((interest, i) => (
-                  <span
-                    key={i}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
+          {/* Expand/Collapse trigger for church, interests, journey */}
+          {hasExpandable && (
+            <>
+              {/* Expand button when collapsed */}
+              {!expanded && (
+                <button
+                  onClick={() => setExpanded(true)}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium rounded-lg transition-colors ${
+                    nightMode
+                      ? 'text-slate-500 hover:text-slate-400'
+                      : 'text-slate-400 hover:text-slate-500'
+                  }`}
+                >
+                  {hasChurchInfo && <span>⛪ Church</span>}
+                  {hasChurchInfo && (hasInterests || hasJourney) && <span>·</span>}
+                  {hasInterests && <span>🙏 Interests</span>}
+                  {hasInterests && hasJourney && <span>·</span>}
+                  {hasJourney && <span>📅 Journey</span>}
+                  <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                </button>
+              )}
+
+              {/* Expanded sections */}
+              {expanded && (
+                <>
+                  {/* Divider */}
+                  <div className={`h-px ${nightMode ? 'bg-blue-400/15' : 'bg-blue-500/10'}`} />
+
+                  {/* Church Section */}
+                  {hasChurchInfo && (
+                    <div
+                      className={`rounded-xl p-3 border ${
+                        nightMode
+                          ? 'bg-white/[0.03] border-white/[0.06]'
+                          : 'bg-white/30 border-white/40'
+                      }`}
+                      style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
+                    >
+                      <div className={`text-[11px] font-bold uppercase tracking-wide mb-1.5 ${
+                        nightMode ? 'text-slate-500' : 'text-slate-400'
+                      }`}>
+                        Church
+                      </div>
+                      <div className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                        ⛪ {profile.churchName}
+                      </div>
+                      {profile.denomination && (
+                        <div className={`text-xs mt-0.5 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                          ✝️ {profile.denomination}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Faith Interests */}
+                  {hasInterests && (
+                    <div
+                      className={`rounded-xl p-3 border ${
+                        nightMode
+                          ? 'bg-white/[0.03] border-white/[0.06]'
+                          : 'bg-white/30 border-white/40'
+                      }`}
+                      style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
+                    >
+                      <div className={`text-[11px] font-bold uppercase tracking-wide mb-2.5 ${
+                        nightMode ? 'text-slate-500' : 'text-slate-400'
+                      }`}>
+                        Faith Interests
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.faithInterests!.map((interest, i) => (
+                          <span
+                            key={i}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
+                              nightMode
+                                ? 'bg-[rgba(79,150,255,0.1)] border-[rgba(79,150,255,0.2)] text-[#93bbff]'
+                                : 'bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.2)] text-blue-700'
+                            }`}
+                          >
+                            {INTEREST_EMOJIS[interest] || '✨'} {interest}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Journey / Milestones */}
+                  {hasJourney && (
+                    <div
+                      className={`rounded-xl p-3 border ${
+                        nightMode
+                          ? 'bg-white/[0.03] border-white/[0.06]'
+                          : 'bg-white/30 border-white/40'
+                      }`}
+                      style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
+                    >
+                      <div className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${
+                        nightMode ? 'text-slate-500' : 'text-slate-400'
+                      }`}>
+                        Journey
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.yearSaved && (
+                          <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border ${
+                            nightMode
+                              ? 'bg-white/5 border-white/10 text-slate-300'
+                              : 'bg-white/25 border-white/30 text-slate-700'
+                          }`}>
+                            📅 Saved {profile.yearSaved}
+                          </span>
+                        )}
+                        {profile.isBaptized && (
+                          <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border ${
+                            nightMode
+                              ? 'bg-white/5 border-white/10 text-slate-300'
+                              : 'bg-white/25 border-white/30 text-slate-700'
+                          }`}>
+                            💧 Baptized{profile.yearBaptized ? ` ${profile.yearBaptized}` : ''}
+                          </span>
+                        )}
+                      </div>
+
+                      {yearsWalking !== null && yearsWalking > 0 && (
+                        <div className="mt-3">
+                          <div className="flex justify-between items-center text-[11px] mb-1">
+                            <span className={nightMode ? 'text-slate-400' : 'text-slate-500'}>Walk with Christ</span>
+                            <span className={`font-semibold ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                              {yearsWalking} {yearsWalking === 1 ? 'year' : 'years'}
+                            </span>
+                          </div>
+                          <div className={`h-1 rounded-full overflow-hidden ${
+                            nightMode ? 'bg-white/[0.06]' : 'bg-black/[0.06]'
+                          }`}>
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${Math.min(100, (yearsWalking / 50) * 100)}%`,
+                                background: 'linear-gradient(90deg, #4faaf8, #2563eb)',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Collapse button */}
+                  <button
+                    onClick={() => setExpanded(false)}
+                    className={`flex items-center justify-center gap-1 py-1 text-[11px] font-medium rounded-lg transition-colors ${
                       nightMode
-                        ? 'bg-[rgba(79,150,255,0.1)] border-[rgba(79,150,255,0.2)] text-[#93bbff]'
-                        : 'bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.2)] text-blue-700'
+                        ? 'text-blue-400 hover:text-blue-300'
+                        : 'text-blue-600 hover:text-blue-700'
                     }`}
                   >
-                    {INTEREST_EMOJIS[interest] || '✨'} {interest}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Journey / Milestones */}
-          {hasJourney && (
-            <div
-              className={`rounded-xl p-3 border ${
-                nightMode
-                  ? 'bg-white/[0.03] border-white/[0.06]'
-                  : 'bg-white/30 border-white/40'
-              }`}
-              style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
-            >
-              <div className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${
-                nightMode ? 'text-slate-500' : 'text-slate-400'
-              }`}>
-                Journey
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {profile.yearSaved && (
-                  <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                    nightMode
-                      ? 'bg-white/5 border-white/10 text-slate-300'
-                      : 'bg-white/25 border-white/30 text-slate-700'
-                  }`}>
-                    📅 Saved {profile.yearSaved}
-                  </span>
-                )}
-                {profile.isBaptized && (
-                  <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                    nightMode
-                      ? 'bg-white/5 border-white/10 text-slate-300'
-                      : 'bg-white/25 border-white/30 text-slate-700'
-                  }`}>
-                    💧 Baptized{profile.yearBaptized ? ` ${profile.yearBaptized}` : ''}
-                  </span>
-                )}
-              </div>
-
-              {yearsWalking !== null && yearsWalking > 0 && (
-                <div className="mt-3">
-                  <div className="flex justify-between items-center text-[11px] mb-1">
-                    <span className={nightMode ? 'text-slate-400' : 'text-slate-500'}>Walk with Christ</span>
-                    <span className={`font-semibold ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                      {yearsWalking} {yearsWalking === 1 ? 'year' : 'years'}
-                    </span>
-                  </div>
-                  <div className={`h-1 rounded-full overflow-hidden ${
-                    nightMode ? 'bg-white/[0.06]' : 'bg-black/[0.06]'
-                  }`}>
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${Math.min(100, (yearsWalking / 50) * 100)}%`,
-                        background: 'linear-gradient(90deg, #4faaf8, #2563eb)',
-                      }}
-                    />
-                  </div>
-                </div>
+                    Less <ChevronUp className="w-3.5 h-3.5" />
+                  </button>
+                </>
               )}
-            </div>
+            </>
           )}
 
           {/* Stats - compact inline style */}

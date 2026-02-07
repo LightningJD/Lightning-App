@@ -261,6 +261,23 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         </div>
       )}
 
+      {/* Dot connector between Faith Profile and Testimony */}
+      {(profile.bio || profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved || (profile.music && profile.music.spotifyUrl)) && profile?.story?.id && (
+        <div className="flex flex-col items-center py-1">
+          <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{
+              background: nightMode ? 'rgba(96,165,250,0.5)' : 'rgba(59,130,246,0.45)',
+              boxShadow: nightMode
+                ? '0 0 8px rgba(96,165,250,0.4)'
+                : '0 0 6px rgba(59,130,246,0.3)',
+            }}
+          />
+          <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
+        </div>
+      )}
+
       {/* Testimony Share Modal */}
       <TestimonyShareModal
         nightMode={nightMode}
