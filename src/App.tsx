@@ -146,6 +146,16 @@ function App() {
     }
   }, [userProfile?.supabaseId]); // Only run when user ID changes, not on every profile update
 
+  // Update theme-color meta tag and body/html background based on night/day mode
+  React.useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const darkBg = '#0a0a0a';
+    const lightBg = '#E8F3FE';
+    if (meta) meta.setAttribute('content', nightMode ? darkBg : lightBg);
+    document.documentElement.style.backgroundColor = nightMode ? darkBg : lightBg;
+    document.body.style.backgroundColor = nightMode ? darkBg : lightBg;
+  }, [nightMode]);
+
   // Poll for friend request badges (Connect tab) every 30 seconds
   React.useEffect(() => {
     if (!userProfile?.supabaseId) return;
