@@ -239,11 +239,6 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                 compact
                 hideStats
                 profile={{
-                  username: user.username,
-                  displayName: user.displayName,
-                  avatar: user.avatar,
-                  avatarImage: user.avatarImage,
-                  location: user.location,
                   churchName: user.churchName,
                   churchLocation: user.churchLocation,
                   denomination: user.denomination,

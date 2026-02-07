@@ -1,14 +1,8 @@
 import React from 'react';
-import { MapPin } from 'lucide-react';
 
 interface ProfileCardProps {
   nightMode: boolean;
   profile: {
-    username?: string;
-    displayName?: string;
-    avatar?: string;
-    avatarImage?: string;
-    location?: string;
     churchName?: string;
     churchLocation?: string;
     denomination?: string;
@@ -28,7 +22,6 @@ interface ProfileCardProps {
   };
   compact?: boolean;
   hideStats?: boolean;
-  onAvatarClick?: () => void;
 }
 
 // Map of faith interest labels to emojis
@@ -55,7 +48,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   profile,
   compact = false,
   hideStats = false,
-  onAvatarClick
 }) => {
   const currentYear = new Date().getFullYear();
   const yearsWalking = profile.yearSaved ? currentYear - profile.yearSaved : null;
@@ -97,52 +89,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           boxShadow: '0 4px 20px rgba(0,0,0,0.05), inset 0 1px 2px rgba(255,255,255,0.4)',
         }}
       >
-        {/* V4 HEADER: Centered avatar, name, location */}
-        <div className="pt-6 pb-4 px-5 text-center">
-          <div
-            className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl mx-auto flex-shrink-0 overflow-hidden ${
-              onAvatarClick ? 'cursor-pointer select-none' : ''
-            }`}
-            style={{
-              background: nightMode
-                ? 'linear-gradient(to bottom right, #87ceeb, #60a5fa, #3b82f6)'
-                : 'linear-gradient(to bottom right, #c084fc, #ec4899)',
-              border: nightMode ? '3px solid #0a0a0a' : '3px solid white',
-            }}
-            onClick={onAvatarClick}
-          >
-            {profile.avatarImage ? (
-              <img
-                src={profile.avatarImage}
-                alt={profile.displayName || 'Avatar'}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              profile.avatar || '👤'
-            )}
-          </div>
-
-          <div className={`text-lg font-extrabold mt-3 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-            {profile.username || 'user'}
-          </div>
-          <div className={`text-sm ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            {profile.displayName || 'User'}
-          </div>
-          <div className={`text-xs mt-1 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            {profile.location && (
-              <span>📍 {profile.location}</span>
-            )}
-            {profile.location && profile.churchName && <span> • </span>}
-            {profile.churchName && (
-              <span>⛪ {profile.churchName}</span>
-            )}
-          </div>
-
-          <div className={`h-px my-4 ${nightMode ? 'bg-white/[0.08]' : 'bg-black/[0.06]'}`} />
-        </div>
-
         {/* V11 STACKED SECTIONS + V15 VERSE */}
-        <div className="px-4 pb-4 flex flex-col gap-3 -mt-2">
+        <div className="p-4 flex flex-col gap-3">
 
           {/* Church Section */}
           {hasChurchInfo && (

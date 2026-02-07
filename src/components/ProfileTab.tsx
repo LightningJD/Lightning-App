@@ -265,11 +265,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           <ProfileCard
             nightMode={nightMode}
             profile={{
-              username: profile.username,
-              displayName: profile.displayName,
-              avatar: profile.avatar,
-              avatarImage: profile.avatarImage,
-              location: profile.location,
               churchName: profile.churchName,
               churchLocation: profile.churchLocation,
               denomination: profile.denomination,
@@ -286,7 +281,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                 likeCount: profile.story.likeCount,
               } : null,
             }}
-            onAvatarClick={handleAvatarTap}
           />
         </div>
       )}
