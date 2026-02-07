@@ -184,7 +184,6 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
     if (result) {
       setServers(prev => {
         const remaining = prev.filter(s => s.id !== activeServerId);
-        // Use the filtered list (fresh state) to pick the next active server
         setActiveServerId(remaining.length > 0 ? remaining[0]?.id || null : null);
         return remaining;
       });
@@ -251,19 +250,19 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
   if (!loading && servers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-20 px-6">
-        <div className="text-5xl mb-4">⛪</div>
+        <div className="text-6xl mb-5">{'\u{26EA}'}</div>
         <h2 className={`text-xl font-bold mb-2 ${nightMode ? 'text-white' : 'text-black'}`}>
           No Servers Yet
         </h2>
-        <p className={`text-center mb-6 ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
+        <p className={`text-center mb-6 max-w-xs ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
           Create a server for your church or community, or join one with an invite link.
         </p>
         <button
           onClick={() => setShowCreateServer(true)}
-          className="px-6 py-3 rounded-xl text-white font-semibold transition-all active:scale-95"
+          className="px-8 py-3.5 rounded-xl text-white font-bold transition-all active:scale-95 hover:scale-[1.02]"
           style={{
             background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+            boxShadow: '0 4px 16px rgba(59, 130, 246, 0.35)',
           }}
         >
           Create a Server
@@ -344,8 +343,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-3">💬</div>
-          <p className={nightMode ? 'text-white/40' : 'text-black/40'}>
+          <div className="text-5xl mb-4">{'\u{1F4AC}'}</div>
+          <p className={`text-sm ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
             Select a channel to start chatting
           </p>
         </div>
@@ -369,7 +368,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
         <ChannelSidebar
           nightMode={nightMode}
           serverName={activeServer.name}
-          serverEmoji={activeServer.icon_emoji || '⛪'}
+          serverEmoji={activeServer.icon_emoji || '\u{26EA}'}
           categories={categories}
           channels={channels}
           activeChannelId={activeChannelId}

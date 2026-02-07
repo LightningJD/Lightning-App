@@ -25,16 +25,10 @@ interface ServerSettingsProps {
   onGenerateInvite: () => Promise<string | null>;
 }
 
-const SERVER_EMOJIS = ['⛪', '✝️', '🕊️', '🙏', '⭐', '🔥', '💒', '📖', '🌟', '💜', '🏠', '🎵'];
+const SERVER_EMOJIS = ['\u{26EA}', '\u{271D}\u{FE0F}', '\u{1F54A}\u{FE0F}', '\u{1F64F}', '\u{2B50}', '\u{1F525}', '\u{1F492}', '\u{1F4D6}', '\u{1F31F}', '\u{1F49C}', '\u{1F3E0}', '\u{1F3B5}'];
 
 const ServerSettings: React.FC<ServerSettingsProps> = ({
-  nightMode,
-  server,
-  permissions,
-  onUpdate,
-  onDelete,
-  onBack,
-  onGenerateInvite,
+  nightMode, server, permissions, onUpdate, onDelete, onBack, onGenerateInvite,
 }) => {
   const [name, setName] = useState(server.name);
   const [description, setDescription] = useState(server.description || '');
@@ -46,20 +40,13 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    const changed =
-      name !== server.name ||
-      description !== (server.description || '') ||
-      iconEmoji !== server.icon_emoji;
+    const changed = name !== server.name || description !== (server.description || '') || iconEmoji !== server.icon_emoji;
     setHasChanges(changed);
   }, [name, description, iconEmoji, server]);
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onUpdate({
-      name: name.trim(),
-      description: description.trim(),
-      icon_emoji: iconEmoji,
-    });
+    onUpdate({ name: name.trim(), description: description.trim(), icon_emoji: iconEmoji });
     setHasChanges(false);
   };
 
@@ -69,101 +56,76 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
       await navigator.clipboard.writeText(inviteCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard API may not be available
-    }
+    } catch { /* Clipboard API may not be available */ }
   };
 
   const handleGenerateInvite = async () => {
     setGeneratingInvite(true);
     const code = await onGenerateInvite();
-    if (code) {
-      setInviteCode(code);
-    }
+    if (code) setInviteCode(code);
     setGeneratingInvite(false);
   };
 
   const handleDelete = () => {
-    if (showDeleteConfirm) {
-      onDelete();
-    } else {
-      setShowDeleteConfirm(true);
-    }
+    if (showDeleteConfirm) onDelete();
+    else setShowDeleteConfirm(true);
   };
 
-  const glassBackground = nightMode
-    ? 'rgba(255, 255, 255, 0.05)'
-    : 'rgba(255, 255, 255, 0.7)';
-  const glassBorder = nightMode
-    ? '1px solid rgba(255, 255, 255, 0.08)'
-    : '1px solid rgba(0, 0, 0, 0.08)';
-  const textPrimary = nightMode ? 'text-white' : 'text-slate-900';
-  const textSecondary = nightMode ? 'text-slate-400' : 'text-slate-500';
-  const inputClasses = `w-full px-4 py-2.5 rounded-xl border transition-colors ${
-    nightMode
-      ? 'bg-white/5 border-white/10 text-white placeholder-white/30'
-      : 'bg-white border-slate-200 text-black placeholder-slate-400'
-  }`;
+  const nm = nightMode;
+  const cardStyle = {
+    background: nm ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+    border: `1px solid ${nm ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+  };
+
+  const inputStyle = {
+    background: nm ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.6)',
+    border: `1px solid ${nm ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+  };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div
+      className="flex flex-col h-full overflow-y-auto"
+      style={{
+        background: nm ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)',
+        backdropFilter: 'blur(30px)',
+        WebkitBackdropFilter: 'blur(30px)',
+      }}
+    >
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-4 py-3 sticky top-0 z-10"
+        className="flex items-center gap-3 px-5 py-3.5 sticky top-0 z-10"
         style={{
-          background: nightMode
-            ? 'rgba(10, 10, 10, 0.95)'
-            : 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: glassBorder,
+          background: nm ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.7)',
+          backdropFilter: 'blur(30px)',
+          WebkitBackdropFilter: 'blur(30px)',
+          borderBottom: `1px solid ${nm ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
         }}
       >
-        <button
-          onClick={onBack}
-          className={`p-1.5 rounded-lg transition-colors ${
-            nightMode ? 'hover:bg-white/10' : 'hover:bg-slate-100'
-          }`}
-        >
-          <ArrowLeft className={`w-5 h-5 ${textPrimary}`} />
+        <button onClick={onBack} className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${nm ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
+          <ArrowLeft className={`w-5 h-5 ${nm ? 'text-white' : 'text-black'}`} />
         </button>
-        <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5" style={{ color: 'rgba(79, 150, 255, 0.85)' }} />
-          <h2 className={`text-lg font-bold ${textPrimary}`}>Server Settings</h2>
+        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)', boxShadow: '0 2px 8px rgba(59,130,246,0.25)' }}>
+          <Shield className="w-4 h-4 text-white" />
         </div>
+        <h2 className={`text-lg font-bold ${nm ? 'text-white' : 'text-black'}`}>Server Settings</h2>
       </div>
 
-      <div className="flex-1 p-4 space-y-5">
+      <div className="flex-1 p-4 space-y-4">
         {/* Server Icon */}
-        <div
-          className="rounded-2xl p-4"
-          style={{
-            background: glassBackground,
-            border: glassBorder,
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <label className={`block text-sm font-medium mb-3 ${textPrimary}`}>
-            Server Icon
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {SERVER_EMOJIS.map((emoji) => (
+        <div className="rounded-2xl p-5" style={cardStyle}>
+          <label className={`block text-sm font-semibold mb-3 ${nm ? 'text-white/70' : 'text-black/70'}`}>Server Icon</label>
+          <div className="flex flex-wrap gap-2.5">
+            {SERVER_EMOJIS.map(emoji => (
               <button
                 key={emoji}
                 onClick={() => setIconEmoji(emoji)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all ${
-                  iconEmoji === emoji
-                    ? 'ring-2 ring-blue-500 scale-110'
-                    : nightMode
-                      ? 'hover:bg-white/10'
-                      : 'hover:bg-slate-100'
-                }`}
+                className="w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all duration-300 hover:scale-110 active:scale-95"
                 style={{
-                  background:
-                    iconEmoji === emoji
-                      ? nightMode
-                        ? 'rgba(79, 150, 255, 0.2)'
-                        : 'rgba(79, 150, 255, 0.1)'
-                      : 'transparent',
+                  background: iconEmoji === emoji ? 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)' : nm ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  boxShadow: iconEmoji === emoji ? '0 0 16px rgba(79,150,255,0.35)' : 'none',
+                  border: iconEmoji === emoji ? '2px solid rgba(79,150,255,0.5)' : `2px solid ${nm ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
                 }}
               >
                 {emoji}
@@ -173,120 +135,53 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
         </div>
 
         {/* Server Name */}
-        <div
-          className="rounded-2xl p-4"
-          style={{
-            background: glassBackground,
-            border: glassBorder,
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>
-            Server Name
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Server name"
-            maxLength={50}
-            className={inputClasses}
-            disabled={!permissions.manage_server}
+        <div className="rounded-2xl p-5" style={cardStyle}>
+          <label className={`block text-sm font-semibold mb-2 ${nm ? 'text-white/70' : 'text-black/70'}`}>Server Name</label>
+          <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Server name" maxLength={50}
+            className={`w-full px-4 py-3 rounded-xl text-sm transition-all ${nm ? 'text-white placeholder-white/30' : 'text-black placeholder-black/40'}`}
+            style={inputStyle} disabled={!permissions.manage_server}
           />
         </div>
 
         {/* Description */}
-        <div
-          className="rounded-2xl p-4"
-          style={{
-            background: glassBackground,
-            border: glassBorder,
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>
-            Description{' '}
-            <span className={`font-normal ${textSecondary}`}>(optional)</span>
+        <div className="rounded-2xl p-5" style={cardStyle}>
+          <label className={`block text-sm font-semibold mb-2 ${nm ? 'text-white/70' : 'text-black/70'}`}>
+            Description <span className={`font-normal ${nm ? 'text-white/30' : 'text-black/30'}`}>(optional)</span>
           </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="What's your server about?"
-            rows={3}
-            maxLength={200}
-            className={`${inputClasses} resize-none`}
-            disabled={!permissions.manage_server}
+          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="What's your server about?" rows={3} maxLength={200}
+            className={`w-full px-4 py-3 rounded-xl text-sm resize-none transition-all ${nm ? 'text-white placeholder-white/30' : 'text-black placeholder-black/40'}`}
+            style={inputStyle} disabled={!permissions.manage_server}
           />
         </div>
 
         {/* Invite Code */}
-        <div
-          className="rounded-2xl p-4"
-          style={{
-            background: glassBackground,
-            border: glassBorder,
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-            Invite Code
-          </label>
+        <div className="rounded-2xl p-5" style={cardStyle}>
+          <label className={`block text-sm font-semibold mb-3 ${nm ? 'text-white/70' : 'text-black/70'}`}>Invite Code</label>
           {inviteCode ? (
             <div className="flex items-center gap-2">
-              <div
-                className={`flex-1 px-4 py-2.5 rounded-xl font-mono text-sm truncate ${
-                  nightMode
-                    ? 'bg-white/5 text-white/70'
-                    : 'bg-slate-50 text-slate-600'
-                }`}
-              >
+              <div className={`flex-1 px-4 py-2.5 rounded-xl font-mono text-sm truncate ${nm ? 'text-white/70' : 'text-black/60'}`}
+                style={{ background: nm ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }}>
                 {inviteCode}
               </div>
-              <button
-                onClick={handleCopyInvite}
-                className="p-2.5 rounded-xl transition-all active:scale-95"
-                style={{
-                  background: copied
-                    ? 'rgba(34, 197, 94, 0.2)'
-                    : 'rgba(79, 150, 255, 0.15)',
-                }}
-              >
-                <Copy
-                  className="w-4 h-4"
-                  style={{
-                    color: copied ? '#22c55e' : 'rgba(79, 150, 255, 0.85)',
-                  }}
-                />
+              <button onClick={handleCopyInvite} className="p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95"
+                style={{ background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(79,150,255,0.12)' }}>
+                <Copy className="w-4 h-4" style={{ color: copied ? '#22c55e' : '#4F96FF' }} />
               </button>
               {permissions.create_invite && (
-                <button
-                  onClick={handleGenerateInvite}
-                  disabled={generatingInvite}
-                  className="p-2.5 rounded-xl transition-all active:scale-95 disabled:opacity-50"
-                  style={{ background: 'rgba(79, 150, 255, 0.15)' }}
-                >
-                  <RefreshCw
-                    className={`w-4 h-4 ${generatingInvite ? 'animate-spin' : ''}`}
-                    style={{ color: 'rgba(79, 150, 255, 0.85)' }}
-                  />
+                <button onClick={handleGenerateInvite} disabled={generatingInvite}
+                  className="p-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                  style={{ background: 'rgba(79,150,255,0.12)' }}>
+                  <RefreshCw className={`w-4 h-4 ${generatingInvite ? 'animate-spin' : ''}`} style={{ color: '#4F96FF' }} />
                 </button>
               )}
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <p className={`flex-1 text-sm ${textSecondary}`}>
-                No invite code generated yet
-              </p>
+              <p className={`flex-1 text-sm ${nm ? 'text-white/40' : 'text-black/40'}`}>No invite code generated yet</p>
               {permissions.create_invite && (
-                <button
-                  onClick={handleGenerateInvite}
-                  disabled={generatingInvite}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-white transition-all active:scale-95 disabled:opacity-50"
-                  style={{
-                    background: 'rgba(79, 150, 255, 0.85)',
-                    boxShadow: '0 2px 8px rgba(79, 150, 255, 0.3)',
-                  }}
-                >
+                <button onClick={handleGenerateInvite} disabled={generatingInvite}
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)', boxShadow: '0 2px 8px rgba(59,130,246,0.3)' }}>
                   {generatingInvite ? 'Generating...' : 'Generate New'}
                 </button>
               )}
@@ -295,18 +190,9 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
         </div>
 
         {/* Server Info */}
-        <div
-          className="rounded-2xl p-4"
-          style={{
-            background: glassBackground,
-            border: glassBorder,
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
-            Server Info
-          </label>
-          <div className={`text-sm space-y-1 ${textSecondary}`}>
+        <div className="rounded-2xl p-5" style={cardStyle}>
+          <label className={`block text-sm font-semibold mb-2 ${nm ? 'text-white/70' : 'text-black/70'}`}>Server Info</label>
+          <div className={`text-sm space-y-1 ${nm ? 'text-white/40' : 'text-black/40'}`}>
             <p>Members: {server.member_count}</p>
             <p>Visibility: {server.is_private ? 'Private' : 'Public'}</p>
           </div>
@@ -314,87 +200,43 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
 
         {/* Save Button */}
         {permissions.manage_server && (
-          <button
-            onClick={handleSave}
-            disabled={!hasChanges || !name.trim()}
-            className="w-full py-3 rounded-xl text-white font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+          <button onClick={handleSave} disabled={!hasChanges || !name.trim()}
+            className="w-full py-3.5 rounded-xl text-white font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 hover:scale-[1.02]"
             style={{
-              background:
-                hasChanges && name.trim()
-                  ? 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)'
-                  : nightMode
-                    ? 'rgba(255,255,255,0.1)'
-                    : 'rgba(0,0,0,0.1)',
-              boxShadow:
-                hasChanges && name.trim()
-                  ? '0 4px 12px rgba(59, 130, 246, 0.3)'
-                  : 'none',
-            }}
-          >
+              background: hasChanges && name.trim() ? 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)' : nm ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+              boxShadow: hasChanges && name.trim() ? '0 4px 16px rgba(59,130,246,0.35)' : 'none',
+            }}>
             Save Changes
           </button>
         )}
 
         {/* Danger Zone */}
         {permissions.manage_server && (
-          <div
-            className="rounded-2xl p-4"
-            style={{
-              background: nightMode
-                ? 'rgba(239, 68, 68, 0.08)'
-                : 'rgba(239, 68, 68, 0.05)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              backdropFilter: 'blur(12px)',
-            }}
-          >
-            <label className="block text-sm font-medium mb-2 text-red-400">
-              Danger Zone
-            </label>
-            <p
-              className={`text-sm mb-3 ${
-                nightMode ? 'text-red-300/70' : 'text-red-500/70'
-              }`}
-            >
-              Deleting this server is permanent and cannot be undone. All
-              channels, messages, and data will be lost.
+          <div className="rounded-2xl p-5" style={{
+            background: nm ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)',
+            border: '1px solid rgba(239,68,68,0.15)',
+          }}>
+            <label className="block text-sm font-semibold mb-2 text-red-400">Danger Zone</label>
+            <p className={`text-sm mb-3 ${nm ? 'text-red-300/60' : 'text-red-500/60'}`}>
+              Deleting this server is permanent and cannot be undone. All channels, messages, and data will be lost.
             </p>
             {showDeleteConfirm ? (
               <div className="flex gap-2">
-                <button
-                  onClick={handleDelete}
-                  className="flex-1 py-2.5 rounded-xl text-white font-semibold transition-all active:scale-95"
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.85)',
-                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)',
-                  }}
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <Trash2 className="w-4 h-4" />
-                    Confirm Delete
-                  </span>
+                <button onClick={handleDelete}
+                  className="flex-1 py-2.5 rounded-xl text-white font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
+                  style={{ background: 'rgba(239,68,68,0.85)', boxShadow: '0 2px 8px rgba(239,68,68,0.3)' }}>
+                  <Trash2 className="w-4 h-4" /> Confirm Delete
                 </button>
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    nightMode
-                      ? 'bg-white/10 text-white hover:bg-white/15'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
-                >
+                <button onClick={() => setShowDeleteConfirm(false)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 ${nm ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'}`}>
                   Cancel
                 </button>
               </div>
             ) : (
-              <button
-                onClick={handleDelete}
-                className="w-full py-2.5 rounded-xl font-semibold transition-all active:scale-95 flex items-center justify-center gap-2"
-                style={{
-                  background: 'rgba(239, 68, 68, 0.15)',
-                  color: '#ef4444',
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete Server
+              <button onClick={handleDelete}
+                className="w-full py-2.5 rounded-xl font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
+                style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+                <Trash2 className="w-4 h-4" /> Delete Server
               </button>
             )}
           </div>
