@@ -232,19 +232,16 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
             </div>
           )}
 
-          <p
-            className={`${nightMode ? 'text-slate-100' : 'text-black'} mt-3 text-sm leading-relaxed break-words`}
-            dangerouslySetInnerHTML={{ __html: sanitizeUserContent(profile.bio || '') }}
-          />
         </div>
       </div>
 
       {/* Profile Card (Pokédex-style V15+V11) */}
-      {(profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved) && (
+      {(profile.bio || profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved) && (
         <div className="px-4">
           <ProfileCard
             nightMode={nightMode}
             profile={{
+              bio: profile.bio,
               churchName: profile.churchName,
               churchLocation: profile.churchLocation,
               denomination: profile.denomination,

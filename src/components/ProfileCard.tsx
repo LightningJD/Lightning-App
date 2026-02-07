@@ -3,6 +3,7 @@ import React from 'react';
 interface ProfileCardProps {
   nightMode: boolean;
   profile: {
+    bio?: string | null;
     churchName?: string;
     churchLocation?: string;
     denomination?: string;
@@ -98,6 +99,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </span>
             <div className={`flex-1 h-px ${nightMode ? 'bg-white/[0.08]' : 'bg-black/[0.06]'}`} />
           </div>
+
+          {/* Bio */}
+          {profile.bio && profile.bio !== 'Welcome to Lightning! Share your testimony to inspire others.' && (
+            <p className={`text-sm leading-relaxed ${
+              nightMode ? 'text-slate-300' : 'text-slate-600'
+            }`}>
+              {profile.bio}
+            </p>
+          )}
 
           {/* Church Section */}
           {hasChurchInfo && (
