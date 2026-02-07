@@ -182,11 +182,15 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
     if (!activeServerId) return;
     const result = await deleteServer(activeServerId);
     if (result) {
-      setServers(prev => prev.filter(s => s.id !== activeServerId));
-      setActiveServerId(servers.length > 1 ? servers.find(s => s.id !== activeServerId)?.id || null : null);
+      setServers(prev => {
+        const remaining = prev.filter(s => s.id !== activeServerId);
+        // Use the filtered list (fresh state) to pick the next active server
+        setActiveServerId(remaining.length > 0 ? remaining[0]?.id || null : null);
+        return remaining;
+      });
       setViewMode('chat');
     }
-  }, [activeServerId, servers]);
+  }, [activeServerId]);
 
   const handleGenerateInvite = useCallback(async (): Promise<string | null> => {
     if (!activeServerId) return null;

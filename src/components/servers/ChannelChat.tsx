@@ -103,6 +103,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
 
   useEffect(() => {
     let pollInterval: NodeJS.Timeout | null = null;
+    let isMounted = true;
 
     const loadMessages = async () => {
       setLoading(true);
@@ -111,6 +112,8 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         getChannelMessages(channelId, INITIAL_MESSAGE_LIMIT),
         getPinnedChannelMessages(channelId)
       ]);
+
+      if (!isMounted) return;
 
       setMessages(msgs || []);
       setPinnedMessages(pinned || []);
@@ -121,6 +124,8 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         // @ts-ignore - message id type compatibility
         allMessages.map(msg => getChannelMessageReactions(msg.id))
       );
+
+      if (!isMounted) return;
 
       const reactionsMap: Record<string | number, MessageReaction[]> = {};
       allMessages.forEach((msg, index) => {
@@ -134,10 +139,14 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
 
       // Poll for new messages every 3 seconds
       pollInterval = setInterval(async () => {
+        if (!isMounted) return;
+
         const [updatedMessages, updatedPinned] = await Promise.all([
           getChannelMessages(channelId, INITIAL_MESSAGE_LIMIT),
           getPinnedChannelMessages(channelId)
         ]);
+
+        if (!isMounted) return;
 
         setMessages(updatedMessages || []);
         setPinnedMessages(updatedPinned || []);
@@ -147,6 +156,8 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           // @ts-ignore - message id type compatibility
           allUpdated.map(msg => getChannelMessageReactions(msg.id))
         );
+
+        if (!isMounted) return;
 
         const newReactionsMap: Record<string | number, MessageReaction[]> = {};
         allUpdated.forEach((msg, index) => {
@@ -159,6 +170,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     loadMessages();
 
     return () => {
+      isMounted = false;
       if (pollInterval) clearInterval(pollInterval);
       if (subscriptionRef.current) unsubscribe(subscriptionRef.current);
     };
