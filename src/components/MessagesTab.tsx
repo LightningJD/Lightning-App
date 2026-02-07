@@ -1552,11 +1552,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
             <>
               <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No conversations yet</p>
               <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
-                Connect with others in the Connect tab to start messaging!
+                Connect with others in the Find tab to start messaging!
               </p>
               <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
                 <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                  💡 Tip: Visit the <span className="font-bold">Connect</span> tab to find nearby believers
+                  💡 Tip: Visit the <span className="font-bold">Find</span> tab to find nearby believers
                 </p>
               </div>
             </>

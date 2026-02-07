@@ -853,7 +853,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
               {inviteCandidates.length === 0 ? (
                 <div className={`rounded-xl border p-4 text-center ${nightMode ? 'border-white/10 bg-white/5' : 'border-white/30 bg-white/60'}`}>
                   <p className={nightMode ? 'text-sm text-slate-400' : 'text-sm text-slate-700'}>
-                    No friends to invite yet. Add friends from the Connect tab first.
+                    No friends to invite yet. Add friends from the Find tab first.
                   </p>
                 </div>
               ) : (
