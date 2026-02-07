@@ -718,68 +718,47 @@ function App() {
       return;
     }
 
-    const toastId = showLoading('Loading your testimony...');
-
     try {
       // Load testimony data from database
       const testimony = await getTestimonyByUserId(userProfile.supabaseId);
       if (testimony) {
-        updateToSuccess(toastId, 'Testimony loaded!');
         setTestimonyData(testimony);
         setShowTestimonyEdit(true);
       } else {
-        updateToError(toastId, 'No testimony found. Please create one first.');
+        showError('No testimony found. Please create one first.');
         console.error('No testimony found for user');
       }
     } catch (error) {
       console.error('Error loading testimony:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to load testimony. Please try again.';
-      updateToError(toastId, errorMessage);
+      showError(errorMessage);
     }
   };
 
-  const handleTestimonySave = async (formData: any): Promise<void> => {
+  const handleTestimonySave = async (data: { formData: any; finalContent: string }): Promise<void> => {
     if (!testimonyData || !testimonyData.id) {
       showError('No testimony found. Please try again.');
       console.error('No testimony ID found');
       return;
     }
 
-    const toastId = showLoading('Regenerating your testimony with AI...');
+    const toastId = showLoading('Saving your testimony...');
+    const { formData, finalContent } = data;
 
     try {
-      // Regenerate testimony content using Claude AI (same as new testimony creation)
-      const result = await generateTestimony({
-        answers: {
-          question1: formData.question1,
-          question2: formData.question2,
-          question3: formData.question3,
-          question4: formData.question4,
-        },
-        userName: profile.displayName,
-        userId: userProfile?.supabaseId,
-      });
-
-      if (!result.success || !result.testimony) {
-        throw new Error(result.error || 'Failed to regenerate testimony.');
-      }
-
-      const updatedContent = result.testimony;
-
-      // Update testimony in database
       if (!userProfile?.supabaseId) {
         showError('Authentication required');
         return;
       }
 
       const updated = await updateTestimony(testimonyData.id, userProfile.supabaseId, {
-        content: updatedContent,
+        content: finalContent,
         lesson: formData.lesson,
         question1_answer: formData.question1,
         question2_answer: formData.question2,
         question3_answer: formData.question3,
         question4_answer: formData.question4,
-        word_count: updatedContent.trim().split(/\s+/).filter(Boolean).length
+        word_count: finalContent.trim().split(/\s+/).filter(Boolean).length
       });
 
       if (updated) {
@@ -1870,6 +1849,8 @@ function App() {
             <EditTestimonyDialog
               testimony={testimonyData}
               nightMode={nightMode}
+              userName={profile?.displayName}
+              userId={userProfile?.supabaseId}
               onSave={handleTestimonySave}
               onClose={() => setShowTestimonyEdit(false)}
             />
