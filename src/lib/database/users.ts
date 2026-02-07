@@ -158,6 +158,16 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   if (profileData.profileCompleted !== undefined) updates.profile_completed = profileData.profileCompleted;
   if (profileData.search_radius !== undefined) updates.search_radius = profileData.search_radius;
   if ((profileData as any).spotify_url !== undefined) updates.spotify_url = (profileData as any).spotify_url;
+  // Profile card fields
+  if ((profileData as any).church_name !== undefined) updates.church_name = (profileData as any).church_name;
+  if ((profileData as any).church_location !== undefined) updates.church_location = (profileData as any).church_location;
+  if ((profileData as any).denomination !== undefined) updates.denomination = (profileData as any).denomination;
+  if ((profileData as any).year_saved !== undefined) updates.year_saved = (profileData as any).year_saved;
+  if ((profileData as any).is_baptized !== undefined) updates.is_baptized = (profileData as any).is_baptized;
+  if ((profileData as any).year_baptized !== undefined) updates.year_baptized = (profileData as any).year_baptized;
+  if ((profileData as any).favorite_verse !== undefined) updates.favorite_verse = (profileData as any).favorite_verse;
+  if ((profileData as any).favorite_verse_ref !== undefined) updates.favorite_verse_ref = (profileData as any).favorite_verse_ref;
+  if ((profileData as any).faith_interests !== undefined) updates.faith_interests = (profileData as any).faith_interests;
 
   const { data, error } = await supabase
     .from('users')

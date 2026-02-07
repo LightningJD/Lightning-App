@@ -157,6 +157,17 @@ export const useUserProfile = (): UseUserProfileReturn => {
     // Search settings
     searchRadius: supabaseUser?.search_radius || 25,
     spotifyUrl: supabaseUser?.spotify_url || null,
+    // Profile card fields
+    churchName: supabaseUser?.church_name || null,
+    churchLocation: supabaseUser?.church_location || null,
+    denomination: supabaseUser?.denomination || null,
+    yearSaved: supabaseUser?.year_saved || null,
+    isBaptized: supabaseUser?.is_baptized || false,
+    yearBaptized: supabaseUser?.year_baptized || null,
+    favoriteVerse: supabaseUser?.favorite_verse || null,
+    favoriteVerseRef: supabaseUser?.favorite_verse_ref || null,
+    faithInterests: supabaseUser?.faith_interests || [],
+    entryNumber: supabaseUser?.entry_number || null,
     music: (() => {
       // User's linked YouTube song takes priority over testimony music
       const userSongUrl = supabaseUser?.spotify_url;

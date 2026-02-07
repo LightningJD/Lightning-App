@@ -9,6 +9,7 @@ import { sanitizeUserContent } from '../lib/sanitization';
 import MusicPlayer from './MusicPlayer';
 import TestimonyShareModal from './TestimonyShareModal';
 import { deleteTestimony } from '../lib/database';
+import ProfileCard from './ProfileCard';
 
 interface ProfileTabProps {
   profile: any;
@@ -257,6 +258,38 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           />
         </div>
       </div>
+
+      {/* Profile Card (Pokédex-style V15+V11) */}
+      {(profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved || profile.entryNumber) && (
+        <div className="px-4">
+          <ProfileCard
+            nightMode={nightMode}
+            profile={{
+              username: profile.username,
+              displayName: profile.displayName,
+              avatar: profile.avatar,
+              avatarImage: profile.avatarImage,
+              location: profile.location,
+              churchName: profile.churchName,
+              churchLocation: profile.churchLocation,
+              denomination: profile.denomination,
+              yearSaved: profile.yearSaved,
+              isBaptized: profile.isBaptized,
+              yearBaptized: profile.yearBaptized,
+              favoriteVerse: profile.favoriteVerse,
+              favoriteVerseRef: profile.favoriteVerseRef,
+              faithInterests: profile.faithInterests,
+              entryNumber: profile.entryNumber,
+              story: profile.story ? {
+                id: profile.story.id,
+                viewCount: profile.story.viewCount,
+                likeCount: profile.story.likeCount,
+              } : null,
+            }}
+            onAvatarClick={handleAvatarTap}
+          />
+        </div>
+      )}
 
       {/* Testimony Share Modal */}
       <TestimonyShareModal
