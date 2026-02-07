@@ -43,8 +43,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   React.useEffect(() => {
     const trackView = async () => {
       try {
-        if (!isGuest && user && profile?.story?.id && profile?.supabaseId) {
-          await trackDbTestimonyView(profile.story.id, profile.supabaseId);
+        // Use currentUserProfile (the viewer), not profile (the testimony owner)
+        if (!isGuest && user && profile?.story?.id && currentUserProfile?.supabaseId) {
+          await trackDbTestimonyView(profile.story.id, currentUserProfile.supabaseId);
           // Check if this testimony has unlocked any secrets
           await checkTestimonyAnalyticsSecrets(profile.story.id);
         }
@@ -54,18 +55,18 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
       }
     };
     trackView();
-  }, [profile?.story?.id, user, isGuest]);
+  }, [profile?.story?.id, user, isGuest, currentUserProfile?.supabaseId]);
 
-  // Load user's like status
+  // Load user's like status (check if CURRENT user has liked this testimony)
   React.useEffect(() => {
     const loadLikeStatus = async () => {
-      if (user && profile?.story?.id && profile?.supabaseId) {
-        const { liked } = await hasUserLikedTestimony(profile.story.id, profile.supabaseId);
+      if (user && profile?.story?.id && currentUserProfile?.supabaseId) {
+        const { liked } = await hasUserLikedTestimony(profile.story.id, currentUserProfile.supabaseId);
         setIsLiked(liked);
       }
     };
     loadLikeStatus();
-  }, [profile?.story?.id, profile?.supabaseId, user]);
+  }, [profile?.story?.id, currentUserProfile?.supabaseId, user]);
 
   // Sync like count from database to avoid negative counts when already liked
   React.useEffect(() => {
@@ -109,7 +110,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   }, [profile?.story?.id, canView]);
 
   const handleLike = async () => {
-    if (!user || !profile?.story?.id || !profile?.supabaseId) return;
+    if (!user || !profile?.story?.id || !currentUserProfile?.supabaseId) return;
 
     // Optimistic update
     const newLiked = !isLiked;
@@ -119,8 +120,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
       return Math.max(0, prev - 1);
     });
 
-    // Update database
-    const { success } = await toggleTestimonyLike(profile.story.id, profile.supabaseId);
+    // Update database — use CURRENT user's ID (the person liking), not testimony owner
+    const { success } = await toggleTestimonyLike(profile.story.id, currentUserProfile.supabaseId);
 
     if (success) {
       // Check if testimony unlocked heart toucher secret
