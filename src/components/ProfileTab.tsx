@@ -274,7 +274,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
               favoriteVerse: profile.favoriteVerse,
               favoriteVerseRef: profile.favoriteVerseRef,
               faithInterests: profile.faithInterests,
-              entryNumber: profile.entryNumber,
               story: profile.story ? {
                 id: profile.story.id,
                 viewCount: profile.story.viewCount,
@@ -294,19 +293,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         testimonyText={profile?.story?.content || profile?.story?.text || ''}
         profileName={profile?.name || profile?.displayName || 'Someone'}
       />
-
-      {/* Music Player - Only show when there's a testimony or profile song */}
-      {profile.music && profile.music.spotifyUrl && (
-        <div className="px-4">
-          <MusicPlayer
-            platform={profile.music.platform || 'spotify'}
-            url={profile.music.spotifyUrl}
-            trackName={profile.music.trackName}
-            artist={profile.music.artist}
-            nightMode={nightMode}
-          />
-        </div>
-      )}
 
       {/* Testimony Section - Only show when testimony exists */}
       {profile?.story?.id && (
@@ -513,6 +499,19 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Music Player - below testimony */}
+      {profile.music && profile.music.spotifyUrl && (
+        <div className="px-4">
+          <MusicPlayer
+            platform={profile.music.platform || 'spotify'}
+            url={profile.music.spotifyUrl}
+            trackName={profile.music.trackName}
+            artist={profile.music.artist}
+            nightMode={nightMode}
+          />
         </div>
       )}
 
