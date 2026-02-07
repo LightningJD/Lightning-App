@@ -1,4 +1,5 @@
 import React from 'react';
+import MusicPlayer from './MusicPlayer';
 
 interface ProfileCardProps {
   nightMode: boolean;
@@ -13,6 +14,11 @@ interface ProfileCardProps {
     favoriteVerse?: string | null;
     favoriteVerseRef?: string | null;
     faithInterests?: string[];
+    music?: {
+      spotifyUrl?: string;
+      trackName?: string;
+      artist?: string;
+    } | null;
     story?: {
       id?: string | null;
       viewCount?: number;
@@ -109,37 +115,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </p>
           )}
 
-          {/* Church Section */}
-          {hasChurchInfo && (
-            <div
-              className={`rounded-xl p-3 border ${
-                nightMode
-                  ? 'bg-white/[0.03] border-white/[0.06]'
-                  : 'bg-white/30 border-white/40'
-              }`}
-              style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
-            >
-              <div className={`text-[11px] font-bold uppercase tracking-wide mb-1.5 ${
-                nightMode ? 'text-slate-500' : 'text-slate-400'
-              }`}>
-                Church
-              </div>
-              <div className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                ⛪ {profile.churchName}
-              </div>
-              {profile.churchLocation && (
-                <div className={`text-xs mt-0.5 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  📍 {profile.churchLocation}
-                </div>
-              )}
-              {profile.denomination && (
-                <div className={`text-xs mt-0.5 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                  ✝️ {profile.denomination}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Favorite Verse (V15 style - left border accent) */}
           {hasVerse && (
             <div
@@ -165,6 +140,42 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 — {profile.favoriteVerseRef}
               </div>
             </div>
+          )}
+
+          {/* Church Section */}
+          {hasChurchInfo && (
+            <div
+              className={`rounded-xl p-3 border ${
+                nightMode
+                  ? 'bg-white/[0.03] border-white/[0.06]'
+                  : 'bg-white/30 border-white/40'
+              }`}
+              style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
+            >
+              <div className={`text-[11px] font-bold uppercase tracking-wide mb-1.5 ${
+                nightMode ? 'text-slate-500' : 'text-slate-400'
+              }`}>
+                Church
+              </div>
+              <div className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                ⛪ {profile.churchName}
+              </div>
+              {profile.denomination && (
+                <div className={`text-xs mt-0.5 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                  ✝️ {profile.denomination}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Music Player */}
+          {profile.music && profile.music.spotifyUrl && (
+            <MusicPlayer
+              url={profile.music.spotifyUrl}
+              trackName={profile.music.trackName}
+              artist={profile.music.artist}
+              nightMode={nightMode}
+            />
           )}
 
           {/* Faith Interests */}

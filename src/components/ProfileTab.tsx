@@ -6,7 +6,6 @@ import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
 import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony } from '../lib/database';
 import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
-import MusicPlayer from './MusicPlayer';
 import TestimonyShareModal from './TestimonyShareModal';
 import { deleteTestimony } from '../lib/database';
 import ProfileCard from './ProfileCard';
@@ -236,7 +235,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
       </div>
 
       {/* Profile Card (Pokédex-style V15+V11) */}
-      {(profile.bio || profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved) && (
+      {(profile.bio || profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved || (profile.music && profile.music.spotifyUrl)) && (
         <div className="px-4">
           <ProfileCard
             nightMode={nightMode}
@@ -251,6 +250,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
               favoriteVerse: profile.favoriteVerse,
               favoriteVerseRef: profile.favoriteVerseRef,
               faithInterests: profile.faithInterests,
+              music: profile.music,
               story: profile.story ? {
                 id: profile.story.id,
                 viewCount: profile.story.viewCount,
@@ -476,18 +476,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
               </div>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Music Player - below testimony */}
-      {profile.music && profile.music.spotifyUrl && (
-        <div className="px-4">
-          <MusicPlayer
-            url={profile.music.spotifyUrl}
-            trackName={profile.music.trackName}
-            artist={profile.music.artist}
-            nightMode={nightMode}
-          />
         </div>
       )}
 
