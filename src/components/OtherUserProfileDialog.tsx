@@ -5,7 +5,6 @@ import { useUserProfile } from './useUserProfile';
 import { sanitizeUserContent } from '../lib/sanitization';
 import { sendFriendRequest, checkFriendshipStatus, blockUser, isUserBlocked } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
-import MusicPlayer from './MusicPlayer';
 import ProfileCard from './ProfileCard';
 
 interface UserStory {
@@ -226,7 +225,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
             </div>
 
             {/* Profile Card (Pokédex V15+V11) */}
-            {(user.bio || user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved) && (
+            {(user.bio || user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved || (user.music && user.music.spotifyUrl)) && (
               <ProfileCard
                 nightMode={nightMode}
                 compact
@@ -242,6 +241,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                   favoriteVerse: user.favoriteVerse,
                   favoriteVerseRef: user.favoriteVerseRef,
                   faithInterests: user.faithInterests,
+                  music: user.music,
                   story: user.story ? {
                     id: user.story.id,
                     viewCount: 0,
@@ -308,73 +308,31 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               )}
             </div>
 
-            {/* Music Player + Stats Row */}
-            {user.music && user.music.spotifyUrl && (
-              <div className="flex gap-3 mt-6">
-                {/* Music Player - Left Half */}
-                <div className="flex-1">
-                  <MusicPlayer
-                    url={user.music.spotifyUrl}
-                    trackName={user.music.trackName}
-                    artist={user.music.artist}
-                    nightMode={nightMode}
-                  />
-                </div>
-
-                {/* Stats & Actions - Right Half */}
-                <div className="flex-1 flex flex-col gap-3">
-                  {/* Add Friend Button */}
-                  <button
-                    onClick={handleSendFriendRequest}
-                    disabled={friendStatus !== 'none' || sendingRequest}
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${nightMode ? 'border-white/20' : 'border-white/30'
-                      } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    style={nightMode ? {
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
-                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(10px)',
-                      WebkitBackdropFilter: 'blur(10px)'
-                    } : {
-                      background: 'rgba(255, 255, 255, 0.25)',
-                      backdropFilter: 'blur(30px)',
-                      WebkitBackdropFilter: 'blur(30px)',
-                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-                    }}
-                    aria-label={`Add ${user.displayName} as friend`}
-                  >
-                    <UserPlus className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`} />
-                    <span className={nightMode ? 'text-slate-100' : 'text-slate-900'}>
-                      {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
-                    </span>
-                  </button>
-
-                  {/* Testimony Likes */}
-                  {user.story && (
-                    <div
-                      className={`px-6 py-3 rounded-xl border ${nightMode ? 'border-white/20' : 'border-white/30'} flex items-center justify-center gap-2`}
-                      style={nightMode ? {
-                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
-                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(10px)',
-                        WebkitBackdropFilter: 'blur(10px)'
-                      } : {
-                        background: 'rgba(255, 255, 255, 0.25)',
-                        backdropFilter: 'blur(30px)',
-                        WebkitBackdropFilter: 'blur(30px)',
-                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-                      }}
-                    >
-                      <Heart className={`w-5 h-5 ${nightMode ? 'text-red-400' : 'text-red-500'}`} fill="currentColor" />
-                      <span className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                        {user.story.likeCount || 0}
-                      </span>
-                      <span className={`text-sm ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                        {(user.story.likeCount || 0) === 1 ? 'Like' : 'Likes'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* Add Friend Button */}
+            {!isBlocked && (
+              <button
+                onClick={handleSendFriendRequest}
+                disabled={friendStatus !== 'none' || sendingRequest}
+                className={`w-full px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${nightMode ? 'border-white/20' : 'border-white/30'
+                  } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                style={nightMode ? {
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)'
+                } : {
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)',
+                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                }}
+                aria-label={`Add ${user.displayName} as friend`}
+              >
+                <UserPlus className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`} />
+                <span className={nightMode ? 'text-slate-100' : 'text-slate-900'}>
+                  {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
+                </span>
+              </button>
             )}
 
             {/* Testimony Section */}
