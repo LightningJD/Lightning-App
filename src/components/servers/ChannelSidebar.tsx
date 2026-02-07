@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X } from 'lucide-react';
 
 interface ChannelSidebarProps {
   nightMode: boolean;
   serverName: string;
   serverEmoji: string;
+  serverId: string;
   categories: Array<{ id: string; name: string; position: number }>;
   channels: Array<{ id: string; name: string; topic?: string; category_id?: string; position: number }>;
   activeChannelId: string | null;
@@ -15,6 +16,10 @@ interface ChannelSidebarProps {
   onOpenMembers?: () => void;
   canManageChannels: boolean;
   fullWidth?: boolean;
+  onCreateCategory?: (name: string) => void;
+  onRenameCategory?: (categoryId: string, newName: string) => void;
+  onDeleteCategory?: (categoryId: string) => void;
+  onReorderCategories?: (orderedIds: string[]) => void;
 }
 
 // Map common channel names to emoji icons
@@ -39,10 +44,69 @@ const getChannelEmoji = (name: string): string => {
 };
 
 const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
-  nightMode, serverName, serverEmoji, categories, channels,
-  activeChannelId, onSelectChannel, onCreateChannel, onOpenSettings, onOpenRoles, onOpenMembers, canManageChannels, fullWidth
+  nightMode, serverName, serverEmoji, serverId, categories, channels,
+  activeChannelId, onSelectChannel, onCreateChannel, onOpenSettings, onOpenRoles, onOpenMembers,
+  canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory, onReorderCategories
 }) => {
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  // Persist collapse state in localStorage per server
+  const storageKey = `lightning_collapsed_${serverId}`;
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+
+  // Category management state
+  const [contextMenu, setContextMenu] = useState<{ categoryId: string; x: number; y: number } | null>(null);
+  const [renamingCategoryId, setRenamingCategoryId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  const newCategoryInputRef = useRef<HTMLInputElement>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
+
+  // Save collapse state to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify([...collapsedCategories]));
+    } catch { /* ignore */ }
+  }, [collapsedCategories, storageKey]);
+
+  // Focus rename input when editing
+  useEffect(() => {
+    if (renamingCategoryId && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [renamingCategoryId]);
+
+  // Focus new category input
+  useEffect(() => {
+    if (showCreateCategory && newCategoryInputRef.current) {
+      newCategoryInputRef.current.focus();
+    }
+  }, [showCreateCategory]);
+
+  // Close context menu on outside click
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handleClick = (e: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
+        setContextMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('touchstart', handleClick as any);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('touchstart', handleClick as any);
+    };
+  }, [contextMenu]);
 
   const toggleCategory = (categoryId: string) => {
     setCollapsedCategories(prev => {
@@ -53,12 +117,88 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     });
   };
 
+  // Context menu handlers
+  const handleCategoryContextMenu = (e: React.MouseEvent, categoryId: string) => {
+    if (!canManageChannels) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ categoryId, x: e.clientX, y: e.clientY });
+  };
+
+  const handleCategoryLongPress = (categoryId: string, e: React.TouchEvent) => {
+    if (!canManageChannels) return;
+    const touch = e.touches[0];
+    const timer = setTimeout(() => {
+      setContextMenu({ categoryId, x: touch.clientX, y: touch.clientY });
+    }, 500);
+    setLongPressTimer(timer);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const handleStartRename = (categoryId: string) => {
+    const cat = categories.find(c => c.id === categoryId);
+    if (cat) {
+      setRenamingCategoryId(categoryId);
+      setRenameValue(cat.name);
+    }
+    setContextMenu(null);
+  };
+
+  const handleConfirmRename = () => {
+    if (renamingCategoryId && renameValue.trim() && onRenameCategory) {
+      onRenameCategory(renamingCategoryId, renameValue.trim());
+    }
+    setRenamingCategoryId(null);
+    setRenameValue('');
+  };
+
+  const handleDeleteCategory = (categoryId: string) => {
+    setContextMenu(null);
+    if (onDeleteCategory && window.confirm('Delete this category? Channels inside will become uncategorized.')) {
+      onDeleteCategory(categoryId);
+    }
+  };
+
+  const handleMoveCategory = (categoryId: string, direction: 'up' | 'down') => {
+    setContextMenu(null);
+    if (!onReorderCategories) return;
+    const sorted = [...categories].sort((a, b) => a.position - b.position);
+    const idx = sorted.findIndex(c => c.id === categoryId);
+    if (direction === 'up' && idx > 0) {
+      const newOrder = [...sorted];
+      [newOrder[idx - 1], newOrder[idx]] = [newOrder[idx], newOrder[idx - 1]];
+      onReorderCategories(newOrder.map(c => c.id));
+    } else if (direction === 'down' && idx < sorted.length - 1) {
+      const newOrder = [...sorted];
+      [newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]];
+      onReorderCategories(newOrder.map(c => c.id));
+    }
+  };
+
+  const handleCreateCategory = () => {
+    if (newCategoryName.trim() && onCreateCategory) {
+      onCreateCategory(newCategoryName.trim());
+      setNewCategoryName('');
+      setShowCreateCategory(false);
+    }
+  };
+
   // Group channels by category
   const uncategorizedChannels = channels.filter(c => !c.category_id);
-  const categorizedGroups = categories.map(cat => ({
-    ...cat,
-    channels: channels.filter(c => c.category_id === cat.id).sort((a, b) => a.position - b.position)
-  }));
+  const categorizedGroups = categories
+    .sort((a, b) => a.position - b.position)
+    .map(cat => ({
+      ...cat,
+      channels: channels.filter(c => c.category_id === cat.id).sort((a, b) => a.position - b.position)
+    }));
+
+  const sortedCategories = [...categories].sort((a, b) => a.position - b.position);
 
   return (
     <div
@@ -117,36 +257,80 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         )}
 
         {/* Categorized channels */}
-        {categorizedGroups.map(group => (
+        {categorizedGroups.map((group) => (
           <div key={group.id}>
             {/* Category header */}
-            <div className="flex items-center gap-1.5 px-2 mb-1.5">
-              <button
-                onClick={() => toggleCategory(group.id)}
-                className={`flex items-center gap-1.5 flex-1 text-xs font-semibold ${
-                  nightMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
-                } transition-colors`}
-              >
-                {collapsedCategories.has(group.id) ? (
-                  <ChevronRight className="w-3.5 h-3.5" />
-                ) : (
-                  <ChevronDown className="w-3.5 h-3.5" />
-                )}
-                {group.name}
-              </button>
-              {canManageChannels && (
-                <button
-                  onClick={() => onCreateChannel(group.id)}
-                  className={`p-0.5 rounded-lg opacity-0 group-hover:opacity-100 hover:opacity-100 transition-all ${
-                    nightMode ? 'text-white/30 hover:text-white/60 hover:bg-white/5' : 'text-black/30 hover:text-black/60 hover:bg-black/5'
-                  }`}
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
+            <div className="flex items-center gap-1 px-2 mb-1.5 group">
+              {renamingCategoryId === group.id ? (
+                /* Inline rename input */
+                <div className="flex items-center gap-1 flex-1">
+                  <input
+                    ref={renameInputRef}
+                    type="text"
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleConfirmRename();
+                      if (e.key === 'Escape') { setRenamingCategoryId(null); setRenameValue(''); }
+                    }}
+                    onBlur={handleConfirmRename}
+                    className={`flex-1 text-xs font-semibold px-1.5 py-0.5 rounded-md outline-none ${
+                      nightMode
+                        ? 'bg-white/10 text-white border border-white/20 focus:border-blue-400'
+                        : 'bg-white/60 text-black border border-black/10 focus:border-blue-500'
+                    }`}
+                    maxLength={30}
+                  />
+                </div>
+              ) : (
+                /* Normal category header */
+                <>
+                  <button
+                    onClick={() => toggleCategory(group.id)}
+                    onContextMenu={(e) => handleCategoryContextMenu(e, group.id)}
+                    onTouchStart={(e) => handleCategoryLongPress(group.id, e)}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchCancel={handleTouchEnd}
+                    className={`flex items-center gap-1.5 flex-1 text-xs font-semibold uppercase tracking-wide ${
+                      nightMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                    } transition-colors`}
+                  >
+                    {collapsedCategories.has(group.id) ? (
+                      <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
+                    )}
+                    <span className="truncate">{group.name}</span>
+                  </button>
+
+                  {/* Action buttons (visible on hover / always on mobile) */}
+                  {canManageChannels && (
+                    <div className={`flex items-center gap-0.5 ${fullWidth ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                      <button
+                        onClick={() => onCreateChannel(group.id)}
+                        className={`p-0.5 rounded transition-all ${
+                          nightMode ? 'text-white/30 hover:text-white/60 hover:bg-white/5' : 'text-black/30 hover:text-black/60 hover:bg-black/5'
+                        }`}
+                        title="Add channel"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => handleCategoryContextMenu(e, group.id)}
+                        className={`p-0.5 rounded transition-all ${
+                          nightMode ? 'text-white/30 hover:text-white/60 hover:bg-white/5' : 'text-black/30 hover:text-black/60 hover:bg-black/5'
+                        }`}
+                        title="Category options"
+                      >
+                        <MoreHorizontal className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            {/* Channels in category — frosted glass card */}
+            {/* Channels in category */}
             {!collapsedCategories.has(group.id) && group.channels.length > 0 && (
               <div
                 className="rounded-xl overflow-hidden"
@@ -168,9 +352,53 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
             )}
           </div>
         ))}
+
+        {/* Create new category inline form */}
+        {showCreateCategory && (
+          <div className="px-2 py-1.5">
+            <div className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 ${
+              nightMode ? 'bg-white/5 border border-white/10' : 'bg-white/50 border border-black/5'
+            }`}>
+              <input
+                ref={newCategoryInputRef}
+                type="text"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreateCategory();
+                  if (e.key === 'Escape') { setShowCreateCategory(false); setNewCategoryName(''); }
+                }}
+                placeholder="Category name..."
+                className={`flex-1 text-xs font-semibold bg-transparent outline-none placeholder:opacity-40 ${
+                  nightMode ? 'text-white' : 'text-black'
+                }`}
+                maxLength={30}
+              />
+              <button
+                onClick={handleCreateCategory}
+                disabled={!newCategoryName.trim()}
+                className={`text-xs font-semibold px-2 py-0.5 rounded transition-all ${
+                  newCategoryName.trim()
+                    ? 'text-blue-500 hover:bg-blue-500/10'
+                    : nightMode ? 'text-white/20' : 'text-black/20'
+                }`}
+              >
+                Add
+              </button>
+              <button
+                onClick={() => { setShowCreateCategory(false); setNewCategoryName(''); }}
+                className={`p-0.5 rounded transition-all ${
+                  nightMode ? 'text-white/30 hover:text-white/60' : 'text-black/30 hover:text-black/60'
+                }`}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Bottom settings bar — frosted glass */}
+      {/* Bottom settings bar */}
       <div
         className="px-3 py-2.5 space-y-1"
         style={{
@@ -203,6 +431,17 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               <Plus className="w-4 h-4" />
               Channel
             </button>
+            {onCreateCategory && (
+              <button
+                onClick={() => setShowCreateCategory(true)}
+                className={`p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                  nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5'
+                }`}
+                title="Create Category"
+              >
+                <FolderPlus className="w-4 h-4" />
+              </button>
+            )}
             <div className="flex items-center gap-0.5">
               {onOpenRoles && (
                 <button
@@ -228,11 +467,94 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
           </div>
         )}
       </div>
+
+      {/* Context menu for category management */}
+      {contextMenu && (
+        <>
+          <div className="fixed inset-0 z-[100]" onClick={() => setContextMenu(null)} />
+          <div
+            ref={contextMenuRef}
+            className={`fixed z-[101] rounded-xl shadow-xl border overflow-hidden ${
+              nightMode ? 'border-white/10' : 'border-black/10'
+            }`}
+            style={{
+              left: Math.min(contextMenu.x, window.innerWidth - 180),
+              top: Math.min(contextMenu.y, window.innerHeight - 200),
+              minWidth: '160px',
+              background: nightMode ? 'rgba(20, 20, 20, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+            }}
+          >
+            <button
+              onClick={() => handleStartRename(contextMenu.categoryId)}
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+              }`}
+            >
+              <Edit3 className="w-4 h-4" />
+              Rename
+            </button>
+
+            {(() => {
+              const idx = sortedCategories.findIndex(c => c.id === contextMenu.categoryId);
+              return (
+                <>
+                  {idx > 0 && (
+                    <button
+                      onClick={() => handleMoveCategory(contextMenu.categoryId, 'up')}
+                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                        nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                      }`}
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                      Move Up
+                    </button>
+                  )}
+                  {idx < sortedCategories.length - 1 && (
+                    <button
+                      onClick={() => handleMoveCategory(contextMenu.categoryId, 'down')}
+                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                        nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                      }`}
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                      Move Down
+                    </button>
+                  )}
+                </>
+              );
+            })()}
+
+            <button
+              onClick={() => onCreateChannel(contextMenu.categoryId)}
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+              }`}
+            >
+              <Plus className="w-4 h-4" />
+              Add Channel
+            </button>
+
+            <div className={`mx-2 ${nightMode ? 'border-t border-white/10' : 'border-t border-black/10'}`} />
+
+            <button
+              onClick={() => handleDeleteCategory(contextMenu.categoryId)}
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                nightMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'
+              }`}
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Category
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
-// Individual channel item — emoji-first, generous spacing, gradient active state
+// Individual channel item
 const ChannelItem: React.FC<{
   channel: { id: string; name: string; topic?: string };
   isActive: boolean;
