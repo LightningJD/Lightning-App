@@ -14,6 +14,16 @@ interface FormData {
   avatarUrl: string | null;
   testimonyContent: string;
   testimonyLesson: string;
+  // Profile card fields
+  churchName: string;
+  churchLocation: string;
+  denomination: string;
+  yearSaved: string;
+  isBaptized: boolean;
+  yearBaptized: string;
+  favoriteVerse: string;
+  favoriteVerseRef: string;
+  faithInterests: string[];
 }
 
 interface ProfileEditDialogProps {
@@ -32,7 +42,17 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
     avatar: profile?.avatar || '👤',
     avatarUrl: profile?.avatarImage || null,
     testimonyContent: profile?.testimony || '',
-    testimonyLesson: profile?.testimonyLesson || ''
+    testimonyLesson: profile?.testimonyLesson || '',
+    // Profile card fields
+    churchName: profile?.churchName || '',
+    churchLocation: profile?.churchLocation || '',
+    denomination: profile?.denomination || '',
+    yearSaved: profile?.yearSaved ? String(profile.yearSaved) : '',
+    isBaptized: profile?.isBaptized || false,
+    yearBaptized: profile?.yearBaptized ? String(profile.yearBaptized) : '',
+    favoriteVerse: profile?.favoriteVerse || '',
+    favoriteVerseRef: profile?.favoriteVerseRef || '',
+    faithInterests: profile?.faithInterests || [],
   });
 
   // Update form data when profile changes to prevent stale data
@@ -46,10 +66,19 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
         avatar: profile.avatar || '👤',
         avatarUrl: profile.avatarImage || null,
         testimonyContent: profile.testimony || '',
-        testimonyLesson: profile.testimonyLesson || ''
+        testimonyLesson: profile.testimonyLesson || '',
+        churchName: profile.churchName || '',
+        churchLocation: profile.churchLocation || '',
+        denomination: profile.denomination || '',
+        yearSaved: profile.yearSaved ? String(profile.yearSaved) : '',
+        isBaptized: profile.isBaptized || false,
+        yearBaptized: profile.yearBaptized ? String(profile.yearBaptized) : '',
+        favoriteVerse: profile.favoriteVerse || '',
+        favoriteVerseRef: profile.favoriteVerseRef || '',
+        faithInterests: profile.faithInterests || [],
       });
     }
-  }, [profile?.displayName, profile?.username, profile?.bio, profile?.location, profile?.avatar, profile?.avatarImage]);
+  }, [profile?.displayName, profile?.username, profile?.bio, profile?.location, profile?.avatar, profile?.avatarImage, profile?.churchName]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -91,6 +120,15 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
       formData.avatarUrl !== profile?.avatarImage ||
       formData.testimonyContent !== (profile?.testimony || '') ||
       formData.testimonyLesson !== (profile?.testimonyLesson || '') ||
+      formData.churchName !== (profile?.churchName || '') ||
+      formData.churchLocation !== (profile?.churchLocation || '') ||
+      formData.denomination !== (profile?.denomination || '') ||
+      formData.yearSaved !== (profile?.yearSaved ? String(profile.yearSaved) : '') ||
+      formData.isBaptized !== (profile?.isBaptized || false) ||
+      formData.yearBaptized !== (profile?.yearBaptized ? String(profile.yearBaptized) : '') ||
+      formData.favoriteVerse !== (profile?.favoriteVerse || '') ||
+      formData.favoriteVerseRef !== (profile?.favoriteVerseRef || '') ||
+      JSON.stringify(formData.faithInterests) !== JSON.stringify(profile?.faithInterests || []) ||
       coordsChanged;
     setHasChanges(changed);
   }, [formData, profile, detectedCoords]);
@@ -150,6 +188,16 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
         location: sanitizeInput(formData.location),
         testimonyContent: sanitizeInput(formData.testimonyContent),
         testimonyLesson: sanitizeInput(formData.testimonyLesson),
+        // Profile card fields
+        churchName: sanitizeInput(formData.churchName),
+        churchLocation: sanitizeInput(formData.churchLocation),
+        denomination: sanitizeInput(formData.denomination),
+        yearSaved: formData.yearSaved ? parseInt(formData.yearSaved) : null,
+        isBaptized: formData.isBaptized,
+        yearBaptized: formData.yearBaptized ? parseInt(formData.yearBaptized) : null,
+        favoriteVerse: sanitizeInput(formData.favoriteVerse),
+        favoriteVerseRef: sanitizeInput(formData.favoriteVerseRef),
+        faithInterests: formData.faithInterests,
         _coords: detectedCoords, // GPS coordinates if detected
       };
 
@@ -501,6 +549,196 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({ profile, nightMod
                 </div>
               </div>
             )}
+
+            {/* ═══ Profile Card Section ═══ */}
+            <div className="mt-6 pt-6 border-t" style={{ borderColor: nightMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl">⚡</span>
+                <h3 className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                  Profile Card
+                </h3>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${nightMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+                  Optional
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Church Name */}
+                <div>
+                  <label className={`block text-sm font-medium mb-1.5 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Church Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.churchName}
+                    onChange={(e) => handleInputChange('churchName' as any, e.target.value)}
+                    placeholder="Grace Community Church"
+                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-500'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  />
+                </div>
+
+                {/* Church Location */}
+                <div>
+                  <label className={`block text-sm font-medium mb-1.5 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Church Location
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.churchLocation}
+                    onChange={(e) => handleInputChange('churchLocation' as any, e.target.value)}
+                    placeholder="Las Vegas, NV"
+                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-500'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  />
+                </div>
+
+                {/* Denomination */}
+                <div>
+                  <label className={`block text-sm font-medium mb-1.5 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Denomination
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.denomination}
+                    onChange={(e) => handleInputChange('denomination' as any, e.target.value)}
+                    placeholder="Non-denominational"
+                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-500'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  />
+                </div>
+
+                {/* Year Saved */}
+                <div>
+                  <label className={`block text-sm font-medium mb-1.5 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Year Saved
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.yearSaved}
+                    onChange={(e) => handleInputChange('yearSaved' as any, e.target.value)}
+                    placeholder="2019"
+                    min="1900"
+                    max={new Date().getFullYear()}
+                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-500'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  />
+                </div>
+
+                {/* Baptized Toggle + Year */}
+                <div className="lg:col-span-2 flex items-center gap-4">
+                  <label className={`flex items-center gap-2 cursor-pointer ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <input
+                      type="checkbox"
+                      checked={formData.isBaptized}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isBaptized: e.target.checked }))}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium">Baptized</span>
+                  </label>
+                  {formData.isBaptized && (
+                    <input
+                      type="number"
+                      value={formData.yearBaptized}
+                      onChange={(e) => handleInputChange('yearBaptized' as any, e.target.value)}
+                      placeholder="Year baptized"
+                      min="1900"
+                      max={new Date().getFullYear()}
+                      className={`w-32 px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                        nightMode
+                          ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-500'
+                          : 'bg-white border-slate-200 text-slate-900'
+                      }`}
+                    />
+                  )}
+                </div>
+
+                {/* Favorite Verse */}
+                <div className="lg:col-span-2">
+                  <label className={`block text-sm font-medium mb-1.5 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Favorite Verse
+                  </label>
+                  <textarea
+                    value={formData.favoriteVerse}
+                    onChange={(e) => handleInputChange('favoriteVerse' as any, e.target.value)}
+                    placeholder="For I know the plans I have for you, declares the Lord..."
+                    rows={2}
+                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-500'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  />
+                </div>
+
+                {/* Verse Reference */}
+                <div className="lg:col-span-2">
+                  <label className={`block text-sm font-medium mb-1.5 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Verse Reference
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.favoriteVerseRef}
+                    onChange={(e) => handleInputChange('favoriteVerseRef' as any, e.target.value)}
+                    placeholder="Jeremiah 29:11"
+                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-500'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  />
+                </div>
+
+                {/* Faith Interests */}
+                <div className="lg:col-span-2">
+                  <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                    Faith Interests
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Worship', 'Bible Study', 'Prayer', 'Missions', 'Youth Ministry', 'Apologetics', 'Evangelism', 'Discipleship', 'Serving', 'Community', 'Teaching', 'Creative Arts', 'Music', 'Small Groups', 'Leadership'].map((interest) => {
+                      const isSelected = formData.faithInterests.includes(interest);
+                      return (
+                        <button
+                          key={interest}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              faithInterests: isSelected
+                                ? prev.faithInterests.filter(i => i !== interest)
+                                : [...prev.faithInterests, interest]
+                            }));
+                          }}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                            isSelected
+                              ? nightMode
+                                ? 'bg-blue-500/20 border-blue-500/40 text-blue-300'
+                                : 'bg-blue-100 border-blue-300 text-blue-700'
+                              : nightMode
+                                ? 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
+                                : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                          }`}
+                        >
+                          {isSelected ? '✓ ' : ''}{interest}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Error Message */}
             {errors.submit && (

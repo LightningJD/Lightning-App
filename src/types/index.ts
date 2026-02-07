@@ -29,6 +29,17 @@ export interface User {
   notify_nearby?: boolean;
   search_radius?: number;
   spotify_url?: string;
+  // Profile card fields
+  church_name?: string;
+  church_location?: string;
+  denomination?: string;
+  year_saved?: number;
+  is_baptized?: boolean;
+  year_baptized?: number;
+  favorite_verse?: string;
+  favorite_verse_ref?: string;
+  faith_interests?: string[];
+  entry_number?: number;
   last_seen?: string;
   is_online?: boolean;
   profile_completed?: boolean;
@@ -315,6 +326,17 @@ export interface UserProfile {
   locationLng?: number;
   searchRadius?: number;
   spotifyUrl?: string;
+  // Profile card fields
+  churchName?: string;
+  churchLocation?: string;
+  denomination?: string;
+  yearSaved?: number;
+  isBaptized?: boolean;
+  yearBaptized?: number;
+  favoriteVerse?: string;
+  favoriteVerseRef?: string;
+  faithInterests?: string[];
+  entryNumber?: number;
   story?: {
     id: string;
     title: string;

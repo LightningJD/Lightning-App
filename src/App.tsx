@@ -640,8 +640,20 @@ function App() {
     const toastId = showLoading('Updating profile...');
 
     try {
+      // Map profile card fields to DB column names
+      const dbData = { ...profileData };
+      if (profileData.churchName !== undefined) dbData.church_name = profileData.churchName;
+      if (profileData.churchLocation !== undefined) dbData.church_location = profileData.churchLocation;
+      if (profileData.denomination !== undefined) dbData.denomination = profileData.denomination;
+      if (profileData.yearSaved !== undefined) dbData.year_saved = profileData.yearSaved;
+      if (profileData.isBaptized !== undefined) dbData.is_baptized = profileData.isBaptized;
+      if (profileData.yearBaptized !== undefined) dbData.year_baptized = profileData.yearBaptized;
+      if (profileData.favoriteVerse !== undefined) dbData.favorite_verse = profileData.favoriteVerse;
+      if (profileData.favoriteVerseRef !== undefined) dbData.favorite_verse_ref = profileData.favoriteVerseRef;
+      if (profileData.faithInterests !== undefined) dbData.faith_interests = profileData.faithInterests;
+
       // Update profile in Supabase
-      const updated = await updateUserProfile(userProfile.supabaseId, profileData);
+      const updated = await updateUserProfile(userProfile.supabaseId, dbData);
 
       if (updated) {
         console.log('✅ Profile updated successfully!', updated);
@@ -671,6 +683,16 @@ function App() {
             next.locationLat = profileData._coords.lat;
             next.locationLng = profileData._coords.lng;
           }
+          // Profile card fields
+          if (profileData.churchName !== undefined) next.churchName = profileData.churchName;
+          if (profileData.churchLocation !== undefined) next.churchLocation = profileData.churchLocation;
+          if (profileData.denomination !== undefined) next.denomination = profileData.denomination;
+          if (profileData.yearSaved !== undefined) next.yearSaved = profileData.yearSaved;
+          if (profileData.isBaptized !== undefined) next.isBaptized = profileData.isBaptized;
+          if (profileData.yearBaptized !== undefined) next.yearBaptized = profileData.yearBaptized;
+          if (profileData.favoriteVerse !== undefined) next.favoriteVerse = profileData.favoriteVerse;
+          if (profileData.favoriteVerseRef !== undefined) next.favoriteVerseRef = profileData.favoriteVerseRef;
+          if (profileData.faithInterests !== undefined) next.faithInterests = profileData.faithInterests;
           return next;
         });
 

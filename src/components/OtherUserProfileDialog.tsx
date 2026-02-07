@@ -6,6 +6,7 @@ import { sanitizeUserContent } from '../lib/sanitization';
 import { sendFriendRequest, checkFriendshipStatus, blockUser, isUserBlocked } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
 import MusicPlayer from './MusicPlayer';
+import ProfileCard from './ProfileCard';
 
 interface UserStory {
   id: string;
@@ -33,6 +34,17 @@ interface User {
     trackName?: string;
     artist?: string;
   };
+  // Profile card fields
+  churchName?: string;
+  churchLocation?: string;
+  denomination?: string;
+  yearSaved?: number;
+  isBaptized?: boolean;
+  yearBaptized?: number;
+  favoriteVerse?: string;
+  favoriteVerseRef?: string;
+  faithInterests?: string[];
+  entryNumber?: number;
 }
 
 interface ReportData {
@@ -219,6 +231,37 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                 />
               )}
             </div>
+
+            {/* Profile Card (Pokédex V15+V11) */}
+            {(user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved || user.entryNumber) && (
+              <ProfileCard
+                nightMode={nightMode}
+                compact
+                hideStats
+                profile={{
+                  username: user.username,
+                  displayName: user.displayName,
+                  avatar: user.avatar,
+                  avatarImage: user.avatarImage,
+                  location: user.location,
+                  churchName: user.churchName,
+                  churchLocation: user.churchLocation,
+                  denomination: user.denomination,
+                  yearSaved: user.yearSaved,
+                  isBaptized: user.isBaptized,
+                  yearBaptized: user.yearBaptized,
+                  favoriteVerse: user.favoriteVerse,
+                  favoriteVerseRef: user.favoriteVerseRef,
+                  faithInterests: user.faithInterests,
+                  entryNumber: user.entryNumber,
+                  story: user.story ? {
+                    id: user.story.id,
+                    viewCount: 0,
+                    likeCount: user.story.likeCount,
+                  } : null,
+                }}
+              />
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-3 max-w-md mx-auto pt-2">
