@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash } from 'lucide-react';
 
 interface ChannelSidebarProps {
   nightMode: boolean;
@@ -20,6 +20,9 @@ interface ChannelSidebarProps {
   onRenameCategory?: (categoryId: string, newName: string) => void;
   onDeleteCategory?: (categoryId: string) => void;
   onReorderCategories?: (orderedIds: string[]) => void;
+  onUpdateChannel?: (channelId: string, updates: any) => void;
+  onDeleteChannel?: (channelId: string) => void;
+  unreadCounts?: Record<string, number>;
 }
 
 // Map common channel names to emoji icons
@@ -46,7 +49,8 @@ const getChannelEmoji = (name: string): string => {
 const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   nightMode, serverName, serverEmoji, serverId, categories, channels,
   activeChannelId, onSelectChannel, onCreateChannel, onOpenSettings, onOpenRoles, onOpenMembers,
-  canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory, onReorderCategories
+  canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory, onReorderCategories,
+  onUpdateChannel, onDeleteChannel, unreadCounts
 }) => {
   // Persist collapse state in localStorage per server
   const storageKey = `lightning_collapsed_${serverId}`;
@@ -60,15 +64,22 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   });
 
   // Category management state
-  const [contextMenu, setContextMenu] = useState<{ categoryId: string; x: number; y: number } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ type: 'category' | 'channel'; id: string; x: number; y: number } | null>(null);
   const [renamingCategoryId, setRenamingCategoryId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+
+  // Channel editing state
+  const [editingChannelId, setEditingChannelId] = useState<string | null>(null);
+  const [editChannelName, setEditChannelName] = useState('');
+  const [editChannelTopic, setEditChannelTopic] = useState('');
+
   const renameInputRef = useRef<HTMLInputElement>(null);
   const newCategoryInputRef = useRef<HTMLInputElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
+  const channelEditNameRef = useRef<HTMLInputElement>(null);
 
   // Save collapse state to localStorage whenever it changes
   useEffect(() => {
@@ -91,6 +102,14 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       newCategoryInputRef.current.focus();
     }
   }, [showCreateCategory]);
+
+  // Focus channel edit input
+  useEffect(() => {
+    if (editingChannelId && channelEditNameRef.current) {
+      channelEditNameRef.current.focus();
+      channelEditNameRef.current.select();
+    }
+  }, [editingChannelId]);
 
   // Close context menu on outside click
   useEffect(() => {
@@ -122,14 +141,30 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     if (!canManageChannels) return;
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({ categoryId, x: e.clientX, y: e.clientY });
+    setContextMenu({ type: 'category', id: categoryId, x: e.clientX, y: e.clientY });
+  };
+
+  const handleChannelContextMenu = (e: React.MouseEvent, channelId: string) => {
+    if (!canManageChannels) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ type: 'channel', id: channelId, x: e.clientX, y: e.clientY });
   };
 
   const handleCategoryLongPress = (categoryId: string, e: React.TouchEvent) => {
     if (!canManageChannels) return;
     const touch = e.touches[0];
     const timer = setTimeout(() => {
-      setContextMenu({ categoryId, x: touch.clientX, y: touch.clientY });
+      setContextMenu({ type: 'category', id: categoryId, x: touch.clientX, y: touch.clientY });
+    }, 500);
+    setLongPressTimer(timer);
+  };
+
+  const handleChannelLongPress = (channelId: string, e: React.TouchEvent) => {
+    if (!canManageChannels) return;
+    const touch = e.touches[0];
+    const timer = setTimeout(() => {
+      setContextMenu({ type: 'channel', id: channelId, x: touch.clientX, y: touch.clientY });
     }, 500);
     setLongPressTimer(timer);
   };
@@ -186,6 +221,36 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       onCreateCategory(newCategoryName.trim());
       setNewCategoryName('');
       setShowCreateCategory(false);
+    }
+  };
+
+  // Channel editing handlers
+  const handleStartEditChannel = (channelId: string) => {
+    const ch = channels.find(c => c.id === channelId);
+    if (ch) {
+      setEditingChannelId(channelId);
+      setEditChannelName(ch.name);
+      setEditChannelTopic(ch.topic || '');
+    }
+    setContextMenu(null);
+  };
+
+  const handleSaveChannelEdit = () => {
+    if (editingChannelId && editChannelName.trim() && onUpdateChannel) {
+      onUpdateChannel(editingChannelId, {
+        name: editChannelName.trim().toLowerCase().replace(/\s+/g, '-'),
+        topic: editChannelTopic.trim() || null,
+      });
+    }
+    setEditingChannelId(null);
+    setEditChannelName('');
+    setEditChannelTopic('');
+  };
+
+  const handleDeleteChannelClick = (channelId: string) => {
+    setContextMenu(null);
+    if (onDeleteChannel && window.confirm('Delete this channel? All messages will be permanently lost.')) {
+      onDeleteChannel(channelId);
     }
   };
 
@@ -251,6 +316,18 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                 isActive={channel.id === activeChannelId}
                 nightMode={nightMode}
                 onClick={() => onSelectChannel(channel.id)}
+                onContextMenu={(e) => handleChannelContextMenu(e, channel.id)}
+                onLongPress={(e) => handleChannelLongPress(channel.id, e)}
+                onTouchEnd={handleTouchEnd}
+                unreadCount={unreadCounts?.[channel.id] || 0}
+                isEditing={editingChannelId === channel.id}
+                editName={editChannelName}
+                editTopic={editChannelTopic}
+                onEditNameChange={setEditChannelName}
+                onEditTopicChange={setEditChannelTopic}
+                onSaveEdit={handleSaveChannelEdit}
+                onCancelEdit={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); }}
+                editNameRef={editingChannelId === channel.id ? channelEditNameRef : undefined}
               />
             ))}
           </div>
@@ -262,7 +339,6 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
             {/* Category header */}
             <div className="flex items-center gap-1 px-2 mb-1.5 group">
               {renamingCategoryId === group.id ? (
-                /* Inline rename input */
                 <div className="flex items-center gap-1 flex-1">
                   <input
                     ref={renameInputRef}
@@ -283,7 +359,6 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                   />
                 </div>
               ) : (
-                /* Normal category header */
                 <>
                   <button
                     onClick={() => toggleCategory(group.id)}
@@ -303,7 +378,6 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                     <span className="truncate">{group.name}</span>
                   </button>
 
-                  {/* Action buttons (visible on hover / always on mobile) */}
                   {canManageChannels && (
                     <div className={`flex items-center gap-0.5 ${fullWidth ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
                       <button
@@ -346,6 +420,18 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                     isActive={channel.id === activeChannelId}
                     nightMode={nightMode}
                     onClick={() => onSelectChannel(channel.id)}
+                    onContextMenu={(e) => handleChannelContextMenu(e, channel.id)}
+                    onLongPress={(e) => handleChannelLongPress(channel.id, e)}
+                    onTouchEnd={handleTouchEnd}
+                    unreadCount={unreadCounts?.[channel.id] || 0}
+                    isEditing={editingChannelId === channel.id}
+                    editName={editChannelName}
+                    editTopic={editChannelTopic}
+                    onEditNameChange={setEditChannelName}
+                    onEditTopicChange={setEditChannelTopic}
+                    onSaveEdit={handleSaveChannelEdit}
+                    onCancelEdit={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); }}
+                    editNameRef={editingChannelId === channel.id ? channelEditNameRef : undefined}
                   />
                 ))}
               </div>
@@ -406,7 +492,6 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
           background: nightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)',
         }}
       >
-        {/* Members button */}
         {onOpenMembers && (
           <button
             onClick={onOpenMembers}
@@ -419,7 +504,6 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
           </button>
         )}
 
-        {/* Admin controls */}
         {canManageChannels && (
           <div className="flex items-center gap-1">
             <button
@@ -468,7 +552,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         )}
       </div>
 
-      {/* Context menu for category management */}
+      {/* Context menu */}
       {contextMenu && (
         <>
           <div className="fixed inset-0 z-[100]" onClick={() => setContextMenu(null)} />
@@ -486,67 +570,165 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               WebkitBackdropFilter: 'blur(20px)',
             }}
           >
-            <button
-              onClick={() => handleStartRename(contextMenu.categoryId)}
-              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-              }`}
-            >
-              <Edit3 className="w-4 h-4" />
-              Rename
-            </button>
+            {contextMenu.type === 'category' ? (
+              <>
+                <button
+                  onClick={() => handleStartRename(contextMenu.id)}
+                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                    nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                  }`}
+                >
+                  <Edit3 className="w-4 h-4" /> Rename
+                </button>
 
-            {(() => {
-              const idx = sortedCategories.findIndex(c => c.id === contextMenu.categoryId);
-              return (
-                <>
-                  {idx > 0 && (
+                {(() => {
+                  const idx = sortedCategories.findIndex(c => c.id === contextMenu.id);
+                  return (
+                    <>
+                      {idx > 0 && (
+                        <button
+                          onClick={() => handleMoveCategory(contextMenu.id, 'up')}
+                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                            nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                          }`}
+                        >
+                          <ArrowUp className="w-4 h-4" /> Move Up
+                        </button>
+                      )}
+                      {idx < sortedCategories.length - 1 && (
+                        <button
+                          onClick={() => handleMoveCategory(contextMenu.id, 'down')}
+                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                            nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                          }`}
+                        >
+                          <ArrowDown className="w-4 h-4" /> Move Down
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
+
+                <button
+                  onClick={() => { setContextMenu(null); onCreateChannel(contextMenu.id); }}
+                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                    nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                  }`}
+                >
+                  <Plus className="w-4 h-4" /> Add Channel
+                </button>
+
+                <div className={`mx-2 ${nightMode ? 'border-t border-white/10' : 'border-t border-black/10'}`} />
+
+                <button
+                  onClick={() => handleDeleteCategory(contextMenu.id)}
+                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                    nightMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'
+                  }`}
+                >
+                  <Trash2 className="w-4 h-4" /> Delete Category
+                </button>
+              </>
+            ) : (
+              /* Channel context menu */
+              <>
+                {onUpdateChannel && (
+                  <button
+                    onClick={() => handleStartEditChannel(contextMenu.id)}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                      nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                    }`}
+                  >
+                    <Edit3 className="w-4 h-4" /> Edit Channel
+                  </button>
+                )}
+
+                {onDeleteChannel && (
+                  <>
+                    <div className={`mx-2 ${nightMode ? 'border-t border-white/10' : 'border-t border-black/10'}`} />
                     <button
-                      onClick={() => handleMoveCategory(contextMenu.categoryId, 'up')}
+                      onClick={() => handleDeleteChannelClick(contextMenu.id)}
                       className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                        nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                        nightMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'
                       }`}
                     >
-                      <ArrowUp className="w-4 h-4" />
-                      Move Up
+                      <Trash2 className="w-4 h-4" /> Delete Channel
                     </button>
-                  )}
-                  {idx < sortedCategories.length - 1 && (
-                    <button
-                      onClick={() => handleMoveCategory(contextMenu.categoryId, 'down')}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                        nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                      }`}
-                    >
-                      <ArrowDown className="w-4 h-4" />
-                      Move Down
-                    </button>
-                  )}
-                </>
-              );
-            })()}
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </>
+      )}
 
-            <button
-              onClick={() => onCreateChannel(contextMenu.categoryId)}
-              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-              }`}
-            >
-              <Plus className="w-4 h-4" />
-              Add Channel
-            </button>
+      {/* Channel edit modal */}
+      {editingChannelId && (
+        <>
+          <div className="fixed inset-0 z-[100] bg-black/30" onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); }} />
+          <div
+            className="fixed z-[101] rounded-2xl shadow-2xl p-5 w-[90%] max-w-sm"
+            style={{
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: nightMode ? 'rgba(20, 20, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)',
+              border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+            }}
+          >
+            <h3 className={`text-base font-bold mb-4 flex items-center gap-2 ${nightMode ? 'text-white' : 'text-black'}`}>
+              <Hash className="w-4 h-4" /> Edit Channel
+            </h3>
 
-            <div className={`mx-2 ${nightMode ? 'border-t border-white/10' : 'border-t border-black/10'}`} />
+            <div className="space-y-3">
+              <div>
+                <label className={`block text-xs font-semibold mb-1 ${nightMode ? 'text-white/50' : 'text-black/50'}`}>Name</label>
+                <input
+                  ref={channelEditNameRef}
+                  type="text"
+                  value={editChannelName}
+                  onChange={(e) => setEditChannelName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveChannelEdit(); }}
+                  className={`w-full px-3 py-2 rounded-xl text-sm ${nightMode ? 'text-white bg-white/10 border border-white/15' : 'text-black bg-white/60 border border-black/08'}`}
+                  maxLength={30}
+                />
+              </div>
+              <div>
+                <label className={`block text-xs font-semibold mb-1 ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
+                  Topic <span className={`font-normal ${nightMode ? 'text-white/25' : 'text-black/25'}`}>(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={editChannelTopic}
+                  onChange={(e) => setEditChannelTopic(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveChannelEdit(); }}
+                  placeholder="Channel topic..."
+                  className={`w-full px-3 py-2 rounded-xl text-sm ${nightMode ? 'text-white placeholder-white/25 bg-white/10 border border-white/15' : 'text-black placeholder-black/25 bg-white/60 border border-black/08'}`}
+                  maxLength={100}
+                />
+              </div>
+            </div>
 
-            <button
-              onClick={() => handleDeleteCategory(contextMenu.categoryId)}
-              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                nightMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'
-              }`}
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete Category
-            </button>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleSaveChannelEdit}
+                disabled={!editChannelName.trim()}
+                className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)' }}
+              >
+                Save
+              </button>
+              <button
+                onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); }}
+                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+                  nightMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
+                }`}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -554,33 +736,68 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   );
 };
 
-// Individual channel item
+// Individual channel item with unread badge
 const ChannelItem: React.FC<{
   channel: { id: string; name: string; topic?: string };
   isActive: boolean;
   nightMode: boolean;
   onClick: () => void;
-}> = ({ channel, isActive, nightMode, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-all ${
-      isActive
-        ? 'font-semibold'
-        : nightMode ? 'text-white/50 hover:text-white/80' : 'text-black/50 hover:text-black/80'
-    }`}
-    style={isActive ? {
-      background: nightMode
-        ? 'linear-gradient(90deg, rgba(79, 150, 255, 0.15), rgba(59, 130, 246, 0.05))'
-        : 'linear-gradient(90deg, rgba(79, 150, 255, 0.12), rgba(59, 130, 246, 0.03))',
-      color: nightMode ? '#93bbff' : '#2563eb',
-      borderLeft: '3px solid rgba(79, 150, 255, 0.7)',
-    } : {
-      borderLeft: '3px solid transparent',
-    }}
-  >
-    <span className="text-base flex-shrink-0">{getChannelEmoji(channel.name)}</span>
-    <span className="truncate">{channel.name}</span>
-  </button>
-);
+  onContextMenu?: (e: React.MouseEvent) => void;
+  onLongPress?: (e: React.TouchEvent) => void;
+  onTouchEnd?: () => void;
+  unreadCount?: number;
+  isEditing?: boolean;
+  editName?: string;
+  editTopic?: string;
+  onEditNameChange?: (v: string) => void;
+  onEditTopicChange?: (v: string) => void;
+  onSaveEdit?: () => void;
+  onCancelEdit?: () => void;
+  editNameRef?: React.RefObject<HTMLInputElement | null>;
+}> = ({ channel, isActive, nightMode, onClick, onContextMenu, onLongPress, onTouchEnd, unreadCount, isEditing: _isEditing, editNameRef: _editNameRef }) => {
+  const hasUnread = (unreadCount || 0) > 0;
+
+  return (
+    <button
+      onClick={onClick}
+      onContextMenu={onContextMenu}
+      onTouchStart={onLongPress}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchEnd}
+      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-all ${
+        isActive
+          ? 'font-semibold'
+          : hasUnread
+            ? nightMode ? 'text-white font-semibold' : 'text-black font-semibold'
+            : nightMode ? 'text-white/50 hover:text-white/80' : 'text-black/50 hover:text-black/80'
+      }`}
+      style={isActive ? {
+        background: nightMode
+          ? 'linear-gradient(90deg, rgba(79, 150, 255, 0.15), rgba(59, 130, 246, 0.05))'
+          : 'linear-gradient(90deg, rgba(79, 150, 255, 0.12), rgba(59, 130, 246, 0.03))',
+        color: nightMode ? '#93bbff' : '#2563eb',
+        borderLeft: '3px solid rgba(79, 150, 255, 0.7)',
+      } : {
+        borderLeft: '3px solid transparent',
+      }}
+    >
+      <span className="text-base flex-shrink-0">{getChannelEmoji(channel.name)}</span>
+      <span className="truncate flex-1 text-left">{channel.name}</span>
+
+      {/* Unread badge */}
+      {hasUnread && !isActive && (
+        <span
+          className="min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 px-1"
+          style={{
+            background: 'linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)',
+            boxShadow: '0 1px 4px rgba(59, 130, 246, 0.3)',
+          }}
+        >
+          {(unreadCount || 0) > 99 ? '99+' : unreadCount}
+        </span>
+      )}
+    </button>
+  );
+};
 
 export default ChannelSidebar;

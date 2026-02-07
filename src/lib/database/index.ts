@@ -122,7 +122,19 @@ export {
   requestToJoinServer,
   getServerJoinRequests,
   approveServerJoinRequest,
-  denyServerJoinRequest
+  denyServerJoinRequest,
+  editChannelMessage,
+  deleteChannelMessage,
+  sendChannelReply,
+  banMember,
+  unbanMember,
+  getServerBans,
+  updateTypingIndicator,
+  clearTypingIndicator,
+  getTypingIndicators,
+  searchChannelMessages,
+  markChannelRead,
+  getUnreadCounts
 } from './servers.js';
 
 // Real-time Subscriptions

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Search, Shield, UserX, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Search, Shield, UserX, ChevronDown, Ban, UserCheck } from 'lucide-react';
 
 interface MemberUser {
   id: string; display_name: string; username: string;
@@ -15,23 +15,38 @@ interface Member {
   user?: MemberUser; role?: MemberRole;
 }
 
+interface BannedUser {
+  id: string;
+  user_id: string;
+  reason?: string;
+  banned_by: string;
+  created_at: string;
+  user?: { id: string; display_name: string; username: string; avatar_emoji?: string };
+}
+
 interface MemberListProps {
   nightMode: boolean;
   members: Member[];
   roles: MemberRole[];
   currentUserId: string;
-  permissions: { manage_members: boolean; kick_members: boolean; manage_roles: boolean };
+  permissions: { manage_members: boolean; kick_members: boolean; manage_roles: boolean; ban_members?: boolean };
   onAssignRole: (userId: string, roleId: string) => void;
   onRemoveMember: (userId: string) => void;
   onBack: () => void;
+  bans?: BannedUser[];
+  onBanMember?: (userId: string, reason?: string) => void;
+  onUnbanMember?: (userId: string) => void;
 }
 
 const MemberList: React.FC<MemberListProps> = ({
   nightMode, members, roles, currentUserId, permissions,
-  onAssignRole, onRemoveMember, onBack
+  onAssignRole, onRemoveMember, onBack, bans, onBanMember, onUnbanMember
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [showBanned, setShowBanned] = useState(false);
+  const [banReasonInput, setBanReasonInput] = useState('');
+  const [banConfirmUserId, setBanConfirmUserId] = useState<string | null>(null);
 
   const sortedRoles = useMemo(() => [...roles].sort((a, b) => b.position - a.position), [roles]);
   const currentMember = useMemo(() => members.find(m => m.user_id === currentUserId), [members, currentUserId]);
@@ -109,6 +124,35 @@ const MemberList: React.FC<MemberListProps> = ({
         </span>
       </div>
 
+      {/* Tabs: Members / Banned */}
+      {permissions.ban_members && bans && (
+        <div
+          className="flex gap-1 px-4 py-2"
+          style={{ borderBottom: `1px solid ${nm ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` }}
+        >
+          <button
+            onClick={() => setShowBanned(false)}
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+              !showBanned
+                ? nm ? 'bg-white/10 text-white' : 'bg-black/5 text-black'
+                : nm ? 'text-white/40 hover:text-white/60' : 'text-black/40 hover:text-black/60'
+            }`}
+          >
+            Members ({members.length})
+          </button>
+          <button
+            onClick={() => setShowBanned(true)}
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
+              showBanned
+                ? 'bg-red-500/10 text-red-400'
+                : nm ? 'text-white/40 hover:text-white/60' : 'text-black/40 hover:text-black/60'
+            }`}
+          >
+            Banned ({bans.length})
+          </button>
+        </div>
+      )}
+
       {/* Search */}
       <div className="px-4 py-3">
         <div
@@ -134,49 +178,115 @@ const MemberList: React.FC<MemberListProps> = ({
       </div>
 
       {/* Member list */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
-        {groupedByRole.length === 0 ? (
-          <div className="flex items-center justify-center py-12">
-            <p className={`text-sm ${nm ? 'text-white/40' : 'text-black/40'}`}>No members found</p>
-          </div>
-        ) : groupedByRole.map(group => (
-          <div key={group.role.id}>
-            {/* Role group header */}
-            <div className="flex items-center gap-2 px-2 mb-2">
-              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: group.role.color, boxShadow: `0 0 8px ${group.role.color}40` }} />
-              <span className="text-xs font-bold" style={{ color: group.role.color }}>
-                {group.role.name}
-              </span>
-              <span className={`text-xs ${nm ? 'text-white/30' : 'text-black/30'}`}>
-                {group.members.length}
-              </span>
+      {!showBanned ? (
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
+          {groupedByRole.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <p className={`text-sm ${nm ? 'text-white/40' : 'text-black/40'}`}>No members found</p>
             </div>
-            {/* Members in glass card */}
+          ) : groupedByRole.map(group => (
+            <div key={group.role.id}>
+              {/* Role group header */}
+              <div className="flex items-center gap-2 px-2 mb-2">
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: group.role.color, boxShadow: `0 0 8px ${group.role.color}40` }} />
+                <span className="text-xs font-bold" style={{ color: group.role.color }}>
+                  {group.role.name}
+                </span>
+                <span className={`text-xs ${nm ? 'text-white/30' : 'text-black/30'}`}>
+                  {group.members.length}
+                </span>
+              </div>
+              {/* Members in glass card */}
+              <div
+                className="rounded-xl overflow-hidden"
+                style={{
+                  background: nm ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.4)',
+                  border: `1px solid ${nm ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'}`,
+                }}
+              >
+                {group.members.map(member => (
+                  <MemberRow
+                    key={member.id}
+                    member={member}
+                    nightMode={nm}
+                    canManage={canManage(member)}
+                    roles={sortedRoles}
+                    permissions={permissions}
+                    isDropdownOpen={openDropdown === member.id}
+                    onToggleDropdown={() => setOpenDropdown(prev => prev === member.id ? null : member.id)}
+                    onAssignRole={onAssignRole}
+                    onRemoveMember={onRemoveMember}
+                    canBan={!!permissions.ban_members && !!onBanMember && member.user_id !== currentUserId}
+                    onBanMember={onBanMember}
+                    banConfirmUserId={banConfirmUserId}
+                    onSetBanConfirm={setBanConfirmUserId}
+                    banReasonInput={banReasonInput}
+                    onSetBanReason={setBanReasonInput}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Banned Users list */
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+          {(!bans || bans.length === 0) ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Ban className={`w-10 h-10 mb-3 ${nm ? 'text-white/15' : 'text-black/10'}`} />
+              <p className={`text-sm ${nm ? 'text-white/40' : 'text-black/40'}`}>No banned users</p>
+            </div>
+          ) : bans.map(ban => (
             <div
-              className="rounded-xl overflow-hidden"
+              key={ban.id}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all`}
               style={{
                 background: nm ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.4)',
                 border: `1px solid ${nm ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'}`,
               }}
             >
-              {group.members.map(member => (
-                <MemberRow
-                  key={member.id}
-                  member={member}
-                  nightMode={nm}
-                  canManage={canManage(member)}
-                  roles={sortedRoles}
-                  permissions={permissions}
-                  isDropdownOpen={openDropdown === member.id}
-                  onToggleDropdown={() => setOpenDropdown(prev => prev === member.id ? null : member.id)}
-                  onAssignRole={onAssignRole}
-                  onRemoveMember={onRemoveMember}
-                />
-              ))}
+              {/* Avatar */}
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
+                style={{
+                  background: nm
+                    ? 'linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))'
+                    : 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03))',
+                }}
+              >
+                {ban.user?.avatar_emoji || '\u{1F6AB}'}
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold truncate ${nm ? 'text-white' : 'text-black'}`}>
+                  {ban.user?.display_name || 'Unknown'}
+                </p>
+                <p className={`text-xs truncate ${nm ? 'text-white/40' : 'text-black/40'}`}>
+                  @{ban.user?.username || 'unknown'}
+                </p>
+                {ban.reason && (
+                  <p className={`text-xs mt-0.5 truncate ${nm ? 'text-red-300/50' : 'text-red-600/50'}`}>
+                    Reason: {ban.reason}
+                  </p>
+                )}
+              </div>
+
+              {/* Unban button */}
+              {onUnbanMember && (
+                <button
+                  onClick={() => onUnbanMember(ban.user_id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95 hover:scale-[1.02] ${
+                    nm ? 'bg-green-500/10 text-green-400 hover:bg-green-500/15' : 'bg-green-500/10 text-green-600 hover:bg-green-500/15'
+                  }`}
+                >
+                  <UserCheck className="w-3.5 h-3.5" /> Unban
+                </button>
+              )}
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -186,11 +296,17 @@ const MemberList: React.FC<MemberListProps> = ({
 const MemberRow: React.FC<{
   member: Member; nightMode: boolean; canManage: boolean;
   roles: MemberRole[];
-  permissions: { manage_members: boolean; kick_members: boolean; manage_roles: boolean };
+  permissions: { manage_members: boolean; kick_members: boolean; manage_roles: boolean; ban_members?: boolean };
   isDropdownOpen: boolean; onToggleDropdown: () => void;
   onAssignRole: (userId: string, roleId: string) => void;
   onRemoveMember: (userId: string) => void;
-}> = ({ member, nightMode: nm, canManage, roles, permissions, isDropdownOpen, onToggleDropdown, onAssignRole, onRemoveMember }) => {
+  canBan?: boolean;
+  onBanMember?: (userId: string, reason?: string) => void;
+  banConfirmUserId?: string | null;
+  onSetBanConfirm?: (userId: string | null) => void;
+  banReasonInput?: string;
+  onSetBanReason?: (reason: string) => void;
+}> = ({ member, nightMode: nm, canManage, roles, permissions, isDropdownOpen, onToggleDropdown, onAssignRole, onRemoveMember, canBan, onBanMember, banConfirmUserId, onSetBanConfirm, banReasonInput, onSetBanReason }) => {
   const user = member.user;
 
   return (
@@ -308,6 +424,63 @@ const MemberRow: React.FC<{
               <UserX className="w-4 h-4" />
             </button>
           )}
+          {canBan && onBanMember && onSetBanConfirm && (
+            <button
+              onClick={() => onSetBanConfirm(banConfirmUserId === member.user_id ? null : member.user_id)}
+              className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                nm ? 'hover:bg-red-500/15 text-white/30 hover:text-red-400' : 'hover:bg-red-50 text-black/25 hover:text-red-500'
+              }`}
+              title="Ban member"
+            >
+              <Ban className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Ban confirmation */}
+      {banConfirmUserId === member.user_id && canBan && onBanMember && onSetBanConfirm && onSetBanReason && (
+        <div
+          className="col-span-full px-4 pb-3 pt-1"
+          style={{
+            borderTop: `1px solid ${nm ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.08)'}`,
+            background: nm ? 'rgba(239,68,68,0.04)' : 'rgba(239,68,68,0.03)',
+          }}
+        >
+          <p className={`text-xs font-semibold mb-1.5 ${nm ? 'text-red-300' : 'text-red-600'}`}>
+            Ban {member.user?.display_name || 'this user'}?
+          </p>
+          <input
+            type="text"
+            value={banReasonInput || ''}
+            onChange={(e) => onSetBanReason(e.target.value)}
+            placeholder="Reason (optional)..."
+            className={`w-full px-3 py-1.5 rounded-lg text-xs mb-2 ${
+              nm ? 'text-white placeholder-white/30 bg-white/5 border border-white/10'
+              : 'text-black placeholder-black/30 bg-white/50 border border-black/08'
+            }`}
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                onBanMember(member.user_id, banReasonInput || undefined);
+                onSetBanConfirm(null);
+                onSetBanReason('');
+              }}
+              className="flex-1 py-1.5 rounded-lg text-white text-xs font-bold transition-all active:scale-95"
+              style={{ background: 'rgba(239,68,68,0.85)' }}
+            >
+              Confirm Ban
+            </button>
+            <button
+              onClick={() => { onSetBanConfirm(null); onSetBanReason(''); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 ${
+                nm ? 'bg-white/10 text-white' : 'bg-black/5 text-black'
+              }`}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>

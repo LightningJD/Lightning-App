@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Pin, Send, Smile, X, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Pin, Send, Smile, X, Image as ImageIcon, Edit3, Trash2, Reply, CornerUpRight, Search, Check, MoreHorizontal } from 'lucide-react';
 import { showError } from '../../lib/toast';
 import { validateMessage, sanitizeInput } from '../../lib/inputValidation';
 import { uploadMessageImage } from '../../lib/cloudinary';
@@ -12,6 +12,14 @@ import {
   addChannelReaction,
   removeChannelReaction,
   getChannelMessageReactions,
+  editChannelMessage,
+  deleteChannelMessage,
+  sendChannelReply,
+  updateTypingIndicator,
+  clearTypingIndicator,
+  getTypingIndicators,
+  searchChannelMessages,
+  markChannelRead,
   unsubscribe
 } from '../../lib/database';
 
@@ -23,6 +31,9 @@ interface ChannelChatProps {
   channelName: string;
   channelTopic?: string;
   userId: string;
+  userDisplayName?: string;
+  serverId?: string;
+  members?: Array<{ user_id: string; user?: { id: string; display_name: string; username: string; avatar_emoji?: string } }>;
   permissions: {
     send_messages: boolean;
     pin_messages: boolean;
@@ -36,9 +47,13 @@ interface ChannelMessage {
   content: string;
   created_at: string;
   image_url?: string;
+  is_edited?: boolean;
+  reply_to_id?: string | number;
   sender: {
+    id?: string;
     display_name: string;
     avatar_emoji: string;
+    username?: string;
   };
 }
 
@@ -65,6 +80,7 @@ const REACTION_EMOJIS = [
 
 const POLL_INTERVAL_MS = 3000;
 const INITIAL_MESSAGE_LIMIT = 50;
+const TYPING_DEBOUNCE_MS = 2000;
 
 // Map common channel names to emoji
 const getChannelEmoji = (name: string): string => {
@@ -95,9 +111,12 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   channelName,
   channelTopic,
   userId,
+  userDisplayName,
+  serverId,
+  members,
   permissions
 }) => {
-  // State
+  // Core state
   const [messages, setMessages] = useState<ChannelMessage[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<ChannelMessage[]>([]);
   const [messageReactions, setMessageReactions] = useState<Record<string | number, MessageReaction[]>>({});
@@ -112,16 +131,46 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   const [uploadingImage, setUploadingImage] = useState(false);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
+  // Edit state
+  const [editingMessageId, setEditingMessageId] = useState<string | number | null>(null);
+  const [editContent, setEditContent] = useState('');
+
+  // Reply state
+  const [replyingTo, setReplyingTo] = useState<ChannelMessage | null>(null);
+
+  // Typing indicator state
+  const [typingUsers, setTypingUsers] = useState<Array<{ user_id: string; display_name: string }>>([]);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTypingSentRef = useRef<number>(0);
+
+  // Search state
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+
+  // @mention state
+  const [showMentionPicker, setShowMentionPicker] = useState(false);
+  const [mentionFilter, setMentionFilter] = useState('');
+  const [mentionCursorPos, setMentionCursorPos] = useState(0);
+
+  // Message action menu (mobile)
+  const [activeMessageMenu, setActiveMessageMenu] = useState<string | number | null>(null);
+
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
   const subscriptionRef = useRef<any>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // ── Data Loading ───────────────────────────────────────────
 
   useEffect(() => {
     let pollInterval: NodeJS.Timeout | null = null;
+    let typingPollInterval: NodeJS.Timeout | null = null;
     let isMounted = true;
 
     const loadMessages = async () => {
@@ -156,6 +205,9 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
 
       setLoading(false);
 
+      // Mark channel as read
+      markChannelRead(channelId, userId).catch(() => {});
+
       // Poll for new messages every 3 seconds
       pollInterval = setInterval(async () => {
         if (!isMounted) return;
@@ -183,7 +235,19 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           newReactionsMap[msg.id] = updatedReactionsResults[index];
         });
         setMessageReactions(newReactionsMap);
+
+        // Mark as read on poll
+        markChannelRead(channelId, userId).catch(() => {});
       }, POLL_INTERVAL_MS);
+
+      // Poll typing indicators every 2 seconds
+      typingPollInterval = setInterval(async () => {
+        if (!isMounted) return;
+        const indicators = await getTypingIndicators(channelId, userId);
+        if (isMounted) {
+          setTypingUsers(indicators || []);
+        }
+      }, 2000);
     };
 
     loadMessages();
@@ -191,7 +255,10 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     return () => {
       isMounted = false;
       if (pollInterval) clearInterval(pollInterval);
+      if (typingPollInterval) clearInterval(typingPollInterval);
       if (subscriptionRef.current) unsubscribe(subscriptionRef.current);
+      // Clear typing indicator on leave
+      clearTypingIndicator(channelId, userId).catch(() => {});
     };
   }, [channelId]);
 
@@ -199,6 +266,21 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Focus edit input when editing
+  useEffect(() => {
+    if (editingMessageId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.setSelectionRange(editInputRef.current.value.length, editInputRef.current.value.length);
+    }
+  }, [editingMessageId]);
+
+  // Focus search input
+  useEffect(() => {
+    if (showSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [showSearch]);
 
   // ── Message position helper ────────────────────────────────
 
@@ -209,6 +291,65 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     const mid = rect.top + rect.height / 2;
     return mid > window.innerHeight / 2;
   };
+
+  // ── Typing Indicator ────────────────────────────────────────
+
+  const handleTyping = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTypingSentRef.current < TYPING_DEBOUNCE_MS) return;
+    lastTypingSentRef.current = now;
+
+    updateTypingIndicator(channelId, userId, userDisplayName || 'Someone').catch(() => {});
+
+    // Clear typing after 3 seconds of inactivity
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      clearTypingIndicator(channelId, userId).catch(() => {});
+    }, 3000);
+  }, [channelId, userId, userDisplayName]);
+
+  // ── @Mention handling ──────────────────────────────────────
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setNewMessage(value);
+    handleTyping();
+
+    // Detect @ mentions
+    const cursorPos = e.target.selectionStart || 0;
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+    if (lastAtIndex !== -1) {
+      const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+      // Only show mention picker if there's no space before the @mention text
+      if (!textAfterAt.includes(' ') && textAfterAt.length <= 30) {
+        setMentionFilter(textAfterAt.toLowerCase());
+        setMentionCursorPos(lastAtIndex);
+        setShowMentionPicker(true);
+        return;
+      }
+    }
+    setShowMentionPicker(false);
+  }, [handleTyping]);
+
+  const handleMentionSelect = useCallback((member: any) => {
+    const displayName = member.user?.display_name || member.user?.username || 'unknown';
+    const before = newMessage.substring(0, mentionCursorPos);
+    const after = newMessage.substring(textareaRef.current?.selectionStart || mentionCursorPos + mentionFilter.length + 1);
+    const newVal = `${before}@${displayName} ${after}`;
+    setNewMessage(newVal);
+    setShowMentionPicker(false);
+    textareaRef.current?.focus();
+  }, [newMessage, mentionCursorPos, mentionFilter]);
+
+  const filteredMentionMembers = (members || []).filter(m => {
+    if (!m.user) return false;
+    if (m.user_id === userId) return false;
+    const name = (m.user.display_name || '').toLowerCase();
+    const username = (m.user.username || '').toLowerCase();
+    return name.includes(mentionFilter) || username.includes(mentionFilter);
+  }).slice(0, 6);
 
   // ── Image Handling ─────────────────────────────────────────
 
@@ -254,16 +395,18 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     const messageContent = newMessage.trim() ? sanitizeInput(newMessage) : '';
     const imageToUpload = pendingImage;
     const imagePreview = pendingImagePreview;
+    const replyTo = replyingTo;
 
     // Optimistic update
     const tempMessage: ChannelMessage = {
       id: Date.now(),
       sender_id: userId,
-      content: messageContent || (imageToUpload ? '📷 Image' : ''),
+      content: messageContent || (imageToUpload ? '\u{1F4F7} Image' : ''),
       created_at: new Date().toISOString(),
       image_url: imagePreview || undefined,
+      reply_to_id: replyTo?.id,
       sender: {
-        display_name: 'You',
+        display_name: userDisplayName || 'You',
         avatar_emoji: '\u{1F464}'
       }
     };
@@ -272,6 +415,10 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     setNewMessage('');
     setPendingImage(null);
     setPendingImagePreview(null);
+    setReplyingTo(null);
+
+    // Clear typing indicator
+    clearTypingIndicator(channelId, userId).catch(() => {});
 
     // Upload image if attached
     let uploadedImageUrl: string | undefined;
@@ -288,12 +435,88 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
       setUploadingImage(false);
     }
 
-    const finalContent = messageContent || (uploadedImageUrl ? '📷 Image' : '');
-    const saved = await sendChannelMessage(channelId, userId, finalContent, uploadedImageUrl);
+    const finalContent = messageContent || (uploadedImageUrl ? '\u{1F4F7} Image' : '');
+
+    let saved;
+    if (replyTo) {
+      // @ts-ignore
+      saved = await sendChannelReply(channelId, userId, finalContent, replyTo.id, uploadedImageUrl);
+    } else {
+      saved = await sendChannelMessage(channelId, userId, finalContent, uploadedImageUrl);
+    }
     if (!saved) {
       showError('Failed to send message');
     }
   };
+
+  // ── Edit Message ───────────────────────────────────────────
+
+  const handleStartEdit = useCallback((msg: ChannelMessage) => {
+    setEditingMessageId(msg.id);
+    setEditContent(msg.content);
+    setActiveMessageMenu(null);
+  }, []);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingMessageId || !editContent.trim()) return;
+
+    const validation = validateMessage(editContent, 'message');
+    if (!validation.valid) {
+      showError(validation.errors[0] || 'Invalid message');
+      return;
+    }
+
+    const sanitized = sanitizeInput(editContent);
+    // @ts-ignore
+    const result = await editChannelMessage(editingMessageId, userId, sanitized);
+    if (result) {
+      setMessages(prev => prev.map(m =>
+        m.id === editingMessageId ? { ...m, content: sanitized, is_edited: true } : m
+      ));
+    } else {
+      showError('Failed to edit message');
+    }
+    setEditingMessageId(null);
+    setEditContent('');
+  }, [editingMessageId, editContent, userId]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingMessageId(null);
+    setEditContent('');
+  }, []);
+
+  // ── Delete Message ─────────────────────────────────────────
+
+  const handleDeleteMessage = useCallback(async (messageId: string | number) => {
+    setActiveMessageMenu(null);
+    if (!window.confirm('Delete this message? This cannot be undone.')) return;
+
+    // @ts-ignore
+    const result = await deleteChannelMessage(messageId);
+    if (result) {
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+    } else {
+      showError('Failed to delete message');
+    }
+  }, []);
+
+  // ── Reply ──────────────────────────────────────────────────
+
+  const handleStartReply = useCallback((msg: ChannelMessage) => {
+    setReplyingTo(msg);
+    setActiveMessageMenu(null);
+    textareaRef.current?.focus();
+  }, []);
+
+  // ── Search ─────────────────────────────────────────────────
+
+  const handleSearch = useCallback(async () => {
+    if (!searchQuery.trim() || !serverId) return;
+    setSearching(true);
+    const results = await searchChannelMessages(serverId, searchQuery.trim());
+    setSearchResults(results || []);
+    setSearching(false);
+  }, [searchQuery, serverId]);
 
   // ── Reactions ──────────────────────────────────────────────
 
@@ -306,22 +529,19 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     );
 
     if (existing) {
-      // Optimistically remove
       setMessageReactions(prev => ({
         ...prev,
         [messageId]: reactions.filter(r => r.id !== existing.id)
       }));
 
-      // @ts-ignore - message id type compatibility
+      // @ts-ignore
       removeChannelReaction(messageId, userId, emoji).catch(() => {
-        // Rollback on error
         setMessageReactions(prev => ({
           ...prev,
           [messageId]: reactions
         }));
       });
     } else {
-      // Optimistically add
       const tempReaction: MessageReaction = {
         id: `temp-${Date.now()}`,
         message_id: messageId,
@@ -335,7 +555,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         [messageId]: [...(prev[messageId] || []), tempReaction]
       }));
 
-      // @ts-ignore - message id type compatibility
+      // @ts-ignore
       addChannelReaction(messageId, userId, emoji)
         .then((newReaction: any) => {
           if (newReaction) {
@@ -356,7 +576,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
             ...prev,
             [messageId]: (prev[messageId] || []).filter(r => r.id !== tempReaction.id)
           }));
-          showError('Failed to add reaction. Please try again.');
+          showError('Failed to add reaction');
         });
     }
 
@@ -366,7 +586,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   // ── Pin / Unpin ────────────────────────────────────────────
 
   const handlePinMessage = async (messageId: string | number) => {
-    // @ts-ignore - message id type compatibility
+    // @ts-ignore
     const result = await pinChannelMessage(messageId, userId);
     if (result) {
       const pinned = await getPinnedChannelMessages(channelId);
@@ -375,12 +595,42 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   };
 
   const handleUnpinMessage = async (messageId: string | number) => {
-    // @ts-ignore - message id type compatibility
+    // @ts-ignore
     const result = await unpinChannelMessage(messageId);
     if (result) {
       const pinned = await getPinnedChannelMessages(channelId);
       setPinnedMessages(pinned || []);
     }
+  };
+
+  // ── Render @mention text ───────────────────────────────────
+
+  const renderMessageContent = (content: string) => {
+    if (!content || content === '\u{1F4F7} Image') return null;
+
+    // Parse @mentions in message text
+    const parts = content.split(/(@\w[\w\s]*?)(?=\s|$)/g);
+    return (
+      <p className={`text-[15px] break-words whitespace-pre-wrap mt-0.5 leading-relaxed ${
+        nightMode ? 'text-white/80' : 'text-black/80'
+      }`}>
+        {parts.map((part, i) => {
+          if (part.startsWith('@') && part.length > 1) {
+            return (
+              <span
+                key={i}
+                className={`font-semibold rounded px-0.5 ${
+                  nightMode ? 'text-blue-300 bg-blue-500/15' : 'text-blue-600 bg-blue-500/10'
+                }`}
+              >
+                {part}
+              </span>
+            );
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </p>
+    );
   };
 
   // ── Reaction rendering helper ──────────────────────────────
@@ -409,12 +659,8 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
             onClick={() => handleReaction(messageId, emoji)}
             className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all hover:scale-105 active:scale-95 ${
               data.hasReacted
-                ? nightMode
-                  ? 'border border-blue-500/40'
-                  : 'border border-blue-400/50'
-                : nightMode
-                  ? 'border border-white/10 hover:border-white/20'
-                  : 'border border-black/10 hover:border-black/20'
+                ? nightMode ? 'border border-blue-500/40' : 'border border-blue-400/50'
+                : nightMode ? 'border border-white/10 hover:border-white/20' : 'border border-black/10 hover:border-black/20'
             }`}
             style={data.hasReacted ? {
               background: nightMode ? 'rgba(79, 150, 255, 0.15)' : 'rgba(79, 150, 255, 0.1)',
@@ -523,11 +769,22 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     );
   };
 
+  // ── Find reply-to message ──────────────────────────────────
+
+  const getReplyToMessage = (replyToId: string | number | undefined): ChannelMessage | undefined => {
+    if (!replyToId) return undefined;
+    return messages.find(m => m.id === replyToId || String(m.id) === String(replyToId));
+  };
+
   // ── Render a single message row ────────────────────────────
 
   const renderMessage = (msg: ChannelMessage, isPinned: boolean = false) => {
     const reactions = messageReactions[msg.id] || [];
     const isOwnMessage = msg.sender_id === userId;
+    const isEditing = editingMessageId === msg.id;
+    const replyToMsg = getReplyToMessage(msg.reply_to_id);
+    const canDelete = isOwnMessage || permissions.delete_messages;
+    const canEdit = isOwnMessage;
 
     return (
       <div
@@ -535,6 +792,17 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         ref={(el) => { messageRefs.current[msg.id] = el; }}
         className="group px-4 py-1"
       >
+        {/* Reply reference */}
+        {replyToMsg && (
+          <div className={`flex items-center gap-2 ml-14 mb-1 text-xs ${
+            nightMode ? 'text-white/40' : 'text-black/40'
+          }`}>
+            <CornerUpRight className="w-3 h-3 flex-shrink-0" />
+            <span className="font-semibold truncate">{replyToMsg.sender?.display_name}</span>
+            <span className="truncate max-w-[200px]">{replyToMsg.content}</span>
+          </div>
+        )}
+
         <div
           className={`flex items-start gap-3 px-4 py-3 rounded-2xl transition-all ${
             nightMode ? 'hover:bg-white/[0.02]' : 'hover:bg-black/[0.02]'
@@ -550,7 +818,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
             }`,
           }}
         >
-          {/* Avatar — gradient style like Lightning profiles */}
+          {/* Avatar */}
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
             style={{
@@ -574,8 +842,9 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
               <span className={`text-xs ${nightMode ? 'text-white/30' : 'text-black/30'}`}>
                 {formatTime(msg.created_at)}
               </span>
-
-              {/* Pinned indicator */}
+              {msg.is_edited && (
+                <span className={`text-[10px] ${nightMode ? 'text-white/20' : 'text-black/20'}`}>(edited)</span>
+              )}
               {isPinned && (
                 <span className="flex items-center gap-1 text-xs text-amber-400">
                   <Pin className="w-3 h-3" />
@@ -599,13 +868,47 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
                 />
               </div>
             )}
-            {/* Message text (hide placeholder text for image-only messages) */}
-            {msg.content && msg.content !== '📷 Image' && (
-              <p className={`text-[15px] break-words whitespace-pre-wrap mt-0.5 leading-relaxed ${
-                nightMode ? 'text-white/80' : 'text-black/80'
-              }`}>
-                {msg.content}
-              </p>
+
+            {/* Edit mode or normal content */}
+            {isEditing ? (
+              <div className="mt-1">
+                <textarea
+                  ref={editInputRef}
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSaveEdit(); }
+                    if (e.key === 'Escape') handleCancelEdit();
+                  }}
+                  className={`w-full px-3 py-2 rounded-xl text-sm resize-none focus:outline-none ${
+                    nightMode ? 'text-white bg-white/10 border border-white/20 focus:border-blue-400'
+                    : 'text-black bg-white/60 border border-black/10 focus:border-blue-500'
+                  }`}
+                  rows={2}
+                />
+                <div className="flex items-center gap-2 mt-1.5">
+                  <button
+                    onClick={handleSaveEdit}
+                    className="text-xs font-semibold px-3 py-1 rounded-lg text-white transition-all active:scale-95"
+                    style={{ background: 'linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)' }}
+                  >
+                    <Check className="w-3 h-3 inline mr-1" />Save
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className={`text-xs font-semibold px-3 py-1 rounded-lg transition-all active:scale-95 ${
+                      nightMode ? 'text-white/50 hover:bg-white/5' : 'text-black/50 hover:bg-black/5'
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                  <span className={`text-[10px] ${nightMode ? 'text-white/20' : 'text-black/20'}`}>
+                    Esc to cancel, Enter to save
+                  </span>
+                </div>
+              </div>
+            ) : (
+              renderMessageContent(msg.content)
             )}
 
             {/* Reactions display */}
@@ -618,7 +921,20 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           </div>
 
           {/* Hover action buttons */}
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all mt-0.5">
+          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-all mt-0.5 flex-shrink-0">
+            {/* Reply button */}
+            <button
+              onClick={() => handleStartReply(msg)}
+              className={`p-1.5 rounded-xl transition-all hover:scale-110 active:scale-95 ${
+                nightMode
+                  ? 'text-white/30 hover:text-white/60 hover:bg-white/5'
+                  : 'text-black/30 hover:text-black/60 hover:bg-black/5'
+              }`}
+              title="Reply"
+            >
+              <Reply className="w-4 h-4" />
+            </button>
+
             {/* Reaction button */}
             <button
               onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
@@ -656,6 +972,60 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
                 </button>
               )
             )}
+
+            {/* Edit / Delete (overflow menu) */}
+            {(canEdit || canDelete) && (
+              <div className="relative">
+                <button
+                  onClick={() => setActiveMessageMenu(activeMessageMenu === msg.id ? null : msg.id)}
+                  className={`p-1.5 rounded-xl transition-all hover:scale-110 active:scale-95 ${
+                    nightMode
+                      ? 'text-white/30 hover:text-white/60 hover:bg-white/5'
+                      : 'text-black/30 hover:text-black/60 hover:bg-black/5'
+                  }`}
+                  title="More actions"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+
+                {activeMessageMenu === msg.id && (
+                  <>
+                    <div className="fixed inset-0 z-[99]" onClick={() => setActiveMessageMenu(null)} />
+                    <div
+                      className={`absolute right-0 ${isMessageInBottomHalf(msg.id) ? 'bottom-full mb-1' : 'top-full mt-1'} z-[100] rounded-xl shadow-xl overflow-hidden min-w-[140px] ${
+                        nightMode ? 'border border-white/10' : 'border border-black/10'
+                      }`}
+                      style={{
+                        background: nightMode ? 'rgba(20, 20, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)',
+                      }}
+                    >
+                      {canEdit && (
+                        <button
+                          onClick={() => handleStartEdit(msg)}
+                          className={`w-full flex items-center gap-2 px-3.5 py-2.5 text-sm transition-colors ${
+                            nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                          }`}
+                        >
+                          <Edit3 className="w-3.5 h-3.5" /> Edit
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          onClick={() => handleDeleteMessage(msg.id)}
+                          className={`w-full flex items-center gap-2 px-3.5 py-2.5 text-sm transition-colors ${
+                            nightMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'
+                          }`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -691,28 +1061,132 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           )}
         </div>
 
-        {/* Pinned messages toggle */}
-        {pinnedMessages.length > 0 && (
-          <button
-            onClick={() => setShowPinned(!showPinned)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all hover:scale-105 active:scale-95 ${
-              showPinned
-                ? 'text-amber-300'
-                : nightMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'
-            }`}
-            style={{
-              background: showPinned
-                ? nightMode ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.1)'
-                : nightMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-              border: `1px solid ${showPinned ? 'rgba(245, 158, 11, 0.3)' : nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-            }}
-            title="Pinned messages"
-          >
-            <Pin className="w-3.5 h-3.5" />
-            <span>{pinnedMessages.length}</span>
-          </button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {/* Search button */}
+          {serverId && (
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className={`p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                showSearch
+                  ? 'text-blue-400'
+                  : nightMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'
+              }`}
+              style={showSearch ? {
+                background: nightMode ? 'rgba(79,150,255,0.15)' : 'rgba(79,150,255,0.1)',
+              } : {}}
+              title="Search messages"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Pinned messages toggle */}
+          {pinnedMessages.length > 0 && (
+            <button
+              onClick={() => setShowPinned(!showPinned)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all hover:scale-105 active:scale-95 ${
+                showPinned
+                  ? 'text-amber-300'
+                  : nightMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'
+              }`}
+              style={{
+                background: showPinned
+                  ? nightMode ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.1)'
+                  : nightMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                border: `1px solid ${showPinned ? 'rgba(245, 158, 11, 0.3)' : nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+              }}
+              title="Pinned messages"
+            >
+              <Pin className="w-3.5 h-3.5" />
+              <span>{pinnedMessages.length}</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* ── Search Panel ───────────────────────────────────── */}
+      {showSearch && (
+        <div
+          className="px-4 py-3 flex-shrink-0"
+          style={{
+            borderBottom: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+            background: nightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-2 flex-1 px-3 py-2 rounded-xl"
+              style={{
+                background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)',
+                border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+              }}
+            >
+              <Search className={`w-4 h-4 flex-shrink-0 ${nightMode ? 'text-white/30' : 'text-black/30'}`} />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+                placeholder="Search messages..."
+                className={`flex-1 bg-transparent outline-none text-sm ${
+                  nightMode ? 'text-white placeholder-white/30' : 'text-black placeholder-black/30'
+                }`}
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              disabled={!searchQuery.trim() || searching}
+              className="px-3 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95 disabled:opacity-40"
+              style={{ background: 'linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)' }}
+            >
+              {searching ? '...' : 'Search'}
+            </button>
+            <button
+              onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }}
+              className={`p-2 rounded-xl transition-all ${nightMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'}`}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Search results */}
+          {searchResults.length > 0 && (
+            <div className="mt-3 max-h-[200px] overflow-y-auto space-y-1.5">
+              <p className={`text-xs font-semibold mb-2 ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
+                {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found
+              </p>
+              {searchResults.map((result: any) => (
+                <div
+                  key={result.id}
+                  className={`px-3 py-2 rounded-xl text-sm cursor-pointer transition-all ${
+                    nightMode ? 'hover:bg-white/5' : 'hover:bg-black/5'
+                  }`}
+                  style={{
+                    background: nightMode ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.4)',
+                    border: `1px solid ${nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+                  }}
+                >
+                  <div className="flex items-baseline gap-2">
+                    <span className={`font-semibold text-xs ${nightMode ? 'text-white' : 'text-black'}`}>
+                      {result.sender?.display_name || 'Unknown'}
+                    </span>
+                    <span className={`text-[10px] ${nightMode ? 'text-white/20' : 'text-black/20'}`}>
+                      in #{result.channel?.name || 'unknown'}
+                    </span>
+                    <span className={`text-[10px] ${nightMode ? 'text-white/20' : 'text-black/20'}`}>
+                      {formatTime(result.created_at)}
+                    </span>
+                  </div>
+                  <p className={`text-xs mt-0.5 truncate ${nightMode ? 'text-white/60' : 'text-black/60'}`}>
+                    {result.content}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Pinned Messages Panel ──────────────────────────── */}
       {showPinned && pinnedMessages.length > 0 && (
@@ -759,6 +1233,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         }}
         onClick={() => {
           if (showReactionPicker !== null) setShowReactionPicker(null);
+          if (activeMessageMenu !== null) setActiveMessageMenu(null);
         }}
       >
         {loading ? (
@@ -791,6 +1266,57 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         )}
       </div>
 
+      {/* ── Typing indicator ────────────────────────────────── */}
+      {typingUsers.length > 0 && (
+        <div
+          className="px-5 py-1.5 flex-shrink-0"
+          style={{
+            background: nightMode ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.2)',
+          }}
+        >
+          <p className={`text-xs ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
+            <span className="font-semibold">
+              {typingUsers.map(t => t.display_name).join(', ')}
+            </span>
+            {' '}{typingUsers.length === 1 ? 'is' : 'are'} typing
+            <span className="inline-flex ml-1">
+              <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
+              <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
+              <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
+            </span>
+          </p>
+        </div>
+      )}
+
+      {/* ── Reply preview ───────────────────────────────────── */}
+      {replyingTo && (
+        <div
+          className="px-4 py-2.5 flex items-center gap-3 flex-shrink-0"
+          style={{
+            borderTop: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+            background: nightMode ? 'rgba(79,150,255,0.06)' : 'rgba(79,150,255,0.04)',
+          }}
+        >
+          <Reply className={`w-4 h-4 flex-shrink-0 ${nightMode ? 'text-blue-400' : 'text-blue-500'}`} />
+          <div className="flex-1 min-w-0">
+            <span className={`text-xs font-semibold ${nightMode ? 'text-blue-300' : 'text-blue-600'}`}>
+              Replying to {replyingTo.sender?.display_name}
+            </span>
+            <p className={`text-xs truncate ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
+              {replyingTo.content}
+            </p>
+          </div>
+          <button
+            onClick={() => setReplyingTo(null)}
+            className={`p-1 rounded-lg transition-all hover:scale-110 ${
+              nightMode ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* ── Image preview ──────────────────────────────────── */}
       {pendingImagePreview && permissions.send_messages && (
         <div
@@ -819,6 +1345,38 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
               {uploadingImage ? 'Uploading...' : 'Ready to send'}
             </p>
           </div>
+        </div>
+      )}
+
+      {/* ── @Mention picker ────────────────────────────────── */}
+      {showMentionPicker && filteredMentionMembers.length > 0 && (
+        <div
+          className="mx-4 mb-1 rounded-xl shadow-xl overflow-hidden flex-shrink-0"
+          style={{
+            background: nightMode ? 'rgba(20, 20, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+          }}
+        >
+          <div className={`px-3 py-1.5 text-[10px] font-bold ${nightMode ? 'text-white/30' : 'text-black/30'}`}>
+            Members
+          </div>
+          {filteredMentionMembers.map((member) => (
+            <button
+              key={member.user_id}
+              onClick={() => handleMentionSelect(member)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors ${
+                nightMode ? 'hover:bg-white/5 text-white' : 'hover:bg-black/5 text-black'
+              }`}
+            >
+              <span className="text-base">{member.user?.avatar_emoji || '\u{1F464}'}</span>
+              <span className="font-semibold text-sm">{member.user?.display_name}</span>
+              <span className={`text-xs ${nightMode ? 'text-white/30' : 'text-black/30'}`}>
+                @{member.user?.username}
+              </span>
+            </button>
+          ))}
         </div>
       )}
 
@@ -856,15 +1414,16 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
             <ImageIcon className="w-5 h-5" />
           </button>
           <textarea
+            ref={textareaRef}
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSendMessage(e);
               }
             }}
-            placeholder={pendingImage ? 'Add a caption...' : `Message ${channelName}...`}
+            placeholder={replyingTo ? `Reply to ${replyingTo.sender?.display_name}...` : pendingImage ? 'Add a caption...' : `Message ${channelName}...`}
             rows={1}
             className={`flex-1 px-4 py-2.5 rounded-full focus:outline-none resize-none min-h-[42px] max-h-[100px] overflow-y-auto text-[15px] transition-all ${
               nightMode
