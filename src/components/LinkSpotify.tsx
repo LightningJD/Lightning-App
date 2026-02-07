@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { X, Music, Check } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Music, Check, Loader2 } from 'lucide-react';
 import { updateUserProfile } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
-import { getYouTubeVideoId } from '../lib/musicUtils';
+import { getYouTubeVideoId, fetchYouTubeVideoInfo } from '../lib/musicUtils';
 
 interface LinkSpotifyProps {
   isOpen: boolean;
@@ -16,6 +16,28 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
   const [songName, setSongName] = useState(userProfile?.songName || '');
   const [songArtist, setSongArtist] = useState(userProfile?.songArtist || '');
   const [saving, setSaving] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
+  const lastFetchedId = useRef<string | null>(null);
+
+  // Auto-fetch video info when a valid YouTube URL is entered
+  useEffect(() => {
+    const videoId = youtubeUrl ? getYouTubeVideoId(youtubeUrl) : null;
+    if (!videoId || videoId === lastFetchedId.current) return;
+
+    lastFetchedId.current = videoId;
+    setFetching(true);
+    setFetchedTitle(null);
+
+    fetchYouTubeVideoInfo(videoId).then((info) => {
+      setFetching(false);
+      if (info) {
+        setFetchedTitle(info.title);
+        setSongName(info.songName);
+        setSongArtist(info.artist);
+      }
+    });
+  }, [youtubeUrl]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +49,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
         return;
       }
       if (!songName.trim()) {
-        showError('Please enter the song name');
+        showError('Could not detect song name — please enter it manually');
         return;
       }
     }
@@ -53,6 +75,8 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
     setYoutubeUrl('');
     setSongName('');
     setSongArtist('');
+    setFetchedTitle(null);
+    lastFetchedId.current = null;
     setSaving(true);
     try {
       await updateUserProfile(userProfile.supabaseId, {
@@ -122,7 +146,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
                 type="url"
                 value={youtubeUrl}
                 onChange={(e) => setYoutubeUrl(e.target.value)}
-                placeholder="https://youtube.com/watch?v=..."
+                placeholder="Paste a YouTube link..."
                 className={`w-full px-4 py-3 rounded-lg border transition-colors ${
                   nightMode
                     ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500 focus:border-blue-500'
@@ -131,49 +155,59 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
               />
             </div>
 
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Song Name
-              </label>
-              <input
-                type="text"
-                value={songName}
-                onChange={(e) => setSongName(e.target.value)}
-                placeholder="e.g. Good Grace"
-                className={`w-full px-4 py-3 rounded-lg border transition-colors ${
-                  nightMode
-                    ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
-              />
-            </div>
-
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Artist
-              </label>
-              <input
-                type="text"
-                value={songArtist}
-                onChange={(e) => setSongArtist(e.target.value)}
-                placeholder="e.g. Hillsong UNITED"
-                className={`w-full px-4 py-3 rounded-lg border transition-colors ${
-                  nightMode
-                    ? 'bg-white/5 border-white/10 text-slate-100 placeholder-slate-500 focus:border-blue-500'
-                    : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
-              />
-            </div>
-
-            {/* Preview */}
-            {videoId && (
+            {/* Loading state */}
+            {fetching && (
               <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                nightMode ? 'bg-green-500/10 border border-green-500/20' : 'bg-green-50 border border-green-200'
+                nightMode ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'
               }`}>
-                <Check className={`w-5 h-5 flex-shrink-0 ${nightMode ? 'text-green-400' : 'text-green-600'}`} />
-                <p className={`text-sm font-medium ${nightMode ? 'text-green-300' : 'text-green-900'}`}>
-                  Valid YouTube link detected
+                <Loader2 className={`w-4 h-4 animate-spin ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                <p className={`text-sm ${nightMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                  Fetching song info...
                 </p>
+              </div>
+            )}
+
+            {/* Auto-detected info (editable) */}
+            {videoId && !fetching && (songName || songArtist) && (
+              <div className={`space-y-3 p-4 rounded-lg ${
+                nightMode ? 'bg-white/5 border border-white/10' : 'bg-slate-50 border border-slate-200'
+              }`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <Check className={`w-4 h-4 ${nightMode ? 'text-green-400' : 'text-green-600'}`} />
+                  <span className={`text-xs font-medium ${nightMode ? 'text-green-400' : 'text-green-600'}`}>
+                    Song detected — edit if needed
+                  </span>
+                </div>
+                <div>
+                  <label className={`block text-xs font-medium mb-1 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Song Name
+                  </label>
+                  <input
+                    type="text"
+                    value={songName}
+                    onChange={(e) => setSongName(e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg border text-sm transition-colors ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 focus:border-blue-500'
+                        : 'bg-white border-slate-200 text-slate-900 focus:border-blue-500'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-xs font-medium mb-1 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Artist
+                  </label>
+                  <input
+                    type="text"
+                    value={songArtist}
+                    onChange={(e) => setSongArtist(e.target.value)}
+                    className={`w-full px-3 py-2 rounded-lg text-sm border transition-colors ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 focus:border-blue-500'
+                        : 'bg-white border-slate-200 text-slate-900 focus:border-blue-500'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                  />
+                </div>
               </div>
             )}
 
@@ -207,9 +241,9 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
               </button>
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || fetching}
                 className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all ${
-                  saving
+                  saving || fetching
                     ? nightMode
                       ? 'bg-white/5 text-slate-500 cursor-not-allowed'
                       : 'bg-slate-100 text-slate-400 cursor-not-allowed'
