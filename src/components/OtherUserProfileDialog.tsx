@@ -320,7 +320,6 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                 {/* Music Player - Left Half */}
                 <div className="flex-1">
                   <MusicPlayer
-                    platform={user.music.platform || 'youtube'}
                     url={user.music.spotifyUrl}
                     trackName={user.music.trackName}
                     artist={user.music.artist}
