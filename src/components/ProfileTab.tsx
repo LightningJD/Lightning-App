@@ -504,7 +504,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
 
       {/* Music Player - below testimony */}
       {profile.music && profile.music.spotifyUrl && (
-        <div className="px-4 max-w-sm">
+        <div className="px-4">
           <MusicPlayer
             platform={profile.music.platform || 'spotify'}
             url={profile.music.spotifyUrl}
