@@ -181,6 +181,8 @@ export const hasUserReported = async (reporterId: string, reportType: string, co
       query = query.eq('reported_testimony_id', contentId);
     } else if (reportType === 'message') {
       query = query.eq('reported_message_id', contentId);
+    } else if (reportType === 'group') {
+      query = query.eq('reported_user_id', contentId);
     }
 
     const { data, error } = await query.maybeSingle();

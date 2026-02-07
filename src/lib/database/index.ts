@@ -59,6 +59,13 @@ export {
   inviteToGroup,
   removeMemberFromGroup,
   promoteMemberToLeader,
+  setMemberRole,
+  getMemberRole,
+  createCustomRole,
+  getGroupCustomRoles,
+  updateCustomRole,
+  deleteCustomRole,
+  assignCustomRole,
   searchPublicGroups,
   requestToJoinGroup,
   getGroupJoinRequests,
@@ -180,6 +187,41 @@ export {
   logTestimonyGeneration,
   getUserGenerationStats
 } from './testimonyRateLimit.js';
+
+// Announcements
+export {
+  createAnnouncement,
+  getGroupAnnouncements,
+  getAnnouncementById,
+  updateAnnouncement,
+  deleteAnnouncement,
+  markAnnouncementRead,
+  acknowledgeAnnouncement,
+  getAnnouncementReceipts,
+  getScheduledAnnouncements,
+  publishAnnouncement,
+  getUnreadAnnouncementCount,
+  ANNOUNCEMENT_CATEGORIES
+} from './announcements.js';
+
+// Events
+export {
+  createEvent,
+  getGroupEvents,
+  getEventById,
+  updateEvent,
+  cancelEvent,
+  deleteEvent,
+  rsvpToEvent,
+  removeRSVP,
+  getEventRSVPs,
+  getUserRSVP,
+  sendEventMessage,
+  getEventMessages,
+  getUserCalendarEvents,
+  getUpcomingEvents,
+  getEventsNeedingReminders
+} from './events.js';
 
 // Re-export Supabase client for backward compatibility
 export { supabase } from '../supabase.js';

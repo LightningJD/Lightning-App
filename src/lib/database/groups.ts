@@ -1,4 +1,6 @@
 import { supabase } from '../supabase';
+import type { GroupRole, RolePermissions } from '../../types';
+import { mapLegacyRole, canRemoveMember, canModifyMemberRole } from '../permissions';
 
 interface GroupData {
   name: string;
@@ -36,21 +38,27 @@ export const createGroup = async (creatorId: string, groupData: GroupData): Prom
     return null;
   }
 
-  // Add creator as leader
-  // @ts-ignore - Supabase generated types are incomplete
-  await supabase
+  // Add creator as pastor (highest role)
+  const { error: memberError } = await supabase
     .from('group_members')
     // @ts-ignore - Supabase generated types are incomplete
     .insert({
       group_id: (group as any).id,
       user_id: creatorId,
-      role: 'leader'
+      role: 'pastor'
     });
+
+  if (memberError) {
+    console.error('Error adding creator as pastor:', memberError);
+    // Clean up the group since the creator couldn't be added
+    await supabase.from('groups').delete().eq('id', (group as any).id);
+    return null;
+  }
 
   // Add initial members if provided - create join requests and send notifications
   if (Array.isArray(groupData.memberIds) && groupData.memberIds.length > 0) {
     const memberIds = groupData.memberIds.filter((id) => id && id !== creatorId);
-    
+
     if (memberIds.length > 0) {
       // Create join requests for each member
       const joinRequests = memberIds.map((id) => ({
@@ -312,22 +320,186 @@ export const removeMemberFromGroup = async (groupId: string, userId: string): Pr
 };
 
 /**
- * Promote member to leader
+ * Promote member to leader (legacy - wraps setMemberRole)
  */
 export const promoteMemberToLeader = async (groupId: string, userId: string): Promise<any> => {
+  return setMemberRole(groupId, userId, 'pastor');
+};
+
+/**
+ * Set a member's role in a group
+ */
+export const setMemberRole = async (groupId: string, userId: string, role: GroupRole): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
     .from('group_members')
     // @ts-ignore - Supabase generated types don't allow update on this table
-    .update({ role: 'leader' })
+    .update({ role })
     .eq('group_id', groupId)
     .eq('user_id', userId)
     .select()
     .single();
 
   if (error) {
-    console.error('Error promoting member:', error);
+    console.error('Error setting member role:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
+ * Get a specific member's role in a group
+ */
+export const getMemberRole = async (groupId: string, userId: string): Promise<GroupRole | null> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('group_members')
+    .select('role')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    console.error('Error getting member role:', error);
+    return null;
+  }
+
+  return mapLegacyRole((data as any)?.role || 'member');
+};
+
+// ============================================
+// CUSTOM ROLES
+// ============================================
+
+/**
+ * Create a custom role for a group
+ */
+export const createCustomRole = async (
+  groupId: string,
+  name: string,
+  color: string,
+  permissions: RolePermissions,
+  position: number
+): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('custom_roles')
+    // @ts-ignore - Table may not exist yet
+    .insert({
+      group_id: groupId,
+      name,
+      color,
+      permissions,
+      position,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating custom role:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
+ * Get all custom roles for a group
+ */
+export const getGroupCustomRoles = async (groupId: string): Promise<any[]> => {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('custom_roles')
+    // @ts-ignore - Table may not exist yet
+    .select('*')
+    .eq('group_id', groupId)
+    .order('position', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching custom roles:', error);
+    return [];
+  }
+
+  return data || [];
+};
+
+/**
+ * Update a custom role
+ */
+export const updateCustomRole = async (
+  roleId: string,
+  updates: { name?: string; color?: string; permissions?: RolePermissions; position?: number }
+): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('custom_roles')
+    // @ts-ignore - Table may not exist yet
+    .update(updates)
+    .eq('id', roleId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating custom role:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
+ * Delete a custom role
+ */
+export const deleteCustomRole = async (roleId: string): Promise<boolean | null> => {
+  if (!supabase) return null;
+
+  // First, remove custom_role_id from all members with this role
+  await supabase
+    .from('group_members')
+    // @ts-ignore
+    .update({ custom_role_id: null })
+    .eq('custom_role_id', roleId);
+
+  const { error } = await supabase
+    .from('custom_roles')
+    .delete()
+    .eq('id', roleId);
+
+  if (error) {
+    console.error('Error deleting custom role:', error);
+    return null;
+  }
+
+  return true;
+};
+
+/**
+ * Assign a custom role to a member
+ */
+export const assignCustomRole = async (
+  groupId: string,
+  userId: string,
+  customRoleId: string | null
+): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('group_members')
+    // @ts-ignore
+    .update({ custom_role_id: customRoleId })
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error assigning custom role:', error);
     return null;
   }
 
@@ -439,11 +611,16 @@ export const approveJoinRequest = async (requestId: string, groupId: string, use
   if (!supabase) return null;
 
   // Update request status
-  await supabase
+  const { error: updateError } = await supabase
     .from('join_requests')
     // @ts-ignore - Supabase generated types don't allow update on this table
     .update({ status: 'approved' })
     .eq('id', requestId);
+
+  if (updateError) {
+    console.error('Error updating join request status:', updateError);
+    return null;
+  }
 
   // Add user to group
   const { data, error } = await supabase
@@ -458,7 +635,13 @@ export const approveJoinRequest = async (requestId: string, groupId: string, use
     .single();
 
   if (error) {
-    console.error('Error approving join request:', error);
+    console.error('Error adding member to group:', error);
+    // Revert the request status since member insert failed
+    await supabase
+      .from('join_requests')
+      // @ts-ignore - Supabase generated types don't allow update on this table
+      .update({ status: 'pending' })
+      .eq('id', requestId);
     return null;
   }
 

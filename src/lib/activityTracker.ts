@@ -45,7 +45,21 @@ const getActivityData = (): ActivityData => {
     return JSON.parse(data);
   } catch (error) {
     console.error('Failed to load activity data:', error);
-    return getActivityData(); // Return default
+    return {
+      dailyLogins: [],
+      lastLogin: null,
+      loginStreak: 0,
+      avatarChanges: 0,
+      themeChanges: 0,
+      lastTheme: null,
+      nightModeUsage: [],
+      messagesByHour: {},
+      lastMessageTime: null,
+      messageStreak: {
+        current: 0,
+        lastDate: null
+      }
+    };
   }
 };
 

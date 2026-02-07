@@ -77,9 +77,20 @@ export const acceptFriendRequest = async (requestId: string): Promise<Friend | n
     requested_by: user_id_2
   };
 
-  await supabase
+  const { error: reverseError } = await supabase
     .from('friendships')
     .insert(insertData);
+
+  if (reverseError) {
+    console.error('Error creating reverse friendship:', reverseError);
+    // Revert the original update to keep state consistent
+    await supabase
+      .from('friendships')
+      // @ts-ignore - Supabase generated types don't allow update on this table
+      .update({ status: 'pending' })
+      .eq('id', requestId);
+    return null;
+  }
 
   return data as Friend;
 };
@@ -199,6 +210,11 @@ export const unfriend = async (userId: string, friendId: string): Promise<boolea
     .from('friendships')
     .delete()
     .or(`and(user_id_1.eq.${userId},user_id_2.eq.${friendId}),and(user_id_1.eq.${friendId},user_id_2.eq.${userId})`);
+
+  if (error) {
+    console.error('Error unfriending user:', error);
+    return null;
+  }
 
   if (error) {
     console.error('Error unfriending user:', error);

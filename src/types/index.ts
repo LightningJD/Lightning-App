@@ -101,16 +101,45 @@ export interface Group {
   is_private: boolean;
   member_count: number;
   avatar_url?: string;
+  avatar_emoji?: string;
   created_at: string;
   updated_at: string;
 }
+
+export type GroupRole = 'pastor' | 'admin' | 'moderator' | 'member' | 'visitor';
 
 export interface GroupMember {
   id: string;
   group_id: string;
   user_id: string;
-  role: 'admin' | 'moderator' | 'member';
+  role: GroupRole;
+  custom_role_id?: string;
   joined_at: string;
+}
+
+export interface CustomRole {
+  id: string;
+  group_id: string;
+  name: string;
+  color: string;
+  permissions: RolePermissions;
+  position: number; // Lower = higher priority
+  created_at: string;
+}
+
+export interface RolePermissions {
+  canManageGroup: boolean;      // Edit group name/description/settings
+  canManageMembers: boolean;    // Invite, remove, promote members
+  canManageRoles: boolean;      // Create/edit custom roles
+  canPinMessages: boolean;      // Pin/unpin messages
+  canDeleteMessages: boolean;   // Delete any message
+  canCreateEvents: boolean;     // Create group events
+  canPostAnnouncements: boolean; // Post announcements
+  canModerateContent: boolean;  // Review flagged content
+  canMuteMembers: boolean;      // Temporarily mute members
+  canSendMessages: boolean;     // Send messages in chat
+  canReact: boolean;            // Add reactions
+  canViewMembers: boolean;      // View member list
 }
 
 export interface GroupMessage {
@@ -118,8 +147,102 @@ export interface GroupMessage {
   group_id: string;
   sender_id: string;
   content: string;
+  message_type?: 'message' | 'announcement' | 'event_chat';
+  event_id?: string;
   created_at: string;
   updated_at: string;
+}
+
+// ============================================================================
+// EVENT SYSTEM
+// ============================================================================
+
+export type EventRecurrence = 'once' | 'weekly' | 'biweekly' | 'monthly';
+export type RSVPStatus = 'going' | 'maybe' | 'not_going';
+
+export interface GroupEvent {
+  id: string;
+  group_id: string;
+  creator_id: string;
+  title: string;
+  description?: string;
+  start_time: string;
+  end_time?: string;
+  location?: string;
+  location_url?: string;
+  recurrence: EventRecurrence;
+  recurrence_end_date?: string;
+  max_capacity?: number;
+  reminder_24h: boolean;
+  reminder_1h: boolean;
+  custom_reminder_minutes?: number;
+  parent_event_id?: string; // For recurring event instances
+  is_cancelled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventRSVP {
+  id: string;
+  event_id: string;
+  user_id: string;
+  status: RSVPStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EventWithDetails extends GroupEvent {
+  rsvps?: EventRSVP[];
+  going_count?: number;
+  maybe_count?: number;
+  not_going_count?: number;
+  user_rsvp?: RSVPStatus;
+  creator?: {
+    display_name: string;
+    avatar_emoji: string;
+  };
+}
+
+// ============================================================================
+// ANNOUNCEMENTS SYSTEM
+// ============================================================================
+
+export type AnnouncementCategory = 'urgent' | 'info' | 'reminder' | 'celebration';
+
+export interface Announcement {
+  id: string;
+  group_id: string;
+  author_id: string;
+  title: string;
+  content: string;
+  category: AnnouncementCategory;
+  is_pinned: boolean;
+  scheduled_for?: string;
+  is_published: boolean;
+  bypass_mute: boolean;
+  cross_group_ids?: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AnnouncementReceipt {
+  id: string;
+  announcement_id: string;
+  user_id: string;
+  read_at?: string;
+  acknowledged_at?: string;
+}
+
+export interface AnnouncementWithDetails extends Announcement {
+  author?: {
+    display_name: string;
+    avatar_emoji: string;
+  };
+  read_count?: number;
+  acknowledged_count?: number;
+  total_members?: number;
+  user_read?: boolean;
+  user_acknowledged?: boolean;
 }
 
 export interface GroupMessageReaction {

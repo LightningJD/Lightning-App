@@ -30,34 +30,40 @@ interface GuestSession {
  * Initialize or retrieve guest session from localStorage
  */
 export const initGuestSession = (): GuestSession => {
-  const session = localStorage.getItem(GUEST_SESSION_KEY);
+  const defaultSession: GuestSession = {
+    testimoniesViewed: 0,
+    profilesViewed: 0,
+    profilePreviewsViewed: 0,
+    usersScrolled: 0,
+    firstVisit: new Date().toISOString(),
+    lastVisit: new Date().toISOString(),
+    modalDismissCount: 0,
+    hasSeenModal: false,
+    modalVersion: null,
+    isReturningVisitor: false
+  };
 
-  if (!session) {
-    const newSession: GuestSession = {
-      testimoniesViewed: 0,
-      profilesViewed: 0,
-      profilePreviewsViewed: 0,
-      usersScrolled: 0,
-      firstVisit: new Date().toISOString(),
-      lastVisit: new Date().toISOString(),
-      modalDismissCount: 0,
-      hasSeenModal: false,
-      modalVersion: null,
-      isReturningVisitor: false
-    };
-    localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(newSession));
-    return newSession;
+  try {
+    const session = localStorage.getItem(GUEST_SESSION_KEY);
+
+    if (!session) {
+      localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(defaultSession));
+      return defaultSession;
+    }
+
+    const parsed = JSON.parse(session);
+
+    // Mark as returning visitor if session exists
+    if (!parsed.isReturningVisitor) {
+      parsed.isReturningVisitor = true;
+      localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(parsed));
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error('Failed to initialize guest session:', error);
+    return defaultSession;
   }
-
-  const parsed = JSON.parse(session);
-
-  // Mark as returning visitor if session exists
-  if (!parsed.isReturningVisitor) {
-    parsed.isReturningVisitor = true;
-    localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(parsed));
-  }
-
-  return parsed;
 };
 
 /**
@@ -70,7 +76,11 @@ export const updateGuestSession = (updates: Partial<GuestSession>): GuestSession
     ...updates,
     lastVisit: new Date().toISOString()
   };
-  localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(updated));
+  try {
+    localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(updated));
+  } catch (error) {
+    console.error('Failed to update guest session:', error);
+  }
   return updated;
 };
 

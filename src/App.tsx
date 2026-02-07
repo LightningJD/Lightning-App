@@ -769,7 +769,7 @@ function App() {
         question2_answer: formData.question2,
         question3_answer: formData.question3,
         question4_answer: formData.question4,
-        word_count: updatedContent.split(' ').length
+        word_count: updatedContent.trim().split(/\s+/).filter(Boolean).length
       });
 
       if (updated) {

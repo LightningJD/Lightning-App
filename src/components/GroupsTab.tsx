@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Settings, Crown, Users, Trash2, LogOut, Smile, Pin, Info, ChevronRight } from 'lucide-react';
-import { showError } from '../lib/toast';
+import { Plus, X, Settings, Crown, Users, Trash2, LogOut, Smile, Pin, Info, ChevronRight, Shield, ShieldCheck, Eye, User, ChevronDown, Calendar, Megaphone, Bell } from 'lucide-react';
+import { showError, showSuccess } from '../lib/toast';
 import { validateGroup, validateMessage, sanitizeInput } from '../lib/inputValidation';
 import {
   createGroup,
@@ -13,6 +13,7 @@ import {
   getGroupMembers,
   removeMemberFromGroup,
   promoteMemberToLeader,
+  setMemberRole,
   unsubscribe,
   addReaction,
   removeReaction,
@@ -30,6 +31,15 @@ import { GroupCardSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { checkMessageSecrets, unlockSecret } from '../lib/secrets';
 import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
+import type { GroupRole } from '../types';
+import { mapLegacyRole, hasPermission, getRoleLabel, getRoleColor, getAssignableRoles, outranks } from '../lib/permissions';
+import EventsView from './EventsView';
+import AnnouncementsView from './AnnouncementsView';
+import NotificationSettings from './NotificationSettings';
+import ScriptureCard from './ScriptureCard';
+import { detectScriptureReferences } from '../lib/scripture';
+import { analyzeContent, getSeverityColor, getSeverityLabel, getFlagReasonLabel } from '../lib/contentFilter';
+import type { ContentFlag } from '../lib/contentFilter';
 
 interface GroupsTabProps {
   nightMode: boolean;
@@ -84,7 +94,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<'list' | 'chat' | 'settings' | 'members'>('list');
+  const [activeView, setActiveView] = useState<'list' | 'chat' | 'settings' | 'members' | 'events' | 'announcements' | 'notifications'>('list');
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [myGroups, setMyGroups] = useState<GroupData[]>([]);
   const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
@@ -96,6 +106,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
   const [expandedReactions, setExpandedReactions] = useState<Record<string | number, boolean>>({});
   const [showAllEmojis, setShowAllEmojis] = useState<Record<string | number, boolean>>({});
   const [showGroupBio, setShowGroupBio] = useState(false);
+  const [flaggedMessages, setFlaggedMessages] = useState<Record<string | number, ContentFlag>>({});
   const [newMessage, setNewMessage] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDescription, setNewGroupDescription] = useState('');
@@ -108,6 +119,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
   const [isLeaving, setIsLeaving] = useState(false);
   const [isGroupsLoading, setIsGroupsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showRoleMenu, setShowRoleMenu] = useState<string | null>(null); // member user ID
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pinnedSectionRef = useRef<HTMLDivElement>(null);
   const subscriptionRef = useRef<any>(null);
@@ -115,6 +127,91 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
 
   // @ts-ignore - Complex type issues with database functions
   const activeGroupData = myGroups.find(g => g.id === activeGroup);
+
+  // Get user's effective role for the active group (maps legacy 'leader' to 'pastor')
+  const getUserRole = (group: GroupData | undefined): GroupRole => {
+    if (!group) return 'member';
+    return mapLegacyRole(group.userRole);
+  };
+
+  // Role badge component
+  const RoleBadge = ({ role, size = 'sm' }: { role: string; size?: 'sm' | 'xs' }) => {
+    const mappedRole = mapLegacyRole(role);
+    const color = getRoleColor(mappedRole);
+    const label = getRoleLabel(mappedRole);
+
+    const iconSize = size === 'sm' ? 'w-3.5 h-3.5' : 'w-3 h-3';
+
+    const getIcon = () => {
+      switch (mappedRole) {
+        case 'pastor': return <Crown className={`${iconSize}`} style={{ color }} />;
+        case 'admin': return <Shield className={`${iconSize}`} style={{ color }} />;
+        case 'moderator': return <ShieldCheck className={`${iconSize}`} style={{ color }} />;
+        case 'visitor': return <Eye className={`${iconSize}`} style={{ color }} />;
+        default: return null;
+      }
+    };
+
+    const icon = getIcon();
+    if (!icon) return null;
+
+    return (
+      <span
+        className={`inline-flex items-center gap-1 ${size === 'sm' ? 'text-[10px]' : 'text-[9px]'} font-semibold rounded-full px-1.5 py-0.5`}
+        style={{
+          color,
+          backgroundColor: `${color}15`,
+          border: `1px solid ${color}30`,
+        }}
+        title={label}
+      >
+        {icon}
+        <span>{label}</span>
+      </span>
+    );
+  };
+
+  // Render message content with scripture auto-expand and content flag indicator
+  const MessageContent = ({ content, onShareVerse, messageId, isLeaderView }: {
+    content: string;
+    onShareVerse?: (text: string) => void;
+    messageId?: string | number;
+    isLeaderView?: boolean;
+  }) => {
+    const refs = detectScriptureReferences(content);
+    const flag = messageId ? flaggedMessages[messageId] : undefined;
+
+    return (
+      <div>
+        <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{content}</p>
+        {refs.map((ref, i) => (
+          <ScriptureCard
+            key={`${ref.fullReference}-${i}`}
+            reference={ref}
+            nightMode={nightMode}
+            onShareToChat={onShareVerse ? (text) => {
+              onShareVerse(text);
+            } : undefined}
+          />
+        ))}
+        {flag && isLeaderView && (
+          <div
+            className="mt-1 flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium"
+            style={{
+              background: `${getSeverityColor(flag.severity)}15`,
+              border: `1px solid ${getSeverityColor(flag.severity)}30`,
+              color: getSeverityColor(flag.severity),
+            }}
+          >
+            <span>⚠️</span>
+            <span>{getSeverityLabel(flag.severity)}</span>
+            <span className="opacity-60">·</span>
+            <span className="opacity-80">{flag.reasons.map(getFlagReasonLabel).join(', ')}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Helper function to check if message is in bottom half of viewport
   const isMessageInBottomHalf = (messageId: string | number): boolean => {
@@ -384,6 +481,16 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     if (savedMessage) {
       console.log('✅ Group message sent!', savedMessage);
 
+      // Content filtering: analyze for inappropriate content
+      const flag = analyzeContent(messageContent);
+      if (flag.flagged) {
+        setFlaggedMessages(prev => ({
+          ...prev,
+          [savedMessage.id || tempMessage.id]: flag,
+        }));
+        console.log('⚠️ Message flagged:', flag.reasons.join(', '));
+      }
+
       // Check message content for secrets (Amen 3x, scripture sharing)
       checkMessageSecrets(messageContent);
 
@@ -527,6 +634,39 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
       const members = await getGroupMembers(activeGroup as string);
       setGroupMembers(members || []);
     }
+  };
+
+  const handleSetRole = async (userId: string, newRole: GroupRole) => {
+    const group = myGroups.find(g => g.id === activeGroup);
+    if (!group) return;
+
+    const myRole = getUserRole(group);
+    const member = groupMembers.find(m => m.user.id === userId);
+    if (!member) return;
+
+    const memberRole = mapLegacyRole(member.role);
+
+    // Verify the actor can modify this member's role
+    if (!outranks(myRole, memberRole)) {
+      showError('You cannot modify the role of someone with equal or higher rank.');
+      return;
+    }
+    if (!outranks(myRole, newRole)) {
+      showError('You cannot assign a role equal to or above your own.');
+      return;
+    }
+
+    const result = await setMemberRole(activeGroup as string, userId, newRole);
+
+    if (result) {
+      showSuccess(`Role updated to ${getRoleLabel(newRole)}`);
+      const members = await getGroupMembers(activeGroup as string);
+      setGroupMembers(members || []);
+    } else {
+      showError('Failed to update role.');
+    }
+
+    setShowRoleMenu(null);
   };
 
   const handleReaction = async (messageId: string | number, emoji: string) => {
@@ -797,12 +937,47 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     );
   }
 
+  // Events View
+  if (activeGroup && activeView === 'events') {
+    const group = myGroups.find(g => g.id === activeGroup);
+    if (!group) return null;
+    const myRole = getUserRole(group);
+
+    return (
+      <EventsView
+        nightMode={nightMode}
+        groupId={activeGroup}
+        userId={profile!.supabaseId}
+        userRole={myRole}
+        onBack={() => setActiveView('chat')}
+      />
+    );
+  }
+
+  // Announcements View
+  if (activeGroup && activeView === 'announcements') {
+    const group = myGroups.find(g => g.id === activeGroup);
+    if (!group) return null;
+    const myRole = getUserRole(group);
+
+    return (
+      <AnnouncementsView
+        nightMode={nightMode}
+        groupId={activeGroup}
+        userId={profile!.supabaseId}
+        userRole={myRole}
+        onBack={() => setActiveView('chat')}
+      />
+    );
+  }
+
   // Group Settings View
   if (activeGroup && activeView === 'settings') {
     const group = myGroups.find(g => g.id === activeGroup);
     if (!group) return null;
 
-    const isLeader = group.userRole === 'leader';
+    const myRole = getUserRole(group);
+    const isLeader = hasPermission(myRole, 'canManageGroup');
 
     return (
       <div className="py-4 px-4 space-y-4">
@@ -934,7 +1109,9 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     const group = myGroups.find(g => g.id === activeGroup);
     if (!group) return null;
 
-    const isLeader = group.userRole === 'leader';
+    const myRole = getUserRole(group);
+    const canManage = hasPermission(myRole, 'canManageMembers');
+    const canManageRoles = hasPermission(myRole, 'canManageRoles');
 
     return (
       <div className="py-4 px-4 space-y-4 pb-24">
@@ -950,57 +1127,107 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
         </div>
 
         <div className="space-y-2">
-          {groupMembers.map((member) => (
-            <div
-              key={member.id}
-              className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-              style={nightMode ? {} : {
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(30px)',
-                WebkitBackdropFilter: 'blur(30px)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-              }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="text-2xl">{member.user.avatar_emoji}</div>
-                    {member.user.is_online && (
-                      <div className={nightMode ? 'absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#1A1A1B]' : 'absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white'}></div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className={nightMode ? 'font-semibold text-slate-100' : 'font-semibold text-black'}>{member.user.display_name}</h3>
-                      {member.role === 'leader' && (
-                        <Crown className="w-4 h-4 text-yellow-500" />
+          {groupMembers.map((member) => {
+            const memberRole = mapLegacyRole(member.role);
+            const canModifyThisMember = canManage && member.user.id !== profile!.supabaseId && outranks(myRole, memberRole);
+            const assignableRoles = canManageRoles ? getAssignableRoles(myRole) : [];
+
+            return (
+              <div
+                key={member.id}
+                className={`rounded-xl border p-4 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+                style={nightMode ? {} : {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="text-2xl">{member.user.avatar_emoji}</div>
+                      {member.user.is_online && (
+                        <div className={nightMode ? 'absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#1A1A1B]' : 'absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white'}></div>
                       )}
                     </div>
-                    <p className={nightMode ? 'text-xs text-slate-100' : 'text-xs text-black'}>@{member.user.username}</p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className={nightMode ? 'font-semibold text-slate-100' : 'font-semibold text-black'}>{member.user.display_name}</h3>
+                        <RoleBadge role={member.role} size="xs" />
+                      </div>
+                      <p className={nightMode ? 'text-xs text-slate-100' : 'text-xs text-black'}>@{member.user.username}</p>
+                    </div>
                   </div>
-                </div>
 
-                {isLeader && member.user.id !== profile!.supabaseId && (
-                  <div className="flex gap-2">
-                    {member.role !== 'leader' && (
+                  {canModifyThisMember && (
+                    <div className="flex gap-2 items-center">
+                      {/* Role dropdown */}
+                      {canManageRoles && assignableRoles.length > 0 && (
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowRoleMenu(showRoleMenu === member.user.id ? null : member.user.id)}
+                            className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1 ${
+                              nightMode
+                                ? 'bg-white/5 text-slate-100 hover:bg-white/10 border border-white/10'
+                                : 'bg-white/80 text-black hover:bg-white border border-white/30 shadow-sm'
+                            }`}
+                          >
+                            {getRoleLabel(memberRole)}
+                            <ChevronDown className="w-3 h-3" />
+                          </button>
+
+                          {showRoleMenu === member.user.id && (
+                            <div
+                              className={`absolute right-0 top-full mt-1 rounded-xl border overflow-hidden z-50 min-w-[140px] ${
+                                nightMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-white/25'
+                              }`}
+                              style={{
+                                boxShadow: nightMode
+                                  ? '0 8px 24px rgba(0, 0, 0, 0.4)'
+                                  : '0 8px 24px rgba(0, 0, 0, 0.12)',
+                              }}
+                            >
+                              {assignableRoles.map((role) => (
+                                <button
+                                  key={role}
+                                  onClick={() => handleSetRole(member.user.id, role)}
+                                  className={`w-full px-3 py-2 text-xs font-medium text-left flex items-center gap-2 transition-colors ${
+                                    memberRole === role
+                                      ? nightMode
+                                        ? 'bg-blue-500/20 text-blue-400'
+                                        : 'bg-blue-50 text-blue-700'
+                                      : nightMode
+                                        ? 'text-slate-100 hover:bg-white/5'
+                                        : 'text-black hover:bg-slate-50'
+                                  }`}
+                                >
+                                  <span
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: getRoleColor(role) }}
+                                  />
+                                  {getRoleLabel(role)}
+                                  {memberRole === role && <span className="ml-auto text-[10px]">current</span>}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Remove button */}
                       <button
-                        onClick={() => handlePromoteMember(member.user.id)}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${nightMode ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : 'bg-blue-100 text-blue-700 hover:bg-blue-200 shadow-sm'}`}
+                        onClick={() => handleRemoveMember(member.user.id)}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${nightMode ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-red-100 text-red-700 hover:bg-red-200 shadow-sm'}`}
                       >
-                        Promote
+                        Remove
                       </button>
-                    )}
-                    <button
-                      onClick={() => handleRemoveMember(member.user.id)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${nightMode ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-red-100 text-red-700 hover:bg-red-200 shadow-sm'}`}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     );
@@ -1011,7 +1238,10 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     const group = myGroups.find(g => g.id === activeGroup);
     if (!group) return null;
 
-    const isLeader = group.userRole === 'leader';
+    const myRole = getUserRole(group);
+    const isLeader = hasPermission(myRole, 'canManageGroup');
+    const canPin = hasPermission(myRole, 'canPinMessages');
+    const canSend = hasPermission(myRole, 'canSendMessages');
 
     return (
       <div className="flex flex-col h-[calc(100vh-140px)]">
@@ -1051,6 +1281,20 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
               )}
             </div>
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => setActiveView('announcements')}
+                className={nightMode ? 'p-2 hover:bg-white/10 rounded-lg' : 'p-2 hover:bg-white/20 rounded-lg'}
+                title="Announcements"
+              >
+                <Megaphone className={nightMode ? 'w-4 h-4 text-slate-100' : 'w-4 h-4 text-black'} />
+              </button>
+              <button
+                onClick={() => setActiveView('events')}
+                className={nightMode ? 'p-2 hover:bg-white/10 rounded-lg' : 'p-2 hover:bg-white/20 rounded-lg'}
+                title="Events"
+              >
+                <Calendar className={nightMode ? 'w-4 h-4 text-slate-100' : 'w-4 h-4 text-black'} />
+              </button>
               <button
                 onClick={() => setActiveView('members')}
                 className={nightMode ? 'p-2 hover:bg-white/10 rounded-lg relative' : 'p-2 hover:bg-white/20 rounded-lg relative'}
@@ -1170,7 +1414,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                             <div className="flex items-start gap-1.5">
                               <Pin className="w-3 h-3 text-blue-600 flex-shrink-0 mt-0.5" />
                               <div className="flex-1">
-                                <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
+                                <MessageContent content={msg.content} onShareVerse={(text) => setNewMessage(text)} messageId={msg.id} isLeaderView={isLeader} />
                                 <div className="flex items-center justify-between gap-2 mt-0.5">
                                   <p className={nightMode ? 'text-[10px] text-slate-100' : 'text-[10px] text-black'}>
                                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1183,8 +1427,8 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                                     >
                                       <Smile className="w-3 h-3" />
                                     </button>
-                                    {/* Unpin button (leaders only) */}
-                                    {isLeader && (
+                                    {/* Unpin button (pin permission required) */}
+                                    {canPin && (
                                       <button
                                         onClick={() => handleUnpinMessage(msg.id)}
                                         className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-700"
@@ -1351,7 +1595,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                       <div
                         ref={(el) => { messageRefs.current[msg.id] = el; }}
                         className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
-                            <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
+                            <MessageContent content={msg.content} onShareVerse={(text) => setNewMessage(text)} messageId={msg.id} isLeaderView={isLeader} />
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
@@ -1406,8 +1650,8 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                             >
                               <Smile className="w-3.5 h-3.5" />
                             </button>
-                            {/* Pin button (leaders only) */}
-                            {isLeader && (
+                            {/* Pin button (pin permission required) */}
+                            {canPin && (
                               <button
                                 onClick={() => handlePinMessage(msg.id)}
                                 className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
@@ -1520,7 +1764,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                           <div
                             ref={(el) => { messageRefs.current[msg.id] = el; }}
                             className={nightMode ? 'bg-transparent hover:bg-white/10 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative group transition-colors'}>
-                            <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{msg.content}</p>
+                            <MessageContent content={msg.content} onShareVerse={(text) => setNewMessage(text)} messageId={msg.id} isLeaderView={isLeader} />
                             <div className="flex gap-1 absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               {/* Reaction button (shows on hover) */}
                               <button
@@ -1529,8 +1773,8 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                               >
                                 <Smile className="w-3.5 h-3.5" />
                               </button>
-                              {/* Pin button (leaders only, shows on hover) */}
-                              {isLeader && (
+                              {/* Pin button (pin permission required) */}
+                              {canPin && (
                                 <button
                                   onClick={() => handlePinMessage(msg.id)}
                                   className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
@@ -1597,8 +1841,8 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                             >
                               <Smile className="w-3.5 h-3.5" />
                             </button>
-                            {/* Pin button (leaders only) */}
-                            {isLeader && (
+                            {/* Pin button (pin permission required) */}
+                            {canPin && (
                               <button
                                 onClick={() => handlePinMessage(msg.id)}
                                 className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 bg-white border border-white/25 rounded text-slate-400 hover:text-black shadow-sm'}
@@ -1761,6 +2005,17 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     );
   }
 
+  // Notification Settings View
+  if (activeView === 'notifications') {
+    return (
+      <NotificationSettings
+        nightMode={nightMode}
+        groups={myGroups.map(g => ({ id: g.id, name: g.name, avatar_emoji: g.avatar_emoji }))}
+        onBack={() => setActiveView('list')}
+      />
+    );
+  }
+
   // Groups List View
   return (
     <div className="py-4 space-y-4 px-4 pb-24">
@@ -1770,7 +2025,19 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
           <h2 className={nightMode ? 'text-lg font-bold text-slate-100' : 'text-lg font-bold text-black'}>Groups</h2>
           <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>Connect with your community</p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveView('notifications')}
+            className={`p-2 border rounded-lg transition-all duration-200 ${nightMode ? 'border-white/20 text-slate-100 hover:bg-white/10' : 'border-white/30 text-black/70 hover:bg-white/30'}`}
+            style={nightMode ? {} : {
+              background: 'rgba(255, 255, 255, 0.25)',
+              backdropFilter: 'blur(30px)',
+              WebkitBackdropFilter: 'blur(30px)',
+            }}
+            title="Notification Settings"
+          >
+            <Bell className="w-5 h-5" />
+          </button>
           <button
             onClick={() => setShowCreateGroup(true)}
             className={`p-2 border rounded-lg transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'shadow-md border-white/30'}`}
@@ -1905,9 +2172,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <h3 className={nightMode ? 'font-semibold text-slate-100' : 'font-semibold text-black'}>{group.name}</h3>
-                      {group.userRole === 'leader' && (
-                        <Crown className="w-4 h-4 text-yellow-500" />
-                      )}
+                      <RoleBadge role={group.userRole} size="xs" />
                     </div>
                     <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>{group.member_count} members</p>
                   </div>

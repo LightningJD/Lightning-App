@@ -43,8 +43,7 @@ export const canViewTestimony = async (testimonyOwnerId: string, currentUserId: 
       const { data: friendship, error: friendError } = await supabase
         .from('friendships')
         .select('id')
-        .or(`user_id.eq.${currentUserId},user_id.eq.${testimonyOwnerId}`)
-        .or(`friend_id.eq.${currentUserId},friend_id.eq.${testimonyOwnerId}`)
+        .or(`and(user_id.eq.${currentUserId},friend_id.eq.${testimonyOwnerId}),and(user_id.eq.${testimonyOwnerId},friend_id.eq.${currentUserId})`)
         .eq('status', 'accepted')
         .limit(1);
 
@@ -101,8 +100,7 @@ export const canSendMessage = async (recipientId: string, senderId: string): Pro
       const { data: friendship, error: friendError } = await supabase
         .from('friendships')
         .select('id')
-        .or(`user_id.eq.${senderId},user_id.eq.${recipientId}`)
-        .or(`friend_id.eq.${senderId},friend_id.eq.${recipientId}`)
+        .or(`and(user_id.eq.${senderId},friend_id.eq.${recipientId}),and(user_id.eq.${recipientId},friend_id.eq.${senderId})`)
         .eq('status', 'accepted')
         .limit(1);
 
@@ -155,8 +153,7 @@ export const isUserVisible = async (userId: string, currentUserId: string): Prom
   const { data: friendship, error: friendError } = await supabase
     .from('friendships')
     .select('id')
-    .or(`user_id.eq.${currentUserId},user_id.eq.${userId}`)
-    .or(`friend_id.eq.${currentUserId},friend_id.eq.${userId}`)
+    .or(`and(user_id.eq.${currentUserId},friend_id.eq.${userId}),and(user_id.eq.${userId},friend_id.eq.${currentUserId})`)
     .eq('status', 'accepted')
     .limit(1);
 

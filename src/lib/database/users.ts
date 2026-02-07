@@ -266,12 +266,18 @@ export const searchUsers = async (
 
   const query = searchQuery.trim().toLowerCase();
 
-  const { data, error } = await supabase
+  let dbQuery = supabase
     .from('users')
     .select('*')
     .or(`display_name.ilike.%${query}%,username.ilike.%${query}%`)
-    .neq('id', currentUserId || '')
     .limit(20);
+
+  // Only exclude current user if we have a valid ID
+  if (currentUserId) {
+    dbQuery = dbQuery.neq('id', currentUserId);
+  }
+
+  const { data, error } = await dbQuery;
 
   if (error) {
     console.error('Error searching users:', error);
