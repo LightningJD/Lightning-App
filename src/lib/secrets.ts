@@ -818,13 +818,13 @@ export const checkTestimonyAnalyticsSecrets = async (testimonyId: string): Promi
   // Check if testimony has 100 views (Viral Testimony)
   const { count: viewCount } = await getTestimonyViewCount(testimonyId);
   if (viewCount >= 100) {
-    unlockSecret('testimony_views_100');
+    unlockSecret('testimony_100_views');
   }
 
   // Check if testimony has 50 hearts (Heart Toucher)
   const { count: likeCount } = await getTestimonyLikeCount(testimonyId);
   if (likeCount >= 50) {
-    unlockSecret('testimony_hearts_50');
+    unlockSecret('testimony_50_hearts');
   }
 
   // Check if testimony received its first comment (Conversation Starter)
@@ -833,6 +833,6 @@ export const checkTestimonyAnalyticsSecrets = async (testimonyId: string): Promi
     // First comment ever on this testimony
     // Only unlock for the testimony AUTHOR, not the commenter
     // This will be called from the UI where we know the testimony author
-    unlockSecret('testimony_first_comment');
+    unlockSecret('first_comment_received');
   }
 };
