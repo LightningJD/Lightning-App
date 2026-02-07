@@ -40,30 +40,30 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
   const testimonyQuestions = [
     {
       id: 1,
-      question: "How was your life like before you were saved?",
-      placeholder: "Describe your background growing up or if you were always saved...",
-      hint: "As in what was your background growing up or were you always saved?",
+      question: "What was your life like before God stepped in? What were you chasing, how were you living, and what did a normal day look like?",
+      placeholder: "Paint a picture of who you were. What defined you? What were you living for? What did your day-to-day look like? The more specific you are, the stronger your story will be.",
+      hint: "Think about what someone would have seen if they watched your life back then.",
       field: 'question1'
     },
     {
       id: 2,
-      question: "What led you to salvation or your own personal relationship with God?",
-      placeholder: "Share what drew you to a relationship with God...",
-      hint: "This could be a person, event, realization, or series of circumstances",
+      question: "What was the lowest point? What moment or season made you realize you couldn't keep going the way you were?",
+      placeholder: "Describe the struggle that brought you to the end of yourself. Was there a specific moment you hit rock bottom \u2014 a night, a conversation, a realization? What were you feeling?",
+      hint: "Don't just list struggles \u2014 take us to the moment. What were you doing? What were you feeling?",
       field: 'question2'
     },
     {
       id: 3,
-      question: "Was there a specific moment where you encountered God or a special situation that was the turning point to your relationship with God?",
-      placeholder: "Describe this experience in detail...",
-      hint: "If so, please describe this specific experience in detail",
+      question: "How did God show up? What did He do \u2014 did He speak to you, show you something, heal something, send someone? Describe that moment.",
+      placeholder: "This is the most important part of your story. What did God do? Did you hear Him, feel Him, see something change? Was there a specific moment, a prayer, a word, a dream? Describe exactly what happened \u2014 don't hold back.",
+      hint: "Be specific about what GOD did. If He spoke, what did He say? If He sent someone, who? This is the heart of your testimony.",
       field: 'question3'
     },
     {
       id: 4,
-      question: "What do you do now and what do you believe is your current mission or calling from God in your current place now?",
-      placeholder: "Share your current calling, ministry, or mission...",
-      hint: "Tell us about what you do now such as your current job position, ministry, or role",
+      question: "What's different now? How do you see God in your everyday life, and what does He have you doing?",
+      placeholder: "How has your life changed since that moment? What's different about how you think, live, or see the world? You don't have to be in ministry \u2014 just tell us what God is doing in your life right now.",
+      hint: "Think about the contrast \u2014 who you were in Q1 vs. who you are now.",
       field: 'question4'
     }
   ];
