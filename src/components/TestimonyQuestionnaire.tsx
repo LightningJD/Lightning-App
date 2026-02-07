@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, ArrowLeft, Sparkles, Loader, Lock, Globe, Link2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Sparkles, Loader, Lock, Globe, Link2, BookOpen } from 'lucide-react';
 import { TESTIMONY_QUESTIONS, validateAnswers, getWordCount } from '../config/testimonyQuestions';
 import { generateTestimony, type TestimonyAnswers } from '../lib/api/claude';
 import { checkRateLimit, recordAttempt } from '../lib/rateLimiter';
@@ -25,6 +25,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
     onComplete,
     onCancel
 }) => {
+    const [showIntro, setShowIntro] = useState(true);
     const [currentStep, setCurrentStep] = useState(0);
     const [visibility, setVisibility] = useState<TestimonyVisibility>(hasChurch ? 'my_church' : 'all_churches');
     const [answers, setAnswers] = useState<TestimonyAnswers>({
@@ -320,6 +321,97 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                             >
                                 <Sparkles className="w-4 h-4" />
                                 Save Testimony
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <style>{`
+          @keyframes popOut {
+            0% { transform: scale(0.9); opacity: 0; }
+            60% { transform: scale(1.02); }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        `}</style>
+            </>
+        );
+    }
+
+    // Show intro screen
+    if (showIntro) {
+        return (
+            <>
+                {/* Backdrop */}
+                <div className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200" />
+
+                {/* Intro Modal */}
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${nightMode ? 'bg-[#0a0a0a]' : 'bg-white'}`}
+                        style={{
+                            animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                        }}
+                    >
+                        {/* Header */}
+                        <div
+                            className="p-6"
+                            style={{
+                                background: nightMode
+                                    ? 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)'
+                                    : 'linear-gradient(135deg, rgba(219, 234, 254, 0.8) 0%, rgba(191, 219, 254, 0.8) 100%)'
+                            }}
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <BookOpen className={`w-6 h-6 ${nightMode ? 'text-white' : 'text-blue-600'}`} />
+                                    <h2 className={`text-xl font-bold ${nightMode ? 'text-white' : 'text-slate-900'}`}>
+                                        Your Story Matters
+                                    </h2>
+                                </div>
+                                <button
+                                    onClick={onCancel}
+                                    className={`text-sm font-medium ${nightMode ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <div className="space-y-5">
+                                <p className={`text-base leading-relaxed ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                                    Every generation has a testimony and every testimony has the power to change a generation. Share yours today.
+                                </p>
+
+                                <div className={`rounded-xl p-4 ${nightMode ? 'bg-white/5' : 'bg-blue-50/70'}`}>
+                                    <p className={`text-sm italic leading-relaxed ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                                        "They triumphed over him by the blood of the Lamb and by the word of their testimony."
+                                    </p>
+                                    <p className={`text-xs mt-2 font-semibold ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                        — Revelation 12:11
+                                    </p>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className={`p-6 border-t ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+                            <button
+                                onClick={() => setShowIntro(false)}
+                                className="w-full px-4 py-3.5 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-white border border-white/20"
+                                style={{
+                                    background: nightMode
+                                        ? 'rgba(79, 150, 255, 0.85)'
+                                        : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                                    boxShadow: nightMode
+                                        ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                                        : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                                }}
+                            >
+                                I'm Ready
+                                <ArrowRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
