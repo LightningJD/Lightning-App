@@ -72,6 +72,8 @@ function App() {
   const [showSecretsMuseum, setShowSecretsMuseum] = useState(false);
   const [testimonyStartTime, setTestimonyStartTime] = useState<number | null>(null);
   const [showBugReport, setShowBugReport] = useState(false);
+  const [activeServerName, setActiveServerName] = useState<string | null>(null);
+  const [activeServerEmoji, setActiveServerEmoji] = useState<string | null>(null);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -952,7 +954,7 @@ function App() {
       case 'groups':
         return (
           <ComponentErrorBoundary name="Servers" nightMode={nightMode}>
-            <ServersTab nightMode={nightMode} />
+            <ServersTab nightMode={nightMode} onActiveServerChange={(name, emoji) => { setActiveServerName(name); setActiveServerEmoji(emoji || null); }} />
           </ComponentErrorBoundary>
         );
       case 'connect':
@@ -1034,7 +1036,14 @@ function App() {
                     <div className="font-semibold text-black text-xl">Messages</div>
                   )}
                   {currentTab === 'groups' && (
-                    <div className="font-semibold text-black text-xl">Servers</div>
+                    <div className="font-semibold text-black text-xl flex items-center gap-2">
+                      {activeServerName ? (
+                        <>
+                          {activeServerEmoji && <span className="text-lg">{activeServerEmoji}</span>}
+                          <span className="truncate max-w-[200px]">{activeServerName}</span>
+                        </>
+                      ) : 'Servers'}
+                    </div>
                   )}
                   {currentTab === 'connect' && (
                     <div className="font-semibold text-black text-xl">Connect</div>
@@ -1076,7 +1085,14 @@ function App() {
                     <div className="font-semibold text-slate-100 text-xl">Messages</div>
                   )}
                   {currentTab === 'groups' && (
-                    <div className="font-semibold text-slate-100 text-xl">Servers</div>
+                    <div className="font-semibold text-slate-100 text-xl flex items-center gap-2">
+                      {activeServerName ? (
+                        <>
+                          {activeServerEmoji && <span className="text-lg">{activeServerEmoji}</span>}
+                          <span className="truncate max-w-[200px]">{activeServerName}</span>
+                        </>
+                      ) : 'Servers'}
+                    </div>
                   )}
                   {currentTab === 'connect' && (
                     <div className="font-semibold text-slate-100 text-xl">Connect</div>
