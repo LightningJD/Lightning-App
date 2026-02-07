@@ -58,14 +58,9 @@ export const sanitizeInput = (input: any, allowHtml: boolean = false): string =>
   // Remove script tags always (even if HTML allowed)
   clean = clean.replace(patterns.scriptTag, '');
 
-  // Escape dangerous characters for display
-  clean = clean
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
+  // Remove angle brackets to prevent HTML injection (stored as plain text,
+  // rendered safely via DOMPurify's sanitizeUserContent on output)
+  clean = clean.replace(/</g, '').replace(/>/g, '');
 
   return clean;
 };
