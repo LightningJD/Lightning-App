@@ -19,6 +19,10 @@ import {
   updateRole,
   deleteRole as deleteRoleDb,
   updateRolePermissions,
+  createCategory,
+  updateCategory,
+  deleteCategory as deleteCategoryDb,
+  reorderCategories,
 } from '../../lib/database';
 import ServerSidebar from './ServerSidebar';
 import ChannelSidebar from './ChannelSidebar';
@@ -279,6 +283,36 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     }
   }, [activeServerId]);
 
+  // Category handlers
+  const refreshChannels = useCallback(async () => {
+    if (!activeServerId) return;
+    const result = await getChannelsByServer(activeServerId);
+    setCategories(result.categories || []);
+    setChannels(result.channels || []);
+  }, [activeServerId]);
+
+  const handleCreateCategory = useCallback(async (name: string) => {
+    if (!activeServerId) return;
+    await createCategory(activeServerId, name);
+    await refreshChannels();
+  }, [activeServerId, refreshChannels]);
+
+  const handleRenameCategory = useCallback(async (categoryId: string, newName: string) => {
+    await updateCategory(categoryId, { name: newName });
+    await refreshChannels();
+  }, [refreshChannels]);
+
+  const handleDeleteCategory = useCallback(async (categoryId: string) => {
+    await deleteCategoryDb(categoryId);
+    await refreshChannels();
+  }, [refreshChannels]);
+
+  const handleReorderCategories = useCallback(async (orderedIds: string[]) => {
+    if (!activeServerId) return;
+    await reorderCategories(activeServerId, orderedIds);
+    await refreshChannels();
+  }, [activeServerId, refreshChannels]);
+
   // If guest, show nothing (modal will appear)
   if (isGuest) return null;
 
@@ -451,6 +485,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
                   nightMode={nightMode}
                   serverName={activeServer.name}
                   serverEmoji={activeServer.icon_emoji || '\u{26EA}'}
+                  serverId={activeServer.id}
                   categories={categories}
                   channels={channels}
                   activeChannelId={activeChannelId}
@@ -461,6 +496,10 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
                   onOpenMembers={() => { setViewMode('members'); setMobileView('chat'); }}
                   canManageChannels={permissions.manage_channels}
                   fullWidth
+                  onCreateCategory={handleCreateCategory}
+                  onRenameCategory={handleRenameCategory}
+                  onDeleteCategory={handleDeleteCategory}
+                  onReorderCategories={handleReorderCategories}
                 />
               </div>
             )}
@@ -543,6 +582,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           nightMode={nightMode}
           serverName={activeServer.name}
           serverEmoji={activeServer.icon_emoji || '\u{26EA}'}
+          serverId={activeServer.id}
           categories={categories}
           channels={channels}
           activeChannelId={activeChannelId}
@@ -552,6 +592,10 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onOpenRoles={() => setViewMode('roles')}
           onOpenMembers={() => setViewMode('members')}
           canManageChannels={permissions.manage_channels}
+          onCreateCategory={handleCreateCategory}
+          onRenameCategory={handleRenameCategory}
+          onDeleteCategory={handleDeleteCategory}
+          onReorderCategories={handleReorderCategories}
         />
       )}
 
