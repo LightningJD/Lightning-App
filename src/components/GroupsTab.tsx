@@ -120,9 +120,11 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
   const [loading, setLoading] = useState(false);
   const [showRoleMenu, setShowRoleMenu] = useState<string | null>(null); // member user ID
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const pinnedSectionRef = useRef<HTMLDivElement>(null);
   const subscriptionRef = useRef<any>(null);
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
+  const userIsScrollingRef = useRef(false);
 
   // @ts-ignore - Complex type issues with database functions
   const activeGroupData = myGroups.find(g => g.id === activeGroup);
@@ -374,9 +376,24 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     loadMembers();
   }, [activeGroup, activeView]);
 
-  // Scroll to bottom when messages change
+  // Track if user is scrolled up (not near bottom)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      userIsScrollingRef.current = distanceFromBottom > 150;
+    };
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [activeGroup]);
+
+  // Scroll to bottom when messages change, only if user is near bottom
+  useEffect(() => {
+    if (!userIsScrollingRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [groupMessages]);
 
   const handleCreateGroup = async (e: React.FormEvent) => {
@@ -1354,6 +1371,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
 
         {/* Messages */}
         <div
+          ref={messagesContainerRef}
           className={`flex-1 p-4 overflow-y-auto ${nightMode ? 'bg-white/5' : ''}`}
           style={nightMode ? {} : {
             background: 'rgba(255, 255, 255, 0.3)',

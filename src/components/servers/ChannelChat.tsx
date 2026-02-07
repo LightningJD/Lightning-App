@@ -164,12 +164,14 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
   const subscriptionRef = useRef<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const userIsScrollingRef = useRef(false);
 
   // ── Data Loading ───────────────────────────────────────────
 
@@ -267,9 +269,24 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     };
   }, [channelId]);
 
-  // Auto-scroll to bottom when messages change
+  // Track if user is scrolled up (not near bottom)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      userIsScrollingRef.current = distanceFromBottom > 150;
+    };
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [channelId]);
+
+  // Auto-scroll to bottom when messages change, only if user is near bottom
+  useEffect(() => {
+    if (!userIsScrollingRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   // Focus edit input when editing
@@ -1240,6 +1257,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
 
       {/* ── Messages Area ──────────────────────────────────── */}
       <div
+        ref={messagesContainerRef}
         className="flex-1 overflow-y-auto py-3"
         style={{
           background: nightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)',

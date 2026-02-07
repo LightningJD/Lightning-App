@@ -119,9 +119,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   const messageLongPressRef = useRef<NodeJS.Timeout | null>(null);
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const recipientInputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
   const reactionSubscriptionRef = useRef<any>(null);
+  const userIsScrollingRef = useRef(false);
 
   // Helper function to check if message is in bottom half of viewport
   const isMessageInBottomHalf = (messageId: string | number): boolean => {
@@ -477,9 +479,24 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     loadMessages();
   }, [activeChat, profile?.supabaseId]);
 
-  // Scroll to bottom when messages change
+  // Track if user is scrolled up (not near bottom)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      userIsScrollingRef.current = distanceFromBottom > 150;
+    };
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [activeChat]);
+
+  // Scroll to bottom when messages change, only if user is near bottom
+  useEffect(() => {
+    if (!userIsScrollingRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -885,6 +902,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
 
         {/* Messages */}
         <div
+          ref={messagesContainerRef}
           className="flex-1 p-4 overflow-y-auto"
           style={nightMode ? {} : {
             background: 'rgba(255, 255, 255, 0.2)',
