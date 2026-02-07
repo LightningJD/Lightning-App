@@ -76,7 +76,7 @@ This is someone's real faith journey. Accuracy is sacred.
 
 - Rephrase their words into polished, flowing first-person prose
 - Fix grammar, spelling, and awkward phrasing
-- Add natural transitions between paragraphs
+- Add natural transitions between paragraphs — use narrative hooks that make the reader want to keep going (e.g. "Then something shifted", "But God had other plans", "What happened next changed everything"). Vary these — don't use the same hook twice. Make them feel natural, not formulaic.
 - Use varied sentence structure (mix short and long sentences)
 - Make it sound like the person telling their story naturally to a friend
 - Keep their tone — if they're casual, stay casual; if they're intense, stay intense
