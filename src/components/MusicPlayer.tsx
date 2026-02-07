@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { ExternalLink, Play, Pause } from 'lucide-react';
-import { getYouTubeVideoId, getYouTubeEmbedUrl } from '../lib/musicUtils';
+import React, { useState, useRef, useEffect } from 'react';
+import { ExternalLink, Play, Pause, Loader2 } from 'lucide-react';
+import { getYouTubeVideoId } from '../lib/musicUtils';
 
 interface MusicPlayerProps {
   platform: 'spotify' | 'youtube';
@@ -12,29 +12,75 @@ interface MusicPlayerProps {
 
 const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, artist, nightMode }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerReadyRef = useRef(false);
 
   const videoId = platform === 'youtube' ? getYouTubeVideoId(url) : null;
 
-  const handlePlayPause = () => {
-    if (!videoId) return;
+  // Listen for YouTube player state changes via postMessage
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'https://www.youtube.com') return;
+      try {
+        const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        // Player ready event
+        if (data.event === 'onReady' || data.info?.playerState !== undefined) {
+          playerReadyRef.current = true;
+          setIsLoading(false);
+        }
+        // State changes: 1 = playing, 2 = paused, 0 = ended
+        if (data.info?.playerState === 0) {
+          setIsPlaying(false);
+        }
+      } catch {
+        // Not a YouTube message
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
-    if (!isLoaded) {
-      // First tap — load the iframe, it autoplays
-      setIsLoaded(true);
-      setIsPlaying(true);
-      return;
-    }
-
+  const sendCommand = (func: string) => {
     if (iframeRef.current?.contentWindow) {
-      const func = isPlaying ? 'pauseVideo' : 'playVideo';
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func, args: [] }),
         '*'
       );
-      setIsPlaying(!isPlaying);
     }
+  };
+
+  const handlePlayPause = () => {
+    if (!videoId) {
+      // Spotify or unknown — just open the link
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    if (!isPlaying && !iframeRef.current) {
+      // First play — load the iframe
+      setIsLoading(true);
+      setIsPlaying(true);
+      return;
+    }
+
+    if (isPlaying) {
+      sendCommand('pauseVideo');
+      setIsPlaying(false);
+    } else {
+      sendCommand('playVideo');
+      sendCommand('unMute');
+      setIsPlaying(true);
+    }
+  };
+
+  const handleIframeLoad = () => {
+    // Give YouTube a moment to init the JS API, then unmute
+    setTimeout(() => {
+      sendCommand('unMute');
+      playerReadyRef.current = true;
+      setIsLoading(false);
+    }, 1500);
   };
 
   const platformIcon = platform === 'youtube' ? (
@@ -47,6 +93,11 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
     </svg>
   );
 
+  // Build embed URL — start muted (required for autoplay), we unmute after load
+  const embedUrl = videoId
+    ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&controls=0&modestbranding=1&rel=0`
+    : null;
+
   return (
     <div
       className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
@@ -57,63 +108,66 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ platform, url, trackName, art
       style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
     >
       {/* Play/Pause button */}
-      {videoId ? (
-        <button
-          onClick={handlePlayPause}
-          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-            isPlaying
-              ? nightMode
-                ? 'bg-blue-500/20 text-blue-400'
-                : 'bg-blue-500/15 text-blue-600'
-              : nightMode
-                ? 'bg-white/10 text-slate-300 hover:bg-white/15'
-                : 'bg-black/5 text-slate-600 hover:bg-black/10'
-          }`}
-        >
-          {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5" />}
-        </button>
-      ) : (
-        platformIcon
-      )}
+      <button
+        onClick={handlePlayPause}
+        className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+          isPlaying
+            ? nightMode
+              ? 'bg-blue-500/20 text-blue-400'
+              : 'bg-blue-500/15 text-blue-600'
+            : nightMode
+              ? 'bg-white/10 text-slate-300 hover:bg-white/15'
+              : 'bg-black/5 text-slate-600 hover:bg-black/10'
+        }`}
+      >
+        {isLoading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : isPlaying ? (
+          <Pause className="w-4 h-4" />
+        ) : (
+          <Play className="w-4 h-4 ml-0.5" />
+        )}
+      </button>
 
       {/* Song info */}
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-medium truncate ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
           {trackName || 'My Song'}
         </p>
-        {artist && (
-          <p className={`text-xs truncate ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
-            {artist}
-          </p>
-        )}
+        <p className={`text-xs truncate ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+          {artist || (platform === 'youtube' ? 'YouTube' : 'Spotify')}
+        </p>
       </div>
 
-      {/* Platform icon (when play button is showing) + external link */}
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {videoId && platformIcon}
+      {/* Platform icon + external link */}
+      <div className="flex items-center gap-2.5 flex-shrink-0">
+        {platformIcon}
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className={`p-1 rounded-md transition-colors ${
-            nightMode ? 'text-slate-600 hover:text-slate-400' : 'text-slate-300 hover:text-slate-500'
+          className={`p-1.5 rounded-lg transition-colors ${
+            nightMode ? 'text-slate-600 hover:text-slate-400 hover:bg-white/5' : 'text-slate-300 hover:text-slate-500 hover:bg-black/5'
           }`}
           onClick={(e) => e.stopPropagation()}
+          title={`Open in ${platform === 'youtube' ? 'YouTube' : 'Spotify'}`}
         >
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
       </div>
 
-      {/* Hidden YouTube iframe — only loaded on first play */}
-      {isLoaded && videoId && (
+      {/* Hidden YouTube iframe — only mounted when playing */}
+      {isPlaying && embedUrl && (
         <iframe
           ref={iframeRef}
           width="0"
           height="0"
-          src={getYouTubeEmbedUrl(videoId)}
+          src={embedUrl}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          className="hidden"
+          onLoad={handleIframeLoad}
+          className="absolute w-0 h-0 opacity-0 pointer-events-none"
+          style={{ position: 'absolute', left: '-9999px' }}
         />
       )}
     </div>
