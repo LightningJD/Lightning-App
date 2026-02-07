@@ -181,129 +181,92 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 </button>
               )}
 
-              {/* Expanded sections */}
+              {/* Expanded sections — V4 Compact Rows */}
               {expanded && (
                 <>
                   {/* Divider */}
                   <div className={`h-px ${nightMode ? 'bg-blue-400/15' : 'bg-blue-500/10'}`} />
 
-                  {/* Church Section */}
-                  {hasChurchInfo && (
-                    <div
-                      className={`rounded-xl p-3 border ${
-                        nightMode
-                          ? 'bg-white/[0.03] border-white/[0.06]'
-                          : 'bg-white/30 border-white/40'
-                      }`}
-                      style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
-                    >
-                      <div className={`text-[11px] font-bold uppercase tracking-wide mb-1.5 ${
-                        nightMode ? 'text-slate-500' : 'text-slate-400'
+                  <div className="flex flex-col">
+                    {/* Church Row */}
+                    {hasChurchInfo && (
+                      <div className={`flex items-start gap-2.5 py-2.5 ${
+                        (hasInterests || hasJourney) ? `border-b ${nightMode ? 'border-white/[0.04]' : 'border-black/[0.04]'}` : ''
                       }`}>
-                        Church
-                      </div>
-                      <div className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                        ⛪ {profile.churchName}
-                      </div>
-                      {profile.denomination && (
-                        <div className={`text-xs mt-0.5 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                          ✝️ {profile.denomination}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Faith Interests */}
-                  {hasInterests && (
-                    <div
-                      className={`rounded-xl p-3 border ${
-                        nightMode
-                          ? 'bg-white/[0.03] border-white/[0.06]'
-                          : 'bg-white/30 border-white/40'
-                      }`}
-                      style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
-                    >
-                      <div className={`text-[11px] font-bold uppercase tracking-wide mb-2.5 ${
-                        nightMode ? 'text-slate-500' : 'text-slate-400'
-                      }`}>
-                        Faith Interests
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {profile.faithInterests!.map((interest, i) => (
-                          <span
-                            key={i}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                              nightMode
-                                ? 'bg-[rgba(79,150,255,0.1)] border-[rgba(79,150,255,0.2)] text-[#93bbff]'
-                                : 'bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.2)] text-blue-700'
-                            }`}
-                          >
-                            {INTEREST_EMOJIS[interest] || '✨'} {interest}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Journey / Milestones */}
-                  {hasJourney && (
-                    <div
-                      className={`rounded-xl p-3 border ${
-                        nightMode
-                          ? 'bg-white/[0.03] border-white/[0.06]'
-                          : 'bg-white/30 border-white/40'
-                      }`}
-                      style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
-                    >
-                      <div className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${
-                        nightMode ? 'text-slate-500' : 'text-slate-400'
-                      }`}>
-                        Journey
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {profile.yearSaved && (
-                          <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                            nightMode
-                              ? 'bg-white/5 border-white/10 text-slate-300'
-                              : 'bg-white/25 border-white/30 text-slate-700'
-                          }`}>
-                            📅 Saved {profile.yearSaved}
-                          </span>
-                        )}
-                        {profile.isBaptized && (
-                          <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                            nightMode
-                              ? 'bg-white/5 border-white/10 text-slate-300'
-                              : 'bg-white/25 border-white/30 text-slate-700'
-                          }`}>
-                            💧 Baptized{profile.yearBaptized ? ` ${profile.yearBaptized}` : ''}
-                          </span>
-                        )}
-                      </div>
-
-                      {yearsWalking !== null && yearsWalking > 0 && (
-                        <div className="mt-3">
-                          <div className="flex justify-between items-center text-[11px] mb-1">
-                            <span className={nightMode ? 'text-slate-400' : 'text-slate-500'}>Walk with Christ</span>
-                            <span className={`font-semibold ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                              {yearsWalking} {yearsWalking === 1 ? 'year' : 'years'}
-                            </span>
+                        <span className="text-base leading-5 mt-px">⛪</span>
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-[13px] font-medium ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                            {profile.churchName}
                           </div>
-                          <div className={`h-1 rounded-full overflow-hidden ${
-                            nightMode ? 'bg-white/[0.06]' : 'bg-black/[0.06]'
-                          }`}>
-                            <div
-                              className="h-full rounded-full"
-                              style={{
-                                width: `${Math.min(100, (yearsWalking / 50) * 100)}%`,
-                                background: 'linear-gradient(90deg, #4faaf8, #2563eb)',
-                              }}
-                            />
+                          {profile.denomination && (
+                            <div className={`text-[11px] mt-0.5 ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                              ✝️ {profile.denomination}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Faith Interests Row */}
+                    {hasInterests && (
+                      <div className={`flex items-start gap-2.5 py-2.5 ${
+                        hasJourney ? `border-b ${nightMode ? 'border-white/[0.04]' : 'border-black/[0.04]'}` : ''
+                      }`}>
+                        <span className="text-base leading-5 mt-px">✨</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap gap-1.5 mt-0.5">
+                            {profile.faithInterests!.map((interest, i) => (
+                              <span
+                                key={i}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
+                                  nightMode
+                                    ? 'bg-[rgba(79,150,255,0.1)] border-[rgba(79,150,255,0.2)] text-[#93bbff]'
+                                    : 'bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.2)] text-blue-700'
+                                }`}
+                              >
+                                {INTEREST_EMOJIS[interest] || '✨'} {interest}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    )}
+
+                    {/* Journey Row */}
+                    {hasJourney && (
+                      <div className="flex items-start gap-2.5 py-2.5">
+                        <span className="text-base leading-5 mt-px">📖</span>
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-[13px] font-medium ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                            {profile.yearSaved && `Saved ${profile.yearSaved}`}
+                            {profile.yearSaved && profile.isBaptized && ' · '}
+                            {profile.isBaptized && `Baptized${profile.yearBaptized ? ` ${profile.yearBaptized}` : ''}`}
+                          </div>
+                          {yearsWalking !== null && yearsWalking > 0 && (
+                            <div className="mt-2">
+                              <div className="flex justify-between items-center text-[11px] mb-1">
+                                <span className={nightMode ? 'text-slate-400' : 'text-slate-500'}>Saved for</span>
+                                <span className={`font-semibold ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                                  {yearsWalking} {yearsWalking === 1 ? 'year' : 'years'}
+                                </span>
+                              </div>
+                              <div className={`h-1 rounded-full overflow-hidden ${
+                                nightMode ? 'bg-white/[0.06]' : 'bg-black/[0.06]'
+                              }`}>
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: `${Math.min(100, (yearsWalking / 50) * 100)}%`,
+                                    background: 'linear-gradient(90deg, #4faaf8, #2563eb)',
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Collapse button */}
                   <button
