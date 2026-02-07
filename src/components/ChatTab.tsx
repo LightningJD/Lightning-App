@@ -171,14 +171,28 @@ const ChatTab: React.FC<ChatTabProps> = ({
     }
   }, [startChatWith, dmConversations, onStartChatConsumed]);
 
-  // ── Back handlers ───────────────────────────────────────────
+  // ── Navigation handlers ───────────────────────────────────
+
+  const handleSwitchToDms = useCallback(() => {
+    setView('list');
+    setSelectedServerId(null);
+    setSelectedConversation(null);
+    setDmStartChatWith(null);
+    onActiveServerChange?.(null);
+    loadData();
+  }, [loadData, onActiveServerChange]);
+
+  const handleSelectServer = useCallback((server: Server) => {
+    setSelectedServerId(server.id);
+    onActiveServerChange?.(server.name, server.icon_emoji);
+    setView('server');
+  }, [onActiveServerChange]);
 
   const handleBackFromDm = useCallback(() => {
     setView('list');
     setSelectedConversation(null);
     setDmStartChatWith(null);
     onActiveServerChange?.(null);
-    // Refresh conversation list
     loadData();
   }, [loadData, onActiveServerChange]);
 
@@ -189,116 +203,39 @@ const ChatTab: React.FC<ChatTabProps> = ({
     loadData();
   }, [loadData, onActiveServerChange]);
 
-  // ── DM View ─────────────────────────────────────────────────
+  // ── Determine active rail item ────────────────────────────
 
-  if (view === 'dm') {
+  const isDmActive = view === 'list' || view === 'dm';
+
+  // ── Render main panel content ─────────────────────────────
+
+  const renderMainPanel = () => {
+    if (view === 'dm') {
+      return (
+        <MessagesTab
+          nightMode={nightMode}
+          onConversationsCountChange={onConversationsCountChange}
+          startChatWith={dmStartChatWith}
+          initialConversation={selectedConversation}
+          onBack={handleBackFromDm}
+        />
+      );
+    }
+
+    if (view === 'server' && selectedServerId) {
+      return (
+        <ServersTab
+          nightMode={nightMode}
+          initialServerId={selectedServerId}
+          onBack={handleBackFromServer}
+          onActiveServerChange={onActiveServerChange}
+        />
+      );
+    }
+
+    // Default: DM conversation list
     return (
-      <MessagesTab
-        nightMode={nightMode}
-        onConversationsCountChange={onConversationsCountChange}
-        startChatWith={dmStartChatWith}
-        initialConversation={selectedConversation}
-        onBack={handleBackFromDm}
-      />
-    );
-  }
-
-  // ── Server View ─────────────────────────────────────────────
-
-  if (view === 'server' && selectedServerId) {
-    return (
-      <ServersTab
-        nightMode={nightMode}
-        initialServerId={selectedServerId}
-        onBack={handleBackFromServer}
-        onActiveServerChange={onActiveServerChange}
-      />
-    );
-  }
-
-  // ── List View (Discord-style sidebar) ──────────────────────
-
-  return (
-    <div className="flex" style={{ height: 'calc(100vh - 7.5rem)' }}>
-      {/* Server Rail (left sidebar) */}
-      <div
-        className={`w-[72px] flex-shrink-0 flex flex-col items-center py-3 gap-1.5 overflow-y-auto border-r ${
-          nightMode ? 'border-white/10' : 'border-white/20'
-        }`}
-        style={nightMode ? {
-          background: 'rgba(0, 0, 0, 0.3)',
-        } : {
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        }}
-      >
-        {/* DM Button (always highlighted in list view) */}
-        <button
-          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${
-            nightMode
-              ? 'bg-blue-500/30 text-blue-300'
-              : 'bg-blue-500/20 text-blue-600'
-          }`}
-          style={{
-            boxShadow: nightMode ? '0 0 12px rgba(59, 130, 246, 0.2)' : '0 0 12px rgba(59, 130, 246, 0.15)',
-          }}
-          title="Direct Messages"
-        >
-          <MessageCircle className="w-5 h-5" />
-        </button>
-
-        {/* Divider */}
-        {servers.length > 0 && (
-          <div className={`w-8 h-[2px] rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
-        )}
-
-        {/* Server Icons */}
-        {servers.map((server) => (
-          <button
-            key={server.id}
-            onClick={() => {
-              setSelectedServerId(server.id);
-              onActiveServerChange?.(server.name, server.icon_emoji);
-              setView('server');
-            }}
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg transition-all active:scale-95 hover:rounded-xl ${
-              nightMode ? 'bg-white/10 hover:bg-white/15' : 'bg-white/30 hover:bg-white/50'
-            }`}
-            style={{
-              boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)',
-            }}
-            title={server.name}
-          >
-            {server.icon_url ? (
-              <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-2xl object-cover" />
-            ) : (
-              server.icon_emoji || '⛪'
-            )}
-          </button>
-        ))}
-
-        {/* Divider before + button */}
-        <div className={`w-8 h-[2px] rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
-
-        {/* Create Server / New Chat button */}
-        <button
-          onClick={() => {
-            setDmStartChatWith(null);
-            setSelectedConversation(null);
-            setView('dm');
-          }}
-          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-95 hover:rounded-xl ${
-            nightMode ? 'bg-white/10 hover:bg-green-500/30 text-green-400 hover:text-green-300' : 'bg-white/30 hover:bg-green-500/20 text-green-600 hover:text-green-700'
-          }`}
-          title="New message"
-        >
-          <Plus className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Main Panel (DM Conversations) */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="overflow-y-auto h-full">
         <div className="px-4 py-3">
           {/* Messages Header */}
           <div className="flex items-center justify-between mb-3">
@@ -424,6 +361,102 @@ const ChatTab: React.FC<ChatTabProps> = ({
             </div>
           )}
         </div>
+      </div>
+    );
+  };
+
+  // ── Single layout with persistent server rail ─────────────
+
+  return (
+    <div className="flex" style={{ height: 'calc(100vh - 7.5rem)' }}>
+      {/* Server Rail (always visible, Discord-style) */}
+      <div
+        className={`w-[72px] flex-shrink-0 flex flex-col items-center py-3 gap-1.5 overflow-y-auto border-r ${
+          nightMode ? 'border-white/10' : 'border-white/20'
+        }`}
+        style={nightMode ? {
+          background: 'rgba(0, 0, 0, 0.3)',
+        } : {
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}
+      >
+        {/* DM Button */}
+        <button
+          onClick={handleSwitchToDms}
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${
+            isDmActive
+              ? nightMode
+                ? 'bg-blue-500/30 text-blue-300'
+                : 'bg-blue-500/20 text-blue-600'
+              : nightMode
+                ? 'bg-white/10 hover:bg-white/15 text-slate-400 hover:text-slate-200 hover:rounded-xl'
+                : 'bg-white/30 hover:bg-white/50 text-slate-500 hover:text-slate-700 hover:rounded-xl'
+          }`}
+          style={isDmActive ? {
+            boxShadow: nightMode ? '0 0 12px rgba(59, 130, 246, 0.2)' : '0 0 12px rgba(59, 130, 246, 0.15)',
+          } : {}}
+          title="Direct Messages"
+        >
+          <MessageCircle className="w-5 h-5" />
+        </button>
+
+        {/* Divider */}
+        {servers.length > 0 && (
+          <div className={`w-8 h-[2px] rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+        )}
+
+        {/* Server Icons */}
+        {servers.map((server) => (
+          <button
+            key={server.id}
+            onClick={() => handleSelectServer(server)}
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg transition-all active:scale-95 hover:rounded-xl ${
+              view === 'server' && selectedServerId === server.id
+                ? nightMode
+                  ? 'bg-blue-500/30 text-blue-300'
+                  : 'bg-blue-500/20 text-blue-600'
+                : nightMode
+                  ? 'bg-white/10 hover:bg-white/15'
+                  : 'bg-white/30 hover:bg-white/50'
+            }`}
+            style={view === 'server' && selectedServerId === server.id
+              ? { boxShadow: nightMode ? '0 0 12px rgba(59, 130, 246, 0.2)' : '0 0 12px rgba(59, 130, 246, 0.15)' }
+              : { boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }
+            }
+            title={server.name}
+          >
+            {server.icon_url ? (
+              <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-2xl object-cover" />
+            ) : (
+              server.icon_emoji || '⛪'
+            )}
+          </button>
+        ))}
+
+        {/* Divider before + button */}
+        <div className={`w-8 h-[2px] rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+
+        {/* New Chat button */}
+        <button
+          onClick={() => {
+            setDmStartChatWith(null);
+            setSelectedConversation(null);
+            setView('dm');
+          }}
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-95 hover:rounded-xl ${
+            nightMode ? 'bg-white/10 hover:bg-green-500/30 text-green-400 hover:text-green-300' : 'bg-white/30 hover:bg-green-500/20 text-green-600 hover:text-green-700'
+          }`}
+          title="New message"
+        >
+          <Plus className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Main Panel (changes based on view) */}
+      <div className="flex-1 overflow-hidden">
+        {renderMainPanel()}
       </div>
 
       {/* Other User Profile Dialog */}
