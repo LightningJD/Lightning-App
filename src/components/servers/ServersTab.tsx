@@ -10,6 +10,8 @@ import {
   generateInviteCode,
   createChannel,
   getChannelsByServer,
+  updateChannel,
+  deleteChannel as deleteChannelDb,
   getServerMembers,
   getServerRoles,
   getMemberPermissions,
@@ -23,6 +25,11 @@ import {
   updateCategory,
   deleteCategory as deleteCategoryDb,
   reorderCategories,
+  banMember,
+  unbanMember,
+  getServerBans,
+  getUnreadCounts,
+  markChannelRead,
 } from '../../lib/database';
 import ServerSidebar from './ServerSidebar';
 import ChannelSidebar from './ChannelSidebar';
@@ -67,6 +74,12 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     kick_members: false,
     ban_members: false,
   });
+
+  // Ban state
+  const [bans, setBans] = useState<any[]>([]);
+
+  // Unread counts
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
 
   // Dialogs
   const [showCreateServer, setShowCreateServer] = useState(false);
@@ -192,7 +205,16 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     setActiveChannelId(channelId);
     setViewMode('chat');
     if (isMobile) setMobileView('chat');
-  }, [isMobile]);
+    // Mark as read and clear unread count
+    if (profile?.supabaseId) {
+      markChannelRead(channelId, profile.supabaseId).catch(() => {});
+    }
+    setUnreadCounts(prev => {
+      const next = { ...prev };
+      delete next[channelId];
+      return next;
+    });
+  }, [isMobile, profile?.supabaseId]);
 
   const handleCreateChannel = useCallback(async (name: string, topic: string, categoryId?: string) => {
     if (!activeServerId) return;
@@ -313,6 +335,62 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     await refreshChannels();
   }, [activeServerId, refreshChannels]);
 
+  // Channel edit/delete handlers
+  const handleUpdateChannel = useCallback(async (channelId: string, updates: any) => {
+    await updateChannel(channelId, updates);
+    await refreshChannels();
+  }, [refreshChannels]);
+
+  const handleDeleteChannel = useCallback(async (channelId: string) => {
+    await deleteChannelDb(channelId);
+    await refreshChannels();
+    if (activeChannelId === channelId) {
+      const remaining = channels.filter(c => c.id !== channelId);
+      setActiveChannelId(remaining.length > 0 ? remaining[0].id : null);
+    }
+  }, [refreshChannels, activeChannelId, channels]);
+
+  // Ban handlers
+  const handleBanMember = useCallback(async (memberId: string, reason?: string) => {
+    if (!activeServerId || !profile?.supabaseId) return;
+    await banMember(activeServerId, memberId, profile.supabaseId, reason);
+    const [refreshedMembers, refreshedBans] = await Promise.all([
+      getServerMembers(activeServerId),
+      getServerBans(activeServerId),
+    ]);
+    setMembers(refreshedMembers || []);
+    setBans(refreshedBans || []);
+  }, [activeServerId, profile?.supabaseId]);
+
+  const handleUnbanMember = useCallback(async (userId: string) => {
+    if (!activeServerId) return;
+    await unbanMember(activeServerId, userId);
+    const refreshedBans = await getServerBans(activeServerId);
+    setBans(refreshedBans || []);
+  }, [activeServerId]);
+
+  // Load unread counts
+  useEffect(() => {
+    const loadUnreadCounts = async () => {
+      if (!activeServerId || !profile?.supabaseId) return;
+      const counts = await getUnreadCounts(activeServerId, profile.supabaseId);
+      setUnreadCounts(counts || {});
+    };
+    loadUnreadCounts();
+    const interval = setInterval(loadUnreadCounts, 10000); // refresh every 10s
+    return () => clearInterval(interval);
+  }, [activeServerId, profile?.supabaseId]);
+
+  // Load bans when viewing members
+  useEffect(() => {
+    const loadBans = async () => {
+      if (!activeServerId || !permissions.ban_members) return;
+      const result = await getServerBans(activeServerId);
+      setBans(result || []);
+    };
+    loadBans();
+  }, [activeServerId, permissions.ban_members]);
+
   // If guest, show nothing (modal will appear)
   if (isGuest) return null;
 
@@ -395,6 +473,9 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onAssignRole={handleAssignRole}
           onRemoveMember={handleRemoveMember}
           onBack={handleBackFromContent}
+          bans={bans}
+          onBanMember={handleBanMember}
+          onUnbanMember={handleUnbanMember}
         />
       );
     }
@@ -409,6 +490,9 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           channelName={activeChannel?.name || 'general'}
           channelTopic={activeChannel?.topic}
           userId={profile?.supabaseId || ''}
+          userDisplayName={profile?.displayName || profile?.username || 'You'}
+          serverId={activeServerId || undefined}
+          members={members}
           permissions={permissions}
         />
       );
@@ -500,6 +584,9 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
                   onRenameCategory={handleRenameCategory}
                   onDeleteCategory={handleDeleteCategory}
                   onReorderCategories={handleReorderCategories}
+                  onUpdateChannel={handleUpdateChannel}
+                  onDeleteChannel={handleDeleteChannel}
+                  unreadCounts={unreadCounts}
                 />
               </div>
             )}
@@ -596,6 +683,9 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onRenameCategory={handleRenameCategory}
           onDeleteCategory={handleDeleteCategory}
           onReorderCategories={handleReorderCategories}
+          onUpdateChannel={handleUpdateChannel}
+          onDeleteChannel={handleDeleteChannel}
+          unreadCounts={unreadCounts}
         />
       )}
 

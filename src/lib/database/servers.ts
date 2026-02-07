@@ -1106,3 +1106,372 @@ export const denyServerJoinRequest = async (requestId: string): Promise<boolean 
 
   return true;
 };
+
+// ============================================
+// MESSAGE EDIT & DELETE
+// ============================================
+
+/**
+ * Edit a channel message (only the sender can edit)
+ */
+export const editChannelMessage = async (messageId: string, senderId: string, newContent: string): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('channel_messages')
+    // @ts-ignore
+    .update({
+      content: newContent,
+      is_edited: true,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', messageId)
+    .eq('sender_id', senderId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error editing channel message:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
+ * Delete a channel message
+ */
+export const deleteChannelMessage = async (messageId: string): Promise<boolean | null> => {
+  if (!supabase) return null;
+
+  const { error } = await supabase
+    .from('channel_messages')
+    .delete()
+    .eq('id', messageId);
+
+  if (error) {
+    console.error('Error deleting channel message:', error);
+    return null;
+  }
+
+  return true;
+};
+
+// ============================================
+// REPLY / THREADING
+// ============================================
+
+/**
+ * Send a reply to a channel message
+ */
+export const sendChannelReply = async (
+  channelId: string,
+  senderId: string,
+  content: string,
+  replyToMessageId: string,
+  imageUrl?: string
+): Promise<any> => {
+  if (!supabase) return null;
+
+  const insertPayload: any = {
+    channel_id: channelId,
+    sender_id: senderId,
+    content,
+    reply_to_id: replyToMessageId,
+  };
+
+  if (imageUrl) {
+    insertPayload.image_url = imageUrl;
+  }
+
+  const { data, error } = await supabase
+    .from('channel_messages')
+    // @ts-ignore
+    .insert(insertPayload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error sending channel reply:', error);
+    return null;
+  }
+
+  return data;
+};
+
+// ============================================
+// BAN / TIMEOUT SYSTEM
+// ============================================
+
+/**
+ * Ban a member from a server
+ */
+export const banMember = async (
+  serverId: string,
+  userId: string,
+  bannedBy: string,
+  reason?: string
+): Promise<any> => {
+  if (!supabase) return null;
+
+  // Remove from members first
+  await supabase
+    .from('server_members')
+    .delete()
+    .eq('server_id', serverId)
+    .eq('user_id', userId);
+
+  // Add to bans table
+  const { data, error } = await supabase
+    .from('server_bans')
+    // @ts-ignore
+    .insert({
+      server_id: serverId,
+      user_id: userId,
+      banned_by: bannedBy,
+      reason: reason || null
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error banning member:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
+ * Unban a member from a server
+ */
+export const unbanMember = async (serverId: string, userId: string): Promise<boolean | null> => {
+  if (!supabase) return null;
+
+  const { error } = await supabase
+    .from('server_bans')
+    .delete()
+    .eq('server_id', serverId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error unbanning member:', error);
+    return null;
+  }
+
+  return true;
+};
+
+/**
+ * Get all bans for a server
+ */
+export const getServerBans = async (serverId: string): Promise<any[]> => {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('server_bans')
+    // @ts-ignore
+    .select('*, user:users!user_id(id, username, display_name, avatar_emoji, avatar_url), banned_by_user:users!banned_by(id, display_name)')
+    .eq('server_id', serverId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching server bans:', error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// ============================================
+// TYPING INDICATORS
+// ============================================
+
+/**
+ * Update typing indicator for a user in a channel
+ */
+export const updateTypingIndicator = async (channelId: string, userId: string, displayName: string): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('channel_typing_indicators')
+    // @ts-ignore
+    .upsert({
+      channel_id: channelId,
+      user_id: userId,
+      display_name: displayName,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'channel_id,user_id' })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating typing indicator:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
+ * Clear typing indicator for a user in a channel
+ */
+export const clearTypingIndicator = async (channelId: string, userId: string): Promise<boolean | null> => {
+  if (!supabase) return null;
+
+  const { error } = await supabase
+    .from('channel_typing_indicators')
+    .delete()
+    .eq('channel_id', channelId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error clearing typing indicator:', error);
+    return null;
+  }
+
+  return true;
+};
+
+/**
+ * Get typing indicators for a channel (active in the last 5 seconds)
+ */
+export const getTypingIndicators = async (channelId: string, currentUserId: string): Promise<any[]> => {
+  if (!supabase) return [];
+
+  const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+
+  const { data, error } = await supabase
+    .from('channel_typing_indicators')
+    .select('*')
+    .eq('channel_id', channelId)
+    .neq('user_id', currentUserId)
+    .gte('updated_at', fiveSecondsAgo);
+
+  if (error) {
+    console.error('Error fetching typing indicators:', error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// ============================================
+// MESSAGE SEARCH
+// ============================================
+
+/**
+ * Search messages across all channels in a server
+ */
+export const searchChannelMessages = async (serverId: string, query: string, limit: number = 50): Promise<any[]> => {
+  if (!supabase || !query.trim()) return [];
+
+  // First get all channel IDs for this server
+  const { data: channels } = await supabase
+    .from('server_channels')
+    .select('id')
+    .eq('server_id', serverId);
+
+  if (!channels || channels.length === 0) return [];
+
+  const channelIds = channels.map((c: any) => c.id);
+
+  const { data, error } = await supabase
+    .from('channel_messages')
+    // @ts-ignore
+    .select('*, sender:users!sender_id(id, username, display_name, avatar_emoji), channel:server_channels!channel_id(id, name)')
+    .in('channel_id', channelIds)
+    .ilike('content', `%${query}%`)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error searching messages:', error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// ============================================
+// UNREAD TRACKING
+// ============================================
+
+/**
+ * Mark a channel as read for a user
+ */
+export const markChannelRead = async (channelId: string, userId: string): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('channel_read_receipts')
+    // @ts-ignore
+    .upsert({
+      channel_id: channelId,
+      user_id: userId,
+      last_read_at: new Date().toISOString()
+    }, { onConflict: 'channel_id,user_id' })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error marking channel as read:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
+ * Get unread message counts per channel for a user in a server
+ */
+export const getUnreadCounts = async (serverId: string, userId: string): Promise<Record<string, number>> => {
+  if (!supabase) return {};
+
+  // Get all channels for the server
+  const { data: channels } = await supabase
+    .from('server_channels')
+    .select('id')
+    .eq('server_id', serverId);
+
+  if (!channels || channels.length === 0) return {};
+
+  const channelIds = channels.map((c: any) => c.id);
+
+  // Get read receipts for this user
+  const { data: receipts } = await supabase
+    .from('channel_read_receipts')
+    .select('channel_id, last_read_at')
+    .eq('user_id', userId)
+    .in('channel_id', channelIds);
+
+  const receiptMap: Record<string, string> = {};
+  (receipts || []).forEach((r: any) => {
+    receiptMap[r.channel_id] = r.last_read_at;
+  });
+
+  // For each channel, count messages after last_read_at
+  const counts: Record<string, number> = {};
+
+  await Promise.all(
+    channelIds.map(async (channelId: string) => {
+      const lastRead = receiptMap[channelId];
+      let query = supabase
+        .from('channel_messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('channel_id', channelId)
+        .neq('sender_id', userId);
+
+      if (lastRead) {
+        query = query.gt('created_at', lastRead);
+      }
+
+      const { count } = await query;
+      if (count && count > 0) {
+        counts[channelId] = count;
+      }
+    })
+  );
+
+  return counts;
+};

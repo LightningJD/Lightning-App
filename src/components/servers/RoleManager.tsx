@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Plus, Trash2, ChevronDown, ChevronRight, Shield } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, Plus, Trash2, ChevronDown, ChevronRight, Shield, Edit3, Check, X, Palette } from 'lucide-react';
 
 interface Role {
   id: string;
@@ -38,7 +38,7 @@ const PERMISSION_LABELS: Record<string, string> = {
 const ROLE_COLORS = ['#F1C40F', '#E74C3C', '#3498DB', '#2ECC71', '#9B59B6', '#E67E22', '#1ABC9C', '#99AAB5'];
 
 const RoleManager: React.FC<RoleManagerProps> = ({
-  nightMode, serverId: _serverId, roles, onCreateRole, onUpdateRole: _onUpdateRole,
+  nightMode, serverId: _serverId, roles, onCreateRole, onUpdateRole,
   onDeleteRole, onUpdatePermissions, onBack,
 }) => {
   const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null);
@@ -46,6 +46,20 @@ const RoleManager: React.FC<RoleManagerProps> = ({
   const [newRoleColor, setNewRoleColor] = useState(ROLE_COLORS[0]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Role renaming state
+  const [renamingRoleId, setRenamingRoleId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [editingColorRoleId, setEditingColorRoleId] = useState<string | null>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus rename input when editing
+  useEffect(() => {
+    if (renamingRoleId && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
+    }
+  }, [renamingRoleId]);
 
   const nm = nightMode;
 
@@ -76,6 +90,29 @@ const RoleManager: React.FC<RoleManagerProps> = ({
     } else {
       setDeleteConfirmId(roleId);
     }
+  };
+
+  const handleStartRename = (roleId: string) => {
+    const role = roles.find(r => r.id === roleId);
+    if (role) {
+      setRenamingRoleId(roleId);
+      setRenameValue(role.name);
+    }
+  };
+
+  const handleConfirmRename = () => {
+    if (renamingRoleId && renameValue.trim() && onUpdateRole) {
+      onUpdateRole(renamingRoleId, { name: renameValue.trim() });
+    }
+    setRenamingRoleId(null);
+    setRenameValue('');
+  };
+
+  const handleChangeColor = (roleId: string, color: string) => {
+    if (onUpdateRole) {
+      onUpdateRole(roleId, { color });
+    }
+    setEditingColorRoleId(null);
   };
 
   const toggleExpanded = (roleId: string) => {
@@ -167,17 +204,96 @@ const RoleManager: React.FC<RoleManagerProps> = ({
           return (
             <div key={role.id} className="rounded-2xl overflow-hidden transition-all" style={cardStyle}>
               {/* Role Header */}
-              <button onClick={() => toggleExpanded(role.id)}
-                className={`w-full flex items-center gap-3 px-5 py-3.5 transition-all ${nm ? 'hover:bg-white/[0.03]' : 'hover:bg-black/[0.02]'}`}>
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: role.color, boxShadow: `0 0 8px ${role.color}40` }} />
-                <span className={`flex-1 text-left font-semibold text-sm ${nm ? 'text-white' : 'text-black'}`}>{role.name}</span>
-                {role.is_default && (
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${nm ? 'bg-white/10 text-white/40' : 'bg-black/5 text-black/40'}`}>
-                    default
-                  </span>
-                )}
-                {isExpanded ? <ChevronDown className={`w-4 h-4 ${nm ? 'text-white/40' : 'text-black/40'}`} /> : <ChevronRight className={`w-4 h-4 ${nm ? 'text-white/40' : 'text-black/40'}`} />}
-              </button>
+              {renamingRoleId === role.id ? (
+                <div className="flex items-center gap-2 px-5 py-3.5">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: role.color, boxShadow: `0 0 8px ${role.color}40` }} />
+                  <input
+                    ref={renameInputRef}
+                    type="text"
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleConfirmRename();
+                      if (e.key === 'Escape') { setRenamingRoleId(null); setRenameValue(''); }
+                    }}
+                    onBlur={handleConfirmRename}
+                    className={`flex-1 text-sm font-semibold px-2 py-1 rounded-lg outline-none ${
+                      nm
+                        ? 'bg-white/10 text-white border border-white/20 focus:border-blue-400'
+                        : 'bg-white/60 text-black border border-black/10 focus:border-blue-500'
+                    }`}
+                    maxLength={30}
+                  />
+                  <button
+                    onClick={handleConfirmRename}
+                    className="p-1 rounded-lg text-green-500 hover:bg-green-500/10 transition-all"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => { setRenamingRoleId(null); setRenameValue(''); }}
+                    className={`p-1 rounded-lg transition-all ${nm ? 'text-white/40 hover:text-white/70' : 'text-black/40 hover:text-black/70'}`}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-0">
+                  <button onClick={() => toggleExpanded(role.id)}
+                    className={`flex-1 flex items-center gap-3 px-5 py-3.5 transition-all ${nm ? 'hover:bg-white/[0.03]' : 'hover:bg-black/[0.02]'}`}>
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: role.color, boxShadow: `0 0 8px ${role.color}40` }} />
+                    <span className={`flex-1 text-left font-semibold text-sm ${nm ? 'text-white' : 'text-black'}`}>{role.name}</span>
+                    {role.is_default && (
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${nm ? 'bg-white/10 text-white/40' : 'bg-black/5 text-black/40'}`}>
+                        default
+                      </span>
+                    )}
+                    {isExpanded ? <ChevronDown className={`w-4 h-4 ${nm ? 'text-white/40' : 'text-black/40'}`} /> : <ChevronRight className={`w-4 h-4 ${nm ? 'text-white/40' : 'text-black/40'}`} />}
+                  </button>
+
+                  {/* Rename & Color buttons */}
+                  {!role.is_default && onUpdateRole && (
+                    <div className="flex items-center gap-0.5 pr-3">
+                      <button
+                        onClick={() => handleStartRename(role.id)}
+                        className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                          nm ? 'text-white/25 hover:text-white/60 hover:bg-white/5' : 'text-black/20 hover:text-black/50 hover:bg-black/5'
+                        }`}
+                        title="Rename role"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setEditingColorRoleId(editingColorRoleId === role.id ? null : role.id)}
+                        className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                          nm ? 'text-white/25 hover:text-white/60 hover:bg-white/5' : 'text-black/20 hover:text-black/50 hover:bg-black/5'
+                        }`}
+                        title="Change color"
+                      >
+                        <Palette className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Color picker for role */}
+              {editingColorRoleId === role.id && (
+                <div className="px-5 pb-3 pt-1">
+                  <div className="flex gap-2 flex-wrap">
+                    {ROLE_COLORS.map(color => (
+                      <button
+                        key={color}
+                        onClick={() => handleChangeColor(role.id, color)}
+                        className={`w-7 h-7 rounded-full transition-all duration-200 hover:scale-110 active:scale-95 ${
+                          role.color === color ? 'ring-2 ring-offset-1 ring-blue-400' : ''
+                        }`}
+                        style={{ background: color, boxShadow: role.color === color ? `0 0 12px ${color}60` : 'none' }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Expanded Permissions */}
               {isExpanded && (
