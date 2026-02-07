@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useClerk, useSession } from '@clerk/clerk-react';
-import { User, MessageCircle, Users, Home, Search, Zap, Plus, X, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
+import { User, MessageCircle, Users, Home, Search, Zap, Plus, X, Edit3, Camera, Lock, Eye, EyeOff, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
@@ -1237,14 +1237,6 @@ function App() {
                         <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Privacy & Safety</h3>
                       </div>
                       <MenuItem
-                        icon={Lock}
-                        label="Make Profile Private"
-                        toggle
-                        nightMode={nightMode}
-                        isOn={privacySettings.isPrivate}
-                        onToggle={(value) => handlePrivacyToggle('isPrivate', value)}
-                      />
-                      <MenuItem
                         icon={Eye}
                         label="Who Can See Testimony"
                         nightMode={nightMode}
@@ -1427,6 +1419,22 @@ function App() {
                         </div>
                       </div>
                       <MenuItem icon={Globe} label="Language" subtext="English" nightMode={nightMode} comingSoon />
+                      <MenuItem
+                        icon={EyeOff}
+                        label="Limit Profile Visibility"
+                        toggle
+                        nightMode={nightMode}
+                        isOn={userProfile?.profileVisibility === 'private'}
+                        onToggle={async (value) => {
+                          if (!userProfile) return;
+                          const newVisibility = value ? 'private' : 'public';
+                          await updateUserProfile(userProfile.supabaseId, {
+                            profile_visibility: newVisibility
+                          } as any);
+                          window.dispatchEvent(new CustomEvent('profileUpdated'));
+                          showSuccess(value ? 'Profile set to private' : 'Profile set to public');
+                        }}
+                      />
                     </div>
 
                     <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>

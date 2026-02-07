@@ -162,7 +162,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
     isPrivate: supabaseUser?.is_private || false,
     testimonyVisibility: supabaseUser?.testimony_visibility || 'everyone',
     messagePrivacy: supabaseUser?.message_privacy || 'everyone',
-    profileVisibility: (supabaseUser as any)?.profile_visibility || 'private',
+    profileVisibility: (supabaseUser as any)?.profile_visibility || 'public',
     // Church
     churchId: (supabaseUser as any)?.church_id || null,
     church: church ? {

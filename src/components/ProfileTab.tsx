@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2, Globe, Lock, Eye, EyeOff } from 'lucide-react';
+import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2, Globe, Lock, EyeOff } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
 import { checkBeforeSend } from '../lib/contentFilter';
@@ -300,50 +300,37 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         </div>
       )}
 
-      {/* Profile Visibility Toggle — only on own profile */}
-      {profile?.supabaseId === currentUserProfile?.supabaseId && (
+      {/* Profile Visibility Notice — only show on own profile when private */}
+      {profile?.supabaseId === currentUserProfile?.supabaseId && profile.profileVisibility === 'private' && (
         <div className="px-4 mt-3">
           <div
             className={`flex items-center justify-between p-3 rounded-xl ${
-              nightMode ? 'bg-white/[0.04]' : 'bg-white/20'
+              nightMode ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'
             }`}
-            style={nightMode ? {} : {
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-            }}
           >
             <div className="flex items-center gap-2">
-              {profile.profileVisibility === 'public' ? (
-                <Eye className={`w-4 h-4 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
-              ) : (
-                <EyeOff className={`w-4 h-4 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`} />
-              )}
+              <EyeOff className={`w-4 h-4 ${nightMode ? 'text-amber-400' : 'text-amber-600'}`} />
               <div>
-                <div className={`text-xs font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                  Profile: {profile.profileVisibility === 'public' ? 'Public' : 'Private'}
+                <div className={`text-xs font-semibold ${nightMode ? 'text-amber-300' : 'text-amber-700'}`}>
+                  Your profile is private
                 </div>
-                <div className={`text-[10px] ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {profile.profileVisibility === 'public'
-                    ? 'Anyone can find and follow you'
-                    : 'Only friends & church members can see you'}
+                <div className={`text-[10px] ${nightMode ? 'text-amber-400/60' : 'text-amber-600/70'}`}>
+                  Only friends & church members can see you
                 </div>
               </div>
             </div>
             <button
               onClick={async () => {
-                const newVisibility = profile.profileVisibility === 'public' ? 'private' : 'public';
                 await updateUserProfile(profile.supabaseId, {
-                  profile_visibility: newVisibility
+                  profile_visibility: 'public'
                 } as any);
                 window.dispatchEvent(new CustomEvent('profileUpdated'));
               }}
               className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
-                profile.profileVisibility === 'public'
-                  ? nightMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-50 text-blue-600'
-                  : nightMode ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'
+                nightMode ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'
               }`}
             >
-              {profile.profileVisibility === 'public' ? 'Make Private' : 'Make Public'}
+              Make Public
             </button>
           </div>
         </div>

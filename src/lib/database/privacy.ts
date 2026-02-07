@@ -174,7 +174,7 @@ export const isUserVisible = async (userId: string, currentUserId: string): Prom
     return false;
   }
 
-  const visibility = (user as any).profile_visibility || 'private';
+  const visibility = (user as any).profile_visibility || 'public';
 
   // Public profiles visible to everyone
   if (visibility === 'public') return true;
