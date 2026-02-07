@@ -26,30 +26,28 @@ interface ProfileCardProps {
       commentCount?: number;
     } | null;
   };
-  /** Compact mode hides some sections for dialog use */
   compact?: boolean;
-  /** Hide stats row */
   hideStats?: boolean;
   onAvatarClick?: () => void;
 }
 
 // Map of faith interest labels to emojis
 const INTEREST_EMOJIS: Record<string, string> = {
-  'Worship': '\ud83c\udfb5',
-  'Bible Study': '\ud83d\udcd6',
-  'Prayer': '\ud83d\ude4f',
-  'Missions': '\u2708\ufe0f',
-  'Youth Ministry': '\ud83d\udc65',
-  'Apologetics': '\ud83c\udf99\ufe0f',
-  'Evangelism': '\ud83d\udce3',
-  'Discipleship': '\ud83c\udf31',
-  'Serving': '\ud83e\uddf1',
-  'Community': '\ud83e\udd1d',
-  'Teaching': '\ud83c\udf93',
-  'Creative Arts': '\ud83c\udfa8',
-  'Music': '\ud83c\udfb6',
-  'Small Groups': '\ud83c\udfe0',
-  'Leadership': '\u2b50',
+  'Worship': '🎵',
+  'Bible Study': '📖',
+  'Prayer': '🙏',
+  'Missions': '✈️',
+  'Youth Ministry': '👥',
+  'Apologetics': '🎙️',
+  'Evangelism': '📣',
+  'Discipleship': '🌱',
+  'Serving': '🧱',
+  'Community': '🤝',
+  'Teaching': '🎓',
+  'Creative Arts': '🎨',
+  'Music': '🎶',
+  'Small Groups': '🏠',
+  'Leadership': '⭐',
 };
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -70,9 +68,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   const hasStats = profile.story?.id && !hideStats;
 
   return (
-    // Outer wrapper for glow border effect (V4)
     <div className="relative">
-      {/* Glow border - gradient outline */}
+      {/* Glow border - gradient outline (V4) */}
       <div
         className="absolute inset-[-1px] rounded-[17px] pointer-events-none"
         style={{
@@ -87,9 +84,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
       {/* Main card */}
       <div
-        className={`relative rounded-2xl overflow-hidden ${
-          nightMode ? '' : ''
-        }`}
+        className="relative rounded-2xl overflow-hidden"
         style={nightMode ? {
           background: 'rgba(255,255,255,0.05)',
           backdropFilter: 'blur(10px)',
@@ -102,9 +97,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           boxShadow: '0 4px 20px rgba(0,0,0,0.05), inset 0 1px 2px rgba(255,255,255,0.4)',
         }}
       >
-        {/* ═══ V4 HEADER: Centered avatar, name, location ═══ */}
+        {/* V4 HEADER: Centered avatar, name, location */}
         <div className="pt-6 pb-4 px-5 text-center">
-          {/* Avatar */}
           <div
             className={`w-24 h-24 rounded-full flex items-center justify-center text-5xl mx-auto flex-shrink-0 overflow-hidden ${
               onAvatarClick ? 'cursor-pointer select-none' : ''
@@ -124,11 +118,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 className="w-full h-full object-cover"
               />
             ) : (
-              profile.avatar || '\ud83d\udc64'
+              profile.avatar || '👤'
             )}
           </div>
 
-          {/* Name + info */}
           <div className={`text-lg font-extrabold mt-3 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
             {profile.username || 'user'}
           </div>
@@ -137,22 +130,21 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           </div>
           <div className={`text-xs mt-1 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
             {profile.location && (
-              <span>\ud83d\udccd {profile.location}</span>
+              <span>📍 {profile.location}</span>
             )}
-            {profile.location && profile.churchName && <span> \u2022 </span>}
+            {profile.location && profile.churchName && <span> • </span>}
             {profile.churchName && (
-              <span>\u26ea {profile.churchName}</span>
+              <span>⛪ {profile.churchName}</span>
             )}
           </div>
 
-          {/* Divider */}
           <div className={`h-px my-4 ${nightMode ? 'bg-white/[0.08]' : 'bg-black/[0.06]'}`} />
         </div>
 
-        {/* ═══ V11 STACKED SECTIONS + V15 VERSE ═══ */}
+        {/* V11 STACKED SECTIONS + V15 VERSE */}
         <div className="px-4 pb-4 flex flex-col gap-3 -mt-2">
 
-          {/* Church Section (V11 stacked glass) */}
+          {/* Church Section */}
           {hasChurchInfo && (
             <div
               className={`rounded-xl p-3 border ${
@@ -160,9 +152,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   ? 'bg-white/[0.03] border-white/[0.06]'
                   : 'bg-white/30 border-white/40'
               }`}
-              style={!nightMode ? {
-                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)',
-              } : {}}
+              style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
             >
               <div className={`text-[11px] font-bold uppercase tracking-wide mb-1.5 ${
                 nightMode ? 'text-slate-500' : 'text-slate-400'
@@ -170,22 +160,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                 Church
               </div>
               <div className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                \u26ea {profile.churchName}
+                ⛪ {profile.churchName}
               </div>
               {profile.churchLocation && (
                 <div className={`text-xs mt-0.5 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  \ud83d\udccd {profile.churchLocation}
+                  📍 {profile.churchLocation}
                 </div>
               )}
               {profile.denomination && (
                 <div className={`text-xs mt-0.5 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                  \u271d\ufe0f {profile.denomination}
+                  ✝️ {profile.denomination}
                 </div>
               )}
             </div>
           )}
 
-          {/* Favorite Verse Section (V15 style - left border accent) */}
+          {/* Favorite Verse (V15 style - left border accent) */}
           {hasVerse && (
             <div
               className="rounded-xl p-4"
@@ -202,7 +192,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               <div className={`text-[13px] italic leading-relaxed ${
                 nightMode ? 'text-slate-300' : 'text-slate-600'
               }`}>
-                "{profile.favoriteVerse}"
+                &ldquo;{profile.favoriteVerse}&rdquo;
               </div>
               <div className={`text-xs font-semibold mt-2 ${
                 nightMode ? 'text-blue-400' : 'text-blue-600'
@@ -212,7 +202,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           )}
 
-          {/* Faith Interests Section (V11 stacked glass) */}
+          {/* Faith Interests */}
           {hasInterests && (
             <div
               className={`rounded-xl p-3 border ${
@@ -220,9 +210,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   ? 'bg-white/[0.03] border-white/[0.06]'
                   : 'bg-white/30 border-white/40'
               }`}
-              style={!nightMode ? {
-                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)',
-              } : {}}
+              style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
             >
               <div className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${
                 nightMode ? 'text-slate-500' : 'text-slate-400'
@@ -239,14 +227,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         : 'bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.2)] text-blue-700'
                     }`}
                   >
-                    {INTEREST_EMOJIS[interest] || '\u2728'} {interest}
+                    {INTEREST_EMOJIS[interest] || '✨'} {interest}
                   </span>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Journey / Milestones Section (V11 stacked glass) */}
+          {/* Journey / Milestones */}
           {hasJourney && (
             <div
               className={`rounded-xl p-3 border ${
@@ -254,9 +242,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   ? 'bg-white/[0.03] border-white/[0.06]'
                   : 'bg-white/30 border-white/40'
               }`}
-              style={!nightMode ? {
-                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)',
-              } : {}}
+              style={!nightMode ? { boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.4)' } : {}}
             >
               <div className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${
                 nightMode ? 'text-slate-500' : 'text-slate-400'
@@ -270,7 +256,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       ? 'bg-white/5 border-white/10 text-slate-300'
                       : 'bg-white/25 border-white/30 text-slate-700'
                   }`}>
-                    \ud83d\udcc5 Saved {profile.yearSaved}
+                    📅 Saved {profile.yearSaved}
                   </span>
                 )}
                 {profile.isBaptized && (
@@ -279,12 +265,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       ? 'bg-white/5 border-white/10 text-slate-300'
                       : 'bg-white/25 border-white/30 text-slate-700'
                   }`}>
-                    \ud83d\udca7 Baptized{profile.yearBaptized ? ` ${profile.yearBaptized}` : ''}
+                    💧 Baptized{profile.yearBaptized ? ` ${profile.yearBaptized}` : ''}
                   </span>
                 )}
               </div>
 
-              {/* Progress bar: Walk with Christ */}
               {yearsWalking !== null && yearsWalking > 0 && (
                 <div className="mt-3">
                   <div className="flex justify-between items-center text-[11px] mb-1">
@@ -309,7 +294,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           )}
 
-          {/* Stats Section */}
+          {/* Stats */}
           {hasStats && (
             <div className="flex gap-2">
               <StatBox nightMode={nightMode} value={profile.story?.viewCount || 0} label="Views" />
@@ -319,19 +304,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           )}
 
-          {/* Footer: Entry number + Lightning branding */}
-          <div className={`flex justify-between items-center pt-1 px-1`}>
+          {/* Footer */}
+          <div className="flex justify-between items-center pt-1 px-1">
             {entryNum && (
               <span className={`text-xs font-bold tracking-wide ${
                 nightMode ? 'text-blue-400' : 'text-blue-600'
               }`}>
-                \u26a1 Lightning Entry {entryNum}
+                ⚡ Lightning Entry {entryNum}
               </span>
             )}
             <span className={`text-[11px] font-semibold ${
               nightMode ? 'text-white/20' : 'text-black/20'
             }`}>
-              {!entryNum && '\u26a1 '}Lightning
+              {!entryNum && '⚡ '}Lightning
             </span>
           </div>
         </div>
@@ -340,7 +325,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   );
 };
 
-// ── Stat Box sub-component ──
 const StatBox: React.FC<{
   nightMode: boolean;
   value: number;
