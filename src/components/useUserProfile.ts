@@ -143,6 +143,8 @@ export const useUserProfile = (): UseUserProfileReturn => {
     testimony: testimony?.content || null,
     testimonyLesson: testimony?.lesson || null,
     location: supabaseUser?.location_city || user.publicMetadata?.location || null,
+    locationLat: supabaseUser?.location_lat || null,
+    locationLng: supabaseUser?.location_lng || null,
     profileCompleted: supabaseUser?.profile_completed || false,
     // Privacy settings
     isPrivate: supabaseUser?.is_private || false,
