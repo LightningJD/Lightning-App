@@ -223,22 +223,16 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                 </div>
               )}
 
-              {/* Bio */}
-              {user.bio && (
-                <p
-                  className={`${nightMode ? 'text-slate-100' : 'text-black'} mt-4 text-sm leading-relaxed max-w-md`}
-                  dangerouslySetInnerHTML={{ __html: sanitizeUserContent(user.bio) }}
-                />
-              )}
             </div>
 
             {/* Profile Card (Pokédex V15+V11) */}
-            {(user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved) && (
+            {(user.bio || user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved) && (
               <ProfileCard
                 nightMode={nightMode}
                 compact
                 hideStats
                 profile={{
+                  bio: user.bio,
                   churchName: user.churchName,
                   churchLocation: user.churchLocation,
                   denomination: user.denomination,
