@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useClerk, useSession } from '@clerk/clerk-react';
-import { User, MessageCircle, Users, Home, Search, Zap, Plus, X, Edit3, Camera, Lock, Eye, EyeOff, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
+import { User, MessageCircle, Users, Home, Search, Zap, Plus, X, Edit3, Camera, Lock, Eye, EyeOff, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music, MapPin } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
