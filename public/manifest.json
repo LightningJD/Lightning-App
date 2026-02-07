@@ -1,0 +1,16 @@
+{
+  "name": "Lightning Social",
+  "short_name": "Lightning",
+  "description": "Christian social platform - connect, share, and grow in faith",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a19",
+  "theme_color": "#4F96FF",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

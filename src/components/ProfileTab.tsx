@@ -7,6 +7,7 @@ import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUse
 import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
 import MusicPlayer from './MusicPlayer';
+import TestimonyShareModal from './TestimonyShareModal';
 import { deleteTestimony } from '../lib/database';
 
 interface ProfileTabProps {
@@ -21,7 +22,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   const { user } = useUser();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);
-  const [showQR, setShowQR] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [showLesson, setShowLesson] = useState(false);
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const [avatarTaps, setAvatarTaps] = useState(0);
@@ -256,22 +257,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         </div>
       </div>
 
-      {showQR && (
-        <div className="px-4">
-          <div
-            className={`p-4 rounded-xl border text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-            style={nightMode ? {} : {
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-            }}
-          >
-            <div className="text-5xl">📱</div>
-            <p className={`mt-2 text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>Scan to connect</p>
-          </div>
-        </div>
-      )}
+      {/* Testimony Share Modal */}
+      <TestimonyShareModal
+        nightMode={nightMode}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        testimonyId={profile?.story?.id || ''}
+        testimonyText={profile?.story?.content || profile?.story?.text || ''}
+        profileName={profile?.name || profile?.displayName || 'Someone'}
+      />
 
       {/* Music Player - Only show when there's a testimony or profile song */}
       {profile.music && profile.music.spotifyUrl && (
@@ -612,10 +606,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           <button
             onClick={async () => {
               try {
+                const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
                 const shareData = {
-                  title: 'My Testimony on Lightning',
+                  title: `${profile?.name || 'Someone'}'s Testimony on Lightning`,
                   text: 'Be encouraged by this testimony on Lightning ✨',
-                  url: window.location.href
+                  url: testimonyUrl
                 };
                 // Prefer Web Share API if available
                 // @ts-ignore - navigator.share types vary across environments
@@ -623,12 +618,12 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                   // @ts-ignore
                   await navigator.share(shareData);
                 } else {
-                  // Fallback to QR toggle
-                  setShowQR((prev) => !prev);
+                  // Fallback to share modal
+                  setShowShareModal(true);
                 }
-              } catch (err) {
-                // If user cancels or share fails, show QR fallback
-                setShowQR((prev) => !prev);
+              } catch {
+                // If user cancels or share fails, show share modal
+                setShowShareModal(true);
               }
             }}
             className={`w-full mt-3 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 text-sm transition-all duration-200 border cursor-pointer ${nightMode ? 'text-slate-100 border-white/20' : 'text-black border-white/30'}`}

@@ -800,17 +800,24 @@ export const getMemberPermissions = async (serverId: string, userId: string): Pr
 /**
  * Send a message to a channel
  */
-export const sendChannelMessage = async (channelId: string, senderId: string, content: string): Promise<any> => {
+export const sendChannelMessage = async (channelId: string, senderId: string, content: string, imageUrl?: string): Promise<any> => {
   if (!supabase) return null;
+
+  const insertPayload: any = {
+    channel_id: channelId,
+    sender_id: senderId,
+    content
+  };
+
+  // Include image_url if provided (for image sharing)
+  if (imageUrl) {
+    insertPayload.image_url = imageUrl;
+  }
 
   const { data, error } = await supabase
     .from('channel_messages')
     // @ts-ignore
-    .insert({
-      channel_id: channelId,
-      sender_id: senderId,
-      content
-    })
+    .insert(insertPayload)
     .select()
     .single();
 

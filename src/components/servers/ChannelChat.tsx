@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Pin, Send, Smile, X } from 'lucide-react';
+import { Pin, Send, Smile, X, Image as ImageIcon } from 'lucide-react';
 import { showError } from '../../lib/toast';
 import { validateMessage, sanitizeInput } from '../../lib/inputValidation';
+import { uploadMessageImage } from '../../lib/cloudinary';
 import {
   sendChannelMessage,
   getChannelMessages,
@@ -34,6 +35,7 @@ interface ChannelMessage {
   sender_id: string;
   content: string;
   created_at: string;
+  image_url?: string;
   sender: {
     display_name: string;
     avatar_emoji: string;
@@ -105,9 +107,14 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   const [showReactionPicker, setShowReactionPicker] = useState<string | number | null>(null);
   const [expandedReactions, setExpandedReactions] = useState<Record<string | number, boolean>>({});
   const [showAllEmojis, setShowAllEmojis] = useState<Record<string | number, boolean>>({});
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
   const subscriptionRef = useRef<any>(null);
 
@@ -203,26 +210,58 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     return mid > window.innerHeight / 2;
   };
 
+  // ── Image Handling ─────────────────────────────────────────
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showError('Please select an image file');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      showError('Image must be under 10MB');
+      return;
+    }
+    setPendingImage(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setPendingImagePreview(ev.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const clearPendingImage = () => {
+    setPendingImage(null);
+    setPendingImagePreview(null);
+  };
+
   // ── Send Message ───────────────────────────────────────────
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !userId || !channelId) return;
+    if ((!newMessage.trim() && !pendingImage) || !userId || !channelId) return;
 
-    const validation = validateMessage(newMessage, 'message');
-    if (!validation.valid) {
-      showError(validation.errors[0] || 'Invalid message');
-      return;
+    if (newMessage.trim()) {
+      const validation = validateMessage(newMessage, 'message');
+      if (!validation.valid) {
+        showError(validation.errors[0] || 'Invalid message');
+        return;
+      }
     }
 
-    const messageContent = sanitizeInput(newMessage);
+    const messageContent = newMessage.trim() ? sanitizeInput(newMessage) : '';
+    const imageToUpload = pendingImage;
+    const imagePreview = pendingImagePreview;
 
     // Optimistic update
     const tempMessage: ChannelMessage = {
       id: Date.now(),
       sender_id: userId,
-      content: newMessage,
+      content: messageContent || (imageToUpload ? '📷 Image' : ''),
       created_at: new Date().toISOString(),
+      image_url: imagePreview || undefined,
       sender: {
         display_name: 'You',
         avatar_emoji: '\u{1F464}'
@@ -231,8 +270,26 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
 
     setMessages(prev => [...prev, tempMessage]);
     setNewMessage('');
+    setPendingImage(null);
+    setPendingImagePreview(null);
 
-    const saved = await sendChannelMessage(channelId, userId, messageContent);
+    // Upload image if attached
+    let uploadedImageUrl: string | undefined;
+    if (imageToUpload) {
+      setUploadingImage(true);
+      try {
+        uploadedImageUrl = await uploadMessageImage(imageToUpload);
+      } catch (imgErr) {
+        console.error('Image upload failed:', imgErr);
+        showError('Failed to upload image');
+        setUploadingImage(false);
+        return;
+      }
+      setUploadingImage(false);
+    }
+
+    const finalContent = messageContent || (uploadedImageUrl ? '📷 Image' : '');
+    const saved = await sendChannelMessage(channelId, userId, finalContent, uploadedImageUrl);
     if (!saved) {
       showError('Failed to send message');
     }
@@ -526,11 +583,30 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
               )}
             </div>
 
-            <p className={`text-[15px] break-words whitespace-pre-wrap mt-0.5 leading-relaxed ${
-              nightMode ? 'text-white/80' : 'text-black/80'
-            }`}>
-              {msg.content}
-            </p>
+            {/* Message image */}
+            {msg.image_url && (
+              <div className="mt-1 mb-1">
+                <img
+                  src={msg.image_url}
+                  alt="Shared image"
+                  className="max-w-[280px] max-h-[300px] rounded-xl object-cover cursor-pointer transition-all hover:opacity-90 hover:scale-[1.02]"
+                  style={{
+                    border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+                    boxShadow: nightMode ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
+                  }}
+                  onClick={() => setExpandedImage(msg.image_url || null)}
+                  loading="lazy"
+                />
+              </div>
+            )}
+            {/* Message text (hide placeholder text for image-only messages) */}
+            {msg.content && msg.content !== '📷 Image' && (
+              <p className={`text-[15px] break-words whitespace-pre-wrap mt-0.5 leading-relaxed ${
+                nightMode ? 'text-white/80' : 'text-black/80'
+              }`}>
+                {msg.content}
+              </p>
+            )}
 
             {/* Reactions display */}
             {renderReactions(msg.id, reactions)}
@@ -715,6 +791,37 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         )}
       </div>
 
+      {/* ── Image preview ──────────────────────────────────── */}
+      {pendingImagePreview && permissions.send_messages && (
+        <div
+          className="px-4 py-2 flex-shrink-0"
+          style={{
+            borderTop: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+            background: nightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)',
+          }}
+        >
+          <div className="flex items-start gap-2">
+            <div className="relative">
+              <img
+                src={pendingImagePreview}
+                alt="Image to send"
+                className="w-20 h-20 rounded-xl object-cover"
+                style={{ border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}` }}
+              />
+              <button
+                onClick={clearPendingImage}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center bg-red-500 text-white shadow-lg hover:scale-110 active:scale-95 transition-all"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+            <p className={`text-xs mt-1 ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
+              {uploadingImage ? 'Uploading...' : 'Ready to send'}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Message Input — pill-shaped glass bar ──────────── */}
       {permissions.send_messages ? (
         <form
@@ -727,6 +834,27 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
             WebkitBackdropFilter: 'blur(30px)',
           }}
         >
+          {/* Hidden file input */}
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
+          />
+          {/* Image attach button */}
+          <button
+            type="button"
+            onClick={() => imageInputRef.current?.click()}
+            className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${
+              nightMode
+                ? 'text-white/40 hover:text-white/70 hover:bg-white/10'
+                : 'text-black/40 hover:text-black/70 hover:bg-black/5'
+            }`}
+            title="Attach image"
+          >
+            <ImageIcon className="w-5 h-5" />
+          </button>
           <textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
@@ -736,7 +864,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
                 handleSendMessage(e);
               }
             }}
-            placeholder={`Message ${channelName}...`}
+            placeholder={pendingImage ? 'Add a caption...' : `Message ${channelName}...`}
             rows={1}
             className={`flex-1 px-4 py-2.5 rounded-full focus:outline-none resize-none min-h-[42px] max-h-[100px] overflow-y-auto text-[15px] transition-all ${
               nightMode
@@ -768,18 +896,18 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           />
           <button
             type="submit"
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() && !pendingImage}
             className="w-10 h-10 rounded-full disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center transition-all duration-300 text-white hover:scale-110 hover:-translate-y-0.5 active:scale-95"
             style={{
-              background: newMessage.trim()
+              background: (newMessage.trim() || pendingImage)
                 ? 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)'
                 : nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-              boxShadow: newMessage.trim()
+              boxShadow: (newMessage.trim() || pendingImage)
                 ? '0 4px 12px rgba(59, 130, 246, 0.3)'
                 : 'none',
             }}
           >
-            <Send className={`w-4.5 h-4.5 ${!newMessage.trim() ? (nightMode ? 'text-white/30' : 'text-black/30') : ''}`} />
+            <Send className={`w-4.5 h-4.5 ${(!newMessage.trim() && !pendingImage) ? (nightMode ? 'text-white/30' : 'text-black/30') : ''}`} />
           </button>
         </form>
       ) : (
@@ -794,6 +922,28 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           }}
         >
           You do not have permission to send messages in this channel.
+        </div>
+      )}
+
+      {/* Expanded image lightbox */}
+      {expandedImage && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={() => setExpandedImage(null)}
+        >
+          <button
+            onClick={() => setExpandedImage(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={expandedImage}
+            alt="Expanded image"
+            className="max-w-full max-h-full rounded-2xl object-contain"
+            style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+          />
         </div>
       )}
     </div>

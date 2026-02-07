@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Smile, Plus, X, Reply, Trash2, MoreVertical, UserX } from 'lucide-react';
+import { Smile, Plus, X, Reply, Trash2, MoreVertical, UserX, Image as ImageIcon } from 'lucide-react';
 import { sendMessage, getConversation, getUserConversations, subscribeToMessages, subscribeToMessageReactions, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy, createGroup, sendGroupMessage, addReaction, removeReaction, getMessageReactions, deleteMessage, blockUser, markConversationAsRead } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { showError, showSuccess } from '../lib/toast';
@@ -10,6 +10,7 @@ import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMes
 import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
 import { validateMessage, sanitizeInput } from '../lib/inputValidation';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { uploadMessageImage } from '../lib/cloudinary';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: any): string => {
@@ -41,6 +42,7 @@ interface Message {
   recipient_id: string;
   content: string;
   created_at: string;
+  image_url?: string;
   reply_to_message_id?: string;
   reply_to?: {
     id: string | number;
@@ -107,6 +109,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const [selectedConnections, setSelectedConnections] = useState<Connection[]>([]);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState<boolean>(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const [showConversationMenu, setShowConversationMenu] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recipientInputRef = useRef<HTMLInputElement>(null);
@@ -472,15 +479,46 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showError('Please select an image file');
+      return;
+    }
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      showError('Image must be under 10MB');
+      return;
+    }
+    setPendingImage(file);
+    // Create preview URL
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setPendingImagePreview(ev.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+    // Reset file input so same file can be re-selected
+    e.target.value = '';
+  };
+
+  const clearPendingImage = () => {
+    setPendingImage(null);
+    setPendingImagePreview(null);
+  };
+
   const handleSendMessage = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    if (!newMessage.trim() || !profile?.supabaseId) return;
+    if ((!newMessage.trim() && !pendingImage) || !profile?.supabaseId) return;
 
-    // Validate message content
-    const validation = validateMessage(newMessage, 'message');
-    if (!validation.valid) {
-      showError(validation.errors[0] || 'Invalid message');
-      return;
+    // Validate message content (only if there's text)
+    if (newMessage.trim()) {
+      const validation = validateMessage(newMessage, 'message');
+      if (!validation.valid) {
+        showError(validation.errors[0] || 'Invalid message');
+        return;
+      }
     }
 
     // Check rate limit
@@ -500,8 +538,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     }
 
     // Sanitize and save the original message content and previous messages
-    const messageContent = sanitizeInput(newMessage);
+    const messageContent = newMessage.trim() ? sanitizeInput(newMessage) : '';
     const previousMessages = [...messages];
+    const imageToUpload = pendingImage;
+    const imagePreview = pendingImagePreview;
     
     // Capture reply target and clear reply state BEFORE sending
     // Only reply if the message being replied to still exists in current messages AND has valid content
@@ -523,8 +563,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       id: Date.now(),
       sender_id: profile.supabaseId,
       recipient_id: conversation.userId,
-      content: messageContent,
+      content: messageContent || (imageToUpload ? '📷 Image' : ''),
       created_at: new Date().toISOString(),
+      image_url: imagePreview || undefined,
       reply_to_message_id: replyToId,
       reply_to: replyTarget ? {
         id: replyTarget.id,
@@ -548,21 +589,43 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
 
     setMessages([...messages, tempMessage]);
     setNewMessage('');
+    setPendingImage(null);
+    setPendingImagePreview(null);
 
     try {
+      // Upload image if attached
+      let uploadedImageUrl: string | undefined;
+      if (imageToUpload) {
+        setUploadingImage(true);
+        try {
+          uploadedImageUrl = await uploadMessageImage(imageToUpload);
+        } catch (imgErr) {
+          console.error('Image upload failed:', imgErr);
+          showError('Failed to upload image');
+          setUploadingImage(false);
+          // Revert optimistic update
+          setMessages(previousMessages);
+          return;
+        }
+        setUploadingImage(false);
+      }
+
       // Send to database
+      const finalContent = messageContent || (uploadedImageUrl ? '📷 Image' : '');
       console.log('Sending message...', {
         from: profile.supabaseId,
         to: conversation.userId,
-        content: messageContent,
-        replyTo: replyToId
+        content: finalContent,
+        replyTo: replyToId,
+        imageUrl: uploadedImageUrl
       });
 
       const result = await sendMessage(
         profile.supabaseId,
         conversation.userId,
-        messageContent,
-        replyToId
+        finalContent,
+        replyToId,
+        uploadedImageUrl
       );
 
       if (result.error) {
@@ -909,7 +972,26 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                                 </div>
                               </div>
                             )}
-                            <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{decodeHTMLEntities(msg.content)}</p>
+                            {/* Message image */}
+                            {msg.image_url && (
+                              <div className="mt-1 mb-1">
+                                <img
+                                  src={msg.image_url}
+                                  alt="Shared image"
+                                  className="max-w-[280px] max-h-[300px] rounded-xl object-cover cursor-pointer transition-all hover:opacity-90 hover:scale-[1.02]"
+                                  style={{
+                                    border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+                                    boxShadow: nightMode ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
+                                  }}
+                                  onClick={() => setExpandedImage(msg.image_url || null)}
+                                  loading="lazy"
+                                />
+                              </div>
+                            )}
+                            {/* Message text (hide placeholder text for image-only messages) */}
+                            {msg.content && msg.content !== '📷 Image' && (
+                              <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{decodeHTMLEntities(msg.content)}</p>
+                            )}
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
@@ -1119,6 +1201,31 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           </div>
         )}
 
+        {/* Image preview */}
+        {pendingImagePreview && (
+          <div className={`px-4 py-2 border-t ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 bg-white/10'}`}>
+            <div className="flex items-start gap-2">
+              <div className="relative">
+                <img
+                  src={pendingImagePreview}
+                  alt="Image to send"
+                  className="w-20 h-20 rounded-xl object-cover"
+                  style={{ border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}` }}
+                />
+                <button
+                  onClick={clearPendingImage}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center bg-red-500 text-white shadow-lg hover:scale-110 active:scale-95 transition-all"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+              <p className={`text-xs mt-1 ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
+                {uploadingImage ? 'Uploading...' : 'Ready to send'}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Input */}
         <form
           onSubmit={handleSendMessage}
@@ -1134,6 +1241,23 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
             boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
           }}
         >
+          {/* Hidden file input */}
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
+          />
+          {/* Image attach button */}
+          <button
+            type="button"
+            onClick={() => imageInputRef.current?.click()}
+            className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/10' : 'text-black/40 hover:text-black/70 hover:bg-black/5'}`}
+            title="Attach image"
+          >
+            <ImageIcon className="w-5 h-5" />
+          </button>
           <div className="flex-1 flex items-center">
             <textarea
               value={newMessage}
@@ -1145,7 +1269,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   handleSendMessage(e);
                 }
               }}
-              placeholder="Message..."
+              placeholder={pendingImage ? "Add a caption..." : "Message..."}
               rows={1}
               className={nightMode ? 'w-full px-4 py-2.5 bg-white/5 border border-white/10 text-slate-100 placeholder-gray-400 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]' : 'w-full px-4 py-2.5 border border-white/25 text-black placeholder-black/50 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]'}
               style={nightMode ? {
@@ -1171,7 +1295,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           </div>
           <button
             type="submit"
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() && !pendingImage}
             className={`w-10 h-10 border rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'border-white/30'}`}
             style={{
               background: 'rgba(79, 150, 255, 0.85)',
@@ -1179,7 +1303,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
               WebkitBackdropFilter: 'blur(30px)'
             }}
             onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-              if (newMessage.trim()) {
+              if (newMessage.trim() || pendingImage) {
                 e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
               }
             }}
@@ -1192,6 +1316,28 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
             </svg>
           </button>
         </form>
+
+        {/* Expanded image lightbox */}
+        {expandedImage && (
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+            onClick={() => setExpandedImage(null)}
+          >
+            <button
+              onClick={() => setExpandedImage(null)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img
+              src={expandedImage}
+              alt="Expanded image"
+              className="max-w-full max-h-full rounded-2xl object-contain"
+              style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+            />
+          </div>
+        )}
       </div>
     );
   }

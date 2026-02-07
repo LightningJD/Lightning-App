@@ -27,8 +27,11 @@ import LinkSpotify from './components/LinkSpotify';
 import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
 import { generateTestimony } from './lib/api/claude';
 import { useUserProfile } from './components/useUserProfile';
-import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId } from './lib/database';
+import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests } from './lib/database';
+import { isAdmin } from './lib/database/users';
+import AdminDashboard from './components/AdminDashboard';
 import { supabase } from './lib/supabase';
+import { registerServiceWorker, setupPushNotifications, isPushSupported, getNotificationPermission } from './lib/webPush';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
 import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets, checkMilestoneSecret, checkActivitySecrets } from './lib/secrets';
@@ -140,6 +143,74 @@ function App() {
       setSearchRadius(userProfile.searchRadius || 25);
     }
   }, [userProfile?.supabaseId]); // Only run when user ID changes, not on every profile update
+
+  // Poll for friend request badges (Connect tab) every 30 seconds
+  React.useEffect(() => {
+    if (!userProfile?.supabaseId) return;
+
+    let isMounted = true;
+
+    const pollFriendRequests = async () => {
+      try {
+        const pending = await getPendingFriendRequests(userProfile.supabaseId);
+        if (isMounted) {
+          setNotificationCounts(prev => ({ ...prev, connect: pending.length }));
+        }
+      } catch {
+        // Silently fail — badge is non-critical
+      }
+    };
+
+    // Initial check
+    pollFriendRequests();
+
+    // Poll every 30 seconds
+    const interval = setInterval(pollFriendRequests, 30000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [userProfile?.supabaseId]);
+
+  // Clear connect badge when user opens Connect tab
+  React.useEffect(() => {
+    if (currentTab === 'connect') {
+      setNotificationCounts(prev => ({ ...prev, connect: 0 }));
+    }
+  }, [currentTab]);
+
+  // Register service worker on app load
+  React.useEffect(() => {
+    registerServiceWorker().then((reg) => {
+      if (reg) console.log('[App] Service worker registered');
+    });
+  }, []);
+
+  // Push notification permission state
+  const [pushPermission, setPushPermission] = React.useState<string>(
+    isPushSupported() ? getNotificationPermission() : 'unsupported'
+  );
+
+  const handleEnablePush = async () => {
+    if (!userProfile?.supabaseId) return;
+    const result = await setupPushNotifications(userProfile.supabaseId);
+    setPushPermission(result.permission);
+    if (result.success) {
+      showSuccess('Push notifications enabled!');
+    } else if (result.permission === 'denied') {
+      showError('Notifications blocked. Enable in browser settings.');
+    }
+  };
+
+  // Admin state
+  const [userIsAdmin, setUserIsAdmin] = React.useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!userProfile?.supabaseId) return;
+    isAdmin(userProfile.supabaseId).then(setUserIsAdmin);
+  }, [userProfile?.supabaseId]);
 
   // Handlers for privacy settings
   const handlePrivacyToggle = async (setting: string, value: boolean | string): Promise<void> => {
@@ -946,7 +1017,7 @@ function App() {
           {/* Floating Logo/Menu Header */}
           {!nightMode && (
             <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20">
-              <div className="px-5 py-3">
+              <div className="px-5 sm:px-6 lg:px-8 py-3">
                 <div className="flex items-center justify-between">
                   {currentTab === 'profile' && (
                     <div
@@ -988,7 +1059,7 @@ function App() {
           {/* Night Mode Header */}
           {nightMode && (
             <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/10 border-b border-white/10">
-              <div className="px-5 py-3">
+              <div className="px-5 sm:px-6 lg:px-8 py-3">
                 <div className="flex items-center justify-between">
                   {currentTab === 'profile' && (
                     <div
@@ -1027,7 +1098,7 @@ function App() {
             </div>
           )}
 
-          <div className="max-w-3xl mx-auto px-4 relative z-10">
+          <div className="px-4 sm:px-6 lg:px-8 relative z-10">
             {renderContent()}
           </div>
 
@@ -1179,6 +1250,20 @@ function App() {
                         isOn={notificationSettings.notifyNearby}
                         onToggle={(value) => handleNotificationToggle('notifyNearby', value)}
                       />
+                      {isPushSupported() && (
+                        <MenuItem
+                          icon={Bell}
+                          label="Push Notifications"
+                          toggle
+                          nightMode={nightMode}
+                          isOn={pushPermission === 'granted'}
+                          onToggle={() => {
+                            if (pushPermission !== 'granted') {
+                              handleEnablePush();
+                            }
+                          }}
+                        />
+                      )}
                     </div>
 
                     <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
@@ -1320,6 +1405,9 @@ function App() {
                       />
                       <MenuItem icon={Flag} label="Report a Bug" nightMode={nightMode} onClick={() => setShowBugReport(true)} />
                       <MenuItem icon={Info} label="App Version" subtext="1.0.0" nightMode={nightMode} />
+                      {userIsAdmin && (
+                        <MenuItem icon={Shield} label="Admin Dashboard" nightMode={nightMode} onClick={() => setShowAdminDashboard(true)} />
+                      )}
                       <button
                         onClick={() => setShowLogoutConfirm(true)}
                         className={`w-full px-4 py-3 flex items-center justify-between transition-colors border-t ${nightMode ? 'hover:bg-white/5 border-white/10' : 'hover:bg-slate-50 border-slate-100'}`}
@@ -1355,7 +1443,7 @@ function App() {
               boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
             }}
           >
-            <div className="max-w-3xl mx-auto px-2 flex justify-around items-center h-14">
+            <div className="px-2 sm:px-6 lg:px-8 flex justify-around items-center h-14">
               <button
                 onClick={() => setCurrentTab('profile')}
                 className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'profile' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
@@ -1382,7 +1470,7 @@ function App() {
                 <div className="relative">
                   <MessageCircle className="w-5 h-5" />
                   {notificationCounts.messages > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20 badge-pulse">
                       <span className="text-[9px] font-bold text-white">{notificationCounts.messages}</span>
                     </div>
                   )}
@@ -1402,7 +1490,7 @@ function App() {
                 <div className="relative">
                   <Users className="w-5 h-5" />
                   {notificationCounts.groups > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20 badge-pulse">
                       <span className="text-[9px] font-bold text-white">{notificationCounts.groups}</span>
                     </div>
                   )}
@@ -1422,7 +1510,7 @@ function App() {
                 <div className="relative">
                   <MapPin className="w-5 h-5" />
                   {notificationCounts.connect > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20">
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20 badge-pulse">
                       <span className="text-[9px] font-bold text-white">{notificationCounts.connect}</span>
                     </div>
                   )}
@@ -1432,7 +1520,7 @@ function App() {
             </div>
           </div>
 
-          {/* Testimony Animation Styles */}
+          {/* Animation Styles */}
           <style>{`
         @keyframes popOut {
           0% {
@@ -1446,6 +1534,19 @@ function App() {
             transform: scale(1);
             opacity: 1;
           }
+        }
+        @keyframes badgePulse {
+          0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+          }
+          50% {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+          }
+        }
+        .badge-pulse {
+          animation: badgePulse 2s ease-in-out infinite;
         }
       `}</style>
 
@@ -1746,6 +1847,13 @@ function App() {
               onSave={handleTestimonySave}
               onClose={() => setShowTestimonyEdit(false)}
             />
+          )}
+
+          {/* Admin Dashboard Overlay */}
+          {showAdminDashboard && (
+            <div className="fixed inset-0 z-50" style={{ background: nightMode ? '#0a0a19' : '#f0f4ff' }}>
+              <AdminDashboard nightMode={nightMode} onBack={() => setShowAdminDashboard(false)} />
+            </div>
           )}
 
           {/* Logout Confirmation Dialog */}
