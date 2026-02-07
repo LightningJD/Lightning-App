@@ -6,7 +6,7 @@
   "homepage": "https://lightning-dni.pages.dev",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
