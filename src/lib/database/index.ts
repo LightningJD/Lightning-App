@@ -109,6 +109,7 @@ export {
   updateCategory,
   deleteCategory,
   reorderCategories,
+  reorderChannels,
   createRole,
   getServerRoles,
   updateRole,

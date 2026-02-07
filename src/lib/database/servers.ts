@@ -372,7 +372,8 @@ export const createChannel = async (serverId: string, channelData: CreateChannel
       category_id: channelData.categoryId || null,
       name: channelData.name.toLowerCase().replace(/\s+/g, '-'),
       topic: channelData.topic,
-      is_private: channelData.isPrivate ?? false
+      is_private: channelData.isPrivate ?? false,
+      emoji_icon: channelData.emojiIcon || null
     })
     .select()
     .single();
@@ -535,6 +536,30 @@ export const reorderCategories = async (serverId: string, orderedIds: string[]):
       .from('server_categories')
       // @ts-ignore
       .update({ position: index })
+      .eq('id', id)
+      .eq('server_id', serverId)
+  );
+
+  await Promise.all(updates);
+  return true;
+};
+
+/**
+ * Reorder channels within a category (or uncategorized)
+ * Updates both position and category_id for each channel
+ */
+export const reorderChannels = async (
+  serverId: string,
+  orderedChannelIds: string[],
+  categoryId: string | null
+): Promise<boolean | null> => {
+  if (!supabase) return null;
+
+  const updates = orderedChannelIds.map((id, index) =>
+    supabase
+      .from('server_channels')
+      // @ts-ignore
+      .update({ position: index, category_id: categoryId })
       .eq('id', id)
       .eq('server_id', serverId)
   );

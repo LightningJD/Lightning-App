@@ -154,8 +154,13 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   const [mentionFilter, setMentionFilter] = useState('');
   const [mentionCursorPos, setMentionCursorPos] = useState(0);
 
-  // Message action menu (mobile)
+  // Message action menu (mobile + overflow)
   const [activeMessageMenu, setActiveMessageMenu] = useState<string | number | null>(null);
+
+  // Mobile long-press for message actions
+  const messageLongPressRef = useRef<NodeJS.Timeout | null>(null);
+  const [mobileActionMenu, setMobileActionMenu] = useState<string | number | null>(null);
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -793,6 +798,14 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         key={msg.id}
         ref={(el) => { messageRefs.current[msg.id] = el; }}
         className="group px-4 py-1"
+        onTouchStart={() => {
+          messageLongPressRef.current = setTimeout(() => {
+            setMobileActionMenu(msg.id);
+          }, 500);
+        }}
+        onTouchEnd={() => { if (messageLongPressRef.current) { clearTimeout(messageLongPressRef.current); messageLongPressRef.current = null; } }}
+        onTouchCancel={() => { if (messageLongPressRef.current) { clearTimeout(messageLongPressRef.current); messageLongPressRef.current = null; } }}
+        onTouchMove={() => { if (messageLongPressRef.current) { clearTimeout(messageLongPressRef.current); messageLongPressRef.current = null; } }}
       >
         {/* Reply reference */}
         {replyToMsg && (
@@ -922,8 +935,8 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
             </div>
           </div>
 
-          {/* Hover action buttons */}
-          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-all mt-0.5 flex-shrink-0">
+          {/* Hover action buttons (desktop only) */}
+          <div className={`flex gap-0.5 transition-all mt-0.5 flex-shrink-0 ${isTouchDevice ? 'hidden' : 'opacity-0 group-hover:opacity-100'}`}>
             {/* Reply button */}
             <button
               onClick={() => handleStartReply(msg)}
@@ -1486,24 +1499,108 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         </div>
       )}
 
+      {/* Mobile action menu (bottom sheet) */}
+      {mobileActionMenu !== null && (() => {
+        const msg = messages.find(m => m.id === mobileActionMenu);
+        if (!msg) return null;
+        const isOwnMessage = msg.sender_id === userId;
+        const canDelete = isOwnMessage || permissions.delete_messages;
+        const canEdit = isOwnMessage;
+        const isPinned = pinnedMessages.some(p => p.id === msg.id);
+        return (
+          <>
+            <div className="fixed inset-0 z-[150] bg-black/40" onClick={() => setMobileActionMenu(null)} />
+            <div
+              className="fixed bottom-0 left-0 right-0 z-[151] rounded-t-2xl pb-6 pt-2"
+              style={{
+                background: nightMode ? 'rgba(20, 20, 30, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                backdropFilter: 'blur(30px)',
+                WebkitBackdropFilter: 'blur(30px)',
+                boxShadow: '0 -4px 24px rgba(0,0,0,0.2)',
+              }}
+            >
+              <div className={`w-10 h-1 rounded-full mx-auto mb-3 ${nightMode ? 'bg-white/20' : 'bg-black/15'}`} />
+              <div className={`px-4 pb-2 mb-2 text-xs truncate ${nightMode ? 'text-white/40 border-b border-white/10' : 'text-black/40 border-b border-black/10'}`}>
+                {msg.sender?.display_name}: {msg.content?.substring(0, 60)}{msg.content?.length > 60 ? '...' : ''}
+              </div>
+              <button
+                onClick={() => { handleStartReply(msg); setMobileActionMenu(null); }}
+                className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                  nightMode ? 'text-white/80 active:bg-white/5' : 'text-black/80 active:bg-black/5'
+                }`}
+              >
+                <Reply className="w-5 h-5" /> Reply
+              </button>
+              <button
+                onClick={() => { setShowReactionPicker(msg.id); setMobileActionMenu(null); }}
+                className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                  nightMode ? 'text-white/80 active:bg-white/5' : 'text-black/80 active:bg-black/5'
+                }`}
+              >
+                <Smile className="w-5 h-5" /> Add Reaction
+              </button>
+              {permissions.pin_messages && (
+                <button
+                  onClick={() => { isPinned ? handleUnpinMessage(msg.id) : handlePinMessage(msg.id); setMobileActionMenu(null); }}
+                  className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                    isPinned
+                      ? 'text-amber-400 active:bg-amber-500/10'
+                      : nightMode ? 'text-white/80 active:bg-white/5' : 'text-black/80 active:bg-black/5'
+                  }`}
+                >
+                  <Pin className="w-5 h-5" /> {isPinned ? 'Unpin' : 'Pin'}
+                </button>
+              )}
+              {canEdit && (
+                <button
+                  onClick={() => { handleStartEdit(msg); setMobileActionMenu(null); }}
+                  className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                    nightMode ? 'text-white/80 active:bg-white/5' : 'text-black/80 active:bg-black/5'
+                  }`}
+                >
+                  <Edit3 className="w-5 h-5" /> Edit
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  onClick={() => { handleDeleteMessage(msg.id); setMobileActionMenu(null); }}
+                  className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                    nightMode ? 'text-red-400 active:bg-red-500/10' : 'text-red-600 active:bg-red-50'
+                  }`}
+                >
+                  <Trash2 className="w-5 h-5" /> Delete
+                </button>
+              )}
+            </div>
+          </>
+        );
+      })()}
+
       {/* Expanded image lightbox */}
       {expandedImage && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 cursor-pointer"
           style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
           onClick={() => setExpandedImage(null)}
         >
+          {/* Close button - large and visible */}
           <button
-            onClick={() => setExpandedImage(null)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all"
+            onClick={(e) => { e.stopPropagation(); setExpandedImage(null); }}
+            className="absolute top-4 right-4 z-10 p-3 rounded-full bg-white/20 text-white hover:bg-white/30 active:scale-95 transition-all"
+            style={{ minWidth: '48px', minHeight: '48px' }}
           >
-            <X className="w-6 h-6" />
+            <X className="w-7 h-7" />
           </button>
+          {/* Tap hint for mobile */}
+          <div className="absolute bottom-6 left-0 right-0 text-center text-white/40 text-xs pointer-events-none">
+            Tap anywhere to close
+          </div>
           <img
             src={expandedImage}
             alt="Expanded image"
-            className="max-w-full max-h-full rounded-2xl object-contain"
+            className="max-w-full max-h-[85vh] rounded-2xl object-contain"
             style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}

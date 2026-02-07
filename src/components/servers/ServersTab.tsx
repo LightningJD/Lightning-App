@@ -25,6 +25,7 @@ import {
   updateCategory,
   deleteCategory as deleteCategoryDb,
   reorderCategories,
+  reorderChannels,
   banMember,
   unbanMember,
   getServerBans,
@@ -216,9 +217,9 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     });
   }, [isMobile, profile?.supabaseId]);
 
-  const handleCreateChannel = useCallback(async (name: string, topic: string, categoryId?: string) => {
+  const handleCreateChannel = useCallback(async (name: string, topic: string, categoryId?: string, emojiIcon?: string) => {
     if (!activeServerId) return;
-    const result = await createChannel(activeServerId, { name, topic, categoryId });
+    const result = await createChannel(activeServerId, { name, topic, categoryId, emojiIcon });
     if (result) {
       const refreshed = await getChannelsByServer(activeServerId);
       setCategories(refreshed.categories || []);
@@ -334,6 +335,22 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     await reorderCategories(activeServerId, orderedIds);
     await refreshChannels();
   }, [activeServerId, refreshChannels]);
+
+  // Channel reorder handlers
+  const handleReorderChannels = useCallback(async (orderedIds: string[], categoryId: string | null) => {
+    if (!activeServerId) return;
+    await reorderChannels(activeServerId, orderedIds, categoryId);
+    await refreshChannels();
+  }, [activeServerId, refreshChannels]);
+
+  const handleMoveChannelToCategory = useCallback(async (channelId: string, targetCategoryId: string | null) => {
+    // Get channels in the target category, add this channel at the end
+    const targetChannels = channels.filter(c =>
+      (c.category_id || null) === targetCategoryId && c.id !== channelId
+    );
+    const orderedIds = [...targetChannels.sort((a: any, b: any) => a.position - b.position).map((c: any) => c.id), channelId];
+    await handleReorderChannels(orderedIds, targetCategoryId);
+  }, [channels, handleReorderChannels]);
 
   // Channel edit/delete handlers
   const handleUpdateChannel = useCallback(async (channelId: string, updates: any) => {
@@ -520,30 +537,32 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
   if (isMobile) {
     return (
       <div className="flex flex-col h-full" style={{ height: 'calc(100vh - 120px)' }}>
-        {/* Mobile: Servers + Channels list */}
+        {/* Mobile: Servers sidebar + Channels list */}
         {(mobileView === 'servers' || mobileView === 'channels') && (
-          <div className="flex flex-col h-full">
-            {/* Server icons row (horizontal on mobile) */}
+          <div className="flex flex-row h-full">
+            {/* Server icons sidebar (vertical, Discord-style) */}
             <div
-              className="flex items-center gap-2 px-3 py-2 overflow-x-auto flex-shrink-0"
+              className="flex flex-col items-center gap-2 py-2 px-1.5 overflow-y-auto flex-shrink-0"
               style={{
-                background: nightMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.3)',
-                borderBottom: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+                width: '56px',
+                background: nightMode ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)',
+                borderRight: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
               }}
             >
               {servers.map((server) => (
                 <button
                   key={server.id}
                   onClick={() => handleSelectServer(server.id)}
-                  className={`w-11 h-11 rounded-full flex items-center justify-center text-lg flex-shrink-0 transition-all active:scale-95 ${
+                  className={`w-11 h-11 flex items-center justify-center text-lg flex-shrink-0 transition-all active:scale-95 ${
                     activeServerId === server.id
-                      ? 'ring-2 ring-blue-500 ring-offset-1'
-                      : ''
+                      ? 'rounded-2xl'
+                      : 'rounded-full hover:rounded-2xl'
                   }`}
                   style={{
                     background: activeServerId === server.id
-                      ? nightMode ? 'rgba(79,150,255,0.25)' : 'rgba(79,150,255,0.15)'
+                      ? nightMode ? 'rgba(79,150,255,0.3)' : 'rgba(79,150,255,0.2)'
                       : nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                    boxShadow: activeServerId === server.id ? '0 2px 8px rgba(59,130,246,0.2)' : 'none',
                   }}
                   title={server.name}
                 >
@@ -554,17 +573,18 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
                   )}
                 </button>
               ))}
+              <div className={`w-8 h-px my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
               <button
                 onClick={() => setShowCreateServer(true)}
-                className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-95 ${
-                  nightMode ? 'bg-white/10 text-white/40' : 'bg-black/5 text-black/40'
+                className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-95 text-xl ${
+                  nightMode ? 'bg-white/10 text-green-400 hover:bg-green-500/20 hover:rounded-2xl' : 'bg-black/5 text-green-600 hover:bg-green-500/10 hover:rounded-2xl'
                 }`}
               >
                 +
               </button>
             </div>
 
-            {/* Channel list (full width on mobile) */}
+            {/* Channel list (fills remaining width) */}
             {activeServer && (
               <div className="flex-1 overflow-y-auto">
                 <ChannelSidebar
@@ -588,6 +608,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
                   onReorderCategories={handleReorderCategories}
                   onUpdateChannel={handleUpdateChannel}
                   onDeleteChannel={handleDeleteChannel}
+                  onReorderChannels={handleReorderChannels}
+                  onMoveChannelToCategory={handleMoveChannelToCategory}
                   unreadCounts={unreadCounts}
                 />
               </div>
@@ -687,6 +709,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onReorderCategories={handleReorderCategories}
           onUpdateChannel={handleUpdateChannel}
           onDeleteChannel={handleDeleteChannel}
+          onReorderChannels={handleReorderChannels}
+          onMoveChannelToCategory={handleMoveChannelToCategory}
           unreadCounts={unreadCounts}
         />
       )}

@@ -115,6 +115,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const [showConversationMenu, setShowConversationMenu] = useState<boolean>(false);
+  const [mobileActionMenu, setMobileActionMenu] = useState<number | string | null>(null);
+  const messageLongPressRef = useRef<NodeJS.Timeout | null>(null);
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recipientInputRef = useRef<HTMLInputElement>(null);
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
@@ -957,7 +960,17 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
 
                       {/* Message bubble with reactions */}
                       <div className="flex flex-col items-start">
-                        <div className="flex items-center gap-2 group">
+                        <div
+                          className="flex items-center gap-2 group"
+                          onTouchStart={() => {
+                            messageLongPressRef.current = setTimeout(() => {
+                              setMobileActionMenu(msg.id);
+                            }, 500);
+                          }}
+                          onTouchEnd={() => { if (messageLongPressRef.current) { clearTimeout(messageLongPressRef.current); messageLongPressRef.current = null; } }}
+                          onTouchCancel={() => { if (messageLongPressRef.current) { clearTimeout(messageLongPressRef.current); messageLongPressRef.current = null; } }}
+                          onTouchMove={() => { if (messageLongPressRef.current) { clearTimeout(messageLongPressRef.current); messageLongPressRef.current = null; } }}
+                        >
                           <div
                             ref={(el: HTMLDivElement | null) => { messageRefs.current[msg.id] = el; }}
                             className={nightMode ? 'bg-transparent hover:bg-white/5 text-slate-100 px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-[80%] sm:max-w-md relative transition-colors'}>
@@ -1040,8 +1053,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                             )}
                           </div>
 
-                          {/* Action buttons (shows on hover, on the right) */}
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {/* Action buttons (desktop hover only) */}
+                          <div className={`flex gap-1 transition-opacity ${isTouchDevice ? 'hidden' : 'opacity-0 group-hover:opacity-100'}`}>
                             <button
                               onClick={() => setReplyingTo(msg)}
                               className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 border border-white/25 rounded text-black hover:text-black shadow-sm'}
@@ -1317,24 +1330,91 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           </button>
         </form>
 
+        {/* Mobile action menu (bottom sheet) */}
+        {mobileActionMenu !== null && (() => {
+          const msg = messages.find(m => m.id === mobileActionMenu);
+          if (!msg) return null;
+          const isMe = msg.sender_id === profile?.supabaseId;
+          return (
+            <>
+              <div className="fixed inset-0 z-[150] bg-black/40" onClick={() => setMobileActionMenu(null)} />
+              <div
+                className="fixed bottom-0 left-0 right-0 z-[151] rounded-t-2xl pb-6 pt-2"
+                style={{
+                  background: nightMode ? 'rgba(20, 20, 30, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)',
+                  boxShadow: '0 -4px 24px rgba(0,0,0,0.2)',
+                }}
+              >
+                <div className={`w-10 h-1 rounded-full mx-auto mb-3 ${nightMode ? 'bg-white/20' : 'bg-black/15'}`} />
+                <div className={`px-4 pb-2 mb-2 text-xs truncate ${nightMode ? 'text-white/40 border-b border-white/10' : 'text-black/40 border-b border-black/10'}`}>
+                  {isMe ? profile?.displayName : conversation?.name}: {msg.content?.substring(0, 60)}{(msg.content?.length || 0) > 60 ? '...' : ''}
+                </div>
+                <button
+                  onClick={() => { setReplyingTo(msg); setMobileActionMenu(null); }}
+                  className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                    nightMode ? 'text-white/80 active:bg-white/5' : 'text-black/80 active:bg-black/5'
+                  }`}
+                >
+                  <Reply className="w-5 h-5" /> Reply
+                </button>
+                <button
+                  onClick={() => { setShowReactionPicker(msg.id); setMobileActionMenu(null); }}
+                  className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                    nightMode ? 'text-white/80 active:bg-white/5' : 'text-black/80 active:bg-black/5'
+                  }`}
+                >
+                  <Smile className="w-5 h-5" /> Add Reaction
+                </button>
+                {isMe && (
+                  <button
+                    onClick={async () => {
+                      setMobileActionMenu(null);
+                      if (!window.confirm('Delete this message?')) return;
+                      const result = await deleteMessage(String(msg.id), profile!.supabaseId);
+                      if (result.success) {
+                        setMessages(prev => prev.filter(m => m.id !== msg.id));
+                        showSuccess('Message deleted');
+                      } else {
+                        showError(result.error || 'Failed to delete message');
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                      nightMode ? 'text-red-400 active:bg-red-500/10' : 'text-red-600 active:bg-red-50'
+                    }`}
+                  >
+                    <Trash2 className="w-5 h-5" /> Delete
+                  </button>
+                )}
+              </div>
+            </>
+          );
+        })()}
+
         {/* Expanded image lightbox */}
         {expandedImage && (
           <div
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 cursor-pointer"
             style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
             onClick={() => setExpandedImage(null)}
           >
             <button
-              onClick={() => setExpandedImage(null)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all"
+              onClick={(e) => { e.stopPropagation(); setExpandedImage(null); }}
+              className="absolute top-4 right-4 z-10 p-3 rounded-full bg-white/20 text-white hover:bg-white/30 active:scale-95 transition-all"
+              style={{ minWidth: '48px', minHeight: '48px' }}
             >
-              <X className="w-6 h-6" />
+              <X className="w-7 h-7" />
             </button>
+            <div className="absolute bottom-6 left-0 right-0 text-center text-white/40 text-xs pointer-events-none">
+              Tap anywhere to close
+            </div>
             <img
               src={expandedImage}
               alt="Expanded image"
-              className="max-w-full max-h-full rounded-2xl object-contain"
+              className="max-w-full max-h-[85vh] rounded-2xl object-contain"
               style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
         )}

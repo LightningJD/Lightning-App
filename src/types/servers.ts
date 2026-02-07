@@ -40,6 +40,7 @@ export interface ServerChannel {
   topic?: string;
   position: number;
   is_private: boolean;
+  emoji_icon?: string;
   created_at: string;
   updated_at: string;
 }
@@ -172,6 +173,7 @@ export interface CreateChannelData {
   topic?: string;
   categoryId?: string;
   isPrivate?: boolean;
+  emojiIcon?: string;
 }
 
 export interface CreateRoleData {
@@ -195,6 +197,7 @@ export interface UpdateChannelData {
   category_id?: string;
   position?: number;
   is_private?: boolean;
+  emoji_icon?: string;
 }
 
 export interface UpdateRoleData {
