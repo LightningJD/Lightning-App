@@ -530,10 +530,12 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                 nightMode={nightMode}
                 onClick={() => onSelectChannel(channel.id)}
                 onContextMenu={(e) => handleChannelContextMenu(e, channel.id)}
+                onOptionsClick={(e) => handleChannelContextMenu(e, channel.id)}
                 onLongPress={(e) => handleChannelLongPress(channel.id, e)}
                 onTouchEnd={handleTouchEnd}
                 unreadCount={unreadCounts?.[channel.id] || 0}
                 isMuted={mutedChannels.has(channel.id)}
+                fullWidth={fullWidth}
                 draggable={canManageChannels && !isTouchDevice}
                 onDragStart={(e) => handleDragStart(e, 'channel', channel.id, null)}
                 onDragEnd={handleDragEnd}
@@ -646,10 +648,12 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                     nightMode={nightMode}
                     onClick={() => onSelectChannel(channel.id)}
                     onContextMenu={(e) => handleChannelContextMenu(e, channel.id)}
+                    onOptionsClick={(e) => handleChannelContextMenu(e, channel.id)}
                     onLongPress={(e) => handleChannelLongPress(channel.id, e)}
                     onTouchEnd={handleTouchEnd}
                     unreadCount={unreadCounts?.[channel.id] || 0}
                     isMuted={mutedChannels.has(channel.id)}
+                    fullWidth={fullWidth}
                     draggable={canManageChannels && !isTouchDevice}
                     onDragStart={(e) => handleDragStart(e, 'channel', channel.id, group.id)}
                     onDragEnd={handleDragEnd}
@@ -1123,10 +1127,12 @@ const ChannelItem: React.FC<{
   nightMode: boolean;
   onClick: () => void;
   onContextMenu?: (e: React.MouseEvent) => void;
+  onOptionsClick?: (e: React.MouseEvent) => void;
   onLongPress?: (e: React.TouchEvent) => void;
   onTouchEnd?: () => void;
   unreadCount?: number;
   isMuted?: boolean;
+  fullWidth?: boolean;
   draggable?: boolean;
   onDragStart?: (e: React.DragEvent) => void;
   onDragEnd?: (e: React.DragEvent) => void;
@@ -1134,11 +1140,11 @@ const ChannelItem: React.FC<{
   onDrop?: (e: React.DragEvent) => void;
   isDragOver?: boolean;
   dragOverPosition?: 'above' | 'below' | null;
-}> = ({ channel, isActive, nightMode, onClick, onContextMenu, onLongPress, onTouchEnd, unreadCount, isMuted, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragOver, dragOverPosition }) => {
+}> = ({ channel, isActive, nightMode, onClick, onContextMenu, onOptionsClick, onLongPress, onTouchEnd, unreadCount, isMuted, fullWidth, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragOver, dragOverPosition }) => {
   const hasUnread = !isMuted && (unreadCount || 0) > 0;
 
   return (
-    <button
+    <div
       onClick={onClick}
       onContextMenu={onContextMenu}
       onTouchStart={onLongPress}
@@ -1149,7 +1155,9 @@ const ChannelItem: React.FC<{
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
       onDrop={onDrop}
-      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-all ${
+      role="button"
+      tabIndex={0}
+      className={`group/channel w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-all cursor-pointer ${
         isDragOver && dragOverPosition === 'above' ? 'border-t-2 border-blue-500' :
         isDragOver && dragOverPosition === 'below' ? 'border-b-2 border-blue-500' : ''
       } ${
@@ -1194,7 +1202,22 @@ const ChannelItem: React.FC<{
           {(unreadCount || 0) > 99 ? '99+' : unreadCount}
         </span>
       )}
-    </button>
+
+      {/* 3-dots options button */}
+      {onOptionsClick && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onOptionsClick(e); }}
+          className={`p-0.5 rounded flex-shrink-0 transition-all ${
+            fullWidth ? 'opacity-70' : 'opacity-0 group-hover/channel:opacity-70'
+          } ${
+            nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/10' : 'text-black/40 hover:text-black/70 hover:bg-black/10'
+          }`}
+          title="Channel options"
+        >
+          <MoreHorizontal className="w-3.5 h-3.5" />
+        </button>
+      )}
+    </div>
   );
 };
 
