@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Share2, Plus, Edit3, MapPin } from 'lucide-react';
+import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
 import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
@@ -23,6 +23,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showTestimonyMenu, setShowTestimonyMenu] = useState(false);
   const [showLesson, setShowLesson] = useState(false);
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const [avatarTaps, setAvatarTaps] = useState(0);
@@ -349,26 +350,67 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                   </button>
                 )}
 
+                {/* More menu (owner only) */}
                 {profile?.story?.id && currentUserProfile?.supabaseId === profile?.supabaseId && (
-                  <button
-                    onClick={async () => {
-                      if (!profile?.story?.id || !profile?.supabaseId) return;
-                      if (!window.confirm('Delete your testimony? This cannot be undone.')) return;
-                      const { success } = await deleteTestimony(profile.story.id, profile.supabaseId);
-                      if (success) {
-                        window.location.reload();
-                      } else {
-                        alert('Failed to delete testimony. Please try again.');
-                      }
-                    }}
-                    className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${nightMode
-                        ? 'border-red-400 text-red-300 hover:bg-red-500/10'
-                        : 'border-red-300 text-red-600 hover:bg-red-50'
-                      }`}
-                    title="Delete testimony"
-                  >
-                    Delete
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowTestimonyMenu(!showTestimonyMenu)}
+                      className={`p-2 rounded-lg border transition-all duration-200 ${nightMode
+                          ? 'border-white/20 hover:bg-white/10'
+                          : 'border-white/30 hover:bg-white/20'
+                        }`}
+                      style={nightMode ? {
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)'
+                      } : {
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        backdropFilter: 'blur(30px)',
+                        WebkitBackdropFilter: 'blur(30px)',
+                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                      }}
+                      title="More options"
+                    >
+                      <MoreHorizontal className={`w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-black'}`} />
+                    </button>
+
+                    {showTestimonyMenu && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setShowTestimonyMenu(false)} />
+                        <div
+                          className={`absolute right-0 top-full mt-1 z-50 rounded-xl overflow-hidden shadow-xl border ${nightMode ? 'border-white/10' : 'border-white/30'}`}
+                          style={nightMode ? {
+                            background: 'rgba(20, 20, 20, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)'
+                          } : {
+                            background: 'rgba(255, 255, 255, 0.9)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)'
+                          }}
+                        >
+                          <button
+                            onClick={async () => {
+                              setShowTestimonyMenu(false);
+                              if (!profile?.story?.id || !profile?.supabaseId) return;
+                              if (!window.confirm('Delete your testimony? This cannot be undone.')) return;
+                              const { success } = await deleteTestimony(profile.story.id, profile.supabaseId);
+                              if (success) {
+                                window.location.reload();
+                              } else {
+                                alert('Failed to delete testimony. Please try again.');
+                              }
+                            }}
+                            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium w-full text-left whitespace-nowrap transition-colors ${nightMode ? 'text-red-400 hover:bg-white/5' : 'text-red-600 hover:bg-red-50'}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete Testimony
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
