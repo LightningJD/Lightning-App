@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Save, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
+import { X, Save, Sparkles, ArrowRight, ArrowLeft, Edit3, Eye, RefreshCw } from 'lucide-react';
+import { generateTestimony } from '../lib/api/claude';
 
 interface EditTestimonyDialogProps {
   testimony: any;
   nightMode: boolean;
-  onSave: (formData: any) => void;
+  userName?: string;
+  userId?: string;
+  onSave: (data: { formData: any; finalContent: string }) => void;
   onClose: () => void;
 }
 
@@ -16,7 +19,7 @@ interface FormData {
   lesson: string;
 }
 
-const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, nightMode, onSave, onClose }) => {
+const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, nightMode, userName, userId, onSave, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
     question1: testimony?.question1_answer || '',
@@ -27,6 +30,12 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedDraft, setGeneratedDraft] = useState<string>('');
+  const [editableDraft, setEditableDraft] = useState<string>('');
+  const [isEditingDraft, setIsEditingDraft] = useState(false);
+
+  const totalSteps = 6; // 4 questions + lesson + preview
 
   const testimonyQuestions = [
     {
@@ -60,13 +69,23 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
   ];
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const draftTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-focus on textarea when step changes
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
+    if (currentStep < testimonyQuestions.length || currentStep === testimonyQuestions.length) {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
     }
   }, [currentStep]);
+
+  // Focus draft textarea when switching to edit mode
+  useEffect(() => {
+    if (isEditingDraft && draftTextareaRef.current) {
+      draftTextareaRef.current.focus();
+    }
+  }, [isEditingDraft]);
 
   const validateStep = (stepIndex: number) => {
     const newErrors: Record<string, string> = {};
@@ -81,31 +100,70 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleGenerateDraft = async () => {
+    setIsGenerating(true);
+    setErrors({});
+    try {
+      const result = await generateTestimony({
+        answers: {
+          question1: formData.question1,
+          question2: formData.question2,
+          question3: formData.question3,
+          question4: formData.question4,
+        },
+        userName: userName || '',
+        userId: userId || '',
+      });
+
+      if (result.success && result.testimony) {
+        setGeneratedDraft(result.testimony);
+        setEditableDraft(result.testimony);
+        setCurrentStep(testimonyQuestions.length + 1); // Move to preview step
+      } else {
+        setErrors({ submit: result.error || 'Failed to generate testimony draft. Please try again.' });
+      }
+    } catch (error) {
+      console.error('Error generating draft:', error);
+      setErrors({ submit: 'Failed to generate testimony draft. Please try again.' });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleNext = () => {
-    if (validateStep(currentStep)) {
-      if (currentStep < testimonyQuestions.length) {
+    if (currentStep < testimonyQuestions.length) {
+      // Question steps
+      if (validateStep(currentStep)) {
         setCurrentStep(currentStep + 1);
       }
+    } else if (currentStep === testimonyQuestions.length) {
+      // Lesson step — validate and generate draft
+      if (!formData.lesson?.trim()) {
+        setErrors({ lesson: 'Lesson is required' });
+        return;
+      }
+      handleGenerateDraft();
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
+      // If going back from preview, keep the draft
+      if (currentStep === testimonyQuestions.length + 1) {
+        setIsEditingDraft(false);
+      }
       setCurrentStep(currentStep - 1);
       setErrors({});
     }
   };
 
   const handleSave = async () => {
-    // Validate lesson field
-    if (currentStep === testimonyQuestions.length && !formData.lesson?.trim()) {
-      setErrors({ lesson: 'Lesson is required' });
-      return;
-    }
-
     setIsSaving(true);
     try {
-      await onSave(formData);
+      await onSave({
+        formData,
+        finalContent: editableDraft,
+      });
     } catch (error) {
       console.error('Error saving testimony:', error);
       setErrors({ submit: 'Failed to save testimony. Please try again.' });
@@ -114,9 +172,12 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
     }
   };
 
+  const handleRegenerate = () => {
+    handleGenerateDraft();
+  };
+
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData({ ...formData, [field]: value });
-    // Clear error for this field when user starts typing
     if (errors[field]) {
       const newErrors = { ...errors };
       delete newErrors[field];
@@ -124,7 +185,10 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
     }
   };
 
+  const wordCount = editableDraft.trim().split(/\s+/).filter(Boolean).length;
+
   const renderStepContent = () => {
+    // Question steps (0-3)
     if (currentStep < testimonyQuestions.length) {
       const question = testimonyQuestions[currentStep];
 
@@ -138,7 +202,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
               {question.question}
             </p>
             <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
-              💡 {question.hint}
+              {question.hint}
             </p>
           </div>
 
@@ -158,8 +222,10 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
           )}
         </div>
       );
-    } else {
-      // Lesson step
+    }
+
+    // Lesson step (4)
+    if (currentStep === testimonyQuestions.length) {
       return (
         <div className="space-y-4">
           <div>
@@ -170,7 +236,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
               What's the key lesson or takeaway from your testimony?
             </p>
             <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
-              💡 This helps others understand the spiritual growth and wisdom you gained
+              This helps others understand the spiritual growth and wisdom you gained
             </p>
           </div>
 
@@ -192,7 +258,88 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
         </div>
       );
     }
+
+    // Preview/Edit step (5)
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+              {isEditingDraft ? 'Edit Your Draft' : 'Preview Your Testimony'}
+            </h3>
+            <p className={`text-xs mt-1 ${nightMode ? 'text-white/50' : 'text-slate-500'}`}>
+              {wordCount} words
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsEditingDraft(!isEditingDraft)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                isEditingDraft
+                  ? nightMode ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-blue-50 text-blue-600 border border-blue-200'
+                  : nightMode ? 'bg-white/5 text-white/60 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {isEditingDraft ? <><Eye className="w-3.5 h-3.5" /> Preview</> : <><Edit3 className="w-3.5 h-3.5" /> Edit</>}
+            </button>
+            <button
+              onClick={handleRegenerate}
+              disabled={isGenerating}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                nightMode ? 'bg-white/5 text-white/60 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              } disabled:opacity-50`}
+              title="Regenerate with AI"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} /> Regenerate
+            </button>
+          </div>
+        </div>
+
+        {isEditingDraft ? (
+          <textarea
+            ref={draftTextareaRef}
+            value={editableDraft}
+            onChange={(e) => setEditableDraft(e.target.value)}
+            className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm leading-relaxed ${
+              nightMode
+                ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
+                : 'bg-white border-slate-200 text-slate-900'
+            }`}
+            style={{ minHeight: '300px' }}
+          />
+        ) : (
+          <div
+            className={`p-5 rounded-xl border text-sm leading-relaxed whitespace-pre-wrap ${
+              nightMode
+                ? 'bg-white/[0.03] border-white/10 text-slate-200'
+                : 'bg-slate-50 border-slate-200 text-slate-800'
+            }`}
+            style={{ minHeight: '200px', maxHeight: '400px', overflowY: 'auto' }}
+          >
+            {editableDraft}
+          </div>
+        )}
+
+        {/* Lesson preview */}
+        {formData.lesson && (
+          <div className={`p-4 rounded-xl border ${
+            nightMode ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-200'
+          }`}>
+            <p className={`text-xs font-semibold uppercase tracking-wide mb-1.5 ${
+              nightMode ? 'text-amber-400' : 'text-amber-600'
+            }`}>
+              Lesson Learned
+            </p>
+            <p className={`text-sm ${nightMode ? 'text-slate-200' : 'text-slate-700'}`}>
+              {formData.lesson}
+            </p>
+          </div>
+        )}
+      </div>
+    );
   };
+
+  const isPreviewStep = currentStep === testimonyQuestions.length + 1;
 
   return (
     <>
@@ -229,7 +376,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
                     Edit Your Testimony
                   </h2>
                   <p className={`text-sm ${nightMode ? 'text-white/90' : 'text-slate-600'}`}>
-                    Update your story and testimony
+                    {isPreviewStep ? 'Review your AI-generated draft' : 'Update your story and testimony'}
                   </p>
                 </div>
               </div>
@@ -247,7 +394,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
 
             {/* Progress Bar */}
             <div className="flex gap-1 mt-4">
-              {[...Array(testimonyQuestions.length + 1)].map((_, index) => (
+              {[...Array(totalSteps)].map((_, index) => (
                 <div
                   key={index}
                   className={`flex-1 h-1 rounded-full transition-all ${
@@ -262,93 +409,100 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
-            {renderStepContent()}
+            {/* Generating overlay */}
+            {isGenerating ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4">
+                <div className="relative">
+                  <Sparkles className={`w-10 h-10 ${nightMode ? 'text-blue-400' : 'text-blue-500'} animate-pulse`} />
+                </div>
+                <p className={`text-sm font-medium ${nightMode ? 'text-white/70' : 'text-slate-600'}`}>
+                  Generating your testimony draft...
+                </p>
+                <p className={`text-xs ${nightMode ? 'text-white/40' : 'text-slate-400'}`}>
+                  This may take a few seconds
+                </p>
+              </div>
+            ) : (
+              renderStepContent()
+            )}
 
             {/* Error Message */}
             {errors.submit && (
-              <div className="mt-4 p-3 rounded-lg bg-red-100 border border-red-300">
-                <p className="text-red-700 text-sm text-center">{errors.submit}</p>
+              <div className={`mt-4 p-3 rounded-lg ${nightMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-100 border border-red-300'}`}>
+                <p className={`text-sm text-center ${nightMode ? 'text-red-400' : 'text-red-700'}`}>{errors.submit}</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
-            {currentStep > 0 && (
-              <button
-                onClick={handleBack}
-                disabled={isSaving}
-                className={`px-4 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 ${
-                  nightMode
-                    ? 'bg-white/5 hover:bg-white/10 text-slate-100'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </button>
-            )}
+          {!isGenerating && (
+            <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+              {currentStep > 0 && (
+                <button
+                  onClick={handleBack}
+                  disabled={isSaving}
+                  className={`px-4 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 ${
+                    nightMode
+                      ? 'bg-white/5 hover:bg-white/10 text-slate-100'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back
+                </button>
+              )}
 
-            {currentStep < testimonyQuestions.length ? (
-              <button
-                onClick={handleNext}
-                className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-slate-100 border border-white/20`}
-                style={{
-                  background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
-                  boxShadow: nightMode
-                    ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                    : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-                }}
-                onMouseEnter={(e) => {
-                  if (nightMode) {
-                    e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (nightMode) {
-                    e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
-                  }
-                }}
-              >
-                Next
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-slate-100 border border-white/20`}
-                style={{
-                  background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
-                  boxShadow: nightMode
-                    ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                    : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-                }}
-                onMouseEnter={(e) => {
-                  if (nightMode && !isSaving) {
-                    e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (nightMode && !isSaving) {
-                    e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
-                  }
-                }}
-              >
-                {isSaving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Save Testimony
-                  </>
-                )}
-              </button>
-            )}
-          </div>
+              {isPreviewStep ? (
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving || !editableDraft.trim()}
+                  className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-slate-100 border border-white/20`}
+                  style={{
+                    background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                    boxShadow: nightMode
+                      ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                      : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                  }}
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Testimony
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={handleNext}
+                  disabled={isGenerating}
+                  className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-slate-100 border border-white/20 disabled:opacity-50`}
+                  style={{
+                    background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                    boxShadow: nightMode
+                      ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                      : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                  }}
+                >
+                  {currentStep === testimonyQuestions.length ? (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Generate Draft
+                    </>
+                  ) : (
+                    <>
+                      Next
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
