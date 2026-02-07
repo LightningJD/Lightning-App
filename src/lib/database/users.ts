@@ -170,6 +170,9 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   if ((profileData as any).favorite_verse !== undefined) updates.favorite_verse = (profileData as any).favorite_verse;
   if ((profileData as any).favorite_verse_ref !== undefined) updates.favorite_verse_ref = (profileData as any).favorite_verse_ref;
   if ((profileData as any).faith_interests !== undefined) updates.faith_interests = (profileData as any).faith_interests;
+  // Privacy & church fields
+  if ((profileData as any).profile_visibility !== undefined) updates.profile_visibility = (profileData as any).profile_visibility;
+  if ((profileData as any).church_id !== undefined) updates.church_id = (profileData as any).church_id;
 
   const { data, error } = await supabase
     .from('users')

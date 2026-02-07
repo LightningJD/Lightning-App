@@ -1,6 +1,6 @@
 import { useUser, useSession } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
-import { syncUserToSupabase, getTestimonyByUserId } from '../lib/database';
+import { syncUserToSupabase, getTestimonyByUserId, getChurchById } from '../lib/database';
 
 
 /**
@@ -19,6 +19,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
   const { session } = useSession();
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [testimony, setTestimony] = useState<any>(null);
+  const [church, setChurch] = useState<any>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSyncing, setIsSyncing] = useState(true);
 
@@ -72,6 +73,17 @@ export const useUserProfile = (): UseUserProfileReturn => {
             } else {
               console.log('ℹ️ No testimony found for user:', dbUser.id);
               setTestimony(null);
+            }
+
+            // Load church data if user has a church_id
+            if ((dbUser as any).church_id) {
+              const churchData = await getChurchById((dbUser as any).church_id);
+              if (churchData) {
+                console.log('✅ Church loaded:', churchData.name);
+                setChurch(churchData);
+              }
+            } else {
+              setChurch(null);
             }
           } else {
             console.error('❌ Sync failed: No Database User returned from syncUserToSupabase');
@@ -150,6 +162,18 @@ export const useUserProfile = (): UseUserProfileReturn => {
     isPrivate: supabaseUser?.is_private || false,
     testimonyVisibility: supabaseUser?.testimony_visibility || 'everyone',
     messagePrivacy: supabaseUser?.message_privacy || 'everyone',
+    profileVisibility: (supabaseUser as any)?.profile_visibility || 'private',
+    // Church
+    churchId: (supabaseUser as any)?.church_id || null,
+    church: church ? {
+      id: church.id,
+      name: church.name,
+      location: church.location,
+      denomination: church.denomination,
+      inviteCode: church.invite_code,
+      memberCount: church.member_count,
+      createdBy: church.created_by,
+    } : null,
     // Notification settings
     notifyMessages: supabaseUser?.notify_messages !== false,
     notifyFriendRequests: supabaseUser?.notify_friend_requests !== false,

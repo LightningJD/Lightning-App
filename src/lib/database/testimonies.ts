@@ -9,6 +9,7 @@ interface TestimonyData {
   question3?: string;
   question4?: string;
   isPublic?: boolean;
+  visibility?: 'my_church' | 'all_churches' | 'shareable';
   musicSpotifyUrl?: string;
   musicTrackName?: string;
   musicArtist?: string;
@@ -38,6 +39,7 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
       question4_answer: testimonyData.question4,
       word_count: testimonyData.content.trim().split(/\s+/).filter(Boolean).length,
       is_public: testimonyData.isPublic ?? true,
+      visibility: testimonyData.visibility ?? 'my_church',
       music_spotify_url: testimonyData.musicSpotifyUrl,
       music_track_name: testimonyData.musicTrackName,
       music_artist: testimonyData.musicArtist,
@@ -381,6 +383,7 @@ export const deleteTestimonyComment = async (commentId: string, userId: string):
 
 /**
  * Get public testimonies for browsing (with user info)
+ * @deprecated Use getDiscoverTestimonies instead
  */
 export const getPublicTestimonies = async (limit: number = 20, offset: number = 0): Promise<any[]> => {
   if (!supabase) return [];
@@ -418,6 +421,177 @@ export const getPublicTestimonies = async (limit: number = 20, offset: number = 
     return data || [];
   } catch (error) {
     console.error('Error fetching public testimonies:', error);
+    return [];
+  }
+};
+
+// ============================================
+// CHURCH-BASED FEED QUERIES
+// ============================================
+
+const TESTIMONY_SELECT_WITH_USER = `
+  id,
+  user_id,
+  title,
+  content,
+  lesson,
+  view_count,
+  like_count,
+  visibility,
+  created_at,
+  updated_at,
+  users:user_id (
+    id,
+    username,
+    display_name,
+    avatar_emoji,
+    avatar_url,
+    church_id
+  )
+`;
+
+/**
+ * Get discover feed — testimonies visible platform-wide
+ * Shows 'all_churches' and 'shareable' visibility
+ */
+export const getDiscoverTestimonies = async (limit: number = 20, offset: number = 0): Promise<any[]> => {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await (supabase as any)
+      .from('testimonies')
+      .select(TESTIMONY_SELECT_WITH_USER)
+      .in('visibility', ['all_churches', 'shareable'])
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Error fetching discover testimonies:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching discover testimonies:', error);
+    return [];
+  }
+};
+
+/**
+ * Get church testimonies — all testimonies from users in the same church
+ */
+export const getChurchTestimonies = async (churchId: string, limit: number = 20, offset: number = 0): Promise<any[]> => {
+  if (!supabase) return [];
+
+  try {
+    // Get all users in this church
+    const { data: churchUsers, error: usersError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('church_id' as any, churchId);
+
+    if (usersError || !churchUsers?.length) return [];
+
+    const churchUserIds = (churchUsers as any[]).map((u: any) => u.id);
+
+    // Get their testimonies (all visibility levels since same church)
+    const { data, error } = await (supabase as any)
+      .from('testimonies')
+      .select(TESTIMONY_SELECT_WITH_USER)
+      .in('user_id', churchUserIds)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Error fetching church testimonies:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching church testimonies:', error);
+    return [];
+  }
+};
+
+/**
+ * Get main feed testimonies — church testimonies + friends' cross-church testimonies
+ * @param userId - Current user's ID
+ * @param churchId - Current user's church ID (null if no church)
+ * @param friendIds - Array of friend user IDs
+ */
+export const getFeedTestimonies = async (
+  userId: string,
+  churchId: string | null,
+  friendIds: string[],
+  limit: number = 20,
+  offset: number = 0
+): Promise<any[]> => {
+  if (!supabase) return [];
+
+  try {
+    // Strategy: fetch church testimonies + friend testimonies separately, merge & sort
+    const results: any[] = [];
+
+    // 1. Church testimonies (all visibility levels for same-church users)
+    if (churchId) {
+      const { data: churchUsers } = await supabase
+        .from('users')
+        .select('id')
+        .eq('church_id' as any, churchId);
+
+      if (churchUsers?.length) {
+        const churchUserIds = (churchUsers as any[]).map((u: any) => u.id);
+        const { data: churchTestimonies } = await (supabase as any)
+          .from('testimonies')
+          .select(TESTIMONY_SELECT_WITH_USER)
+          .in('user_id', churchUserIds)
+          .order('created_at', { ascending: false })
+          .limit(limit);
+
+        if (churchTestimonies) results.push(...churchTestimonies);
+      }
+    }
+
+    // 2. Friends' testimonies from OTHER churches (only 'all_churches' and 'shareable')
+    const crossChurchFriends = friendIds.filter(fid => fid !== userId);
+    if (crossChurchFriends.length > 0) {
+      // Get friend testimonies that are visible cross-church
+      const { data: friendTestimonies } = await (supabase as any)
+        .from('testimonies')
+        .select(TESTIMONY_SELECT_WITH_USER)
+        .in('user_id', crossChurchFriends)
+        .in('visibility', ['all_churches', 'shareable'])
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (friendTestimonies) results.push(...friendTestimonies);
+    }
+
+    // 3. Own testimony (always visible)
+    const { data: ownTestimony } = await (supabase as any)
+      .from('testimonies')
+      .select(TESTIMONY_SELECT_WITH_USER)
+      .eq('user_id', userId)
+      .limit(1);
+
+    if (ownTestimony) results.push(...ownTestimony);
+
+    // Deduplicate by testimony id and sort by created_at desc
+    const uniqueMap = new Map<string, any>();
+    for (const t of results) {
+      if (!uniqueMap.has(t.id)) {
+        uniqueMap.set(t.id, t);
+      }
+    }
+
+    const sorted = Array.from(uniqueMap.values())
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    // Apply pagination
+    return sorted.slice(offset, offset + limit);
+  } catch (error) {
+    console.error('Error fetching feed testimonies:', error);
     return [];
   }
 };

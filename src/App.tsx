@@ -27,7 +27,7 @@ import LinkSpotify from './components/LinkSpotify';
 import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
 import { generateTestimony } from './lib/api/claude';
 import { useUserProfile } from './components/useUserProfile';
-import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests } from './lib/database';
+import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests, createChurch, joinChurchByCode } from './lib/database';
 import { isAdmin } from './lib/database/users';
 import AdminDashboard from './components/AdminDashboard';
 import { supabase } from './lib/supabase';
@@ -50,7 +50,7 @@ function App() {
   const [showMenu, setShowMenu] = useState(false);
   const [showTestimonyPrompt, setShowTestimonyPrompt] = useState(false);
   const [sortBy, setSortBy] = useState('recommended');
-  const [activeConnectTab, setActiveConnectTab] = useState('recommended');
+  const [activeConnectTab, setActiveConnectTab] = useState('home');
   const selectedTheme = localStorage.getItem('lightningTheme') || 'periwinkle';
   const [nightMode, setNightMode] = useState(localStorage.getItem('lightningNightMode') === 'true');
   const [showProfileWizard, setShowProfileWizard] = useState(false);
@@ -347,7 +347,8 @@ function App() {
               question3: guestTestimony.answers.question3,
               question4: guestTestimony.answers.question4,
               lesson: guestTestimony.lesson || 'My journey taught me that transformation is possible through faith.',
-              isPublic: true
+              isPublic: true,
+              visibility: 'my_church'
             });
 
             if (!isMounted) return; // Check again before setState
@@ -565,6 +566,10 @@ function App() {
     const toastId = showLoading('Setting up your profile...');
 
     try {
+      // Handle church join/create from onboarding wizard
+      const churchData = (profileData as any)._churchId;
+      const pendingChurch = (profileData as any)._pendingChurch;
+
       // Update profile in Supabase
       const updated = await updateUserProfile(userProfile.supabaseId, {
         ...profileData,
@@ -573,6 +578,33 @@ function App() {
 
       if (updated) {
         console.log('✅ Profile updated successfully!', updated);
+
+        // Handle church creation or joining after profile is created
+        if (pendingChurch?._pendingCreate) {
+          // Create a new church
+          try {
+            const newChurch = await createChurch(
+              pendingChurch.name,
+              userProfile.supabaseId,
+              undefined,
+              pendingChurch.denomination || undefined
+            );
+            if (newChurch) {
+              console.log('⛪ Created church during onboarding:', newChurch.name);
+            }
+          } catch (churchErr) {
+            console.error('Failed to create church during onboarding:', churchErr);
+          }
+        } else if (churchData) {
+          // Join existing church by ID
+          try {
+            // churchData is the church ID from validation — set church_id directly
+            await updateUserProfile(userProfile.supabaseId, { church_id: churchData } as any);
+            console.log('⛪ Joined church during onboarding:', churchData);
+          } catch (churchErr) {
+            console.error('Failed to join church during onboarding:', churchErr);
+          }
+        }
 
         // Save GPS coordinates if provided during profile creation
         if ((profileData as any)._coords?.lat && (profileData as any)._coords?.lng) {
@@ -832,7 +864,7 @@ function App() {
   };
 
   // Handler for AI-powered testimony questionnaire completion
-  const handleTestimonyQuestionnaireComplete = async (testimonyData: { content: string; answers: TestimonyAnswers }): Promise<void> => {
+  const handleTestimonyQuestionnaireComplete = async (testimonyData: { content: string; answers: TestimonyAnswers; visibility?: 'my_church' | 'all_churches' | 'shareable' }): Promise<void> => {
     setShowTestimonyQuestionnaire(false);
 
     const toastId = showLoading('Saving your testimony...');
@@ -895,7 +927,8 @@ function App() {
           question3: testimonyData.answers.question3,
           question4: testimonyData.answers.question4,
           lesson: 'My journey taught me that transformation is possible through faith.',
-          isPublic: true
+          isPublic: true,
+          visibility: testimonyData.visibility || 'my_church'
         });
 
         if (saved) {
@@ -925,7 +958,8 @@ function App() {
             question3: testimonyData.answers.question3,
             question4: testimonyData.answers.question4
           },
-          lesson: 'My journey taught me that transformation is possible through faith.'
+          lesson: 'My journey taught me that transformation is possible through faith.',
+          visibility: testimonyData.visibility || 'shareable' // Guests have no church, default to shareable
         };
 
         saveGuestTestimony(guestTestimonyData);
@@ -1985,6 +2019,7 @@ function App() {
               userName={profile.displayName}
               userAge={undefined}
               userId={userProfile?.supabaseId}
+              hasChurch={!!profile?.churchId}
               onComplete={handleTestimonyQuestionnaireComplete}
               onCancel={() => setShowTestimonyQuestionnaire(false)}
             />

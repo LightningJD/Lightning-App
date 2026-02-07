@@ -15,7 +15,8 @@ import {
   isBlockedBy,
   searchUsers,
   getAllUsers,
-  getPublicTestimonies
+  getDiscoverTestimonies,
+  getFeedTestimonies
 } from '../lib/database';
 
 interface User {
@@ -166,14 +167,35 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     loadData();
   }, [profile?.supabaseId, profile?.locationLat, profile?.locationLng]);
 
-  // Load public testimonies when testimonies tab is active
+  // Load testimonies based on active tab (home = church feed, discover = all)
   useEffect(() => {
     const loadTestimonies = async () => {
-      if (activeConnectTab === 'testimonies') {
+      if (activeConnectTab === 'home' || activeConnectTab === 'discover' || activeConnectTab === 'testimonies') {
         setIsLoadingTestimonies(true);
         try {
-          const publicTestimonies = await getPublicTestimonies(20, 0);
-          setTestimonies(publicTestimonies || []);
+          let feedTestimonies: any[] = [];
+
+          if (activeConnectTab === 'home') {
+            // Home feed: church testimonies + friends' cross-church testimonies
+            if (!profile?.supabaseId) {
+              setTestimonies([]);
+              setIsLoadingTestimonies(false);
+              return;
+            }
+            const friendIds = friends.map(f => f.id);
+            feedTestimonies = await getFeedTestimonies(
+              profile.supabaseId,
+              (profile as any)?.churchId || null,
+              friendIds,
+              20,
+              0
+            );
+          } else {
+            // Discover / legacy testimonies tab: platform-wide
+            feedTestimonies = await getDiscoverTestimonies(20, 0);
+          }
+
+          setTestimonies(feedTestimonies || []);
         } catch (error) {
           console.error('Error loading testimonies:', error);
           setTestimonies([]);
@@ -184,7 +206,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     };
 
     loadTestimonies();
-  }, [activeConnectTab]);
+  }, [activeConnectTab, profile?.supabaseId, friends]);
 
   // Search handler with debouncing
   useEffect(() => {
@@ -384,14 +406,24 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
           }}
         >
           <button
-            onClick={() => setActiveConnectTab('recommended')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'recommended' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            onClick={() => setActiveConnectTab('home')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'home' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
             style={{
               background: 'transparent'
             }}
-            aria-label="Show recommended users"
+            aria-label="Show home feed"
           >
-            Recommended
+            Home
+          </button>
+          <button
+            onClick={() => setActiveConnectTab('discover')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'discover' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            style={{
+              background: 'transparent'
+            }}
+            aria-label="Show discover feed"
+          >
+            Discover
           </button>
           <button
             onClick={() => setActiveConnectTab('friends')}
@@ -403,18 +435,32 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
           >
             Friends
           </button>
-          <button
-            onClick={() => setActiveConnectTab('testimonies')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'testimonies' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
-            style={{
-              background: 'transparent'
-            }}
-            aria-label="Show testimonies"
-          >
-            Testimonies
-          </button>
         </div>
       </div>
+
+      {activeConnectTab === 'home' && (
+        <div className="px-4 mb-3">
+          {(profile as any)?.church ? (
+            <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${nightMode ? 'bg-white/[0.04]' : 'bg-blue-50/50'}`}>
+              <span>⛪</span>
+              <span className={`text-sm font-medium ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                {(profile as any).church.name}
+              </span>
+              <span className={`text-[10px] ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                Church Feed
+              </span>
+            </div>
+          ) : (
+            <div className={`p-3 rounded-xl text-center text-sm ${nightMode ? 'bg-white/[0.04] text-slate-400' : 'bg-blue-50/50 text-slate-500'}`}>
+              Join a church to see testimonies from your community
+            </div>
+          )}
+        </div>
+      )}
+
+      {(activeConnectTab === 'home' || activeConnectTab === 'discover') && (
+        <div className="px-4 mb-3" />
+      )}
 
       {activeConnectTab === 'recommended' && (
         <div className="px-4">
@@ -609,7 +655,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               ))}
             </div>
           )
-        ) : activeConnectTab === 'testimonies' ? (
+        ) : (activeConnectTab === 'home' || activeConnectTab === 'discover' || activeConnectTab === 'testimonies') ? (
           isLoadingTestimonies ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (

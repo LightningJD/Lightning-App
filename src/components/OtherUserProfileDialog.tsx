@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { X, MapPin, MessageCircle, Flag, UserPlus, Heart, UserX } from 'lucide-react';
+import { X, MapPin, MessageCircle, Flag, UserPlus, Heart, UserX, UserCheck, Users } from 'lucide-react';
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
 import { sanitizeUserContent } from '../lib/sanitization';
-import { sendFriendRequest, checkFriendshipStatus, blockUser, isUserBlocked } from '../lib/database';
+import { sendFriendRequest, checkFriendshipStatus, blockUser, isUserBlocked, followUser, unfollowUser, isFollowing as checkIsFollowing, getFollowerCount } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
 import ProfileCard from './ProfileCard';
 
@@ -75,21 +75,60 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
   const [sendingRequest, setSendingRequest] = useState(false);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const [blocking, setBlocking] = useState<boolean>(false);
+  const [following, setFollowing] = useState<boolean>(false);
+  const [followerCount, setFollowerCount] = useState<number>(0);
+  const [isTogglingFollow, setIsTogglingFollow] = useState<boolean>(false);
+  const [userProfileVisibility, setUserProfileVisibility] = useState<string>('private');
 
-  // Check friendship status and block status
+  // Check friendship status, block status, and follow status
   React.useEffect(() => {
     const checkStatus = async () => {
       if (currentUserProfile?.supabaseId && user?.id) {
-        const [status, blocked] = await Promise.all([
+        const [status, blocked, isFollowingUser, followers] = await Promise.all([
           checkFriendshipStatus(currentUserProfile.supabaseId, user.id),
-          isUserBlocked(currentUserProfile.supabaseId, user.id)
+          isUserBlocked(currentUserProfile.supabaseId, user.id),
+          checkIsFollowing(currentUserProfile.supabaseId, user.id),
+          getFollowerCount(user.id)
         ]);
         setFriendStatus(status || 'none');
         setIsBlocked(blocked);
+        setFollowing(isFollowingUser);
+        setFollowerCount(followers);
+
+        // Check profile visibility
+        const { supabase } = await import('../lib/supabase');
+        if (supabase) {
+          const { data } = await supabase.from('users').select('profile_visibility').eq('id', user.id).single();
+          if (data) setUserProfileVisibility((data as any).profile_visibility || 'private');
+        }
       }
     };
     checkStatus();
   }, [currentUserProfile?.supabaseId, user?.id]);
+
+  const handleToggleFollow = async () => {
+    if (!currentUserProfile?.supabaseId || !user?.id) return;
+
+    setIsTogglingFollow(true);
+    try {
+      if (following) {
+        await unfollowUser(currentUserProfile.supabaseId, user.id);
+        setFollowing(false);
+        setFollowerCount(prev => Math.max(0, prev - 1));
+        showSuccess(`Unfollowed ${user.displayName}`);
+      } else {
+        await followUser(currentUserProfile.supabaseId, user.id);
+        setFollowing(true);
+        setFollowerCount(prev => prev + 1);
+        showSuccess(`Following ${user.displayName}!`);
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
+      showError('Failed to update follow status');
+    } finally {
+      setIsTogglingFollow(false);
+    }
+  };
 
   const handleSendFriendRequest = async () => {
     if (!currentUserProfile?.supabaseId || !user?.id) return;
@@ -308,31 +347,71 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               )}
             </div>
 
-            {/* Add Friend Button */}
+            {/* Follower count for public profiles */}
+            {userProfileVisibility === 'public' && followerCount > 0 && (
+              <div className={`flex items-center justify-center gap-1.5 py-1 text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                <Users className="w-3 h-3" />
+                {followerCount} {followerCount === 1 ? 'follower' : 'followers'}
+              </div>
+            )}
+
+            {/* Follow / Add Friend Buttons */}
             {!isBlocked && (
-              <button
-                onClick={handleSendFriendRequest}
-                disabled={friendStatus !== 'none' || sendingRequest}
-                className={`w-full px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${nightMode ? 'border-white/20' : 'border-white/30'
-                  } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
-                style={nightMode ? {
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
-                  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)'
-                } : {
-                  background: 'rgba(255, 255, 255, 0.25)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)',
-                  boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-                }}
-                aria-label={`Add ${user.displayName} as friend`}
-              >
-                <UserPlus className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`} />
-                <span className={nightMode ? 'text-slate-100' : 'text-slate-900'}>
-                  {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
-                </span>
-              </button>
+              <div className="flex gap-2">
+                {/* Follow button for public profiles */}
+                {userProfileVisibility === 'public' && (
+                  <button
+                    onClick={handleToggleFollow}
+                    disabled={isTogglingFollow}
+                    className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${
+                      following
+                        ? nightMode ? 'border-blue-500/30 bg-blue-500/10' : 'border-blue-300 bg-blue-50'
+                        : nightMode ? 'border-white/20' : 'border-white/30'
+                    } ${isTogglingFollow ? 'opacity-50' : ''}`}
+                    style={!following ? (nightMode ? {
+                      background: 'linear-gradient(135deg, rgba(79, 150, 255, 0.15) 0%, rgba(79, 150, 255, 0.05) 100%)',
+                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                    } : {
+                      background: 'rgba(59, 130, 246, 0.08)',
+                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
+                    }) : {}}
+                  >
+                    {following ? (
+                      <UserCheck className={`w-4 h-4 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                    ) : (
+                      <UserPlus className={`w-4 h-4 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                    )}
+                    <span className={nightMode ? 'text-blue-400' : 'text-blue-600'}>
+                      {following ? 'Following' : 'Follow'}
+                    </span>
+                  </button>
+                )}
+
+                {/* Add Friend button */}
+                <button
+                  onClick={handleSendFriendRequest}
+                  disabled={friendStatus !== 'none' || sendingRequest}
+                  className={`${userProfileVisibility === 'public' ? 'flex-1' : 'w-full'} px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${nightMode ? 'border-white/20' : 'border-white/30'
+                    } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  style={nightMode ? {
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)'
+                  } : {
+                    background: 'rgba(255, 255, 255, 0.25)',
+                    backdropFilter: 'blur(30px)',
+                    WebkitBackdropFilter: 'blur(30px)',
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                  }}
+                  aria-label={`Add ${user.displayName} as friend`}
+                >
+                  <UserPlus className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`} />
+                  <span className={nightMode ? 'text-slate-100' : 'text-slate-900'}>
+                    {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
+                  </span>
+                </button>
+              </div>
             )}
 
             {/* Dot connector to testimony */}

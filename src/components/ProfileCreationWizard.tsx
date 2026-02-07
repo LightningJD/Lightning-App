@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, Check, Navigation } from 'lucide-react';
+import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, Check, Navigation, Church, Plus, KeyRound } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
+import { createChurch, joinChurchByCode } from '../lib/database';
 
 interface FormData {
   displayName: string;
@@ -30,6 +31,15 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   const [detectedCoords, setDetectedCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { detect, isDetecting, error: geoError } = useGeolocation();
 
+  // Church step state
+  const [churchMode, setChurchMode] = useState<'choose' | 'join' | 'create'>('choose');
+  const [churchInviteCode, setChurchInviteCode] = useState('');
+  const [churchName, setChurchName] = useState('');
+  const [churchDenomination, setChurchDenomination] = useState('');
+  const [churchResult, setChurchResult] = useState<any>(null);
+  const [isJoiningChurch, setIsJoiningChurch] = useState(false);
+  const [churchError, setChurchError] = useState('');
+
   // Avatar options (emojis)
   const avatarOptions = [
     '👤', '😊', '😎', '🙂', '😇', '🤗', '🥰', '😌',
@@ -47,20 +57,27 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     },
     {
       id: 1,
+      title: 'Join Your Church',
+      subtitle: 'Connect with your faith community',
+      icon: Church,
+      fields: [] // No required fields — can skip
+    },
+    {
+      id: 2,
       title: 'Tell Your Story',
       subtitle: 'Share a bit about yourself',
       icon: FileText,
       fields: ['bio', 'location']
     },
     {
-      id: 2,
+      id: 3,
       title: 'Choose Your Avatar',
       subtitle: 'Pick an emoji that represents you',
       icon: User,
       fields: ['avatar']
     },
     {
-      id: 3,
+      id: 4,
       title: 'Review Your Profile',
       subtitle: 'Make sure everything looks good',
       icon: Check,
@@ -88,7 +105,6 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
       if (field === 'username' && !formData.username.trim()) {
         newErrors.username = 'Username is required';
       } else if (field === 'username' && formData.username.trim()) {
-        // Basic username validation
         if (formData.username.length < 3) {
           newErrors.username = 'Username must be at least 3 characters';
         }
@@ -126,8 +142,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Pass form data to parent component (with GPS coords if detected)
-      await onComplete({ ...formData, _coords: detectedCoords } as any);
+      await onComplete({ ...formData, _coords: detectedCoords, _churchId: churchResult?.id, _pendingChurch: churchResult?._pendingCreate ? churchResult : undefined } as any);
     } catch (error) {
       console.error('Error creating profile:', error);
       setErrors({ submit: 'Failed to create profile. Please try again.' });
@@ -138,10 +153,53 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData({ ...formData, [field]: value });
-    // Clear error for this field when user starts typing
     if (errors[field]) {
       const { [field]: _, ...remainingErrors } = errors;
       setErrors(remainingErrors);
+    }
+  };
+
+  const handleJoinChurch = async () => {
+    if (!churchInviteCode.trim()) {
+      setChurchError('Please enter an invite code');
+      return;
+    }
+    setIsJoiningChurch(true);
+    setChurchError('');
+    try {
+      // We pass a temp userId — the actual join happens after profile creation
+      // For now, just validate the code exists
+      const { data: church } = await import('../lib/supabase').then(m =>
+        (m.supabase as any)?.from('churches').select('*').eq('invite_code', churchInviteCode.trim()).single()
+      );
+      if (church) {
+        setChurchResult(church);
+        setChurchMode('choose');
+      } else {
+        setChurchError('Invalid invite code. Please check and try again.');
+      }
+    } catch {
+      setChurchError('Invalid invite code. Please check and try again.');
+    } finally {
+      setIsJoiningChurch(false);
+    }
+  };
+
+  const handleCreateChurch = async () => {
+    if (!churchName.trim()) {
+      setChurchError('Church name is required');
+      return;
+    }
+    setIsJoiningChurch(true);
+    setChurchError('');
+    try {
+      // We'll create the church with a temporary approach — store the data and create after profile
+      setChurchResult({ _pendingCreate: true, name: churchName, denomination: churchDenomination });
+      setChurchMode('choose');
+    } catch {
+      setChurchError('Failed to create church. Please try again.');
+    } finally {
+      setIsJoiningChurch(false);
     }
   };
 
@@ -199,7 +257,209 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
           </div>
         );
 
+      // Church step
       case 1:
+        return (
+          <div className="space-y-4">
+            {/* Already joined/created */}
+            {churchResult && (
+              <div className={`p-4 rounded-xl border ${nightMode ? 'bg-green-500/10 border-green-500/30' : 'bg-green-50 border-green-200'}`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">⛪</span>
+                  <div className="flex-1">
+                    <div className={`font-semibold ${nightMode ? 'text-green-400' : 'text-green-700'}`}>
+                      {churchResult._pendingCreate ? 'Creating' : 'Joining'}: {churchResult.name}
+                    </div>
+                    {churchResult.denomination && (
+                      <div className={`text-xs ${nightMode ? 'text-green-400/70' : 'text-green-600'}`}>
+                        {churchResult.denomination}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => { setChurchResult(null); setChurchMode('choose'); }}
+                    className={`text-xs px-2 py-1 rounded ${nightMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Change
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Choice buttons */}
+            {!churchResult && churchMode === 'choose' && (
+              <>
+                <p className={`text-sm text-center ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Your church is your home community on Lightning. You can always change this later.
+                </p>
+
+                <button
+                  onClick={() => setChurchMode('join')}
+                  className={`w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-colors ${
+                    nightMode
+                      ? 'bg-white/5 border-white/10 hover:bg-white/10'
+                      : 'bg-white border-slate-200 hover:bg-blue-50 hover:border-blue-300'
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    nightMode ? 'bg-blue-500/20' : 'bg-blue-100'
+                  }`}>
+                    <KeyRound className={`w-6 h-6 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                  </div>
+                  <div>
+                    <div className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                      Join a Church
+                    </div>
+                    <div className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Enter an invite code from your church
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setChurchMode('create')}
+                  className={`w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-colors ${
+                    nightMode
+                      ? 'bg-white/5 border-white/10 hover:bg-white/10'
+                      : 'bg-white border-slate-200 hover:bg-blue-50 hover:border-blue-300'
+                  }`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    nightMode ? 'bg-purple-500/20' : 'bg-purple-100'
+                  }`}>
+                    <Plus className={`w-6 h-6 ${nightMode ? 'text-purple-400' : 'text-purple-600'}`} />
+                  </div>
+                  <div>
+                    <div className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                      Create a Church
+                    </div>
+                    <div className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                      Start your church community on Lightning
+                    </div>
+                  </div>
+                </button>
+
+                <p className={`text-xs text-center ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  You can skip this step and join a church later
+                </p>
+              </>
+            )}
+
+            {/* Join form */}
+            {!churchResult && churchMode === 'join' && (
+              <div className="space-y-3">
+                <button
+                  onClick={() => { setChurchMode('choose'); setChurchError(''); }}
+                  className={`text-sm flex items-center gap-1 ${nightMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back
+                </button>
+
+                <label className={`block text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                  Invite Code
+                </label>
+                <input
+                  ref={inputRef as React.RefObject<HTMLInputElement>}
+                  type="text"
+                  value={churchInviteCode}
+                  onChange={(e) => { setChurchInviteCode(e.target.value); setChurchError(''); }}
+                  placeholder="Enter 8-character code"
+                  maxLength={8}
+                  className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg tracking-widest font-mono ${
+                    nightMode
+                      ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
+                      : 'bg-white border-slate-200 text-slate-900'
+                  } ${churchError ? 'border-red-500' : ''}`}
+                />
+                {churchError && (
+                  <p className="text-red-500 text-xs">{churchError}</p>
+                )}
+                <button
+                  onClick={handleJoinChurch}
+                  disabled={isJoiningChurch || !churchInviteCode.trim()}
+                  className={`w-full py-3 rounded-lg font-semibold transition-all text-white disabled:opacity-50 ${
+                    nightMode ? 'bg-blue-500 hover:bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                >
+                  {isJoiningChurch ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Verifying...
+                    </span>
+                  ) : 'Join Church'}
+                </button>
+              </div>
+            )}
+
+            {/* Create form */}
+            {!churchResult && churchMode === 'create' && (
+              <div className="space-y-3">
+                <button
+                  onClick={() => { setChurchMode('choose'); setChurchError(''); }}
+                  className={`text-sm flex items-center gap-1 ${nightMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Back
+                </button>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                    Church Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    ref={inputRef as React.RefObject<HTMLInputElement>}
+                    type="text"
+                    value={churchName}
+                    onChange={(e) => { setChurchName(e.target.value); setChurchError(''); }}
+                    placeholder="e.g. Grace Community Church"
+                    className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    } ${churchError ? 'border-red-500' : ''}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                    Denomination <span className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={churchDenomination}
+                    onChange={(e) => setChurchDenomination(e.target.value)}
+                    placeholder="e.g. Non-denominational, Baptist, etc."
+                    className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      nightMode
+                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  />
+                </div>
+
+                {churchError && (
+                  <p className="text-red-500 text-xs">{churchError}</p>
+                )}
+
+                <button
+                  onClick={handleCreateChurch}
+                  disabled={isJoiningChurch || !churchName.trim()}
+                  className={`w-full py-3 rounded-lg font-semibold transition-all text-white disabled:opacity-50 ${
+                    nightMode ? 'bg-purple-500 hover:bg-purple-400' : 'bg-purple-600 hover:bg-purple-700'
+                  }`}
+                >
+                  {isJoiningChurch ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creating...
+                    </span>
+                  ) : 'Create Church'}
+                </button>
+              </div>
+            )}
+          </div>
+        );
+
+      case 2:
         return (
           <div className="space-y-4">
             <div>
@@ -286,7 +546,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
           </div>
         );
 
-      case 2:
+      case 3:
         return (
           <div className="space-y-4">
             <div>
@@ -320,7 +580,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-4">
             <div className={`p-6 rounded-xl border text-center ${nightMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'}`}>
@@ -336,6 +596,11 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                     @{formData.username}
                   </p>
                 </div>
+                {churchResult && (
+                  <div className={`flex items-center gap-2 text-sm ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                    <span>⛪</span> {churchResult.name}
+                  </div>
+                )}
                 <div className={`flex items-center gap-2 text-sm ${nightMode ? 'text-slate-100' : 'text-slate-600'}`}>
                   <MapPin className="w-4 h-4" />
                   {formData.location}
@@ -466,7 +731,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                   }
                 }}
               >
-                Next
+                {currentStep === 1 && !churchResult ? 'Skip' : 'Next'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
