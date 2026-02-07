@@ -25,6 +25,7 @@ import BlockedUsers from './components/BlockedUsers';
 import ReportContent from './components/ReportContent';
 import LinkSpotify from './components/LinkSpotify';
 import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
+import { generateTestimony } from './lib/api/claude';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId } from './lib/database';
 import { supabase } from './lib/supabase';
@@ -434,115 +435,35 @@ function App() {
       setIsGenerating(true);
 
       try {
-        const response = await fetch('/api/generate-testimony', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        // Use the shared generateTestimony function (proxy-first, with fallback)
+        const result = await generateTestimony({
+          answers: {
+            question1: testimonyAnswers[0] || '',
+            question2: testimonyAnswers[1] || '',
+            question3: testimonyAnswers[2] || '',
+            question4: testimonyAnswers[3] || '',
           },
-          body: JSON.stringify({
-            name: profile.displayName,
-            question1: testimonyAnswers[0],
-            question2: testimonyAnswers[1],
-            question3: testimonyAnswers[2],
-            question4: testimonyAnswers[3],
-            userId: profile.username,
-            timestamp: Date.now()
-          })
+          userName: profile.displayName,
+          userId: userProfile?.supabaseId,
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to generate testimony');
+        if (!result.success || !result.testimony) {
+          throw new Error(result.error || 'Failed to generate testimony');
         }
 
-        const data = await response.json();
-        setGeneratedTestimony(data.testimony);
+        setGeneratedTestimony(result.testimony);
 
         // Calculate time spent writing
         const timeSpent = testimonyStartTime ? Date.now() - testimonyStartTime : null;
 
         // Check testimony secrets (character count, word count, time of day, speed)
         checkTestimonySecrets({
-          content: data.testimony
+          content: result.testimony
         }, timeSpent ?? undefined);
 
       } catch (error) {
-        console.error('Error:', error);
-        showError('Could not connect to AI service. Creating testimony from your answers...');
-
-        const impactOpenings = [
-          `Today, I ${testimonyAnswers[3]?.substring(0, 80)}... But this wasn't always my story.`,
-          `I'm currently ${testimonyAnswers[3]?.substring(0, 80)}... A few years ago, my life looked completely different.`,
-          `God has me ${testimonyAnswers[3]?.substring(0, 80)}... But my journey here began in darkness.`
-        ];
-
-        const randomOpening = impactOpenings[Math.floor(Math.random() * impactOpenings.length)];
-
-        const demoTestimony = `${randomOpening}
-
-${testimonyAnswers[0]?.substring(0, 200)}... The weight was crushing me, and I couldn't see a way out.
-
-Then everything changed. ${testimonyAnswers[1]?.substring(0, 150)}... ${testimonyAnswers[2]?.substring(0, 200)}... In that moment, God broke through the darkness and I experienced freedom I never thought possible.
-
-Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to bring hope to others walking through what I once faced. My past pain fuels my present purpose.`;
-
-        setGeneratedTestimony(demoTestimony);
-
-        // Calculate time spent writing
-        const timeSpent = testimonyStartTime ? Date.now() - testimonyStartTime : null;
-
-        // Check testimony secrets (character count, word count, time of day, speed)
-        checkTestimonySecrets({
-          content: demoTestimony
-        }, timeSpent ?? undefined);
-
-        // For authenticated users: Save to database immediately
-        // For guests: Show save modal (Testimony-First Conversion)
-        if (isAuthenticated && userProfile?.supabaseId) {
-          console.log('Authenticated user - saving testimony to database');
-          const saved = await createTestimony(userProfile.supabaseId, {
-            content: demoTestimony,
-            question1: testimonyAnswers[0],
-            question2: testimonyAnswers[1],
-            question3: testimonyAnswers[2],
-            question4: testimonyAnswers[3],
-            lesson: 'My journey taught me that transformation is possible through faith.',
-            isPublic: true
-          });
-
-          if (saved) {
-            console.log('✅ Testimony saved to database!', saved);
-            showSuccess('Testimony saved to your profile!');
-
-            // First Testimony Secret
-            unlockSecret('first_testimony');
-
-            // Dispatch custom event to trigger profile refresh
-            window.dispatchEvent(new CustomEvent('profileUpdated'));
-          } else {
-            console.error('❌ Failed to save testimony');
-            showError('Failed to save testimony. Please try again.');
-          }
-        } else {
-          // Guest user - save to localStorage and show conversion modal
-          console.log('💡 Guest user - saving testimony to localStorage');
-          const testimonyData = {
-            content: demoTestimony,
-            answers: {
-              question1: testimonyAnswers[0],
-              question2: testimonyAnswers[1],
-              question3: testimonyAnswers[2],
-              question4: testimonyAnswers[3]
-            },
-            lesson: 'My journey taught me that transformation is possible through faith.'
-          };
-
-          saveGuestTestimony(testimonyData);
-
-          // Show save testimony modal after a brief delay (let them see the testimony first)
-          setTimeout(() => {
-            setShowSaveTestimonyModal(true);
-          }, 1500);
-        }
+        console.error('Error generating testimony:', error);
+        showError(error instanceof Error ? error.message : 'Failed to generate testimony. Please try again.');
       } finally {
         setIsGenerating(false);
       }
@@ -715,25 +636,26 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
       return;
     }
 
-    const toastId = showLoading('Updating your testimony...');
+    const toastId = showLoading('Regenerating your testimony with AI...');
 
     try {
-      // Regenerate testimony content from updated answers
-      const impactOpenings = [
-        `Today, I ${formData.question4?.substring(0, 80)}... But this wasn't always my story.`,
-        `I'm currently ${formData.question4?.substring(0, 80)}... A few years ago, my life looked completely different.`,
-        `God has me ${formData.question4?.substring(0, 80)}... But my journey here began in darkness.`
-      ];
+      // Regenerate testimony content using Claude AI (same as new testimony creation)
+      const result = await generateTestimony({
+        answers: {
+          question1: formData.question1,
+          question2: formData.question2,
+          question3: formData.question3,
+          question4: formData.question4,
+        },
+        userName: profile.displayName,
+        userId: userProfile?.supabaseId,
+      });
 
-      const randomOpening = impactOpenings[Math.floor(Math.random() * impactOpenings.length)];
+      if (!result.success || !result.testimony) {
+        throw new Error(result.error || 'Failed to regenerate testimony.');
+      }
 
-      const updatedContent = `${randomOpening}
-
-${formData.question1?.substring(0, 200)}... The weight was crushing me, and I couldn't see a way out.
-
-Then everything changed. ${formData.question2?.substring(0, 150)}... ${formData.question3?.substring(0, 200)}... In that moment, God broke through the darkness and I experienced freedom I never thought possible.
-
-Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to bring hope to others walking through what I once faced. My past pain fuels my present purpose.`;
+      const updatedContent = result.testimony;
 
       // Update testimony in database
       if (!userProfile?.supabaseId) {
