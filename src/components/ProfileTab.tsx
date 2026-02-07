@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2, Globe, Lock, EyeOff } from 'lucide-react';
+import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2, Globe, Lock } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
 import { checkBeforeSend } from '../lib/contentFilter';
@@ -300,41 +300,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         </div>
       )}
 
-      {/* Profile Visibility Notice — only show on own profile when private */}
-      {profile?.supabaseId === currentUserProfile?.supabaseId && profile.profileVisibility === 'private' && (
-        <div className="px-4 mt-3">
-          <div
-            className={`flex items-center justify-between p-3 rounded-xl ${
-              nightMode ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <EyeOff className={`w-4 h-4 ${nightMode ? 'text-amber-400' : 'text-amber-600'}`} />
-              <div>
-                <div className={`text-xs font-semibold ${nightMode ? 'text-amber-300' : 'text-amber-700'}`}>
-                  Your profile is private
-                </div>
-                <div className={`text-[10px] ${nightMode ? 'text-amber-400/60' : 'text-amber-600/70'}`}>
-                  Only friends & church members can see you
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={async () => {
-                await updateUserProfile(profile.supabaseId, {
-                  profile_visibility: 'public'
-                } as any);
-                window.dispatchEvent(new CustomEvent('profileUpdated'));
-              }}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
-                nightMode ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'
-              }`}
-            >
-              Make Public
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Dot connector between Faith Profile and Testimony */}
       {(profile.bio || profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved || (profile.music && profile.music.spotifyUrl)) && profile?.story?.id && (
