@@ -260,7 +260,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
       </div>
 
       {/* Profile Card (Pokédex-style V15+V11) */}
-      {(profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved || profile.entryNumber) && (
+      {(profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved) && (
         <div className="px-4">
           <ProfileCard
             nightMode={nightMode}

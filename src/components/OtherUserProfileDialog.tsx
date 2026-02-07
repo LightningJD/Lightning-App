@@ -233,7 +233,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
             </div>
 
             {/* Profile Card (Pokédex V15+V11) */}
-            {(user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved || user.entryNumber) && (
+            {(user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved) && (
               <ProfileCard
                 nightMode={nightMode}
                 compact
