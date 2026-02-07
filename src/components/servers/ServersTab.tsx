@@ -158,10 +158,19 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
   }, [profile?.supabaseId]);
 
   const handleSelectServer = useCallback((serverId: string) => {
+    if (isMobile && serverId === activeServerId) {
+      // Tapping the already-active server toggles between channels and chat
+      if (mobileView === 'channels' && activeChannelId) {
+        setMobileView('chat');
+      } else {
+        setMobileView('channels');
+      }
+      return;
+    }
     setActiveServerId(serverId);
     setViewMode('chat');
     if (isMobile) setMobileView('channels');
-  }, [isMobile]);
+  }, [isMobile, activeServerId, mobileView, activeChannelId]);
 
   const handleSelectChannel = useCallback((channelId: string) => {
     setActiveChannelId(channelId);
