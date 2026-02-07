@@ -1237,19 +1237,6 @@ function App() {
                         <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider`}>Privacy & Safety</h3>
                       </div>
                       <MenuItem
-                        icon={Eye}
-                        label="Who Can See Testimony"
-                        nightMode={nightMode}
-                        dropdown
-                        dropdownOptions={[
-                          { value: 'everyone', label: 'Everyone' },
-                          { value: 'friends', label: 'Friends Only' },
-                          { value: 'private', label: 'Just Me' }
-                        ]}
-                        selectedValue={privacySettings.testimonyVisibility}
-                        onDropdownChange={(value) => handlePrivacyToggle('testimonyVisibility', value)}
-                      />
-                      <MenuItem
                         icon={MessageCircle}
                         label="Who Can Message You"
                         nightMode={nightMode}
@@ -1434,6 +1421,19 @@ function App() {
                           window.dispatchEvent(new CustomEvent('profileUpdated'));
                           showSuccess(value ? 'Profile set to private' : 'Profile set to public');
                         }}
+                      />
+                      <MenuItem
+                        icon={Eye}
+                        label="Testimony Visibility"
+                        nightMode={nightMode}
+                        dropdown
+                        dropdownOptions={[
+                          { value: 'everyone', label: 'Everyone' },
+                          { value: 'friends', label: 'Friends Only' },
+                          { value: 'private', label: 'Just Me' }
+                        ]}
+                        selectedValue={privacySettings.testimonyVisibility}
+                        onDropdownChange={(value) => handlePrivacyToggle('testimonyVisibility', value)}
                       />
                     </div>
 
