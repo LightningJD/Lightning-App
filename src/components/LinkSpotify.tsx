@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { X, Music, ExternalLink, Check } from 'lucide-react';
+import { X, Music, Check, Play } from 'lucide-react';
 import { updateUserProfile } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
+import { getYouTubeVideoId } from '../lib/musicUtils';
 
 interface LinkSpotifyProps {
   isOpen: boolean;
@@ -129,27 +130,32 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({ isOpen, onClose, nightMode, u
             </div>
 
             {/* Preview if URL exists */}
-            {spotifyUrl && (
-              <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                nightMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-200'
-              }`}>
-                <Check className={`w-5 h-5 ${nightMode ? 'text-red-400' : 'text-red-600'}`} />
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium ${nightMode ? 'text-red-300' : 'text-red-900'}`}>
-                    Song will play on your profile
-                  </p>
-                  <a
-                    href={spotifyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`text-xs flex items-center gap-1 hover:underline ${nightMode ? 'text-red-400' : 'text-red-700'}`}
-                  >
-                    Preview
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+            {spotifyUrl && (() => {
+              const videoId = getYouTubeVideoId(spotifyUrl);
+              return (
+                <div className="space-y-3">
+                  <div className={`flex items-center gap-3 p-3 rounded-lg ${
+                    nightMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-50 border border-red-200'
+                  }`}>
+                    <Check className={`w-5 h-5 flex-shrink-0 ${nightMode ? 'text-red-400' : 'text-red-600'}`} />
+                    <p className={`text-sm font-medium ${nightMode ? 'text-red-300' : 'text-red-900'}`}>
+                      Song will play on your profile
+                    </p>
+                  </div>
+                  {videoId && (
+                    <div className="rounded-xl overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                      <iframe
+                        src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title="YouTube preview"
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-2">

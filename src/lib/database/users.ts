@@ -157,6 +157,7 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   if (profileData.avatarUrl !== undefined) updates.avatar_url = profileData.avatarUrl;
   if (profileData.profileCompleted !== undefined) updates.profile_completed = profileData.profileCompleted;
   if (profileData.search_radius !== undefined) updates.search_radius = profileData.search_radius;
+  if ((profileData as any).spotify_url !== undefined) updates.spotify_url = (profileData as any).spotify_url;
 
   const { data, error } = await supabase
     .from('users')

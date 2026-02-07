@@ -157,23 +157,22 @@ export const useUserProfile = (): UseUserProfileReturn => {
     // Search settings
     searchRadius: supabaseUser?.search_radius || 25,
     spotifyUrl: supabaseUser?.spotify_url || null,
-    music: testimony ? {
-      // If music URL is not set, use defaults with correct platform
-      platform: testimony.music_spotify_url ? (testimony.music_platform || 'youtube') : 'youtube',
-      trackName: testimony.music_track_name || "YOUR WAY'S BETTER",
-      artist: testimony.music_artist || "Forrest Frank",
-      spotifyUrl: testimony.music_spotify_url || "https://www.youtube.com/watch?v=T1LRsp8qBY0",
-      audioUrl: testimony.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-      startTime: testimony.music_start_time || 0
-    } : {
-      // Always show default music player, even without testimony
-      platform: 'youtube' as const,
-      trackName: "YOUR WAY'S BETTER",
-      artist: "Forrest Frank",
-      spotifyUrl: supabaseUser?.spotify_url || "https://www.youtube.com/watch?v=T1LRsp8qBY0",
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-      startTime: 0
-    },
+    music: (() => {
+      // User's linked YouTube song takes priority over testimony music
+      const userSongUrl = supabaseUser?.spotify_url;
+      const testimonySongUrl = testimony?.music_spotify_url;
+      const songUrl = userSongUrl || testimonySongUrl || "https://www.youtube.com/watch?v=T1LRsp8qBY0";
+      const isUserSong = !!userSongUrl;
+
+      return {
+        platform: (isUserSong ? 'youtube' : testimony?.music_platform || 'youtube') as 'youtube' | 'spotify',
+        trackName: isUserSong ? 'Profile Song' : (testimony?.music_track_name || "YOUR WAY'S BETTER"),
+        artist: isUserSong ? '' : (testimony?.music_artist || "Forrest Frank"),
+        spotifyUrl: songUrl,
+        audioUrl: testimony?.music_audio_url || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        startTime: isUserSong ? 0 : (testimony?.music_start_time || 0)
+      };
+    })(),
     story: testimony ? {
       id: testimony.id,
       title: testimony.title || "My Testimony",
