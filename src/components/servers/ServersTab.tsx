@@ -31,11 +31,12 @@ import MemberList from './MemberList';
 
 interface ServersTabProps {
   nightMode: boolean;
+  onActiveServerChange?: (serverName: string | null, serverEmoji?: string) => void;
 }
 
 type ViewMode = 'chat' | 'settings' | 'roles' | 'members';
 
-const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
+const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
 
@@ -82,6 +83,17 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
   }, []);
 
   const activeServer = servers.find(s => s.id === activeServerId);
+
+  // Notify parent of active server name changes
+  useEffect(() => {
+    if (onActiveServerChange) {
+      if (activeServer) {
+        onActiveServerChange(activeServer.name, activeServer.icon_emoji);
+      } else {
+        onActiveServerChange(null);
+      }
+    }
+  }, [activeServer?.id, activeServer?.name, onActiveServerChange]);
 
   // Block guests
   useEffect(() => {
