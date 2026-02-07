@@ -14,6 +14,7 @@ interface ChannelSidebarProps {
   onOpenRoles?: () => void;
   onOpenMembers?: () => void;
   canManageChannels: boolean;
+  fullWidth?: boolean;
 }
 
 // Map common channel names to emoji icons
@@ -39,7 +40,7 @@ const getChannelEmoji = (name: string): string => {
 
 const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   nightMode, serverName, serverEmoji, categories, channels,
-  activeChannelId, onSelectChannel, onCreateChannel, onOpenSettings, onOpenRoles, onOpenMembers, canManageChannels
+  activeChannelId, onSelectChannel, onCreateChannel, onOpenSettings, onOpenRoles, onOpenMembers, canManageChannels, fullWidth
 }) => {
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
@@ -63,12 +64,11 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     <div
       className="flex flex-col h-full overflow-hidden"
       style={{
-        width: '220px',
-        minWidth: '220px',
+        ...(fullWidth ? { width: '100%' } : { width: '220px', minWidth: '220px' }),
         background: nightMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.2)',
         backdropFilter: 'blur(30px)',
         WebkitBackdropFilter: 'blur(30px)',
-        borderRight: `1px solid ${nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+        borderRight: fullWidth ? 'none' : `1px solid ${nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
       }}
     >
       {/* Server name header */}
