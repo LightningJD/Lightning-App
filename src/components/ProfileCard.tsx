@@ -247,7 +247,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <div className="flex gap-2">
               <StatBox nightMode={nightMode} value={profile.story?.viewCount || 0} label="Views" />
               <StatBox nightMode={nightMode} value={profile.story?.likeCount || 0} label="Likes" />
-              <StatBox nightMode={nightMode} value={0} label="Prayers" />
               <StatBox nightMode={nightMode} value={profile.story?.commentCount || 0} label="Comments" />
             </div>
           )}
