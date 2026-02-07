@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import type { GroupRole, RolePermissions } from '../../types';
-import { mapLegacyRole, canRemoveMember, canModifyMemberRole } from '../permissions';
+import { mapLegacyRole } from '../permissions';
 
 interface GroupData {
   name: string;

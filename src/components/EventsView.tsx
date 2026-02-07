@@ -5,14 +5,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Calendar, MapPin, Clock, Users, ChevronLeft, ChevronRight, Check, HelpCircle, XCircle, Link as LinkIcon, Repeat } from 'lucide-react';
+import { Plus, Calendar, MapPin, Clock, ChevronLeft, ChevronRight, Check, HelpCircle, XCircle, Link as LinkIcon, Repeat } from 'lucide-react';
 import { showError, showSuccess } from '../lib/toast';
 import { sanitizeInput } from '../lib/inputValidation';
 import {
   createEvent,
   getGroupEvents,
   getEventById,
-  updateEvent,
   cancelEvent,
   rsvpToEvent,
   getEventRSVPs,

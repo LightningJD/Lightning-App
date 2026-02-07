@@ -57,6 +57,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [testimonies, setTestimonies] = useState<any[]>([]);
   const [isLoadingTestimonies, setIsLoadingTestimonies] = useState<boolean>(false);
+  const [expandedTestimonies, setExpandedTestimonies] = useState<Set<string>>(new Set());
 
   // Load users and friends from database
   useEffect(() => {
@@ -657,11 +658,41 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
                     }}
                   >
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="text-2xl">{user.avatar_emoji || '👤'}</div>
+                      <button
+                        onClick={() => user.id && handleViewProfile({
+                          id: user.id,
+                          username: user.username,
+                          display_name: user.display_name,
+                          displayName: user.display_name,
+                          avatar_emoji: user.avatar_emoji,
+                          avatar: user.avatar_emoji,
+                          is_online: user.is_online ?? false,
+                          online: user.is_online,
+                          location_city: user.location_city,
+                          location: user.location_city,
+                        } as any)}
+                        className="text-2xl hover:scale-110 transition-transform cursor-pointer"
+                      >
+                        {user.avatar_emoji || '👤'}
+                      </button>
                       <div className="flex-1">
-                        <h4 className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                        <button
+                          onClick={() => user.id && handleViewProfile({
+                            id: user.id,
+                            username: user.username,
+                            display_name: user.display_name,
+                            displayName: user.display_name,
+                            avatar_emoji: user.avatar_emoji,
+                            avatar: user.avatar_emoji,
+                            is_online: user.is_online ?? false,
+                            online: user.is_online,
+                            location_city: user.location_city,
+                            location: user.location_city,
+                          } as any)}
+                          className={`font-semibold cursor-pointer text-left transition-colors ${nightMode ? 'text-slate-100 hover:text-blue-400' : 'text-black hover:text-blue-600'}`}
+                        >
                           {user.display_name || user.username || 'Anonymous'}
-                        </h4>
+                        </button>
                         <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-600'}`}>
                           @{user.username || 'user'}
                         </p>
@@ -671,9 +702,27 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
                       {testimony.title || 'My Testimony'}
                     </h3>
                     <p className={`text-sm leading-relaxed mb-3 ${nightMode ? 'text-slate-200' : 'text-slate-700'}`}>
-                      {testimony.content?.substring(0, 300)}
-                      {testimony.content?.length > 300 && '...'}
+                      {expandedTestimonies.has(testimony.id)
+                        ? testimony.content
+                        : testimony.content?.substring(0, 300)}
+                      {!expandedTestimonies.has(testimony.id) && testimony.content?.length > 300 && '...'}
                     </p>
+                    {testimony.content?.length > 300 && (
+                      <button
+                        onClick={() => setExpandedTestimonies(prev => {
+                          const next = new Set(prev);
+                          if (next.has(testimony.id)) {
+                            next.delete(testimony.id);
+                          } else {
+                            next.add(testimony.id);
+                          }
+                          return next;
+                        })}
+                        className={`text-xs font-medium mb-3 ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} transition-colors`}
+                      >
+                        {expandedTestimonies.has(testimony.id) ? 'Show Less' : 'Read More'}
+                      </button>
+                    )}
                     {testimony.lesson && (
                       <div className={`p-3 rounded-lg mb-3 ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
                         <p className={`text-xs font-semibold mb-1 ${nightMode ? 'text-slate-300' : 'text-blue-900'}`}>
@@ -692,15 +741,18 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
                         👁️ {testimony.view_count || 0}
                       </span>
                       <button
-                        onClick={() => {
-                          if (onNavigateToMessages && user.id) {
-                            onNavigateToMessages({
-                              id: user.id,
-                              displayName: user.display_name || user.username,
-                              avatar: user.avatar_emoji
-                            });
-                          }
-                        }}
+                        onClick={() => user.id && handleViewProfile({
+                          id: user.id,
+                          username: user.username,
+                          display_name: user.display_name,
+                          displayName: user.display_name,
+                          avatar_emoji: user.avatar_emoji,
+                          avatar: user.avatar_emoji,
+                          is_online: user.is_online ?? false,
+                          online: user.is_online,
+                          location_city: user.location_city,
+                          location: user.location_city,
+                        } as any)}
                         className={`text-blue-600 hover:text-blue-700 font-semibold ${nightMode ? 'text-blue-400 hover:text-blue-300' : ''}`}
                       >
                         View Profile

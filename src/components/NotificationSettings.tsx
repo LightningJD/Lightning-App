@@ -8,14 +8,13 @@
  * Matches Lightning's glassmorphism UI style
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ChevronLeft, BellOff, Bell, Moon, Clock, Mail, Volume2, VolumeX } from 'lucide-react';
 import { showSuccess } from '../lib/toast';
 import {
   loadNotificationPreferences,
   saveNotificationPreferences,
   toggleDND,
-  setQuietHours,
   setDigestMode,
   muteGroup,
   unmuteGroup,
@@ -24,7 +23,7 @@ import {
   formatMuteRemaining,
   MUTE_DURATIONS,
 } from '../lib/notifications';
-import type { NotificationPreferences, QuietHours, DigestFrequency } from '../lib/notifications';
+import type { NotificationPreferences, DigestFrequency } from '../lib/notifications';
 
 interface NotificationSettingsProps {
   nightMode: boolean;
@@ -48,14 +47,20 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ nightMode, 
   };
 
   const handleQuietHoursToggle = () => {
-    const newPrefs = { ...prefs };
-    newPrefs.quietHours.enabled = !newPrefs.quietHours.enabled;
+    const newPrefs = { ...prefs, quietHours: { ...prefs.quietHours, enabled: !prefs.quietHours.enabled } };
     saveAndUpdate(newPrefs);
   };
 
-  const handleQuietHoursChange = (field: keyof QuietHours, value: number) => {
-    const newPrefs = { ...prefs };
-    (newPrefs.quietHours[field] as number) = value;
+  const handleQuietHoursTimeChange = (type: 'start' | 'end', timeStr: string) => {
+    const [h, m] = timeStr.split(':').map(Number);
+    const newPrefs = { ...prefs, quietHours: { ...prefs.quietHours } };
+    if (type === 'start') {
+      newPrefs.quietHours.startHour = h;
+      newPrefs.quietHours.startMinute = m;
+    } else {
+      newPrefs.quietHours.endHour = h;
+      newPrefs.quietHours.endMinute = m;
+    }
     saveAndUpdate(newPrefs);
   };
 
@@ -178,11 +183,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ nightMode, 
                 <input
                   type="time"
                   value={formatTime(prefs.quietHours.startHour, prefs.quietHours.startMinute)}
-                  onChange={(e) => {
-                    const [h, m] = e.target.value.split(':').map(Number);
-                    handleQuietHoursChange('startHour', h);
-                    handleQuietHoursChange('startMinute', m);
-                  }}
+                  onChange={(e) => handleQuietHoursTimeChange('start', e.target.value)}
                   className={`px-2 py-1 rounded-lg text-xs ${nightMode ? 'bg-white/10 text-slate-100' : 'text-black'}`}
                   style={nightMode ? {} : { background: 'rgba(255,255,255,0.3)' }}
                 />
@@ -191,11 +192,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ nightMode, 
               <input
                 type="time"
                 value={formatTime(prefs.quietHours.endHour, prefs.quietHours.endMinute)}
-                onChange={(e) => {
-                  const [h, m] = e.target.value.split(':').map(Number);
-                  handleQuietHoursChange('endHour', h);
-                  handleQuietHoursChange('endMinute', m);
-                }}
+                onChange={(e) => handleQuietHoursTimeChange('end', e.target.value)}
                 className={`px-2 py-1 rounded-lg text-xs ${nightMode ? 'bg-white/10 text-slate-100' : 'text-black'}`}
                 style={nightMode ? {} : { background: 'rgba(255,255,255,0.3)' }}
               />

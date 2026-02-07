@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, X, Settings, Crown, Users, Trash2, LogOut, Smile, Pin, Info, ChevronRight, Shield, ShieldCheck, Eye, User, ChevronDown, Calendar, Megaphone, Bell } from 'lucide-react';
+import { Plus, X, Settings, Crown, Users, Trash2, LogOut, Smile, Pin, Info, ChevronRight, Shield, ShieldCheck, Eye, ChevronDown, Calendar, Megaphone, Bell } from 'lucide-react';
 import { showError, showSuccess } from '../lib/toast';
 import { validateGroup, validateMessage, sanitizeInput } from '../lib/inputValidation';
 import {
@@ -12,7 +12,6 @@ import {
   leaveGroup,
   getGroupMembers,
   removeMemberFromGroup,
-  promoteMemberToLeader,
   setMemberRole,
   unsubscribe,
   addReaction,
@@ -617,19 +616,6 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
 
     if (removed) {
       console.log('✅ Member removed!');
-      // Reload members
-      const members = await getGroupMembers(activeGroup as string);
-      setGroupMembers(members || []);
-    }
-  };
-
-  const handlePromoteMember = async (userId: string) => {
-    if (!window.confirm('Promote this member to leader?')) return;
-
-    const promoted = await promoteMemberToLeader(activeGroup as string, userId);
-
-    if (promoted) {
-      console.log('✅ Member promoted!');
       // Reload members
       const members = await getGroupMembers(activeGroup as string);
       setGroupMembers(members || []);
@@ -1241,7 +1227,6 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     const myRole = getUserRole(group);
     const isLeader = hasPermission(myRole, 'canManageGroup');
     const canPin = hasPermission(myRole, 'canPinMessages');
-    const canSend = hasPermission(myRole, 'canSendMessages');
 
     return (
       <div className="flex flex-col h-[calc(100vh-140px)]">

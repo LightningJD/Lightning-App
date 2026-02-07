@@ -423,21 +423,19 @@ export const getUserRSVP = async (eventId: string, userId: string): Promise<RSVP
  */
 export const sendEventMessage = async (
   eventId: string,
-  groupId: string,
+  _groupId: string,
   senderId: string,
   content: string
 ): Promise<any> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
-    .from('group_messages')
+    .from('event_messages')
     // @ts-ignore
     .insert({
-      group_id: groupId,
+      event_id: eventId,
       sender_id: senderId,
       content,
-      message_type: 'event_chat',
-      event_id: eventId,
     })
     .select()
     .single();
@@ -457,11 +455,10 @@ export const getEventMessages = async (eventId: string, limit: number = 100): Pr
   if (!supabase) return [];
 
   const { data, error } = await supabase
-    .from('group_messages')
+    .from('event_messages')
     // @ts-ignore
     .select('*, sender:users!sender_id(username, display_name, avatar_emoji)')
     .eq('event_id', eventId)
-    .eq('message_type', 'event_chat')
     .order('created_at', { ascending: true })
     .limit(limit);
 
@@ -543,7 +540,6 @@ export const getEventsNeedingReminders = async (
 
   const now = new Date();
   const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const in1h = new Date(now.getTime() + 60 * 60 * 1000);
 
   // Get user's events they've RSVP'd 'going' or 'maybe'
   const { data: rsvps } = await supabase

@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Plus, X, ChevronLeft, Check, CheckCheck, Clock, Pin, Megaphone, Eye, Send } from 'lucide-react';
+import { Plus, X, ChevronLeft, CheckCheck, Clock, Pin, Megaphone, Eye, Send } from 'lucide-react';
 import { showError, showSuccess } from '../lib/toast';
 import { sanitizeInput } from '../lib/inputValidation';
 import {
@@ -18,7 +18,6 @@ import {
   getScheduledAnnouncements,
   publishAnnouncement,
   deleteAnnouncement,
-  getUnreadAnnouncementCount,
   ANNOUNCEMENT_CATEGORIES,
 } from '../lib/database';
 import type { GroupRole, AnnouncementCategory, AnnouncementWithDetails } from '../types';
@@ -457,7 +456,7 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
                   style={{
                     background: category === key ? cat.bgColor : (nightMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.15)'),
                     color: category === key ? cat.color : (nightMode ? '#94a3b8' : 'rgba(0,0,0,0.6)'),
-                    ringColor: cat.color,
+                    ['--tw-ring-color' as string]: cat.color,
                   }}
                 >
                   <span>{cat.emoji}</span>

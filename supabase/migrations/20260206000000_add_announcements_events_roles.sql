@@ -101,7 +101,7 @@ CREATE POLICY "announcement_receipts_delete" ON announcement_receipts FOR DELETE
 -- 4. EVENTS
 -- ============================================
 
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE IF NOT EXISTS group_events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
   creator_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -117,27 +117,27 @@ CREATE TABLE IF NOT EXISTS events (
   reminder_24h BOOLEAN DEFAULT true,
   reminder_1h BOOLEAN DEFAULT true,
   custom_reminder_minutes INTEGER,
-  parent_event_id UUID REFERENCES events(id) ON DELETE SET NULL,
+  parent_event_id UUID REFERENCES group_events(id) ON DELETE SET NULL,
   is_cancelled BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS events_group_id_idx ON events(group_id);
-CREATE INDEX IF NOT EXISTS events_creator_id_idx ON events(creator_id);
-CREATE INDEX IF NOT EXISTS events_start_time_idx ON events(start_time);
-CREATE INDEX IF NOT EXISTS events_group_upcoming_idx ON events(group_id, start_time) WHERE is_cancelled = false;
-CREATE INDEX IF NOT EXISTS events_parent_idx ON events(parent_event_id);
+CREATE INDEX IF NOT EXISTS group_events_group_id_idx ON group_events(group_id);
+CREATE INDEX IF NOT EXISTS group_events_creator_id_idx ON group_events(creator_id);
+CREATE INDEX IF NOT EXISTS group_events_start_time_idx ON group_events(start_time);
+CREATE INDEX IF NOT EXISTS group_events_group_upcoming_idx ON group_events(group_id, start_time) WHERE is_cancelled = false;
+CREATE INDEX IF NOT EXISTS group_events_parent_idx ON group_events(parent_event_id);
 
-ALTER TABLE events ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "events_select" ON events FOR SELECT USING (true);
-CREATE POLICY "events_insert" ON events FOR INSERT WITH CHECK (true);
-CREATE POLICY "events_update" ON events FOR UPDATE USING (true);
-CREATE POLICY "events_delete" ON events FOR DELETE USING (true);
+ALTER TABLE group_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "group_events_select" ON group_events FOR SELECT USING (true);
+CREATE POLICY "group_events_insert" ON group_events FOR INSERT WITH CHECK (true);
+CREATE POLICY "group_events_update" ON group_events FOR UPDATE USING (true);
+CREATE POLICY "group_events_delete" ON group_events FOR DELETE USING (true);
 
 -- Auto-update updated_at
-CREATE TRIGGER events_updated_at
-  BEFORE UPDATE ON events
+CREATE TRIGGER group_events_updated_at
+  BEFORE UPDATE ON group_events
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
@@ -146,7 +146,7 @@ CREATE TRIGGER events_updated_at
 
 CREATE TABLE IF NOT EXISTS event_rsvps (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  event_id UUID NOT NULL REFERENCES group_events(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'going' CHECK (status IN ('going', 'maybe', 'not_going')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -175,7 +175,7 @@ CREATE TRIGGER event_rsvps_updated_at
 
 CREATE TABLE IF NOT EXISTS event_messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  event_id UUID NOT NULL REFERENCES group_events(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
