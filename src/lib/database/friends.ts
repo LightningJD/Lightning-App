@@ -195,10 +195,15 @@ export const unfriend = async (userId: string, friendId: string): Promise<boolea
   if (!supabase) return null;
 
   // Delete both directions of the friendship
-  await supabase
+  const { error } = await supabase
     .from('friendships')
     .delete()
     .or(`and(user_id_1.eq.${userId},user_id_2.eq.${friendId}),and(user_id_1.eq.${friendId},user_id_2.eq.${userId})`);
+
+  if (error) {
+    console.error('Error unfriending user:', error);
+    return null;
+  }
 
   return true;
 };

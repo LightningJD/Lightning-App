@@ -160,32 +160,33 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
 
   const handleSubmitComment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!newComment.trim() || !user || !profile?.story?.id || !profile?.supabaseId) return;
+    if (!newComment.trim() || !user || !profile?.story?.id || !currentUserProfile?.supabaseId) return;
 
     setIsSubmittingComment(true);
 
+    // Use the CURRENT user's ID (commenter), not the profile owner's ID
     const { success, comment } = await addTestimonyComment(
       profile.story.id,
-      profile.supabaseId,
+      currentUserProfile.supabaseId,
       newComment.trim()
     );
 
     if (success && comment) {
-      // Verify profile exists and has required fields
-      if (!profile || !profile.username) {
-        console.error('Cannot add comment: profile data incomplete');
+      // Verify current user profile exists and has required fields
+      if (!currentUserProfile || !currentUserProfile.username) {
+        console.error('Cannot add comment: current user profile data incomplete');
         setIsSubmittingComment(false);
         return;
       }
 
-      // Add comment to local state
+      // Add comment to local state with the COMMENTER's profile data (not testimony owner's)
       setComments((prev: any[]) => [...prev, {
         ...(comment as any),
         users: {
-          username: profile.username,
-          display_name: profile.displayName,
-          avatar_emoji: profile.avatar,
-          avatar_url: profile.avatarImage
+          username: currentUserProfile.username,
+          display_name: currentUserProfile.displayName,
+          avatar_emoji: currentUserProfile.avatar,
+          avatar_url: currentUserProfile.avatarImage
         }
       }]);
       setNewComment('');

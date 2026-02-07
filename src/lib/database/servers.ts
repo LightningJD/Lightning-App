@@ -1,4 +1,7 @@
-// @ts-nocheck - Server tables not yet in auto-generated Supabase types
+// @ts-nocheck - Server tables (servers, server_roles, server_members, server_channels,
+// server_categories, server_role_permissions, channel_messages, channel_message_reactions,
+// server_join_requests) are not in the auto-generated Supabase types.
+// TODO: Run `npx supabase gen types` to generate types for these tables, then remove this directive.
 import { supabase } from '../supabase';
 import type {
   CreateServerData,
@@ -83,10 +86,13 @@ export const createServer = async (creatorId: string, serverData: CreateServerDa
   });
 
   // @ts-ignore
-  await supabase.from('server_role_permissions').insert(rolePermissions);
+  const { error: permError } = await supabase.from('server_role_permissions').insert(rolePermissions);
+  if (permError) {
+    console.error('Error creating role permissions:', permError);
+  }
 
   // 4. Create default "Text Channels" category
-  const { data: category } = await supabase
+  const { data: category, error: categoryError } = await supabase
     .from('server_categories')
     // @ts-ignore
     .insert({
@@ -97,9 +103,13 @@ export const createServer = async (creatorId: string, serverData: CreateServerDa
     .select()
     .single();
 
+  if (categoryError) {
+    console.error('Error creating default category:', categoryError);
+  }
+
   // 5. Create #general channel
   // @ts-ignore
-  await supabase.from('server_channels').insert({
+  const { error: channelError } = await supabase.from('server_channels').insert({
     server_id: serverId,
     category_id: category ? (category as any).id : null,
     name: 'general',
@@ -107,14 +117,22 @@ export const createServer = async (creatorId: string, serverData: CreateServerDa
     position: 0
   });
 
+  if (channelError) {
+    console.error('Error creating #general channel:', channelError);
+  }
+
   // 6. Add creator as member with Owner role
   const ownerRole = (createdRoles as any[]).find((r: any) => r.name === 'Owner');
   // @ts-ignore
-  await supabase.from('server_members').insert({
+  const { error: memberError } = await supabase.from('server_members').insert({
     server_id: serverId,
     user_id: creatorId,
     role_id: ownerRole?.id
   });
+
+  if (memberError) {
+    console.error('Error adding creator as server member:', memberError);
+  }
 
   return server;
 };
