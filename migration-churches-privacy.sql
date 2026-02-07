@@ -32,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_followers_follower ON followers(follower_id);
 
 -- 3. Add church_id and profile_visibility to users
 ALTER TABLE users ADD COLUMN IF NOT EXISTS church_id UUID REFERENCES churches(id);
-ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_visibility TEXT DEFAULT 'private' CHECK (profile_visibility IN ('private', 'public'));
+ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_visibility TEXT DEFAULT 'public' CHECK (profile_visibility IN ('private', 'public'));
 
 CREATE INDEX IF NOT EXISTS idx_users_church_id ON users(church_id);
 

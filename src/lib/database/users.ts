@@ -317,7 +317,6 @@ export const getAllUsers = async (
     .from('users')
     .select('*')
     .neq('id', currentUserId || '')
-    .eq('is_private', false) // Only show users who are not private
     .order('created_at', { ascending: false })
     .limit(limit);
 
