@@ -19,51 +19,52 @@ const ServerSidebar: React.FC<ServerSidebarProps> = ({
 }) => {
   return (
     <div
-      className="flex flex-col items-center py-3 gap-2 overflow-y-auto"
+      className="flex flex-col items-center py-4 gap-3 overflow-y-auto"
       style={{
-        width: '56px',
-        minWidth: '56px',
-        background: nightMode ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.06)',
-        borderRight: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`
+        width: '68px',
+        minWidth: '68px',
+        background: nightMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(30px)',
+        WebkitBackdropFilter: 'blur(30px)',
+        borderRight: `1px solid ${nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
       }}
     >
       {servers.map(server => {
         const isActive = server.id === activeServerId;
         return (
           <div key={server.id} className="relative group">
-            {/* Active indicator pill */}
-            <div
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[2px] rounded-r-full transition-all duration-200"
-              style={{
-                width: '4px',
-                height: isActive ? '32px' : '0px',
-                background: 'white',
-                opacity: isActive ? 1 : 0
-              }}
-            />
             {/* Tooltip */}
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-              <div className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap shadow-lg ${
-                nightMode ? 'bg-gray-900 text-white' : 'bg-gray-900 text-white'
-              }`}>
+            <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-200 scale-95 group-hover:scale-100">
+              <div
+                className="px-3 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap text-white"
+                style={{
+                  background: 'rgba(0, 0, 0, 0.75)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                }}
+              >
                 {server.name}
               </div>
             </div>
-            {/* Server icon */}
+            {/* Server icon — always round, glow when active */}
             <button
               onClick={() => onSelectServer(server.id)}
-              className={`w-10 h-10 flex items-center justify-center text-lg transition-all duration-200 ${
-                isActive ? 'rounded-xl' : 'rounded-full hover:rounded-xl'
-              }`}
+              className="w-12 h-12 rounded-full flex items-center justify-center text-xl transition-all duration-300 hover:scale-110 hover:-translate-y-0.5 active:scale-95"
               style={{
                 background: isActive
-                  ? 'rgba(79, 150, 255, 0.85)'
-                  : nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                boxShadow: isActive ? '0 2px 8px rgba(79, 150, 255, 0.3)' : 'none'
+                  ? 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)'
+                  : nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                boxShadow: isActive
+                  ? '0 0 20px rgba(79, 150, 255, 0.4), 0 4px 12px rgba(59, 130, 246, 0.3)'
+                  : 'none',
+                border: isActive
+                  ? '2px solid rgba(79, 150, 255, 0.5)'
+                  : `2px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
               }}
             >
               {server.icon_url ? (
-                <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-inherit object-cover" />
+                <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-full object-cover" />
               ) : (
                 server.icon_emoji
               )}
@@ -73,19 +74,25 @@ const ServerSidebar: React.FC<ServerSidebarProps> = ({
       })}
 
       {/* Separator */}
-      <div className={`w-6 h-0.5 rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+      <div
+        className="w-8 h-0.5 rounded-full my-1"
+        style={{
+          background: nightMode
+            ? 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)'
+            : 'linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent)',
+        }}
+      />
 
       {/* Create server button */}
       <button
         onClick={onCreateServer}
-        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:rounded-xl ${
-          nightMode ? 'text-green-400 hover:bg-green-400/20' : 'text-green-600 hover:bg-green-100'
-        }`}
+        className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 hover:-translate-y-0.5 active:scale-95"
         style={{
-          background: nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
+          background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+          border: `2px dashed ${nightMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)'}`,
         }}
       >
-        <Plus className="w-5 h-5" />
+        <Plus className={`w-5 h-5 ${nightMode ? 'text-white/40' : 'text-black/40'}`} />
       </button>
     </div>
   );

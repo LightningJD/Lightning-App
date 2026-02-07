@@ -7,7 +7,7 @@ import { supabase } from '../supabase';
 /**
  * Send a direct message
  */
-export const sendMessage = async (senderId: string, recipientId: string, content: string, replyToMessageId?: string): Promise<{ data: any; error: null } | { data: null; error: string }> => {
+export const sendMessage = async (senderId: string, recipientId: string, content: string, replyToMessageId?: string, imageUrl?: string): Promise<{ data: any; error: null } | { data: null; error: string }> => {
   if (!supabase) {
     console.error('Supabase client not initialized');
     return { data: null, error: 'Database not initialized' };
@@ -22,6 +22,11 @@ export const sendMessage = async (senderId: string, recipientId: string, content
   // Include reply_to_message_id if provided (for threaded replies)
   if (replyToMessageId) {
     insertPayload.reply_to_message_id = replyToMessageId;
+  }
+
+  // Include image_url if provided (for image sharing)
+  if (imageUrl) {
+    insertPayload.image_url = imageUrl;
   }
 
   const { data, error } = await supabase

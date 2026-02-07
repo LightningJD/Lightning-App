@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { ArrowLeft, Hash } from 'lucide-react';
 import { useUserProfile } from '../useUserProfile';
 import { useGuestModalContext } from '../../contexts/GuestModalContext';
 import {
@@ -67,6 +68,18 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
   const [showCreateChannel, setShowCreateChannel] = useState(false);
   const [createChannelCategoryId, setCreateChannelCategoryId] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
+
+  // Mobile responsive: show one panel at a time on small screens
+  type MobileView = 'servers' | 'channels' | 'chat';
+  const [mobileView, setMobileView] = useState<MobileView>('servers');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const activeServer = servers.find(s => s.id === activeServerId);
 
@@ -145,14 +158,25 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
   }, [profile?.supabaseId]);
 
   const handleSelectServer = useCallback((serverId: string) => {
+    if (isMobile && serverId === activeServerId) {
+      // Tapping the already-active server toggles between channels and chat
+      if (mobileView === 'channels' && activeChannelId) {
+        setMobileView('chat');
+      } else {
+        setMobileView('channels');
+      }
+      return;
+    }
     setActiveServerId(serverId);
     setViewMode('chat');
-  }, []);
+    if (isMobile) setMobileView('channels');
+  }, [isMobile, activeServerId, mobileView, activeChannelId]);
 
   const handleSelectChannel = useCallback((channelId: string) => {
     setActiveChannelId(channelId);
     setViewMode('chat');
-  }, []);
+    if (isMobile) setMobileView('chat');
+  }, [isMobile]);
 
   const handleCreateChannel = useCallback(async (name: string, topic: string, categoryId?: string) => {
     if (!activeServerId) return;
@@ -184,7 +208,6 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
     if (result) {
       setServers(prev => {
         const remaining = prev.filter(s => s.id !== activeServerId);
-        // Use the filtered list (fresh state) to pick the next active server
         setActiveServerId(remaining.length > 0 ? remaining[0]?.id || null : null);
         return remaining;
       });
@@ -251,19 +274,19 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
   if (!loading && servers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-20 px-6">
-        <div className="text-5xl mb-4">⛪</div>
+        <div className="text-6xl mb-5">{'\u{26EA}'}</div>
         <h2 className={`text-xl font-bold mb-2 ${nightMode ? 'text-white' : 'text-black'}`}>
           No Servers Yet
         </h2>
-        <p className={`text-center mb-6 ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
+        <p className={`text-center mb-6 max-w-xs ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
           Create a server for your church or community, or join one with an invite link.
         </p>
         <button
           onClick={() => setShowCreateServer(true)}
-          className="px-6 py-3 rounded-xl text-white font-semibold transition-all active:scale-95"
+          className="px-8 py-3.5 rounded-xl text-white font-bold transition-all active:scale-95 hover:scale-[1.02]"
           style={{
             background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+            boxShadow: '0 4px 16px rgba(59, 130, 246, 0.35)',
           }}
         >
           Create a Server
@@ -279,6 +302,11 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
     );
   }
 
+  const handleBackFromContent = useCallback(() => {
+    setViewMode('chat');
+    if (isMobile) setMobileView('channels');
+  }, [isMobile]);
+
   // Render content area based on view mode
   const renderContent = () => {
     if (viewMode === 'settings' && activeServer) {
@@ -289,7 +317,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
           permissions={permissions}
           onUpdate={handleUpdateServer}
           onDelete={handleDeleteServer}
-          onBack={() => setViewMode('chat')}
+          onBack={handleBackFromContent}
           onGenerateInvite={handleGenerateInvite}
         />
       );
@@ -305,7 +333,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
           onUpdateRole={handleUpdateRole}
           onDeleteRole={handleDeleteRole}
           onUpdatePermissions={handleUpdatePermissions}
-          onBack={() => setViewMode('chat')}
+          onBack={handleBackFromContent}
         />
       );
     }
@@ -320,7 +348,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
           permissions={permissions}
           onAssignRole={handleAssignRole}
           onRemoveMember={handleRemoveMember}
-          onBack={() => setViewMode('chat')}
+          onBack={handleBackFromContent}
         />
       );
     }
@@ -344,8 +372,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-3">💬</div>
-          <p className={nightMode ? 'text-white/40' : 'text-black/40'}>
+          <div className="text-5xl mb-4">{'\u{1F4AC}'}</div>
+          <p className={`text-sm ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
             Select a channel to start chatting
           </p>
         </div>
@@ -353,6 +381,139 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
     );
   };
 
+  // Active channel name for mobile header
+  const activeChannel = channels.find(c => c.id === activeChannelId);
+
+  // ── MOBILE LAYOUT ─────────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-full" style={{ height: 'calc(100vh - 120px)' }}>
+        {/* Mobile: Servers + Channels list */}
+        {(mobileView === 'servers' || mobileView === 'channels') && (
+          <div className="flex flex-col h-full">
+            {/* Server icons row (horizontal on mobile) */}
+            <div
+              className="flex items-center gap-2 px-3 py-2 overflow-x-auto flex-shrink-0"
+              style={{
+                background: nightMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.3)',
+                borderBottom: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+              }}
+            >
+              {servers.map((server) => (
+                <button
+                  key={server.id}
+                  onClick={() => handleSelectServer(server.id)}
+                  className={`w-11 h-11 rounded-full flex items-center justify-center text-lg flex-shrink-0 transition-all active:scale-95 ${
+                    activeServerId === server.id
+                      ? 'ring-2 ring-blue-500 ring-offset-1'
+                      : ''
+                  }`}
+                  style={{
+                    background: activeServerId === server.id
+                      ? nightMode ? 'rgba(79,150,255,0.25)' : 'rgba(79,150,255,0.15)'
+                      : nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                  }}
+                  title={server.name}
+                >
+                  {server.icon_url ? (
+                    <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    server.icon_emoji || '\u{26EA}'
+                  )}
+                </button>
+              ))}
+              <button
+                onClick={() => setShowCreateServer(true)}
+                className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-95 ${
+                  nightMode ? 'bg-white/10 text-white/40' : 'bg-black/5 text-black/40'
+                }`}
+              >
+                +
+              </button>
+            </div>
+
+            {/* Channel list (full width on mobile) */}
+            {activeServer && (
+              <div className="flex-1 overflow-y-auto">
+                <ChannelSidebar
+                  nightMode={nightMode}
+                  serverName={activeServer.name}
+                  serverEmoji={activeServer.icon_emoji || '\u{26EA}'}
+                  categories={categories}
+                  channels={channels}
+                  activeChannelId={activeChannelId}
+                  onSelectChannel={handleSelectChannel}
+                  onCreateChannel={handleOpenCreateChannel}
+                  onOpenSettings={() => { setViewMode('settings'); setMobileView('chat'); }}
+                  onOpenRoles={() => { setViewMode('roles'); setMobileView('chat'); }}
+                  onOpenMembers={() => { setViewMode('members'); setMobileView('chat'); }}
+                  canManageChannels={permissions.manage_channels}
+                  fullWidth
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Mobile: Chat / Settings / Roles / Members view (full screen with back button) */}
+        {mobileView === 'chat' && (
+          <div className="flex flex-col h-full">
+            {/* Mobile header with back button */}
+            {viewMode === 'chat' && (
+              <div
+                className="flex items-center gap-2 px-3 py-2.5 flex-shrink-0"
+                style={{
+                  background: nightMode ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.4)',
+                  borderBottom: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                }}
+              >
+                <button
+                  onClick={() => setMobileView('channels')}
+                  className={`p-1.5 rounded-lg transition-all active:scale-95 ${nightMode ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}
+                >
+                  <ArrowLeft className={`w-5 h-5 ${nightMode ? 'text-white' : 'text-black'}`} />
+                </button>
+                <Hash className={`w-4 h-4 ${nightMode ? 'text-white/50' : 'text-black/40'}`} />
+                <span className={`font-semibold text-sm ${nightMode ? 'text-white' : 'text-black'}`}>
+                  {activeChannel?.name || 'general'}
+                </span>
+                {activeChannel?.topic && (
+                  <span className={`text-xs truncate ml-1 ${nightMode ? 'text-white/30' : 'text-black/30'}`}>
+                    {activeChannel.topic}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Content area (full width) */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {renderContent()}
+            </div>
+          </div>
+        )}
+
+        {/* Dialogs */}
+        <CreateServerDialog
+          nightMode={nightMode}
+          isOpen={showCreateServer}
+          onClose={() => setShowCreateServer(false)}
+          onCreate={handleCreateServer}
+        />
+        <CreateChannelDialog
+          nightMode={nightMode}
+          isOpen={showCreateChannel}
+          onClose={() => setShowCreateChannel(false)}
+          onCreate={handleCreateChannel}
+          categories={categories}
+          defaultCategoryId={createChannelCategoryId}
+        />
+      </div>
+    );
+  }
+
+  // ── DESKTOP LAYOUT (unchanged) ────────────────────────────────
   return (
     <div className="flex h-full" style={{ height: 'calc(100vh - 120px)' }}>
       {/* Server sidebar (icons) */}
@@ -369,7 +530,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode }) => {
         <ChannelSidebar
           nightMode={nightMode}
           serverName={activeServer.name}
-          serverEmoji={activeServer.icon_emoji || '⛪'}
+          serverEmoji={activeServer.icon_emoji || '\u{26EA}'}
           categories={categories}
           channels={channels}
           activeChannelId={activeChannelId}

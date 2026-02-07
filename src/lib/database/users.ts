@@ -306,3 +306,29 @@ export const getAllUsers = async (
 
   return (data || []) as unknown as User[];
 };
+
+/**
+ * Check if a user has admin role
+ * Queries the 'role' column in users table (defaults to 'user')
+ */
+export const isAdmin = async (userId: string): Promise<boolean> => {
+  if (!supabase || !userId) return false;
+
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('role' as any)
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      // If role column doesn't exist yet, fail gracefully
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+
+    return (data as any)?.role === 'admin';
+  } catch {
+    return false;
+  }
+};

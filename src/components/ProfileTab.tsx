@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Share2, Plus, Edit3, MapPin } from 'lucide-react';
+import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
 import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
@@ -7,6 +7,7 @@ import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUse
 import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
 import MusicPlayer from './MusicPlayer';
+import TestimonyShareModal from './TestimonyShareModal';
 import { deleteTestimony } from '../lib/database';
 
 interface ProfileTabProps {
@@ -21,7 +22,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   const { user } = useUser();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);
-  const [showQR, setShowQR] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showTestimonyMenu, setShowTestimonyMenu] = useState(false);
   const [showLesson, setShowLesson] = useState(false);
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const [avatarTaps, setAvatarTaps] = useState(0);
@@ -256,22 +258,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         </div>
       </div>
 
-      {showQR && (
-        <div className="px-4">
-          <div
-            className={`p-4 rounded-xl border text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-            style={nightMode ? {} : {
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-            }}
-          >
-            <div className="text-5xl">📱</div>
-            <p className={`mt-2 text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>Scan to connect</p>
-          </div>
-        </div>
-      )}
+      {/* Testimony Share Modal */}
+      <TestimonyShareModal
+        nightMode={nightMode}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        testimonyId={profile?.story?.id || ''}
+        testimonyText={profile?.story?.content || profile?.story?.text || ''}
+        profileName={profile?.name || profile?.displayName || 'Someone'}
+      />
 
       {/* Music Player - Only show when there's a testimony or profile song */}
       {profile.music && profile.music.spotifyUrl && (
@@ -355,26 +350,67 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                   </button>
                 )}
 
+                {/* More menu (owner only) */}
                 {profile?.story?.id && currentUserProfile?.supabaseId === profile?.supabaseId && (
-                  <button
-                    onClick={async () => {
-                      if (!profile?.story?.id || !profile?.supabaseId) return;
-                      if (!window.confirm('Delete your testimony? This cannot be undone.')) return;
-                      const { success } = await deleteTestimony(profile.story.id, profile.supabaseId);
-                      if (success) {
-                        window.location.reload();
-                      } else {
-                        alert('Failed to delete testimony. Please try again.');
-                      }
-                    }}
-                    className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${nightMode
-                        ? 'border-red-400 text-red-300 hover:bg-red-500/10'
-                        : 'border-red-300 text-red-600 hover:bg-red-50'
-                      }`}
-                    title="Delete testimony"
-                  >
-                    Delete
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowTestimonyMenu(!showTestimonyMenu)}
+                      className={`p-2 rounded-lg border transition-all duration-200 ${nightMode
+                          ? 'border-white/20 hover:bg-white/10'
+                          : 'border-white/30 hover:bg-white/20'
+                        }`}
+                      style={nightMode ? {
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)'
+                      } : {
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        backdropFilter: 'blur(30px)',
+                        WebkitBackdropFilter: 'blur(30px)',
+                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                      }}
+                      title="More options"
+                    >
+                      <MoreHorizontal className={`w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-black'}`} />
+                    </button>
+
+                    {showTestimonyMenu && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setShowTestimonyMenu(false)} />
+                        <div
+                          className={`absolute right-0 top-full mt-1 z-50 rounded-xl overflow-hidden shadow-xl border ${nightMode ? 'border-white/10' : 'border-white/30'}`}
+                          style={nightMode ? {
+                            background: 'rgba(20, 20, 20, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)'
+                          } : {
+                            background: 'rgba(255, 255, 255, 0.9)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)'
+                          }}
+                        >
+                          <button
+                            onClick={async () => {
+                              setShowTestimonyMenu(false);
+                              if (!profile?.story?.id || !profile?.supabaseId) return;
+                              if (!window.confirm('Delete your testimony? This cannot be undone.')) return;
+                              const { success } = await deleteTestimony(profile.story.id, profile.supabaseId);
+                              if (success) {
+                                window.location.reload();
+                              } else {
+                                alert('Failed to delete testimony. Please try again.');
+                              }
+                            }}
+                            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium w-full text-left whitespace-nowrap transition-colors ${nightMode ? 'text-red-400 hover:bg-white/5' : 'text-red-600 hover:bg-red-50'}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete Testimony
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -612,10 +648,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           <button
             onClick={async () => {
               try {
+                const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
                 const shareData = {
-                  title: 'My Testimony on Lightning',
+                  title: `${profile?.name || 'Someone'}'s Testimony on Lightning`,
                   text: 'Be encouraged by this testimony on Lightning ✨',
-                  url: window.location.href
+                  url: testimonyUrl
                 };
                 // Prefer Web Share API if available
                 // @ts-ignore - navigator.share types vary across environments
@@ -623,12 +660,12 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                   // @ts-ignore
                   await navigator.share(shareData);
                 } else {
-                  // Fallback to QR toggle
-                  setShowQR((prev) => !prev);
+                  // Fallback to share modal
+                  setShowShareModal(true);
                 }
-              } catch (err) {
-                // If user cancels or share fails, show QR fallback
-                setShowQR((prev) => !prev);
+              } catch {
+                // If user cancels or share fails, show share modal
+                setShowShareModal(true);
               }
             }}
             className={`w-full mt-3 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 text-sm transition-all duration-200 border cursor-pointer ${nightMode ? 'text-slate-100 border-white/20' : 'text-black border-white/30'}`}

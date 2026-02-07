@@ -234,3 +234,120 @@ export const REPORT_REASONS = {
     { value: 'other', label: 'Other' }
   ]
 };
+
+// ============================================
+// ADMIN MODERATION FUNCTIONS
+// ============================================
+
+/**
+ * Get all reports with optional filters (admin only)
+ */
+export const getAllReports = async (
+  filters?: { status?: string; type?: string; limit?: number }
+): Promise<any[]> => {
+  try {
+    if (!supabase) throw new Error('Database not initialized');
+
+    let query = supabase
+      .from('reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+    if (filters?.type) {
+      query = query.eq('report_type', filters.type);
+    }
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    } else {
+      query = query.limit(100);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching all reports:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error in getAllReports:', error);
+    return [];
+  }
+};
+
+/**
+ * Get report counts by status (admin dashboard stats)
+ */
+export const getReportCounts = async (): Promise<{
+  pending: number;
+  reviewed: number;
+  resolved: number;
+  dismissed: number;
+  total: number;
+}> => {
+  try {
+    if (!supabase) throw new Error('Database not initialized');
+
+    const { data, error } = await supabase
+      .from('reports')
+      .select('status');
+
+    if (error) {
+      console.error('Error fetching report counts:', error);
+      return { pending: 0, reviewed: 0, resolved: 0, dismissed: 0, total: 0 };
+    }
+
+    const reports = data || [];
+    return {
+      pending: reports.filter((r: any) => r.status === 'pending').length,
+      reviewed: reports.filter((r: any) => r.status === 'reviewed').length,
+      resolved: reports.filter((r: any) => r.status === 'resolved').length,
+      dismissed: reports.filter((r: any) => r.status === 'dismissed').length,
+      total: reports.length,
+    };
+  } catch (error) {
+    console.error('Error in getReportCounts:', error);
+    return { pending: 0, reviewed: 0, resolved: 0, dismissed: 0, total: 0 };
+  }
+};
+
+/**
+ * Update report status (admin action)
+ */
+export const updateReportStatus = async (
+  reportId: string,
+  status: 'pending' | 'reviewed' | 'resolved' | 'dismissed',
+  adminNotes?: string
+): Promise<boolean> => {
+  try {
+    if (!supabase) throw new Error('Database not initialized');
+
+    const updatePayload: any = {
+      status,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (adminNotes) {
+      updatePayload.admin_notes = adminNotes;
+    }
+
+    const { error } = await supabase
+      .from('reports')
+      .update(updatePayload)
+      .eq('id', reportId);
+
+    if (error) {
+      console.error('Error updating report status:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in updateReportStatus:', error);
+    return false;
+  }
+};

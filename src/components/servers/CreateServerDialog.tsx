@@ -10,12 +10,12 @@ interface CreateServerDialogProps {
   onCreate: (name: string, description: string, iconEmoji: string) => void;
 }
 
-const SERVER_EMOJIS = ['⛪', '✝️', '🕊️', '🙏', '⭐', '🔥', '💒', '📖', '🌟', '💜', '🏠', '🎵'];
+const SERVER_EMOJIS = ['\u{26EA}', '\u{271D}\u{FE0F}', '\u{1F54A}\u{FE0F}', '\u{1F64F}', '\u{2B50}', '\u{1F525}', '\u{1F492}', '\u{1F4D6}', '\u{1F31F}', '\u{1F49C}', '\u{1F3E0}', '\u{1F3B5}'];
 
 const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ nightMode, isOpen, onClose, onCreate }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [iconEmoji, setIconEmoji] = useState('⛪');
+  const [iconEmoji, setIconEmoji] = useState('\u{26EA}');
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -37,47 +37,74 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ nightMode, isOp
     setLoading(false);
     setName('');
     setDescription('');
-    setIconEmoji('⛪');
+    setIconEmoji('\u{26EA}');
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        background: 'rgba(0, 0, 0, 0.5)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div
-        className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
-        style={{ background: nightMode ? '#0a0a0a' : '#fff' }}
+        className="w-full max-w-md rounded-3xl shadow-2xl overflow-hidden transition-all"
+        style={{
+          background: nightMode ? 'rgba(15, 15, 25, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(30px)',
+          WebkitBackdropFilter: 'blur(30px)',
+          border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+          boxShadow: nightMode
+            ? '0 24px 48px rgba(0,0,0,0.4)'
+            : '0 24px 48px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)',
+        }}
       >
-        {/* Header */}
-        <div className="p-6" style={{ background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)' }}>
+        {/* Header with gradient */}
+        <div
+          className="p-6 pb-5"
+          style={{ background: 'linear-gradient(135deg, rgba(79, 150, 255, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)' }}
+        >
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Create Server</h2>
-            <button onClick={onClose} className="p-1 rounded-full hover:bg-white/20 transition-colors">
-              <X className="w-5 h-5 text-white" />
+            <h2 className={`text-xl font-bold ${nightMode ? 'text-white' : 'text-black'}`}>Create Server</h2>
+            <button
+              onClick={onClose}
+              className={`p-1.5 rounded-xl transition-all hover:scale-110 active:scale-95 ${
+                nightMode ? 'hover:bg-white/10 text-white/50' : 'hover:bg-black/5 text-black/50'
+              }`}
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
-          <p className="text-white/70 text-sm mt-1">Create a new server for your church or community</p>
+          <p className={`text-sm mt-1 ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
+            Create a new server for your church or community
+          </p>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-5">
           {/* Icon picker */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+            <label className={`block text-sm font-semibold mb-3 ${nightMode ? 'text-white/70' : 'text-black/70'}`}>
               Server Icon
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2.5">
               {SERVER_EMOJIS.map(emoji => (
                 <button
                   key={emoji}
                   onClick={() => setIconEmoji(emoji)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition-all ${
-                    iconEmoji === emoji
-                      ? 'ring-2 ring-blue-500 scale-110'
-                      : nightMode ? 'hover:bg-white/10' : 'hover:bg-slate-100'
-                  }`}
+                  className="w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all duration-300 hover:scale-110 active:scale-95"
                   style={{
                     background: iconEmoji === emoji
-                      ? nightMode ? 'rgba(79, 150, 255, 0.2)' : 'rgba(79, 150, 255, 0.1)'
-                      : 'transparent'
+                      ? 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)'
+                      : nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                    boxShadow: iconEmoji === emoji
+                      ? '0 0 16px rgba(79, 150, 255, 0.35)'
+                      : 'none',
+                    border: iconEmoji === emoji
+                      ? '2px solid rgba(79, 150, 255, 0.5)'
+                      : `2px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
                   }}
                 >
                   {emoji}
@@ -88,7 +115,7 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ nightMode, isOp
 
           {/* Server name */}
           <div>
-            <label className={`block text-sm font-medium mb-1 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+            <label className={`block text-sm font-semibold mb-2 ${nightMode ? 'text-white/70' : 'text-black/70'}`}>
               Server Name
             </label>
             <input
@@ -97,18 +124,22 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ nightMode, isOp
               onChange={e => setName(e.target.value)}
               placeholder="My Church Community"
               maxLength={50}
-              className={`w-full px-4 py-2.5 rounded-xl border transition-colors ${
+              className={`w-full px-4 py-3 rounded-xl text-sm transition-all ${
                 nightMode
-                  ? 'bg-white/5 border-white/10 text-white placeholder-white/30'
-                  : 'bg-white border-slate-200 text-black placeholder-slate-400'
+                  ? 'text-white placeholder-white/30'
+                  : 'text-black placeholder-black/40'
               }`}
+              style={{
+                background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)',
+                border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+              }}
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className={`block text-sm font-medium mb-1 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
-              Description <span className="text-slate-400 font-normal">(optional)</span>
+            <label className={`block text-sm font-semibold mb-2 ${nightMode ? 'text-white/70' : 'text-black/70'}`}>
+              Description <span className={`font-normal ${nightMode ? 'text-white/30' : 'text-black/30'}`}>(optional)</span>
             </label>
             <textarea
               value={description}
@@ -116,11 +147,15 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ nightMode, isOp
               placeholder="What's your server about?"
               rows={3}
               maxLength={200}
-              className={`w-full px-4 py-2.5 rounded-xl border resize-none transition-colors ${
+              className={`w-full px-4 py-3 rounded-xl text-sm resize-none transition-all ${
                 nightMode
-                  ? 'bg-white/5 border-white/10 text-white placeholder-white/30'
-                  : 'bg-white border-slate-200 text-black placeholder-slate-400'
+                  ? 'text-white placeholder-white/30'
+                  : 'text-black placeholder-black/40'
               }`}
+              style={{
+                background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)',
+                border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+              }}
             />
           </div>
 
@@ -128,10 +163,10 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({ nightMode, isOp
           <button
             onClick={handleCreate}
             disabled={loading || !name.trim()}
-            className="w-full py-3 rounded-xl text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="w-full py-3.5 rounded-xl text-white font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 hover:scale-[1.02]"
             style={{
               background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
-              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+              boxShadow: name.trim() ? '0 4px 16px rgba(59, 130, 246, 0.35)' : 'none',
             }}
           >
             {loading ? 'Creating...' : 'Create Server'}
