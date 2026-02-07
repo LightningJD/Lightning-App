@@ -595,3 +595,40 @@ export const getFeedTestimonies = async (
     return [];
   }
 };
+
+/**
+ * Get trending testimony for a church — most liked in the past 7 days
+ * Returns a single testimony or null if none qualify
+ */
+export const getTrendingTestimony = async (churchId: string | null): Promise<any | null> => {
+  if (!supabase || !churchId) return null;
+
+  try {
+    // Get church member IDs
+    const { data: churchUsers, error: usersError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('church_id' as any, churchId);
+
+    if (usersError || !churchUsers?.length) return null;
+    const churchUserIds = (churchUsers as any[]).map((u: any) => u.id);
+
+    // Get most-liked testimony from the past 7 days
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await (supabase as any)
+      .from('testimonies')
+      .select(TESTIMONY_SELECT_WITH_USER)
+      .in('user_id', churchUserIds)
+      .gte('created_at', oneWeekAgo)
+      .gt('like_count', 0)
+      .order('like_count', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+};

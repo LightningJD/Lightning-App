@@ -33,7 +33,8 @@ export {
   getPublicTestimonies,
   getDiscoverTestimonies,
   getChurchTestimonies,
-  getFeedTestimonies
+  getFeedTestimonies,
+  getTrendingTestimony
 } from './testimonies.js';
 
 // Messaging
@@ -90,7 +91,8 @@ export {
   getSentFriendRequests,
   unfriend,
   checkFriendshipStatus,
-  getMutualFriends
+  getMutualFriends,
+  getFriendsOfFriends
 } from './friends.js';
 
 // Servers (Discord-style)

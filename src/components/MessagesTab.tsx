@@ -3,6 +3,7 @@ import { Smile, Plus, X, Reply, Trash2, MoreVertical, UserX, Image as ImageIcon 
 import { sendMessage, getConversation, getUserConversations, subscribeToMessages, subscribeToMessageReactions, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy, createGroup, sendGroupMessage, addReaction, removeReaction, getMessageReactions, deleteMessage, blockUser, markConversationAsRead } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { showError, showSuccess } from '../lib/toast';
+import { checkBeforeSend } from '../lib/contentFilter';
 import { ConversationSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/secrets';
@@ -11,6 +12,7 @@ import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
 import { validateMessage, sanitizeInput } from '../lib/inputValidation';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { uploadMessageImage } from '../lib/cloudinary';
+import OtherUserProfileDialog from './OtherUserProfileDialog';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: any): string => {
@@ -88,12 +90,14 @@ interface MessagesTabProps {
   nightMode: boolean;
   onConversationsCountChange?: (count: number) => void;
   startChatWith?: { id: string; name: string; avatar?: string } | null;
+  initialConversation?: { id: string | number; userId: string } | null;
+  onBack?: () => void;
 }
 
-const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCountChange, startChatWith }) => {
+const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCountChange, startChatWith, initialConversation, onBack }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
-  const [activeChat, setActiveChat] = useState<number | string | null>(null);
+  const [activeChat, setActiveChat] = useState<number | string | null>(initialConversation?.id ?? null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
@@ -115,6 +119,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const [showConversationMenu, setShowConversationMenu] = useState<boolean>(false);
+  const [viewingChatUser, setViewingChatUser] = useState<any>(null);
   const [mobileActionMenu, setMobileActionMenu] = useState<number | string | null>(null);
   const messageLongPressRef = useRef<NodeJS.Timeout | null>(null);
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
@@ -539,6 +544,20 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
         showError(validation.errors[0] || 'Invalid message');
         return;
       }
+
+      // Profanity check
+      const profanityResult = checkBeforeSend(newMessage);
+      if (!profanityResult.allowed && profanityResult.flag) {
+        if (profanityResult.severity === 'high') {
+          showError('This message contains content that violates community guidelines');
+          return;
+        }
+        if (profanityResult.severity === 'medium') {
+          if (!window.confirm('This message may contain inappropriate content. Send anyway?')) {
+            return;
+          }
+        }
+      }
     }
 
     // Check rate limit
@@ -795,6 +814,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     const conversation = conversations.find(c => c.id === activeChat);
 
     if (!conversation) {
+      // If conversations haven't loaded yet, show a loading indicator instead of null
+      if (isInitialLoad) {
+        return (
+          <div className="flex items-center justify-center h-64">
+            <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${nightMode ? 'border-white/30' : 'border-slate-400'}`} />
+          </div>
+        );
+      }
       return null;
     }
 
@@ -811,12 +838,22 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           }}
         >
           <button
-            onClick={() => setActiveChat(null)}
+            onClick={() => onBack ? onBack() : setActiveChat(null)}
             className={nightMode ? 'text-blue-500 text-sm font-semibold' : 'text-blue-600 text-sm font-semibold'}
           >
             ← Back
           </button>
-          <div className="flex items-center gap-2">
+          <button
+            className="flex items-center gap-2 active:opacity-70 transition-opacity"
+            onClick={() => setViewingChatUser({
+              id: conversation.userId,
+              displayName: conversation.name,
+              avatar: conversation.avatar,
+              avatarImage: conversation.avatarImage,
+              online: conversation.online,
+            })}
+            aria-label={`View ${conversation.name}'s profile`}
+          >
             <div className="relative">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
                 nightMode
@@ -833,13 +870,13 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                 <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? 'border-[#0a0a0a]' : 'border-white'}`}></div>
               )}
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col text-left">
               <span className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{conversation.name}</span>
               <span className={`text-xs ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
                 {conversation.online ? '🟢 Online' : '⚫ Offline'}
               </span>
             </div>
-          </div>
+          </button>
           <div className="relative">
             <button
               onClick={() => setShowConversationMenu(!showConversationMenu)}
@@ -1435,6 +1472,16 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
               onClick={(e) => e.stopPropagation()}
             />
           </div>
+        )}
+
+        {/* Other User Profile Dialog */}
+        {viewingChatUser && (
+          <OtherUserProfileDialog
+            user={viewingChatUser}
+            onClose={() => setViewingChatUser(null)}
+            nightMode={nightMode}
+            onMessage={() => setViewingChatUser(null)}
+          />
         )}
       </div>
     );

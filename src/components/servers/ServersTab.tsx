@@ -44,17 +44,19 @@ import MemberList from './MemberList';
 interface ServersTabProps {
   nightMode: boolean;
   onActiveServerChange?: (serverName: string | null, serverEmoji?: string) => void;
+  initialServerId?: string;
+  onBack?: () => void;
 }
 
 type ViewMode = 'chat' | 'settings' | 'roles' | 'members';
 
-const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange }) => {
+const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange, initialServerId, onBack }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
 
   // Core state
   const [servers, setServers] = useState<any[]>([]);
-  const [activeServerId, setActiveServerId] = useState<string | null>(null);
+  const [activeServerId, setActiveServerId] = useState<string | null>(initialServerId || null);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
 

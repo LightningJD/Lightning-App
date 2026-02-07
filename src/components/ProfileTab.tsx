@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2, Globe, Lock, Eye, EyeOff } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
+import { checkBeforeSend } from '../lib/contentFilter';
 import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
 import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony, updateUserProfile, leaveChurch, regenerateChurchInviteCode } from '../lib/database';
 import { useUser } from '@clerk/clerk-react';
@@ -165,6 +166,20 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
   const handleSubmitComment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newComment.trim() || !user || !profile?.story?.id || !currentUserProfile?.supabaseId) return;
+
+    // Profanity check on comment
+    const profanityResult = checkBeforeSend(newComment);
+    if (!profanityResult.allowed && profanityResult.flag) {
+      if (profanityResult.severity === 'high') {
+        alert('This comment contains content that violates community guidelines.');
+        return;
+      }
+      if (profanityResult.severity === 'medium') {
+        if (!window.confirm('This comment may contain inappropriate content. Post anyway?')) {
+          return;
+        }
+      }
+    }
 
     setIsSubmittingComment(true);
 

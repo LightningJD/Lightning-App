@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useClerk, useSession } from '@clerk/clerk-react';
 import { User, MessageCircle, Users, MapPin, Zap, Plus, X, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
 import ProfileTab from './components/ProfileTab';
-import MessagesTab from './components/MessagesTab';
-import ServersTab from './components/servers/ServersTab';
+import ChatTab from './components/ChatTab';
 import NearbyTab from './components/NearbyTab';
 import MenuItem from './components/MenuItem';
 import ProfileCreationWizard from './components/ProfileCreationWizard';
@@ -26,6 +25,7 @@ import ReportContent from './components/ReportContent';
 import LinkSpotify from './components/LinkSpotify';
 import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
 import { generateTestimony } from './lib/api/claude';
+import { checkBeforeSend } from './lib/contentFilter';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests, createChurch, joinChurchByCode } from './lib/database';
 import { isAdmin } from './lib/database/users';
@@ -68,6 +68,9 @@ function App() {
   const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
   const [logoClicks, setLogoClicks] = useState(0);
   const [startChatWith, setStartChatWith] = useState<{ id: string; name: string; avatar?: string } | null>(null);
+  const handleConversationsCountChange = useCallback((count: number) => {
+    setNotificationCounts((prev) => ({ ...prev, messages: count }));
+  }, []);
   const [logoClickTimer, setLogoClickTimer] = useState<NodeJS.Timeout | null>(null);
   const [showSecretsMuseum, setShowSecretsMuseum] = useState(false);
   const [testimonyStartTime, setTestimonyStartTime] = useState<number | null>(null);
@@ -337,6 +340,15 @@ function App() {
 
         if (guestTestimony) {
           console.log('🎉 User signed up! Auto-saving guest testimony to database...');
+
+          // Profanity check on guest testimony — block only HIGH severity
+          const guestProfanityResult = checkBeforeSend(guestTestimony.content);
+          if (guestProfanityResult.severity === 'high') {
+            console.warn('⚠️ Guest testimony blocked by profanity filter');
+            clearGuestTestimony();
+            return;
+          }
+
           const toastId = showLoading('Saving your testimony...');
 
           try {
@@ -919,6 +931,13 @@ function App() {
           updateToError(toastId, 'Failed to identify user profile. Please refresh and try again.');
           return;
         }
+        // Profanity check on testimony content — block only HIGH severity
+        const profanityResult = checkBeforeSend(testimonyData.content);
+        if (profanityResult.severity === 'high') {
+          updateToError(toastId, 'Your testimony contains content that violates community guidelines. Please revise and try again.');
+          return;
+        }
+
         console.log('Authenticated user - saving AI-generated testimony to database');
         const saved = await createTestimony(targetUserId, {
           content: testimonyData.content,
@@ -979,22 +998,16 @@ function App() {
 
   const renderContent = () => {
     switch (currentTab) {
-      case 'messages':
+      case 'chat':
         return (
-          <ComponentErrorBoundary name="Messages" nightMode={nightMode}>
-            <MessagesTab
+          <ComponentErrorBoundary name="Chat" nightMode={nightMode}>
+            <ChatTab
               nightMode={nightMode}
-              onConversationsCountChange={(count) =>
-                setNotificationCounts((prev) => ({ ...prev, messages: count }))
-              }
+              onConversationsCountChange={handleConversationsCountChange}
               startChatWith={startChatWith}
+              onStartChatConsumed={() => setStartChatWith(null)}
+              onActiveServerChange={(name, emoji) => { setActiveServerName(name); setActiveServerEmoji(emoji || null); }}
             />
-          </ComponentErrorBoundary>
-        );
-      case 'groups':
-        return (
-          <ComponentErrorBoundary name="Servers" nightMode={nightMode}>
-            <ServersTab nightMode={nightMode} onActiveServerChange={(name, emoji) => { setActiveServerName(name); setActiveServerEmoji(emoji || null); }} />
           </ComponentErrorBoundary>
         );
       case 'connect':
@@ -1008,7 +1021,7 @@ function App() {
               nightMode={nightMode}
               onNavigateToMessages={(user: any) => {
                 setStartChatWith({ id: String(user.id), name: user.displayName || user.username || 'User', avatar: user.avatar || user.avatar_emoji || '👤' });
-                setCurrentTab('messages');
+                setCurrentTab('chat');
               }}
             />
           </ComponentErrorBoundary>
@@ -1072,17 +1085,14 @@ function App() {
                     </div>
                   )}
 
-                  {currentTab === 'messages' && (
-                    <div className="font-semibold text-black text-xl">Messages</div>
-                  )}
-                  {currentTab === 'groups' && (
+                  {currentTab === 'chat' && (
                     <div className="font-semibold text-black text-xl flex items-center gap-2">
                       {activeServerName ? (
                         <>
                           {activeServerEmoji && <span className="text-lg">{activeServerEmoji}</span>}
                           <span className="truncate max-w-[200px]">{activeServerName}</span>
                         </>
-                      ) : 'Servers'}
+                      ) : 'Chat'}
                     </div>
                   )}
                   {currentTab === 'connect' && (
@@ -1121,17 +1131,14 @@ function App() {
                     </div>
                   )}
 
-                  {currentTab === 'messages' && (
-                    <div className="font-semibold text-slate-100 text-xl">Messages</div>
-                  )}
-                  {currentTab === 'groups' && (
+                  {currentTab === 'chat' && (
                     <div className="font-semibold text-slate-100 text-xl flex items-center gap-2">
                       {activeServerName ? (
                         <>
                           {activeServerEmoji && <span className="text-lg">{activeServerEmoji}</span>}
                           <span className="truncate max-w-[200px]">{activeServerName}</span>
                         </>
-                      ) : 'Servers'}
+                      ) : 'Chat'}
                     </div>
                   )}
                   {currentTab === 'connect' && (
@@ -1514,14 +1521,14 @@ function App() {
                 <span className="text-[10px] font-medium">Profile</span>
               </button>
               <button
-                onClick={() => setCurrentTab('messages')}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'messages' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
-                style={currentTab === 'messages' ? {
+                onClick={() => setCurrentTab('chat')}
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'chat' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
+                style={currentTab === 'chat' ? {
                   background: 'rgba(79, 150, 255, 0.85)',
                   backdropFilter: 'blur(30px)',
                   WebkitBackdropFilter: 'blur(30px)'
                 } : {}}
-                aria-label={`Messages${notificationCounts.messages > 0 ? ` (${notificationCounts.messages} unread)` : ''}`}
+                aria-label={`Chat${notificationCounts.messages > 0 ? ` (${notificationCounts.messages} unread)` : ''}`}
               >
                 <div className="relative">
                   <MessageCircle className="w-5 h-5" />
@@ -1531,27 +1538,7 @@ function App() {
                     </div>
                   )}
                 </div>
-                <span className="text-[10px] font-medium">Messages</span>
-              </button>
-              <button
-                onClick={() => setCurrentTab('groups')}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${currentTab === 'groups' ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30' : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'}`}
-                style={currentTab === 'groups' ? {
-                  background: 'rgba(79, 150, 255, 0.85)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)'
-                } : {}}
-                aria-label={`Groups${notificationCounts.groups > 0 ? ` (${notificationCounts.groups} unread)` : ''}`}
-              >
-                <div className="relative">
-                  <Users className="w-5 h-5" />
-                  {notificationCounts.groups > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20 badge-pulse">
-                      <span className="text-[9px] font-bold text-white">{notificationCounts.groups}</span>
-                    </div>
-                  )}
-                </div>
-                <span className="text-[10px] font-medium">Servers</span>
+                <span className="text-[10px] font-medium">Chat</span>
               </button>
               <button
                 onClick={() => setCurrentTab('connect')}

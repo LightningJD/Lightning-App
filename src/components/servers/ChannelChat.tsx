@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Pin, Send, Smile, X, Image as ImageIcon, Edit3, Trash2, Reply, CornerUpRight, Search, Check, MoreHorizontal } from 'lucide-react';
 import { showError } from '../../lib/toast';
 import { validateMessage, sanitizeInput } from '../../lib/inputValidation';
+import { checkBeforeSend } from '../../lib/contentFilter';
 import { uploadMessageImage } from '../../lib/cloudinary';
 import {
   sendChannelMessage,
@@ -413,6 +414,20 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
       if (!validation.valid) {
         showError(validation.errors[0] || 'Invalid message');
         return;
+      }
+
+      // Profanity check
+      const profanityResult = checkBeforeSend(newMessage);
+      if (!profanityResult.allowed && profanityResult.flag) {
+        if (profanityResult.severity === 'high') {
+          showError('This message contains content that violates community guidelines');
+          return;
+        }
+        if (profanityResult.severity === 'medium') {
+          if (!window.confirm('This message may contain inappropriate content. Send anyway?')) {
+            return;
+          }
+        }
       }
     }
 

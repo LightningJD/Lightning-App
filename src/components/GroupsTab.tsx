@@ -37,7 +37,7 @@ import AnnouncementsView from './AnnouncementsView';
 import NotificationSettings from './NotificationSettings';
 import ScriptureCard from './ScriptureCard';
 import { detectScriptureReferences } from '../lib/scripture';
-import { analyzeContent, getSeverityColor, getSeverityLabel, getFlagReasonLabel } from '../lib/contentFilter';
+import { analyzeContent, checkBeforeSend, getSeverityColor, getSeverityLabel, getFlagReasonLabel } from '../lib/contentFilter';
 import type { ContentFlag } from '../lib/contentFilter';
 
 interface GroupsTabProps {
@@ -467,6 +467,20 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     if (!validation.valid) {
       showError(validation.errors[0] || 'Invalid message');
       return;
+    }
+
+    // Profanity check (pre-send)
+    const profanityResult = checkBeforeSend(newMessage);
+    if (!profanityResult.allowed && profanityResult.flag) {
+      if (profanityResult.severity === 'high') {
+        showError('This message contains content that violates community guidelines');
+        return;
+      }
+      if (profanityResult.severity === 'medium') {
+        if (!window.confirm('This message may contain inappropriate content. Send anyway?')) {
+          return;
+        }
+      }
     }
 
     // Save and sanitize message content for secret checking
