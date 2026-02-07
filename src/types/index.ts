@@ -155,7 +155,8 @@ export interface BlockedUser {
   id: string;
   blocker_id: string;
   blocked_id: string;
-  reason?: string;
+  blocked_at?: string | null;
+  reason?: string | null;
   created_at: string | null;
 }
 
