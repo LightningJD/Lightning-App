@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://lightning-dni.pages.dev",
+  "homepage": "https://lightningsocial.io",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

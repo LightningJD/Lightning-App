@@ -8,7 +8,7 @@ A modern, faith-based social platform where Christians share testimonies, find n
 
 ## 🌐 Live App
 
-**Production:** [https://lightning-dni.pages.dev](https://lightning-dni.pages.dev)
+**Production:** [https://lightningsocial.io](https://lightningsocial.io)
 
 **Status:** ✅ Production Ready | 🚀 Actively Deployed | 📈 Ready for Beta Users
 
@@ -326,7 +326,8 @@ See [ROADMAP.md](docs/ROADMAP.md) for detailed roadmap.
 - **Trigger:** Push to `main` branch
 - **Build:** `npm run build`
 - **Output:** `dist/`
-- **URL:** https://lightning-dni.pages.dev
+- **URL:** https://lightningsocial.io
+- **Custom Domain:** Configured with DNS
 
 ### Manual Deployment
 ```bash
@@ -411,7 +412,7 @@ All rights reserved. This project is not open source.
 
 ---
 
-**Live App:** [https://lightning-dni.pages.dev](https://lightning-dni.pages.dev)
+**Live App:** [https://lightningsocial.io](https://lightningsocial.io)
 
 **Repository:** [github.com/LightningJD/Lightning-App](https://github.com/LightningJD/Lightning-App)
 
