@@ -136,7 +136,14 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
         setCurrentStep(0);
     };
 
+    const [saveError, setSaveError] = useState('');
+
     const handleSave = () => {
+        if (!editedTestimony || editedTestimony.trim().length < 50) {
+            setSaveError('Testimony must be at least 50 characters. Please add more detail.');
+            return;
+        }
+        setSaveError('');
         onComplete({
             content: editedTestimony,
             answers: answers,
@@ -191,7 +198,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                             {isEditing ? (
                                 <textarea
                                     value={editedTestimony}
-                                    onChange={(e) => setEditedTestimony(e.target.value)}
+                                    onChange={(e) => { setEditedTestimony(e.target.value); if (saveError) setSaveError(''); }}
                                     className={`w-full h-96 px-4 py-3 rounded-lg border resize-none ${nightMode
                                         ? 'bg-white/5 border-white/10 text-slate-100'
                                         : 'bg-white border-slate-200 text-slate-900'
@@ -283,6 +290,12 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                                     {visibility === 'shareable' && 'Anyone on Lightning can discover this testimony'}
                                 </p>
                             </div>
+
+                            {saveError && (
+                                <div className={`p-3 rounded-lg border ${nightMode ? 'bg-red-500/10 border-red-500/30' : 'bg-red-100 border-red-300'}`}>
+                                    <p className={`text-sm ${nightMode ? 'text-red-400' : 'text-red-700'}`}>{saveError}</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Footer */}
@@ -524,11 +537,11 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                                 <div className={`flex justify-between items-center mt-2 text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'
                                     }`}>
                                     <span>
-                                        {currentAnswer.length}/{currentQuestion.minLength} min
-                                        {currentAnswer.length >= currentQuestion.minLength && currentAnswer.length < currentQuestion.suggestedLength && (
+                                        {currentAnswer.trim().length}/{currentQuestion.minLength} min chars
+                                        {currentAnswer.trim().length >= currentQuestion.minLength && currentAnswer.trim().length < currentQuestion.suggestedLength && (
                                             <span className={nightMode ? 'text-amber-400' : 'text-amber-600'}> · Aim for {currentQuestion.suggestedLength}+ for a stronger testimony</span>
                                         )}
-                                        {currentAnswer.length >= currentQuestion.suggestedLength && (
+                                        {currentAnswer.trim().length >= currentQuestion.suggestedLength && (
                                             <span className={nightMode ? 'text-green-400' : 'text-green-600'}> · Great detail!</span>
                                         )}
                                     </span>
@@ -537,8 +550,8 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                             </div>
 
                             {errors.general && (
-                                <div className="p-3 rounded-lg bg-red-100 border border-red-300">
-                                    <p className="text-red-700 text-sm">{errors.general}</p>
+                                <div className={`p-3 rounded-lg border ${nightMode ? 'bg-red-500/10 border-red-500/30' : 'bg-red-100 border-red-300'}`}>
+                                    <p className={`text-sm ${nightMode ? 'text-red-400' : 'text-red-700'}`}>{errors.general}</p>
                                 </div>
                             )}
                         </div>
