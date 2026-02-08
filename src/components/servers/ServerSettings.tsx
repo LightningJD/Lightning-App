@@ -46,6 +46,8 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
   const [copied, setCopied] = useState(false);
   const [generatingInvite, setGeneratingInvite] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [showDangerZone, setShowDangerZone] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
@@ -312,38 +314,114 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
           </button>
         )}
 
-        {/* Danger Zone */}
+        {/* Danger Zone — collapsed by default */}
         {permissions.manage_server && (
-          <div className="rounded-2xl p-5" style={{
-            background: nm ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)',
-            border: '1px solid rgba(239,68,68,0.15)',
-          }}>
-            <label className="block text-sm font-semibold mb-2 text-red-400">Danger Zone</label>
-            <p className={`text-sm mb-3 ${nm ? 'text-red-300/60' : 'text-red-500/60'}`}>
-              Deleting this server is permanent and cannot be undone. All channels, messages, and data will be lost.
-            </p>
-            {showDeleteConfirm ? (
-              <div className="flex gap-2">
-                <button onClick={handleDelete}
-                  className="flex-1 py-2.5 rounded-xl text-white font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
-                  style={{ background: 'rgba(239,68,68,0.85)', boxShadow: '0 2px 8px rgba(239,68,68,0.3)' }}>
-                  <Trash2 className="w-4 h-4" /> Confirm Delete
-                </button>
-                <button onClick={() => setShowDeleteConfirm(false)}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 ${nm ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'}`}>
-                  Cancel
+          <div className="mt-8">
+            <button
+              onClick={() => setShowDangerZone(!showDangerZone)}
+              className={`text-xs transition-all ${nm ? 'text-white/20 hover:text-white/40' : 'text-black/20 hover:text-black/40'}`}
+            >
+              {showDangerZone ? 'Hide danger zone' : 'Danger zone...'}
+            </button>
+
+            {showDangerZone && (
+              <div className="mt-3 rounded-2xl p-5" style={{
+                background: nm ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)',
+                border: '1px solid rgba(239,68,68,0.15)',
+              }}>
+                <p className={`text-xs mb-3 ${nm ? 'text-red-300/40' : 'text-red-500/40'}`}>
+                  This action is permanent and cannot be undone.
+                </p>
+                <button
+                  onClick={() => { setShowDeleteConfirm(true); setDeleteConfirmName(''); }}
+                  className="text-xs font-medium transition-all active:scale-95 px-3 py-1.5 rounded-lg"
+                  style={{ background: 'rgba(239,68,68,0.08)', color: nm ? 'rgba(239,68,68,0.5)' : 'rgba(239,68,68,0.6)' }}
+                >
+                  Delete Server
                 </button>
               </div>
-            ) : (
-              <button onClick={handleDelete}
-                className="w-full py-2.5 rounded-xl font-bold transition-all active:scale-95 flex items-center justify-center gap-2"
-                style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
-                <Trash2 className="w-4 h-4" /> Delete Server
-              </button>
             )}
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDeleteConfirm(false)} />
+          <div
+            className="relative w-full max-w-sm rounded-2xl overflow-hidden"
+            style={{
+              background: nm ? 'rgba(20,20,30,0.95)' : 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              border: `1px solid ${nm ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+              boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+            }}
+          >
+            {/* Header */}
+            <div className="px-6 pt-6 pb-3 text-center" style={{ background: nm ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)' }}>
+              <div className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-3"
+                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                <Trash2 className="w-6 h-6 text-red-400" />
+              </div>
+              <h3 className={`text-lg font-bold ${nm ? 'text-white' : 'text-black'}`}>
+                Delete {server.name}?
+              </h3>
+              <p className={`text-sm mt-1 ${nm ? 'text-white/50' : 'text-black/50'}`}>
+                All channels, messages, members, and data will be permanently lost.
+              </p>
+            </div>
+
+            {/* Type to confirm */}
+            <div className="px-6 py-4">
+              <p className={`text-xs mb-2 ${nm ? 'text-white/50' : 'text-black/50'}`}>
+                Type <span className={`font-bold ${nm ? 'text-red-400' : 'text-red-500'}`}>{server.name}</span> to confirm:
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmName}
+                onChange={e => setDeleteConfirmName(e.target.value)}
+                placeholder={server.name}
+                className={`w-full px-4 py-3 rounded-xl text-sm transition-all ${nm ? 'text-white placeholder-white/20' : 'text-black placeholder-black/20'}`}
+                style={{
+                  background: nm ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  border: `1px solid ${
+                    deleteConfirmName === server.name
+                      ? 'rgba(239,68,68,0.5)'
+                      : nm ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'
+                  }`,
+                }}
+                autoFocus
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="px-6 pb-6 flex gap-2">
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmName(''); }}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+                  nm ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); onDelete(); }}
+                disabled={deleteConfirmName !== server.name}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all active:scale-95 disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                style={{
+                  background: deleteConfirmName === server.name ? 'rgba(239,68,68,0.85)' : 'rgba(239,68,68,0.3)',
+                  boxShadow: deleteConfirmName === server.name ? '0 2px 8px rgba(239,68,68,0.3)' : 'none',
+                }}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Forever
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
