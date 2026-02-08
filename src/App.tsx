@@ -429,9 +429,7 @@ function App() {
   React.useEffect(() => {
     if (isAuthenticated && userProfile && userProfile.supabaseId) {
       // Check if profile is incomplete - prioritize database profile_completed field
-      const isProfileIncomplete = !userProfile.profileCompleted &&
-        (!userProfile.location ||
-          userProfile.bio === 'Welcome to Lightning! Share your testimony to inspire others.');
+      const isProfileIncomplete = !userProfile.profileCompleted;
 
       // Only show wizard if profile is incomplete and user hasn't completed it in this session
       if (isProfileIncomplete && !profileCompleted) {
@@ -692,8 +690,11 @@ function App() {
           profileCompleted: true
         });
 
-        // Reload the page to reflect changes
-        setTimeout(() => window.location.reload(), 1000);
+        // Auto-launch testimony questionnaire after profile creation
+        setTimeout(() => {
+          setShowTestimonyQuestionnaire(true);
+          setTestimonyStartTime(Date.now());
+        }, 500);
       } else {
         throw new Error('Failed to update profile');
       }
