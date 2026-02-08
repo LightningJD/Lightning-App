@@ -187,6 +187,12 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   // Privacy & church fields
   if ((profileData as any).profile_visibility !== undefined) updates.profile_visibility = (profileData as any).profile_visibility;
   if ((profileData as any).church_id !== undefined) updates.church_id = (profileData as any).church_id;
+  // Privacy settings (camelCase from UI → snake_case for DB)
+  if ((profileData as any).messagePrivacy !== undefined) updates.message_privacy = (profileData as any).messagePrivacy;
+  // Notification settings
+  if ((profileData as any).notifyMessages !== undefined) updates.notify_messages = (profileData as any).notifyMessages;
+  if ((profileData as any).notifyFriendRequests !== undefined) updates.notify_friend_requests = (profileData as any).notifyFriendRequests;
+  if ((profileData as any).notifyNearby !== undefined) updates.notify_nearby = (profileData as any).notifyNearby;
   // Referral fields
   if ((profileData as any).referred_by_code !== undefined) updates.referred_by_code = (profileData as any).referred_by_code;
 
