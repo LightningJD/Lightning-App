@@ -3,6 +3,8 @@ import { Search, X } from 'lucide-react';
 import UserCard from './UserCard';
 import { UserCardSkeleton } from './SkeletonLoader';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
+import LeaderboardView from './LeaderboardView';
+import BpResetBanner from './BpResetBanner';
 import { useUserProfile } from './useUserProfile';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
@@ -534,8 +536,23 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
           >
             People
           </button>
+          <button
+            onClick={() => setActiveDiscoverTab('ranks')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeDiscoverTab === 'ranks' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            style={{
+              background: 'transparent'
+            }}
+            aria-label="View leaderboard"
+          >
+            Ranks
+          </button>
         </div>
       </div>
+
+      {/* BP Reset Winner Announcement */}
+      {profile?.supabaseId && (
+        <BpResetBanner nightMode={nightMode} userId={profile.supabaseId} />
+      )}
 
       {activeDiscoverTab === 'home' && (
         <div className="px-4 mb-3">
@@ -1015,6 +1032,17 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
                   </div>
                 );
               })}
+            </div>
+          )
+        ) : activeDiscoverTab === 'ranks' ? (
+          profile?.supabaseId ? (
+            <LeaderboardView
+              nightMode={nightMode}
+              currentUserId={profile.supabaseId}
+            />
+          ) : (
+            <div className={`text-center py-10 text-sm ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
+              Sign in to view the leaderboard
             </div>
           )
         ) : null}

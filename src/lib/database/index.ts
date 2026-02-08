@@ -255,5 +255,29 @@ export {
   getFollowingCount
 } from './followers.js';
 
+// Referrals & Points (Ambassador Program)
+export {
+  generateReferralCode,
+  ensureReferralCode,
+  resolveReferralCode,
+  createPendingReferral,
+  checkAndConfirmReferral,
+  getReferralStats,
+  awardPoints,
+  getUserPoints,
+  rebuildLeaderboardCache,
+  getLeaderboard,
+  getCurrentCycle,
+  executeBpReset,
+  checkAndRunBpReset,
+  getLastCycleWinners,
+  hasDismissedBpReset,
+  dismissBpResetAnnouncement,
+  recordDeviceFingerprint,
+  acceptAmbassadorTerms,
+  hasAcceptedAmbassadorTerms,
+  getCycleEndTime
+} from './referrals.js';
+
 // Re-export Supabase client for backward compatibility
 export { supabase } from '../supabase.js';

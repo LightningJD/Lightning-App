@@ -28,8 +28,10 @@ import { generateTestimony } from './lib/api/claude';
 import { checkBeforeSend } from './lib/contentFilter';
 import { geocodeCity } from './hooks/useGeolocation';
 import { useUserProfile } from './components/useUserProfile';
-import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests, createChurch, joinChurchByCode } from './lib/database';
+import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests, createChurch, joinChurchByCode, resolveReferralCode, createPendingReferral, checkAndRunBpReset, recordDeviceFingerprint } from './lib/database';
 import { isAdmin } from './lib/database/users';
+import { generateDeviceFingerprint } from './lib/deviceFingerprint';
+import ReferralRedirect from './components/ReferralRedirect';
 import AdminDashboard from './components/AdminDashboard';
 import { supabase } from './lib/supabase';
 import { registerServiceWorker, setupPushNotifications, isPushSupported, getNotificationPermission } from './lib/webPush';
@@ -328,6 +330,24 @@ function App() {
     return () => stopTimeBasedSecrets();
   }, []);
 
+  // Device fingerprinting + BP reset check on app load
+  React.useEffect(() => {
+    if (!isAuthenticated || !userProfile?.supabaseId) return;
+
+    // Record device fingerprint (anti-gaming)
+    try {
+      const fp = generateDeviceFingerprint();
+      recordDeviceFingerprint(userProfile.supabaseId, fp);
+    } catch (err) {
+      console.error('Device fingerprint error:', err);
+    }
+
+    // Check if BP reset is needed
+    checkAndRunBpReset().catch(err => {
+      console.error('BP reset check error:', err);
+    });
+  }, [isAuthenticated, userProfile?.supabaseId]);
+
   // Auto-save guest testimony when user signs up
   React.useEffect(() => {
     let isMounted = true; // Track if component is still mounted
@@ -615,6 +635,24 @@ function App() {
             console.log('⛪ Joined church during onboarding:', churchData);
           } catch (churchErr) {
             console.error('Failed to join church during onboarding:', churchErr);
+          }
+        }
+
+        // Process referral code from onboarding wizard
+        const referralCode = (profileData as any)._referralCode;
+        if (referralCode) {
+          try {
+            const referrer = await resolveReferralCode(referralCode);
+            if (referrer && referrer.id !== userProfile.supabaseId) {
+              await createPendingReferral(referrer.id, userProfile.supabaseId, referralCode);
+              // Store referred_by_code on user record
+              await updateUserProfile(userProfile.supabaseId, { referred_by_code: referralCode } as any);
+              console.log('🔗 Referral recorded: referred by', referrer.username);
+            }
+            // Clear localStorage referral code
+            localStorage.removeItem('lightning_referral_code');
+          } catch (refErr) {
+            console.error('Failed to process referral code:', refErr);
           }
         }
 
@@ -1090,6 +1128,8 @@ function App() {
     >
       <GuestModalProvider nightMode={nightMode}>
         <div className="min-h-screen pb-12 relative">
+          {/* Referral code capture from URL */}
+          <ReferralRedirect />
           {/* Toast Notifications */}
           <Toaster />
 
