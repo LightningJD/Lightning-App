@@ -3,6 +3,7 @@ import { ArrowLeft, Hash, Link } from 'lucide-react';
 import { showSuccess, showError } from '../../lib/toast';
 import { useUserProfile } from '../useUserProfile';
 import { useGuestModalContext } from '../../contexts/GuestModalContext';
+import { usePremium } from '../../contexts/PremiumContext';
 import {
   createServer,
   getUserServers,
@@ -58,6 +59,7 @@ type ViewMode = 'chat' | 'settings' | 'roles' | 'members';
 const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange, initialServerId, onBack }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
+  const { isServerPremium } = usePremium();
 
   // Core state
   const [servers, setServers] = useState<any[]>([]);
@@ -702,28 +704,43 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
               }}
             >
               {servers.map((server) => (
-                <button
-                  key={server.id}
-                  onClick={() => handleSelectServer(server.id)}
-                  className={`w-11 h-11 flex items-center justify-center text-lg flex-shrink-0 transition-all active:scale-95 ${
-                    activeServerId === server.id
-                      ? 'rounded-2xl'
-                      : 'rounded-full hover:rounded-2xl'
-                  }`}
-                  style={{
-                    background: activeServerId === server.id
-                      ? nightMode ? 'rgba(79,150,255,0.3)' : 'rgba(79,150,255,0.2)'
-                      : nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                    boxShadow: activeServerId === server.id ? '0 2px 8px rgba(59,130,246,0.2)' : 'none',
-                  }}
-                  title={server.name}
-                >
-                  {server.icon_url ? (
-                    <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-full object-cover" />
-                  ) : (
-                    server.icon_emoji || '\u{26EA}'
+                <div key={server.id} className="relative flex-shrink-0">
+                  <button
+                    onClick={() => handleSelectServer(server.id)}
+                    className={`w-11 h-11 flex items-center justify-center text-lg flex-shrink-0 transition-all active:scale-95 ${
+                      activeServerId === server.id
+                        ? 'rounded-2xl'
+                        : 'rounded-full hover:rounded-2xl'
+                    }`}
+                    style={{
+                      background: activeServerId === server.id
+                        ? nightMode ? 'rgba(79,150,255,0.3)' : 'rgba(79,150,255,0.2)'
+                        : nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                      boxShadow: activeServerId === server.id ? '0 2px 8px rgba(59,130,246,0.2)' : 'none',
+                    }}
+                    title={server.name}
+                  >
+                    {server.icon_url ? (
+                      <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      server.icon_emoji || '\u{26EA}'
+                    )}
+                  </button>
+                  {isServerPremium(server.id) && (
+                    <div
+                      className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                      style={{
+                        background: 'linear-gradient(135deg, #F59E0B 0%, #EAB308 100%)',
+                        boxShadow: '0 1px 3px rgba(245, 158, 11, 0.4)',
+                        border: `2px solid ${nightMode ? '#0a0a0a' : '#E8F3FE'}`,
+                      }}
+                    >
+                      <svg className="w-1.5 h-1.5" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                      </svg>
+                    </div>
                   )}
-                </button>
+                </div>
               ))}
               <div className={`w-8 h-px my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
               <button

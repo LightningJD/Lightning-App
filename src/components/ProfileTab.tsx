@@ -8,6 +8,8 @@ import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUse
 import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
 import { showError } from '../lib/toast';
+import { usePremium } from '../contexts/PremiumContext';
+import ProBadge from './premium/ProBadge';
 import TestimonyShareModal from './TestimonyShareModal';
 import { deleteTestimony } from '../lib/database';
 import ProfileCard from './ProfileCard';
@@ -24,6 +26,7 @@ interface ProfileTabProps {
 
 const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestimony, onEditTestimony, currentUserProfile }) => {
   const { user } = useUser();
+  const { isUserPro } = usePremium();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -234,7 +237,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
           )}
         </div>
         <div className="text-center w-full">
-          <h1 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} break-words text-center`}>{profile.username}</h1>
+          <h1 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} break-words text-center flex items-center justify-center gap-1.5`}>
+            {profile.username}
+            {isUserPro && <ProBadge size="sm" />}
+          </h1>
           <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm ${!nightMode && 'opacity-70'} mt-1`}>{profile.displayName}</p>
 
           {/* Location */}

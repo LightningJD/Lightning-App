@@ -279,5 +279,22 @@ export {
   getCycleEndTime
 } from './referrals.js';
 
+// Billing & Premium
+export {
+  getServerSubscription,
+  getUserSubscription,
+  getServerSubscriptionsForUser,
+  getServerCosmetics,
+  upsertServerCosmetics,
+  getUserProCosmetics,
+  upsertUserProCosmetics,
+  getPricingTiers,
+  getTierForMemberCount,
+  getMemberCountSnapshots,
+  getSubscriptionEvents,
+  createCheckoutSession,
+  openBillingPortal,
+} from './billing.js';
+
 // Re-export Supabase client for backward compatibility
 export { supabase } from '../supabase.js';
