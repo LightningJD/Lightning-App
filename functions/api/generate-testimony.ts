@@ -39,7 +39,7 @@ const MAX_GENERATIONS_PER_DAY = 5;
 const MAX_GENERATIONS_PER_HOUR_GUEST = 3;
 
 const CORS_HEADERS = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://lightning-dni.pages.dev',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
 };
