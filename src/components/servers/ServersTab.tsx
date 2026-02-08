@@ -295,7 +295,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
   // ── MOBILE LAYOUT ─────────────────────────────────────────────
   if (isMobile) {
     return (
-      <div className="flex flex-col h-full" style={{ height: 'calc(100vh - 120px)' }}>
+      <div className={`flex flex-col ${hideServerRail ? 'flex-1' : ''} h-full`} style={hideServerRail ? {} : { height: 'calc(100vh - 120px)' }}>
         {/* Mobile: Servers sidebar + Channels list */}
         {(mobileView === 'servers' || mobileView === 'channels') && (
           <div className="flex flex-row h-full">
@@ -433,7 +433,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
 
   // ── DESKTOP LAYOUT ────────────────────────────────────────────
   return (
-    <div className="flex h-full" style={{ height: 'calc(100vh - 120px)' }}>
+    <div className={`flex ${hideServerRail ? 'flex-1' : ''} h-full`} style={hideServerRail ? {} : { height: 'calc(100vh - 120px)' }}>
       {/* Server sidebar (icons) — hidden when parent provides its own rail */}
       {!hideServerRail && <ServerSidebar
         nightMode={nightMode}

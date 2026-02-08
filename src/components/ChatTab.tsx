@@ -574,7 +574,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
       </div>}
 
       {/* Main Panel (changes based on view) */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden flex flex-col">
         {renderMainPanel()}
       </div>
 
