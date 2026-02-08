@@ -75,7 +75,7 @@ const BpResetBanner: React.FC<BpResetBannerProps> = ({ nightMode, userId }) => {
         <div className="flex items-center gap-2 mb-4">
           <Trophy className={`w-5 h-5 ${nightMode ? 'text-yellow-400' : 'text-yellow-600'}`} />
           <span className={`text-sm font-bold ${nightMode ? 'text-yellow-300' : 'text-yellow-800'}`}>
-            Weekly Top Ambassadors
+            Biweekly Top Ambassadors
           </span>
         </div>
 

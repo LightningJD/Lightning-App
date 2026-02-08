@@ -5,13 +5,16 @@ import { supabase } from '../supabase';
 // ============================================
 
 /**
- * Get the next Sunday at 7:30 PM PST (03:30 UTC Monday) after a given date.
- * If the given date IS a Sunday but before 7:30 PM PST, returns that same Sunday.
- * Otherwise returns the following Sunday.
+ * Get the next biweekly Sunday reset at 7:30 PM PST (03:30 UTC Monday).
+ * Cycles are every 2 weeks. Given the current cycle's end date,
+ * the next cycle ends 14 days later on the same day/time.
+ *
+ * When no previous cycle end is known (fresh start), finds the next
+ * Monday 03:30 UTC (= Sunday 7:30 PM PST) and adds 14 days.
  */
-function getNextSundayReset(from: Date = new Date()): Date {
+function getNextBiweeklyReset(from: Date = new Date()): Date {
   // Work in UTC. Sunday 7:30 PM PST = Monday 03:30 UTC
-  // So we find the next Monday 03:30 UTC after `from`
+  // So we find the next Monday 03:30 UTC after `from`, then add 14 days
   const target = new Date(from);
 
   // Set to 03:30 UTC
@@ -25,8 +28,6 @@ function getNextSundayReset(from: Date = new Date()): Date {
   if (daysUntilMonday === 0 && from >= target) {
     daysUntilMonday = 7;
   }
-  // If today is before Monday, the target is already in the future
-  // But if daysUntilMonday === 0 and from < target, keep it (this Monday 03:30 UTC)
 
   target.setUTCDate(target.getUTCDate() + daysUntilMonday);
 
@@ -35,7 +36,20 @@ function getNextSundayReset(from: Date = new Date()): Date {
     target.setUTCDate(target.getUTCDate() + 7);
   }
 
+  // Add 14 days for biweekly cycle (2 weeks from next Sunday reset)
+  target.setUTCDate(target.getUTCDate() + 14);
+
   return target;
+}
+
+/**
+ * Get the next reset 14 days after a known cycle end date.
+ * Used when closing a cycle to calculate the next cycle's end.
+ */
+function getNextResetFromCycleEnd(cycleEnd: Date): Date {
+  const next = new Date(cycleEnd);
+  next.setUTCDate(next.getUTCDate() + 14);
+  return next;
 }
 
 /**
@@ -508,9 +522,10 @@ export async function executeBpReset(): Promise<{ winners: any[] } | null> {
       // Continue anyway — cycle must still close
     }
 
-    // Create new cycle ending next Sunday at 7:30 PM PST
+    // Create new cycle ending 2 weeks from the old cycle's end (biweekly)
     const now = new Date();
-    const nextReset = getNextSundayReset(now);
+    const cycleEnd = new Date((cycle as any).cycle_end);
+    const nextReset = getNextResetFromCycleEnd(cycleEnd);
 
     const { error: cycleError } = await supabase
       .from('bp_cycles' as any)
@@ -549,9 +564,9 @@ export async function checkAndRunBpReset(): Promise<{ winners: any[] } | null> {
 
   const cycle = await getCurrentCycle();
   if (!cycle) {
-    // No current cycle — create one ending next Sunday 7:30 PM PST
+    // No current cycle — create one ending in 2 weeks on a Sunday 7:30 PM PST
     const now = new Date();
-    const nextReset = getNextSundayReset(now);
+    const nextReset = getNextBiweeklyReset(now);
 
     await supabase
       .from('bp_cycles' as any)

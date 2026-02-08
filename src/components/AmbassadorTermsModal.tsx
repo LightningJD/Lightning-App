@@ -96,7 +96,7 @@ const AmbassadorTermsModal: React.FC<AmbassadorTermsModalProps> = ({ nightMode, 
 
               <div className="flex gap-2">
                 <span>5.</span>
-                <p><strong>Blessing Points Reset:</strong> Blessing Points (BP) reset every Sunday at 7:30 PM PST. Overall Points (OP) are permanent and reflect your lifetime contributions.</p>
+                <p><strong>Blessing Points Reset:</strong> Blessing Points (BP) reset every 2 weeks. Overall Points (OP) are permanent and reflect your lifetime contributions.</p>
               </div>
             </div>
 
