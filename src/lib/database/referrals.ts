@@ -497,17 +497,22 @@ export async function executeBpReset(): Promise<{ winners: any[] } | null> {
       .eq('id', (cycle as any).id);
 
     // Reset all users' blessing_points to 0 (single bulk update)
-    await supabase
+    const { error: resetError } = await supabase
       .from('users')
       // @ts-ignore
       .update({ blessing_points: 0 })
       .gt('blessing_points' as any, 0);
 
+    if (resetError) {
+      console.error('Error resetting blessing points:', resetError);
+      // Continue anyway — cycle must still close
+    }
+
     // Create new cycle ending next Sunday at 7:30 PM PST
     const now = new Date();
     const nextReset = getNextSundayReset(now);
 
-    await supabase
+    const { error: cycleError } = await supabase
       .from('bp_cycles' as any)
       // @ts-ignore
       .insert({
@@ -515,6 +520,15 @@ export async function executeBpReset(): Promise<{ winners: any[] } | null> {
         cycle_end: nextReset.toISOString(),
         is_current: true
       });
+
+    if (cycleError) {
+      // If unique constraint violation, another client already created the cycle (race condition)
+      if (cycleError.code === '23505') {
+        console.log('BP cycle already created by another client');
+      } else {
+        console.error('Error creating new BP cycle:', cycleError);
+      }
+    }
 
     // Rebuild leaderboard cache
     await rebuildLeaderboardCache();

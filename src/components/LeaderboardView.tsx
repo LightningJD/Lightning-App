@@ -240,7 +240,7 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ nightMode, currentUse
 
       {/* Info */}
       <div className={`text-center text-[10px] pb-4 ${nightMode ? 'text-white/25' : 'text-black/25'}`}>
-        BP resets every 2 weeks. OP is permanent.
+        BP resets every Sunday at 7:30 PM PST. OP is permanent.
         <br />
         Earn points by inviting friends who complete their profile and testimony.
       </div>
