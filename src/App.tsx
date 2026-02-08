@@ -34,7 +34,7 @@ import { generateDeviceFingerprint } from './lib/deviceFingerprint';
 import ReferralRedirect from './components/ReferralRedirect';
 import AdminDashboard from './components/AdminDashboard';
 import { supabase } from './lib/supabase';
-import { registerServiceWorker, setupPushNotifications, isPushSupported, getNotificationPermission } from './lib/webPush';
+import { registerServiceWorker, setupPushNotifications, isPushSupported, getNotificationPermission, unsubscribeFromPush } from './lib/webPush';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
 import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets, checkMilestoneSecret, checkActivitySecrets } from './lib/secrets';
@@ -254,12 +254,29 @@ function App() {
 
   const handleEnablePush = async () => {
     if (!userProfile?.supabaseId) return;
-    const result = await setupPushNotifications(userProfile.supabaseId);
-    setPushPermission(result.permission);
-    if (result.success) {
-      showSuccess('Push notifications enabled!');
-    } else if (result.permission === 'denied') {
-      showError('Notifications blocked. Enable in browser settings.');
+    try {
+      const result = await setupPushNotifications(userProfile.supabaseId);
+      setPushPermission(result.permission);
+      if (result.success) {
+        showSuccess('Push notifications enabled!');
+      } else if (result.permission === 'denied') {
+        showError('Notifications blocked. Enable in browser settings.');
+      }
+    } catch (error) {
+      console.error('Error enabling push notifications:', error);
+      showError('Failed to enable push notifications');
+    }
+  };
+
+  const handleDisablePush = async () => {
+    if (!userProfile?.supabaseId) return;
+    try {
+      await unsubscribeFromPush(userProfile.supabaseId);
+      setPushPermission('default');
+      showSuccess('Push notifications disabled');
+    } catch (error) {
+      console.error('Error disabling push notifications:', error);
+      showError('Failed to disable push notifications');
     }
   };
 
@@ -310,13 +327,12 @@ function App() {
     }
   };
 
-  // Handler for opening report dialog
   // Handler for saving search radius
   const handleSaveSearchRadius = async (): Promise<void> => {
     if (!userProfile) return;
 
-    // Validate range
-    if (searchRadius < 5 || searchRadius > 100) {
+    // Validate range (handle NaN, 0, out of bounds)
+    if (!searchRadius || isNaN(searchRadius) || searchRadius < 5 || searchRadius > 100) {
       showError('Search radius must be between 5 and 100 miles');
       setSearchRadius(userProfile.searchRadius || 25);
       return;
@@ -1340,7 +1356,10 @@ function App() {
                         label="Profile Song"
                         nightMode={nightMode}
                         subtext={userProfile?.spotifyUrl ? 'Linked' : 'Add a YouTube song'}
-                        onClick={() => setShowLinkSpotify(true)}
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowLinkSpotify(true);
+                        }}
                       />
                       {/* Email & Password removed - using Google OAuth only per roadmap */}
                     </div>
@@ -1366,7 +1385,10 @@ function App() {
                         icon={Ban}
                         label="Blocked Users"
                         nightMode={nightMode}
-                        onClick={() => setShowBlockedUsers(true)}
+                        onClick={() => {
+                          setShowMenu(false);
+                          setShowBlockedUsers(true);
+                        }}
                       />
                       <MenuItem
                         icon={Flag}
@@ -1416,7 +1438,9 @@ function App() {
                           nightMode={nightMode}
                           isOn={pushPermission === 'granted'}
                           onToggle={() => {
-                            if (pushPermission !== 'granted') {
+                            if (pushPermission === 'granted') {
+                              handleDisablePush();
+                            } else {
                               handleEnablePush();
                             }
                           }}
@@ -1561,10 +1585,10 @@ function App() {
                           setShowContactSupport(true);
                         }}
                       />
-                      <MenuItem icon={Flag} label="Report a Bug" nightMode={nightMode} onClick={() => setShowBugReport(true)} />
+                      <MenuItem icon={Flag} label="Report a Bug" nightMode={nightMode} onClick={() => { setShowMenu(false); setShowBugReport(true); }} />
                       <MenuItem icon={Info} label="App Version" subtext="1.0.0" nightMode={nightMode} />
                       {userIsAdmin && (
-                        <MenuItem icon={Shield} label="Admin Dashboard" nightMode={nightMode} onClick={() => setShowAdminDashboard(true)} />
+                        <MenuItem icon={Shield} label="Admin Dashboard" nightMode={nightMode} onClick={() => { setShowMenu(false); setShowAdminDashboard(true); }} />
                       )}
                       <button
                         onClick={() => setShowLogoutConfirm(true)}
