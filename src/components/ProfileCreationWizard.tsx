@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, Check, Navigation, Church, Plus, KeyRound, Gift } from 'lucide-react';
+import { MapPin, Sparkles, ArrowRight, ArrowLeft, Check, Navigation, Church, Plus, KeyRound, Gift } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { createChurch, joinChurchByCode, resolveReferralCode } from '../lib/database';
 
@@ -21,10 +21,10 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
     displayName: '',
-    username: '',
-    bio: '',
+    username: '', // auto-generated from Clerk, not shown to user
+    bio: '', // user can add later in settings
     location: '',
-    avatar: '👤'
+    avatar: '👤' // default, user can change later
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,20 +48,13 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   const [isJoiningChurch, setIsJoiningChurch] = useState(false);
   const [churchError, setChurchError] = useState('');
 
-  // Avatar options (emojis)
-  const avatarOptions = [
-    '👤', '😊', '😎', '🙂', '😇', '🤗', '🥰', '😌',
-    '🌟', '⚡', '🔥', '💙', '💜', '🌈', '✨', '🎯',
-    '🦁', '🦅', '🐺', '🦋', '🌺', '🌸', '🌻', '🌹'
-  ];
-
   const steps = [
     {
       id: 0,
       title: 'Welcome to Lightning',
       subtitle: "Let's create your profile",
       icon: Sparkles,
-      fields: ['displayName', 'username']
+      fields: ['displayName', 'location']
     },
     {
       id: 1,
@@ -72,20 +65,6 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     },
     {
       id: 2,
-      title: 'Tell Your Story',
-      subtitle: 'Share a bit about yourself',
-      icon: FileText,
-      fields: ['bio', 'location']
-    },
-    {
-      id: 3,
-      title: 'Choose Your Avatar',
-      subtitle: 'Pick an emoji that represents you',
-      icon: User,
-      fields: ['avatar']
-    },
-    {
-      id: 4,
       title: 'Review Your Profile',
       subtitle: 'Make sure everything looks good',
       icon: Check,
@@ -125,19 +104,6 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     step.fields.forEach(field => {
       if (field === 'displayName' && !formData.displayName.trim()) {
         newErrors.displayName = 'Name is required';
-      }
-      if (field === 'username' && !formData.username.trim()) {
-        newErrors.username = 'Username is required';
-      } else if (field === 'username' && formData.username.trim()) {
-        if (formData.username.length < 3) {
-          newErrors.username = 'Username must be at least 3 characters';
-        }
-        if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-          newErrors.username = 'Username can only contain letters, numbers, and underscores';
-        }
-      }
-      if (field === 'bio' && !formData.bio.trim()) {
-        newErrors.bio = 'Bio is required';
       }
       if (field === 'location' && !formData.location.trim()) {
         newErrors.location = 'Location is required';
@@ -267,30 +233,63 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
               )}
             </div>
 
+            {/* Location */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Username <span className="text-red-500">*</span>
+                Location <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <span className={`absolute left-4 top-1/2 -translate-y-1/2 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>@</span>
+                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`} />
                 <input
                   type="text"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                  placeholder="johndoe"
-                  className={`w-full pl-8 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  value={formData.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  placeholder="City, State"
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     nightMode
                       ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
                       : 'bg-white border-slate-200 text-slate-900'
-                  } ${errors.username ? 'border-red-500' : ''}`}
+                  } ${errors.location ? 'border-red-500' : ''}`}
                 />
               </div>
-              {errors.username && (
-                <p className="text-red-500 text-xs mt-1">{errors.username}</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const result = await detect();
+                    if (result.cityName) {
+                      handleInputChange('location', result.cityName);
+                    }
+                    setDetectedCoords({ lat: result.lat, lng: result.lng });
+                  } catch {
+                    // Error is already set in the hook
+                  }
+                }}
+                disabled={isDetecting}
+                className={`mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  nightMode
+                    ? 'bg-white/5 hover:bg-white/10 text-blue-400 border border-white/10'
+                    : 'bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200'
+                } ${isDetecting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {isDetecting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Detecting location...
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-4 h-4" />
+                    Use my location
+                  </>
+                )}
+              </button>
+              {geoError && (
+                <p className="text-amber-500 text-xs mt-1">{geoError}</p>
               )}
-              <p className={`text-xs mt-1 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
-                Letters, numbers, and underscores only
-              </p>
+              {errors.location && (
+                <p className="text-red-500 text-xs mt-1">{errors.location}</p>
+              )}
             </div>
 
             {/* Referral Code (optional) */}
@@ -554,139 +553,15 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
       case 2:
         return (
           <div className="space-y-4">
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Bio <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-                value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                placeholder="Tell us about yourself and your faith journey..."
-                rows={5}
-                className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
-                  nightMode
-                    ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                    : 'bg-white border-slate-200 text-slate-900'
-                } ${errors.bio ? 'border-red-500' : ''}`}
-              />
-              {errors.bio && (
-                <p className="text-red-500 text-xs mt-1">{errors.bio}</p>
-              )}
-              <p className={`text-xs mt-1 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
-                {formData.bio.length}/500 characters
-              </p>
-            </div>
-
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Location <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`} />
-                <input
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="City, State"
-                  className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    nightMode
-                      ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                      : 'bg-white border-slate-200 text-slate-900'
-                  } ${errors.location ? 'border-red-500' : ''}`}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    const result = await detect();
-                    if (result.cityName) {
-                      handleInputChange('location', result.cityName);
-                    }
-                    setDetectedCoords({ lat: result.lat, lng: result.lng });
-                  } catch {
-                    // Error is already set in the hook
-                  }
-                }}
-                disabled={isDetecting}
-                className={`mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  nightMode
-                    ? 'bg-white/5 hover:bg-white/10 text-blue-400 border border-white/10'
-                    : 'bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200'
-                } ${isDetecting ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {isDetecting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Detecting location...
-                  </>
-                ) : (
-                  <>
-                    <Navigation className="w-4 h-4" />
-                    Use my location
-                  </>
-                )}
-              </button>
-              {geoError && (
-                <p className="text-amber-500 text-xs mt-1">{geoError}</p>
-              )}
-              {errors.location && (
-                <p className="text-red-500 text-xs mt-1">{errors.location}</p>
-              )}
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className={`block text-sm font-medium mb-4 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Select Your Avatar
-              </label>
-              <div className="grid grid-cols-8 gap-2">
-                {avatarOptions.map((emoji, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleInputChange('avatar', emoji)}
-                    className={`w-full aspect-square flex items-center justify-center text-2xl rounded-lg border-2 transition-all hover:scale-110 ${
-                      formData.avatar === emoji
-                        ? 'border-blue-500 bg-blue-500/20 scale-110'
-                        : nightMode
-                        ? 'border-white/10 hover:border-white/30 bg-white/5'
-                        : 'border-slate-200 hover:border-slate-300 bg-white'
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className={`p-4 rounded-lg border ${nightMode ? 'bg-white/5 border-white/10' : 'bg-blue-50 border-blue-200'}`}>
-              <p className={`text-sm text-center ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Preview: <span className="text-4xl ml-2">{formData.avatar}</span>
-              </p>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-4">
             <div className={`p-6 rounded-xl border text-center ${nightMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'}`}>
               <div className="flex flex-col items-center gap-4">
                 <div className={`w-20 h-20 rounded-full flex items-center justify-center text-5xl shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'}`}>
-                  {formData.avatar}
+                  👤
                 </div>
                 <div>
                   <h3 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
                     {formData.displayName}
                   </h3>
-                  <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-slate-600'}`}>
-                    @{formData.username}
-                  </p>
                 </div>
                 {churchResult && (
                   <div className={`flex items-center gap-2 text-sm ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
@@ -697,11 +572,12 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                   <MapPin className="w-4 h-4" />
                   {formData.location}
                 </div>
-                <p className={`text-sm text-center max-w-sm ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                  {formData.bio}
-                </p>
               </div>
             </div>
+
+            <p className={`text-sm text-center ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+              After creating your profile, you'll be guided to share your testimony.
+            </p>
 
             {errors.submit && (
               <div className="p-3 rounded-lg bg-red-100 border border-red-300">

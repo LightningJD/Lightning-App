@@ -524,9 +524,15 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                                 <div className={`flex justify-between items-center mt-2 text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'
                                     }`}>
                                     <span>
-                                        {wordCount} words • {currentAnswer.length}/{currentQuestion.minLength} characters minimum
+                                        {currentAnswer.length}/{currentQuestion.minLength} min
+                                        {currentAnswer.length >= currentQuestion.minLength && currentAnswer.length < currentQuestion.suggestedLength && (
+                                            <span className={nightMode ? 'text-amber-400' : 'text-amber-600'}> · Aim for {currentQuestion.suggestedLength}+ for a stronger testimony</span>
+                                        )}
+                                        {currentAnswer.length >= currentQuestion.suggestedLength && (
+                                            <span className={nightMode ? 'text-green-400' : 'text-green-600'}> · Great detail!</span>
+                                        )}
                                     </span>
-                                    <span>Total: {totalWords} words across all questions</span>
+                                    <span>{totalWords} words total</span>
                                 </div>
                             </div>
 
