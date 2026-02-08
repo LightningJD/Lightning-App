@@ -549,8 +549,8 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
         </div>
       </div>
 
-      {/* BP Reset Winner Announcement */}
-      {profile?.supabaseId && (
+      {/* BP Reset Winner Announcement — only on home tab */}
+      {activeDiscoverTab === 'home' && profile?.supabaseId && (
         <BpResetBanner nightMode={nightMode} userId={profile.supabaseId} />
       )}
 
