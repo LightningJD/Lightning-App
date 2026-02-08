@@ -1,4 +1,4 @@
-# 🎯 Premium Features - Implementation Guide
+# 🎯 Feature Flags - Implementation Guide
 
 ## ⚡ Current Status
 
@@ -6,8 +6,13 @@
 
 ✅ **Feature Flag Infrastructure: READY**
 ❌ **Premium Features: NOT YET IMPLEMENTED**
+❌ **Upper Room Features: NOT YET IMPLEMENTED**
 
-The Lightning App currently has **NO pricing, subscriptions, or payment features**. All features are free and available to all users. This guide explains how to implement and gate premium features when you're ready to add monetization.
+The Lightning App currently has:
+- **NO pricing, subscriptions, or payment features** - All features are free
+- **NO Upper Room features** - Prayer requests, connections not built yet
+
+This guide explains how to implement and gate these features when you're ready to add them.
 
 ---
 
@@ -16,18 +21,18 @@ The Lightning App currently has **NO pricing, subscriptions, or payment features
 ### Overview
 
 The feature flag system allows you to:
-- ✅ Build premium features without making them public
+- ✅ Build features without making them public
 - ✅ Toggle features on/off with a single environment variable
-- ✅ Test premium features in development
+- ✅ Test features in development
 - ✅ Launch features when ready (no code deployment needed)
 
 ### Configuration
 
-**1. Environment Variable:**
+**1. Environment Variables:**
 ```bash
 # .env.local
-VITE_ENABLE_PREMIUM=false  # Hide premium features
-VITE_ENABLE_PREMIUM=true   # Show premium features
+VITE_ENABLE_PREMIUM=false     # Hide premium/pricing features
+VITE_ENABLE_UPPER_ROOM=false  # Hide Upper Room features
 ```
 
 **2. Feature Flag Utility:**
@@ -35,12 +40,13 @@ VITE_ENABLE_PREMIUM=true   # Show premium features
 // src/lib/featureFlags.ts
 export const features = {
   premium: import.meta.env.VITE_ENABLE_PREMIUM === 'true',
+  upperRoom: import.meta.env.VITE_ENABLE_UPPER_ROOM === 'true',
 };
 ```
 
 ---
 
-## 🎨 How to Gate Premium Features
+## 🎨 How to Gate Features
 
 ### 1. **UI Components** (React/TSX)
 
@@ -58,6 +64,11 @@ function SettingsPage() {
       {/* Only visible when premium enabled */}
       {features.premium && (
         <SubscriptionSection />
+      )}
+
+      {/* Only visible when Upper Room enabled */}
+      {features.upperRoom && (
+        <PrayerSettings />
       )}
     </div>
   );
@@ -173,11 +184,13 @@ function SettingsMenu() {
 
 ---
 
-## 📦 What Premium Features to Gate
+## 📦 What Features to Gate
 
-When you implement monetization, gate these elements:
+When you implement these features, gate these elements:
 
-### Essential Gates
+### Premium Features (When Implemented)
+
+**Essential Gates**
 
 **1. Pricing Pages**
 - `/pricing` route
@@ -215,6 +228,51 @@ When you implement monetization, gate these elements:
 - API rate limits based on tier
 - Premium-only features
 
+### Upper Room Features (When Implemented)
+
+**Essential Gates**
+
+**1. Upper Room Pages/Routes**
+- `/upper-room` route
+- Prayer request pages
+- Prayer connection pages
+- Prayer wall/feed pages
+- "Upper Room" navigation items
+
+**2. Prayer Request Features**
+- Prayer request submission forms
+- Prayer request display/feed
+- Prayer request responses
+- Prayer status updates
+- Prayer request moderation
+
+**3. Real-time Prayer Connections**
+- Live prayer matching
+- Real-time prayer notifications
+- Prayer partner connections
+- Prayer session UI
+- Active prayer indicators
+
+**4. Navigation & UI Elements**
+- "Upper Room" tab/menu item
+- Prayer-related navigation links
+- Upper Room badges/icons
+- Prayer notification badges
+- Prayer activity indicators
+
+**5. Settings**
+- Prayer notification preferences
+- Upper Room privacy settings
+- Prayer connection controls
+- Prayer request visibility options
+
+**6. Prayer Features**
+- Prayer counters/tracking
+- Prayer history
+- Prayer partner management
+- Prayer testimonies
+- Prayer analytics
+
 ### Database Considerations
 
 **Keep schema, gate enforcement:**
@@ -244,9 +302,11 @@ export async function canCreateTestimony(userId: string) {
 
 ## ✅ Testing Checklist
 
-Before launching premium features:
+Before launching features:
 
-### With `VITE_ENABLE_PREMIUM=false` (Default)
+### Premium Features Testing
+
+**With `VITE_ENABLE_PREMIUM=false` (Default)**
 
 - [ ] No pricing pages accessible
 - [ ] No subscription/billing in settings
@@ -256,7 +316,7 @@ Before launching premium features:
 - [ ] All features work without restrictions
 - [ ] No console errors about missing premium code
 
-### With `VITE_ENABLE_PREMIUM=true` (Launch Mode)
+**With `VITE_ENABLE_PREMIUM=true` (Launch Mode)**
 
 - [ ] Pricing page loads correctly
 - [ ] Subscription management works
@@ -266,35 +326,60 @@ Before launching premium features:
 - [ ] Billing history displays
 - [ ] All premium UI elements visible
 
+### Upper Room Features Testing
+
+**With `VITE_ENABLE_UPPER_ROOM=false` (Default)**
+
+- [ ] No Upper Room pages accessible
+- [ ] No prayer request features in UI
+- [ ] No Upper Room navigation items
+- [ ] No prayer connection features visible
+- [ ] No prayer-related settings
+- [ ] All other features work normally
+- [ ] No console errors about missing Upper Room code
+
+**With `VITE_ENABLE_UPPER_ROOM=true` (Launch Mode)**
+
+- [ ] Upper Room pages load correctly
+- [ ] Prayer request submission works
+- [ ] Prayer connections display properly
+- [ ] Real-time prayer features function
+- [ ] Prayer notifications work
+- [ ] Upper Room navigation appears
+- [ ] All Upper Room UI elements visible
+
 ---
 
 ## 🚀 Launch Process
 
-When ready to enable premium features:
+When ready to enable features:
 
 ### Development Environment
 ```bash
 # .env.local
-VITE_ENABLE_PREMIUM=true
+VITE_ENABLE_PREMIUM=true      # Enable premium features
+VITE_ENABLE_UPPER_ROOM=true   # Enable Upper Room features
 ```
 
-Test thoroughly in dev.
+Test thoroughly in dev. You can enable features independently.
 
 ### Production Environment
 
 **Option A: Environment Variable (Recommended)**
 ```bash
 # Cloudflare Pages Dashboard → Settings → Environment Variables
-VITE_ENABLE_PREMIUM=true
+VITE_ENABLE_PREMIUM=true      # Enable premium features
+VITE_ENABLE_UPPER_ROOM=true   # Enable Upper Room features
 ```
 
-Redeploy to apply.
+Redeploy to apply. Enable features independently as needed.
 
 **Option B: Code Change**
 ```typescript
 // src/lib/featureFlags.ts
 export const features = {
-  premium: true, // Hard-coded to true
+  premium: true,      // Hard-coded to true
+  upperRoom: true,    // Hard-coded to true
 };
 ```
 
@@ -407,26 +492,29 @@ export function TestimonyList({ testimonies }) {
 
 ### DO ✅
 
-- **Keep all premium code** - Don't delete, just gate it
-- **Test both states** - Verify flag on AND off
-- **Use early returns** - Exit functions early if premium disabled
+- **Keep all feature code** - Don't delete, just gate it
+- **Test both states** - Verify flag on AND off for each feature
+- **Use early returns** - Exit functions early if feature disabled
 - **Gate at component level** - Hide entire sections, not just buttons
 - **Document gated features** - Comment why something is gated
+- **Enable independently** - Premium and Upper Room can launch separately
 
 ### DON'T ❌
 
-- **Don't delete premium code** - You'll need it later
+- **Don't delete feature code** - You'll need it later
 - **Don't forget routes** - Gate pages in routing too
-- **Don't leave errors** - Handle premium-disabled gracefully
-- **Don't half-gate** - If hiding pricing, hide ALL pricing
+- **Don't leave errors** - Handle feature-disabled gracefully
+- **Don't half-gate** - If hiding a feature, hide ALL of it
 - **Don't forget API calls** - Gate server-side too
+- **Don't couple features** - Keep premium and Upper Room independent
 
 ---
 
-## 🔍 Finding Premium Code
+## 🔍 Finding Feature Code
 
-When adding premium features, search for:
+When adding features, search for:
 
+### Premium Features
 ```bash
 # Search for potential premium features
 grep -r "pricing" src/
@@ -438,6 +526,18 @@ grep -r "plan" src/
 grep -r "stripe" src/
 grep -r "payment" src/
 grep -r "billing" src/
+```
+
+### Upper Room Features
+```bash
+# Search for potential Upper Room features
+grep -r "upper room" src/ -i
+grep -r "upperroom" src/ -i
+grep -r "prayer request" src/ -i
+grep -r "prayer connection" src/ -i
+grep -r "prayer wall" src/ -i
+grep -r "prayer partner" src/ -i
+grep -r "pray for" src/ -i
 ```
 
 ---
@@ -454,7 +554,7 @@ grep -r "billing" src/
 
 **"Feature flag not working"**
 - Check `.env.local` exists (not tracked by git)
-- Verify exact value: `VITE_ENABLE_PREMIUM=true` (lowercase)
+- Verify exact value: `VITE_ENABLE_PREMIUM=true` or `VITE_ENABLE_UPPER_ROOM=true` (lowercase)
 - Restart dev server after changing .env
 - Check console: feature flags auto-log in dev mode
 
@@ -463,11 +563,16 @@ grep -r "billing" src/
 - Search for hard-coded premium displays
 - Verify all premium UI uses `features.premium`
 
-**"Users seeing partial premium UI"**
+**"Upper Room features showing when they shouldn't"**
+- Double-check `VITE_ENABLE_UPPER_ROOM=false` in .env.local
+- Search for hard-coded Upper Room displays
+- Verify all Upper Room UI uses `features.upperRoom`
+
+**"Users seeing partial feature UI"**
 - Gate entire sections, not just buttons
 - Check navigation menus
 - Verify routes are gated
-- Look for feature limit warnings
+- Look for feature-specific warnings or prompts
 
 ---
 
@@ -475,17 +580,26 @@ grep -r "billing" src/
 
 **Current State (Feb 2026):**
 - ✅ Feature flag system ready
-- ✅ Environment variables configured
+- ✅ Environment variables configured (VITE_ENABLE_PREMIUM, VITE_ENABLE_UPPER_ROOM)
 - ✅ Utility functions created
 - ❌ No premium features exist yet
+- ❌ No Upper Room features exist yet
 
-**When You Add Premium:**
+**When You Add Features:**
+
+**Premium:**
 1. Build premium features with `features.premium` gates
 2. Test with flag OFF (everything hidden)
 3. Test with flag ON (everything visible)
-4. Launch by changing env variable to `true`
+4. Launch by changing `VITE_ENABLE_PREMIUM=true`
 
-**One variable. Complete control. 🎯**
+**Upper Room:**
+1. Build Upper Room features with `features.upperRoom` gates
+2. Test with flag OFF (everything hidden)
+3. Test with flag ON (everything visible)
+4. Launch by changing `VITE_ENABLE_UPPER_ROOM=true`
+
+**Two variables. Complete control. Independent launches. 🎯**
 
 ---
 

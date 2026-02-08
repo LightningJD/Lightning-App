@@ -34,6 +34,26 @@ export const features = {
   premium: import.meta.env.VITE_ENABLE_PREMIUM === 'true',
 
   /**
+   * Upper Room Features (Prayer Requests, Real-time Prayer Connections)
+   *
+   * When enabled (true):
+   * - Shows Upper Room navigation and pages
+   * - Enables prayer request submission
+   * - Displays real-time prayer connections
+   * - Shows prayer-related features
+   *
+   * When disabled (false):
+   * - Hides all Upper Room UI
+   * - Removes Upper Room navigation items
+   * - Disables prayer request features
+   * - Hides all prayer-related functionality
+   *
+   * Set in .env.local:
+   * VITE_ENABLE_UPPER_ROOM=true|false
+   */
+  upperRoom: import.meta.env.VITE_ENABLE_UPPER_ROOM === 'true',
+
+  /**
    * Future feature flags can be added here:
    *
    * videoTestimonies: import.meta.env.VITE_ENABLE_VIDEO_TESTIMONIES === 'true',
