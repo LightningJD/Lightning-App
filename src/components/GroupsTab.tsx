@@ -1,44 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, X, Settings, Crown, Users, Trash2, LogOut, Smile, Pin, Info, ChevronRight, Shield, ShieldCheck, Eye, ChevronDown, Calendar, Megaphone, Bell } from 'lucide-react';
-import { showError, showSuccess } from '../lib/toast';
-import { validateGroup, validateMessage, sanitizeInput } from '../lib/inputValidation';
-import {
-  createGroup,
-  getUserGroups,
-  sendGroupMessage,
-  getGroupMessages,
-  updateGroup,
-  deleteGroup,
-  leaveGroup,
-  getGroupMembers,
-  removeMemberFromGroup,
-  setMemberRole,
-  unsubscribe,
-  addReaction,
-  removeReaction,
-  getMessageReactions,
-  pinMessage,
-  unpinMessage,
-  getPinnedMessages,
-  getFriends,
-  getUserJoinRequests,
-  approveJoinRequest,
-  denyJoinRequest
-} from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { GroupCardSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
-import { checkMessageSecrets, unlockSecret } from '../lib/secrets';
-import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
 import type { GroupRole } from '../types';
-import { mapLegacyRole, hasPermission, getRoleLabel, getRoleColor, getAssignableRoles, outranks } from '../lib/permissions';
+import { mapLegacyRole, hasPermission, getRoleLabel, getRoleColor, getAssignableRoles } from '../lib/permissions';
 import EventsView from './EventsView';
 import AnnouncementsView from './AnnouncementsView';
 import NotificationSettings from './NotificationSettings';
 import ScriptureCard from './ScriptureCard';
 import { detectScriptureReferences } from '../lib/scripture';
-import { analyzeContent, checkBeforeSend, getSeverityColor, getSeverityLabel, getFlagReasonLabel } from '../lib/contentFilter';
-import type { ContentFlag } from '../lib/contentFilter';
+import { getSeverityColor, getSeverityLabel, getFlagReasonLabel } from '../lib/contentFilter';
+import { useGroupManagement } from '../hooks/useGroupManagement';
+import { useGroupChat } from '../hooks/useGroupChat';
+import { useGroupMembers } from '../hooks/useGroupMembers';
 
 interface GroupsTabProps {
   nightMode: boolean;
@@ -89,51 +64,59 @@ interface MessageReaction {
   };
 }
 
+// Get user's effective role for a group (maps legacy 'leader' to 'pastor')
+const getUserRole = (group: GroupData | undefined): GroupRole => {
+  if (!group) return 'member';
+  return mapLegacyRole(group.userRole);
+};
+
 const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<'list' | 'chat' | 'settings' | 'members' | 'events' | 'announcements' | 'notifications'>('list');
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [myGroups, setMyGroups] = useState<GroupData[]>([]);
-  const [pendingInvitations, setPendingInvitations] = useState<any[]>([]);
-  const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
-  const [pinnedMessages, setPinnedMessages] = useState<GroupMessage[]>([]);
-  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
-  const [messageReactions, setMessageReactions] = useState<Record<string | number, MessageReaction[]>>({});
-  const [showReactionPicker, setShowReactionPicker] = useState<string | number | null>(null);
-  const [expandedReactions, setExpandedReactions] = useState<Record<string | number, boolean>>({});
-  const [showAllEmojis, setShowAllEmojis] = useState<Record<string | number, boolean>>({});
   const [showGroupBio, setShowGroupBio] = useState(false);
-  const [flaggedMessages, setFlaggedMessages] = useState<Record<string | number, ContentFlag>>({});
-  const [newMessage, setNewMessage] = useState('');
-  const [newGroupName, setNewGroupName] = useState('');
-  const [newGroupDescription, setNewGroupDescription] = useState('');
-  const [inviteCandidates, setInviteCandidates] = useState<any[]>([]);
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
-  const [editGroupName, setEditGroupName] = useState('');
-  const [editGroupDescription, setEditGroupDescription] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isLeaving, setIsLeaving] = useState(false);
-  const [isGroupsLoading, setIsGroupsLoading] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [showRoleMenu, setShowRoleMenu] = useState<string | null>(null); // member user ID
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const pinnedSectionRef = useRef<HTMLDivElement>(null);
-  const subscriptionRef = useRef<any>(null);
-  const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
-  const userIsScrollingRef = useRef(false);
 
-  // @ts-ignore - Complex type issues with database functions
+  // Extracted hooks
+  const groupMgmt = useGroupManagement({ userId: profile?.supabaseId, onGroupsCountChange });
+  const {
+    myGroups, pendingInvitations, isGroupsLoading,
+    showCreateGroup, setShowCreateGroup,
+    newGroupName, setNewGroupName, newGroupDescription, setNewGroupDescription,
+    inviteCandidates, selectedMemberIds, setSelectedMemberIds,
+    handleCreateGroup,
+    editGroupName, setEditGroupName, editGroupDescription, setEditGroupDescription,
+    isSaving, isDeleting, isLeaving,
+    handleAcceptInvitation, handleDeclineInvitation,
+  } = groupMgmt;
+
   const activeGroupData = myGroups.find(g => g.id === activeGroup);
+  const userRole = getUserRole(activeGroupData);
 
-  // Get user's effective role for the active group (maps legacy 'leader' to 'pastor')
-  const getUserRole = (group: GroupData | undefined): GroupRole => {
-    if (!group) return 'member';
-    return mapLegacyRole(group.userRole);
-  };
+  const chat = useGroupChat({
+    activeGroup, activeView,
+    userId: profile?.supabaseId,
+    displayName: profile?.displayName,
+    avatar: profile?.avatar,
+  });
+  const {
+    groupMessages, pinnedMessages, newMessage, setNewMessage, loading,
+    flaggedMessages,
+    messageReactions, showReactionPicker, setShowReactionPicker,
+    expandedReactions, setExpandedReactions, showAllEmojis, setShowAllEmojis,
+    messagesEndRef, messagesContainerRef, pinnedSectionRef, messageRefs,
+    handleSendGroupMessage, handleReaction, handlePinMessage, handleUnpinMessage,
+    isMessageInBottomHalf,
+  } = chat;
+
+  const members = useGroupMembers({ activeGroup, activeView, userRole });
+  const {
+    groupMembers,
+    showRoleMenu, setShowRoleMenu,
+    handleRemoveMember, handleSetRole,
+  } = members;
+
+  // Kept inline: RoleBadge, MessageContent, reactionEmojis (render helpers)
 
   // Role badge component
   const RoleBadge = ({ role, size = 'sm' }: { role: string; size?: 'sm' | 'xs' }) => {
@@ -234,558 +217,35 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
     '🫂', '✋', '🥰', '😌', '✅', '💯'   // Row 4: Connection & Agreement
   ];
 
-  // Block guests from accessing groups (Freemium Browse & Block)
+  // Block guests from accessing groups
   useEffect(() => {
     if (isGuest) {
-      console.log('🚫 Guest attempted to access Groups - blocking');
       checkAndShowModal();
     }
   }, [isGuest, checkAndShowModal]);
 
-  // Load user's groups and pending invitations
-  useEffect(() => {
-    const loadGroups = async () => {
-      if (!profile?.supabaseId) return;
-      try {
-        const [groups, invitations] = await Promise.all([
-          getUserGroups(profile.supabaseId),
-          getUserJoinRequests(profile.supabaseId)
-        ]);
-        setMyGroups(groups || []);
-        setPendingInvitations(invitations || []);
-        if (onGroupsCountChange) {
-          onGroupsCountChange(groups?.length || 0);
-        }
-      } catch (error) {
-        console.error('Failed to load groups:', error);
-        setMyGroups([]);
-        setPendingInvitations([]);
-      }
-    };
+  // All message loading, polling, scroll tracking, and auto-scroll handled by useGroupChat hook
+  // All member loading handled by useGroupMembers hook
 
-    loadGroups();
-  }, [profile?.supabaseId]);
+  // handleCreateGroup, invite loading — handled by useGroupManagement hook
 
-  // Keep parent badge in sync when myGroups changes locally
-  useEffect(() => {
-    if (onGroupsCountChange) {
-      onGroupsCountChange(myGroups.length);
-    }
-    // Intentionally exclude onGroupsCountChange from deps to avoid render loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myGroups]);
+  // All handlers (send, reaction, pin/unpin, create, update, delete, leave, invite, member mgmt)
+  // are now in extracted hooks: useGroupChat, useGroupManagement, useGroupMembers
 
-  // Simulate initial loading state
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsGroupsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Load group messages when opening a group
-  useEffect(() => {
-    let pollInterval: NodeJS.Timeout | null = null;
-
-    const loadGroupMessages = async () => {
-      if (activeGroup && activeView === 'chat') {
-        setLoading(true);
-
-        // Load all data in parallel for faster loading
-        const [messages, pinned] = await Promise.all([
-          getGroupMessages(activeGroup),
-          getPinnedMessages(activeGroup)
-        ]);
-
-        setGroupMessages(messages || []);
-        setPinnedMessages(pinned || []);
-
-        // Load reactions for all messages (including pinned) in parallel
-        const allMessages: GroupMessage[] = [...(pinned || []), ...(messages || [])];
-        // @ts-ignore - message id type compatibility
-        const reactionsPromises = allMessages.map(msg => getMessageReactions(msg.id));
-        const reactionsResults = await Promise.all(reactionsPromises);
-
-        const reactionsMap: Record<string | number, MessageReaction[]> = {};
-        reactionsResults.forEach((reactions, index) => {
-          if (allMessages[index] && reactions !== undefined) {
-            // @ts-ignore - message id type compatibility
-            reactionsMap[allMessages[index].id] = reactions;
-          }
-        });
-        setMessageReactions(reactionsMap);
-
-        setLoading(false);
-
-        // POLLING VERSION (FREE) - Checks for new messages every 3 seconds
-        pollInterval = setInterval(async () => {
-          // Load messages and pinned in parallel
-          const [updatedMessages, updatedPinned] = await Promise.all([
-            getGroupMessages(activeGroup),
-            getPinnedMessages(activeGroup)
-          ]);
-
-          setGroupMessages(updatedMessages || []);
-          setPinnedMessages(updatedPinned || []);
-
-          // Reload reactions for all messages in parallel
-          const allMessages: GroupMessage[] = [...(updatedPinned || []), ...(updatedMessages || [])];
-          // @ts-ignore - message id type compatibility
-          const reactionsPromises = allMessages.map(msg => getMessageReactions(msg.id));
-          const reactionsResults = await Promise.all(reactionsPromises);
-
-          const newReactionsMap: Record<string | number, MessageReaction[]> = {};
-          allMessages.forEach((msg, index) => {
-            // @ts-ignore - message id type compatibility
-            newReactionsMap[msg.id] = reactionsResults[index];
-          });
-          setMessageReactions(newReactionsMap);
-        }, 3000); // Poll every 3 seconds
-
-        /* REAL-TIME VERSION ($25/month) - Uncomment to enable instant messaging
-        subscriptionRef.current = subscribeToGroupMessages(activeGroup, (payload) => {
-          console.log('New group message:', payload.new);
-          setGroupMessages(prev => [...prev, payload.new]);
-        });
-        */
-      }
-    };
-
-    loadGroupMessages();
-
-    // Cleanup polling on unmount or group change
-    return () => {
-      if (pollInterval) {
-        clearInterval(pollInterval);
-      }
-      if (subscriptionRef.current) {
-        unsubscribe(subscriptionRef.current);
-      }
-    };
-  }, [activeGroup, activeView]);
-
-  // Load group members
-  useEffect(() => {
-    const loadMembers = async () => {
-      if (activeGroup && activeView === 'members') {
-        const members = await getGroupMembers(activeGroup);
-        setGroupMembers(members || []);
-      }
-    };
-
-    loadMembers();
-  }, [activeGroup, activeView]);
-
-  // Track if user is scrolled up (not near bottom)
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-      userIsScrollingRef.current = distanceFromBottom > 150;
-    };
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [activeGroup]);
-
-  // Scroll to bottom when messages change, only if user is near bottom
-  useEffect(() => {
-    if (!userIsScrollingRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [groupMessages]);
-
-  const handleCreateGroup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newGroupName.trim() || !profile?.supabaseId) return;
-
-    // Validate group data
-    const validation = validateGroup({
-      name: newGroupName,
-      description: newGroupDescription
-    });
-
-    if (!validation.valid) {
-      const firstError = Object.values(validation.errors)[0] as string;
-      showError(firstError);
-      return;
-    }
-
-    setLoading(true);
-
-    const newGroup = await createGroup(profile.supabaseId, {
-      name: sanitizeInput(newGroupName),
-      description: sanitizeInput(newGroupDescription),
-      avatarEmoji: '✨',
-      isPrivate: false,
-      memberIds: selectedMemberIds
-    });
-
-    if (newGroup) {
-      console.log('✅ Group created!', newGroup);
-
-      // Unlock group creator secret
-      unlockSecret('group_creator');
-
-      // Reload groups
-      const groups = await getUserGroups(profile.supabaseId);
-      setMyGroups(groups || []);
-      setShowCreateGroup(false);
-      setNewGroupName('');
-      setNewGroupDescription('');
-      setSelectedMemberIds([]);
-    } else {
-      console.error('❌ Failed to create group');
-    }
-
-    setLoading(false);
+  // Wrapper handlers that need navigation side-effects
+  const handleUpdateGroupAndNav = async (e: React.FormEvent) => {
+    const success = await groupMgmt.handleUpdateGroup(e, activeGroup!);
+    if (success) setActiveView('chat');
   };
 
-  // Load friend list when opening the create group modal
-  useEffect(() => {
-    const loadFriends = async () => {
-      if (!showCreateGroup || !profile?.supabaseId) return;
-      try {
-        const friends = await getFriends(profile.supabaseId);
-        // @ts-ignore - type compatibility from DB
-        setInviteCandidates(friends || []);
-      } catch (error) {
-        console.error('Failed to load friends for invite list:', error);
-        setInviteCandidates([]);
-      }
-    };
-    loadFriends();
-  }, [showCreateGroup, profile?.supabaseId]);
-
-  const handleSendGroupMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !profile?.supabaseId || !activeGroup) return;
-
-    // Validate message content
-    const validation = validateMessage(newMessage, 'message');
-    if (!validation.valid) {
-      showError(validation.errors[0] || 'Invalid message');
-      return;
-    }
-
-    // Profanity check (pre-send)
-    const profanityResult = checkBeforeSend(newMessage);
-    if (!profanityResult.allowed && profanityResult.flag) {
-      if (profanityResult.severity === 'high') {
-        showError('This message contains content that violates community guidelines');
-        return;
-      }
-      if (profanityResult.severity === 'medium') {
-        if (!window.confirm('This message may contain inappropriate content. Send anyway?')) {
-          return;
-        }
-      }
-    }
-
-    // Save and sanitize message content for secret checking
-    const messageContent = sanitizeInput(newMessage);
-
-    // Optimistically add message
-    const tempMessage = {
-      id: Date.now(),
-      sender_id: profile.supabaseId,
-      content: newMessage,
-      created_at: new Date().toISOString(),
-      sender: {
-        display_name: profile.displayName,
-        avatar_emoji: profile.avatar
-      }
-    };
-
-    setGroupMessages([...groupMessages, tempMessage]);
-    setNewMessage('');
-
-    // Send to database
-    const savedMessage = await sendGroupMessage(
-      activeGroup,
-      profile.supabaseId,
-      messageContent
-    );
-
-    if (savedMessage) {
-      console.log('✅ Group message sent!', savedMessage);
-
-      // Content filtering: analyze for inappropriate content
-      const flag = analyzeContent(messageContent);
-      if (flag.flagged) {
-        setFlaggedMessages(prev => ({
-          ...prev,
-          [savedMessage.id || tempMessage.id]: flag,
-        }));
-        console.log('⚠️ Message flagged:', flag.reasons.join(', '));
-      }
-
-      // Check message content for secrets (Amen 3x, scripture sharing)
-      checkMessageSecrets(messageContent);
-
-      // Track message timing for early bird / night owl secrets
-      trackMessageByHour();
-      const earlyBirdCount = getEarlyBirdMessages();
-      const nightOwlCount = getNightOwlMessages();
-
-      if (earlyBirdCount >= 10) {
-        unlockSecret('early_bird_messenger');
-      }
-      if (nightOwlCount >= 10) {
-        unlockSecret('night_owl_messenger');
-      }
-
-      // Track message streak for consistent encourager
-      const streak = trackMessageStreak();
-      if (streak >= 7) {
-        unlockSecret('messages_streak_7');
-      }
-    }
+  const handleDeleteGroupAndNav = async (e?: React.MouseEvent) => {
+    const success = await groupMgmt.handleDeleteGroup(activeGroup!, e);
+    if (success) { setActiveGroup(null); setActiveView('list'); }
   };
 
-  const handleUpdateGroup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editGroupName.trim() || !activeGroup) return;
-
-    setIsSaving(true);
-
-    const updated = await updateGroup(activeGroup as string, {
-      name: editGroupName,
-      description: editGroupDescription
-    });
-
-    if (updated) {
-      console.log('✅ Group updated!', updated);
-      // Reload groups
-      const groups = await getUserGroups(profile!.supabaseId);
-      setMyGroups(groups || []);
-      setActiveView('chat');
-    }
-
-    setIsSaving(false);
-  };
-
-  const handleDeleteGroup = async (e?: React.MouseEvent) => {
-    // Prevent form submission if Delete button is inside a form
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    if (!window.confirm('Are you sure you want to delete this group? This cannot be undone.')) return;
-
-    setIsDeleting(true);
-
-    const deleted = await deleteGroup(activeGroup as string);
-
-    if (deleted) {
-      console.log('✅ Group deleted!');
-      // Reload groups
-      const groups = await getUserGroups(profile!.supabaseId);
-      setMyGroups(groups || []);
-      setActiveGroup(null);
-      setActiveView('list');
-    }
-
-    setIsDeleting(false);
-  };
-
-  const handleLeaveGroup = async () => {
-    if (!window.confirm('Are you sure you want to leave this group?')) return;
-
-    setIsLeaving(true);
-
-    const left = await leaveGroup(activeGroup as string, profile!.supabaseId);
-
-    if (left) {
-      console.log('✅ Left group!');
-      // Reload groups
-      const groups = await getUserGroups(profile!.supabaseId);
-      setMyGroups(groups || []);
-      setActiveGroup(null);
-      setActiveView('list');
-    }
-
-    setIsLeaving(false);
-  };
-
-  const handleAcceptInvitation = async (requestId: string, groupId: string) => {
-    if (!profile?.supabaseId) return;
-    
-    const result = await approveJoinRequest(requestId, groupId, profile.supabaseId);
-    
-    if (result) {
-      console.log('✅ Invitation accepted!');
-      // Reload groups and invitations
-      const [groups, invitations] = await Promise.all([
-        getUserGroups(profile.supabaseId),
-        getUserJoinRequests(profile.supabaseId)
-      ]);
-      setMyGroups(groups || []);
-      setPendingInvitations(invitations || []);
-    }
-  };
-
-  const handleDeclineInvitation = async (requestId: string) => {
-    if (!profile?.supabaseId) return;
-    
-    const result = await denyJoinRequest(requestId);
-    
-    if (result) {
-      console.log('✅ Invitation declined!');
-      // Reload invitations
-      const invitations = await getUserJoinRequests(profile.supabaseId);
-      setPendingInvitations(invitations || []);
-    }
-  };
-
-  const handleRemoveMember = async (userId: string) => {
-    if (!window.confirm('Are you sure you want to remove this member?')) return;
-
-    const removed = await removeMemberFromGroup(activeGroup as string, userId);
-
-    if (removed) {
-      console.log('✅ Member removed!');
-      // Reload members
-      const members = await getGroupMembers(activeGroup as string);
-      setGroupMembers(members || []);
-    }
-  };
-
-  const handleSetRole = async (userId: string, newRole: GroupRole) => {
-    const group = myGroups.find(g => g.id === activeGroup);
-    if (!group) return;
-
-    const myRole = getUserRole(group);
-    const member = groupMembers.find(m => m.user.id === userId);
-    if (!member) return;
-
-    const memberRole = mapLegacyRole(member.role);
-
-    // Verify the actor can modify this member's role
-    if (!outranks(myRole, memberRole)) {
-      showError('You cannot modify the role of someone with equal or higher rank.');
-      return;
-    }
-    if (!outranks(myRole, newRole)) {
-      showError('You cannot assign a role equal to or above your own.');
-      return;
-    }
-
-    const result = await setMemberRole(activeGroup as string, userId, newRole);
-
-    if (result) {
-      showSuccess(`Role updated to ${getRoleLabel(newRole)}`);
-      const members = await getGroupMembers(activeGroup as string);
-      setGroupMembers(members || []);
-    } else {
-      showError('Failed to update role.');
-    }
-
-    setShowRoleMenu(null);
-  };
-
-  const handleReaction = async (messageId: string | number, emoji: string) => {
-    if (!profile?.supabaseId) return;
-
-    const reactions = messageReactions[messageId] || [];
-    const existingReaction = reactions.find(
-      r => r.user_id === profile!.supabaseId && r.emoji === emoji
-    );
-
-    if (existingReaction) {
-      // Optimistically remove reaction from UI immediately
-      setMessageReactions(prev => ({
-        ...prev,
-        [messageId]: reactions.filter(r => r.id !== existingReaction.id)
-      }));
-
-      // Then remove from database in background
-      // @ts-ignore - message id type compatibility
-      removeReaction(messageId, profile!.supabaseId, emoji).catch(() => {
-        // Rollback on error
-        setMessageReactions(prev => ({
-          ...prev,
-          [messageId]: reactions
-        }));
-      });
-    } else {
-      // Optimistically add reaction to UI immediately
-      const tempReaction = {
-        id: `temp-${Date.now()}`,
-        message_id: messageId,
-        user_id: profile!.supabaseId,
-        emoji: emoji,
-        user: {
-          id: profile!.supabaseId,
-          display_name: profile!.displayName,
-          avatar_emoji: profile!.avatar
-        }
-      };
-
-      setMessageReactions(prev => ({
-        ...prev,
-        [messageId]: [...(prev[messageId] || []), tempReaction]
-      }));
-
-      // Then add to database in background
-      // @ts-ignore - message id type compatibility
-      addReaction(messageId, profile!.supabaseId, emoji).then(newReaction => {
-        if (newReaction) {
-          // Replace temp with real reaction
-          setMessageReactions(prev => ({
-            ...prev,
-            [messageId]: [
-              ...(prev[messageId] || []).filter(r => r.id !== tempReaction.id),
-              {
-                ...(newReaction as Omit<MessageReaction, 'user'>),
-                user: {
-                  id: profile!.supabaseId,
-                  display_name: profile!.displayName,
-                  avatar_emoji: profile!.avatar
-                }
-              }
-            ]
-          }));
-        }
-      }).catch((error) => {
-        console.error('Failed to add reaction:', error);
-        // Rollback on error
-        setMessageReactions(prev => ({
-          ...prev,
-          [messageId]: (prev[messageId] || []).filter(r => r.id !== tempReaction.id)
-        }));
-        // Show error toast to user
-        showError('Failed to add reaction. Please try again.');
-      });
-    }
-
-    setShowReactionPicker(null);
-  };
-
-  const handlePinMessage = async (messageId: string | number) => {
-    if (!profile?.supabaseId) return;
-
-    // @ts-ignore - message id type compatibility
-    const result = await pinMessage(messageId, profile!.supabaseId);
-    if (result) {
-      console.log('✅ Message pinned!');
-      // Reload pinned messages
-      const pinned = await getPinnedMessages(activeGroup as string);
-      setPinnedMessages(pinned || []);
-    }
-  };
-
-  const handleUnpinMessage = async (messageId: string | number) => {
-    // @ts-ignore - message id type compatibility
-    const result = await unpinMessage(messageId);
-    if (result) {
-      console.log('✅ Message unpinned!');
-      // Reload pinned messages
-      const pinned = await getPinnedMessages(activeGroup as string);
-      setPinnedMessages(pinned || []);
-    }
+  const handleLeaveGroupAndNav = async () => {
+    const success = await groupMgmt.handleLeaveGroup(activeGroup!);
+    if (success) { setActiveGroup(null); setActiveView('list'); }
   };
 
   // Create Group Modal
@@ -1010,7 +470,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
         </div>
 
         {isLeader ? (
-          <form onSubmit={handleUpdateGroup} className="space-y-4">
+          <form onSubmit={handleUpdateGroupAndNav} className="space-y-4">
             <div
               className={`rounded-xl border p-4 space-y-4 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
               style={nightMode ? {} : {
@@ -1084,7 +544,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
               </p>
               <button
                 type="button"
-                onClick={(e) => handleDeleteGroup(e)}
+                onClick={(e) => handleDeleteGroupAndNav(e)}
                 disabled={isDeleting}
                 className="w-full px-4 py-3 bg-red-500 text-slate-100 rounded-xl font-semibold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md transition-all"
               >
@@ -1108,7 +568,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({ nightMode, onGroupsCountChange })
               You can rejoin this group later by requesting access again.
             </p>
             <button
-              onClick={handleLeaveGroup}
+              onClick={handleLeaveGroupAndNav}
               disabled={isLeaving}
               className={`w-full px-4 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md transition-all ${nightMode ? 'bg-slate-500 hover:bg-slate-600 text-slate-100' : 'bg-slate-500 hover:bg-slate-600 text-white'}`}
             >

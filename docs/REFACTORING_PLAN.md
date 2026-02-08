@@ -201,7 +201,7 @@ These changes are mechanical and cannot break functionality.
 - [x] App.tsx is 325 lines (from 1,978 — 84% reduction)
 - [x] Tab navigation works (bottom nav bar — mobile PWA pattern)
 - [x] `npm run build` succeeds (5.59s)
-- [ ] Commit with message: `refactor: phase 3 — App.tsx decomposition, AppContext, extracted components`
+- [x] Commit with message: `refactor: phase 3 — App.tsx decomposition, AppContext, extracted components` (d188a15)
 
 ---
 
