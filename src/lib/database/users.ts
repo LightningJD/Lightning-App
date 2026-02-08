@@ -187,6 +187,8 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   // Privacy & church fields
   if ((profileData as any).profile_visibility !== undefined) updates.profile_visibility = (profileData as any).profile_visibility;
   if ((profileData as any).church_id !== undefined) updates.church_id = (profileData as any).church_id;
+  // Referral fields
+  if ((profileData as any).referred_by_code !== undefined) updates.referred_by_code = (profileData as any).referred_by_code;
 
   const { data, error } = await supabase
     .from('users')

@@ -606,6 +606,7 @@ function App() {
       const pendingChurch = (profileData as any)._pendingChurch;
 
       // Update profile in Supabase
+      console.log('📝 Updating profile for user:', userProfile.supabaseId, 'with data keys:', Object.keys(profileData));
       const updated = await updateUserProfile(userProfile.supabaseId, {
         ...profileData,
         profileCompleted: true
