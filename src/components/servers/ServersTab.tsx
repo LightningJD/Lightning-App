@@ -37,6 +37,13 @@ import {
   approveInviteRequest,
   rejectInviteRequest,
   joinByInviteCode,
+  timeoutMember,
+  removeTimeout,
+  isMemberTimedOut,
+  setChannelNotificationOverride,
+  getUserNotificationOverrides,
+  addAuditLogEntry,
+  sendWelcomeMessage,
 } from '../../lib/database';
 import ServerSidebar from './ServerSidebar';
 import ChannelSidebar from './ChannelSidebar';
@@ -46,6 +53,7 @@ import CreateChannelDialog from './CreateChannelDialog';
 import ServerSettings from './ServerSettings';
 import RoleManager from './RoleManager';
 import MemberList from './MemberList';
+import AuditLog from './AuditLog';
 
 interface ServersTabProps {
   nightMode: boolean;
@@ -54,7 +62,7 @@ interface ServersTabProps {
   onBack?: () => void;
 }
 
-type ViewMode = 'chat' | 'settings' | 'roles' | 'members';
+type ViewMode = 'chat' | 'settings' | 'roles' | 'members' | 'audit';
 
 const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange, initialServerId, onBack }) => {
   const { profile } = useUserProfile();
@@ -93,6 +101,12 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
 
   // Invite requests
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+
+  // Channel notification overrides
+  const [channelNotificationOverrides, setChannelNotificationOverrides] = useState<Record<string, string>>({});
+
+  // Current user timed out state
+  const [isTimedOut, setIsTimedOut] = useState(false);
 
   // Join by invite code
   const [showJoinDialog, setShowJoinDialog] = useState(false);
@@ -237,9 +251,9 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     });
   }, [isMobile, profile?.supabaseId]);
 
-  const handleCreateChannel = useCallback(async (name: string, topic: string, categoryId?: string, emojiIcon?: string) => {
+  const handleCreateChannel = useCallback(async (name: string, topic: string, categoryId?: string, emojiIcon?: string, slowmodeSeconds?: number) => {
     if (!activeServerId) return;
-    const result = await createChannel(activeServerId, { name, topic, categoryId, emojiIcon });
+    const result = await createChannel(activeServerId, { name, topic, categoryId, emojiIcon, slowmodeSeconds });
     if (result) {
       const refreshed = await getChannelsByServer(activeServerId);
       setCategories(refreshed.categories || []);
@@ -287,12 +301,19 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     if (!profile?.supabaseId || !activeServerId) return;
     const success = await approveInviteRequest(requestId, profile.supabaseId);
     if (success) {
+      // Find the request to get user info for welcome message
+      const request = pendingRequests.find(r => r.id === requestId);
       setPendingRequests(prev => prev.filter(r => r.id !== requestId));
       // Refresh members list
       const refreshed = await getServerMembers(activeServerId);
       setMembers(refreshed || []);
+      // Send welcome message if enabled (fire-and-forget)
+      if (request?.user_id) {
+        const displayName = request.display_name || request.username || 'New member';
+        sendWelcomeMessage(activeServerId, request.user_id, displayName).catch(() => {});
+      }
     }
-  }, [profile?.supabaseId, activeServerId]);
+  }, [profile?.supabaseId, activeServerId, pendingRequests]);
 
   const handleRejectRequest = useCallback(async (requestId: string) => {
     if (!profile?.supabaseId) return;
@@ -470,6 +491,47 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     setBans(refreshedBans || []);
   }, [activeServerId]);
 
+  // Timeout handlers
+  const handleTimeoutMember = useCallback(async (userId: string, durationMinutes: number, reason?: string) => {
+    if (!activeServerId || !profile?.supabaseId) return;
+    const success = await timeoutMember(activeServerId, userId, profile.supabaseId, durationMinutes, reason);
+    if (success) {
+      const refreshedMembers = await getServerMembers(activeServerId);
+      setMembers(refreshedMembers || []);
+      showSuccess('Member timed out');
+    } else {
+      showError('Failed to timeout member');
+    }
+  }, [activeServerId, profile?.supabaseId]);
+
+  const handleRemoveTimeout = useCallback(async (userId: string) => {
+    if (!activeServerId || !profile?.supabaseId) return;
+    const success = await removeTimeout(activeServerId, userId, profile.supabaseId);
+    if (success) {
+      const refreshedMembers = await getServerMembers(activeServerId);
+      setMembers(refreshedMembers || []);
+      showSuccess('Timeout removed');
+    } else {
+      showError('Failed to remove timeout');
+    }
+  }, [activeServerId, profile?.supabaseId]);
+
+  // Channel notification override handler
+  const handleSetChannelNotification = useCallback(async (channelId: string, level: string) => {
+    if (!profile?.supabaseId) return;
+    await setChannelNotificationOverride(channelId, profile.supabaseId, level);
+    // Update local state
+    setChannelNotificationOverrides(prev => {
+      const next = { ...prev };
+      if (level === 'default') {
+        delete next[channelId];
+      } else {
+        next[channelId] = level;
+      }
+      return next;
+    });
+  }, [profile?.supabaseId]);
+
   // Load unread counts
   useEffect(() => {
     const loadUnreadCounts = async () => {
@@ -479,6 +541,32 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     };
     loadUnreadCounts();
     const interval = setInterval(loadUnreadCounts, 10000); // refresh every 10s
+    return () => clearInterval(interval);
+  }, [activeServerId, profile?.supabaseId]);
+
+  // Load channel notification overrides when server changes
+  useEffect(() => {
+    const loadNotificationOverrides = async () => {
+      if (!activeServerId || !profile?.supabaseId) return;
+      const overrides = await getUserNotificationOverrides(activeServerId, profile.supabaseId);
+      setChannelNotificationOverrides(overrides || {});
+    };
+    loadNotificationOverrides();
+  }, [activeServerId, profile?.supabaseId]);
+
+  // Check if current user is timed out in this server
+  useEffect(() => {
+    const checkTimeout = async () => {
+      if (!activeServerId || !profile?.supabaseId) {
+        setIsTimedOut(false);
+        return;
+      }
+      const timedOut = await isMemberTimedOut(activeServerId, profile.supabaseId);
+      setIsTimedOut(timedOut);
+    };
+    checkTimeout();
+    // Re-check every 30s in case timeout expires
+    const interval = setInterval(checkTimeout, 30000);
     return () => clearInterval(interval);
   }, [activeServerId, profile?.supabaseId]);
 
@@ -649,6 +737,19 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           bans={bans}
           onBanMember={handleBanMember}
           onUnbanMember={handleUnbanMember}
+          onTimeoutMember={handleTimeoutMember}
+          onRemoveTimeout={handleRemoveTimeout}
+        />
+      );
+    }
+
+    // Audit log view
+    if (viewMode === 'audit' && activeServerId) {
+      return (
+        <AuditLog
+          nightMode={nightMode}
+          serverId={activeServerId}
+          onBack={handleBackFromContent}
         />
       );
     }
@@ -667,6 +768,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           serverId={activeServerId || undefined}
           members={members}
           permissions={permissions}
+          slowmodeSeconds={activeChannel?.slowmode_seconds || 0}
+          isTimedOut={isTimedOut}
         />
       );
     }
@@ -769,6 +872,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
                   onOpenSettings={() => { setViewMode('settings'); setMobileView('chat'); }}
                   onOpenRoles={() => { setViewMode('roles'); setMobileView('chat'); }}
                   onOpenMembers={() => { setViewMode('members'); setMobileView('chat'); }}
+                  onOpenAuditLog={() => { setViewMode('audit'); setMobileView('chat'); }}
                   onShareInvite={handleShareInvite}
                   canManageChannels={permissions.manage_channels}
                   fullWidth
@@ -781,6 +885,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
                   onReorderChannels={handleReorderChannels}
                   onMoveChannelToCategory={handleMoveChannelToCategory}
                   unreadCounts={unreadCounts}
+                  channelNotificationOverrides={channelNotificationOverrides}
+                  onSetChannelNotification={handleSetChannelNotification}
                 />
               </div>
             )}
@@ -872,6 +978,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onOpenSettings={() => setViewMode('settings')}
           onOpenRoles={() => setViewMode('roles')}
           onOpenMembers={() => setViewMode('members')}
+          onOpenAuditLog={() => setViewMode('audit')}
           onShareInvite={handleShareInvite}
           canManageChannels={permissions.manage_channels}
           onCreateCategory={handleCreateCategory}
@@ -883,6 +990,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onReorderChannels={handleReorderChannels}
           onMoveChannelToCategory={handleMoveChannelToCategory}
           unreadCounts={unreadCounts}
+          channelNotificationOverrides={channelNotificationOverrides}
+          onSetChannelNotification={handleSetChannelNotification}
         />
       )}
 

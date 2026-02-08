@@ -7,7 +7,7 @@ interface CreateChannelDialogProps {
   nightMode: boolean;
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, topic: string, categoryId?: string, emojiIcon?: string) => void;
+  onCreate: (name: string, topic: string, categoryId?: string, emojiIcon?: string, slowmodeSeconds?: number) => void;
   categories: Array<{ id: string; name: string }>;
   defaultCategoryId?: string;
 }
@@ -20,6 +20,7 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
   const [categoryId, setCategoryId] = useState(defaultCategoryId || '');
   const [emojiIcon, setEmojiIcon] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [slowmode, setSlowmode] = useState(0);
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -35,11 +36,12 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
       return;
     }
     setLoading(true);
-    await onCreate(sanitizedName, topic.trim(), categoryId || undefined, emojiIcon || undefined);
+    await onCreate(sanitizedName, topic.trim(), categoryId || undefined, emojiIcon || undefined, slowmode || undefined);
     setLoading(false);
     setName('');
     setTopic('');
     setEmojiIcon('');
+    setSlowmode(0);
     setShowEmojiPicker(false);
     onClose();
   };
@@ -213,6 +215,37 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
                 border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
               }}
             />
+          </div>
+
+          {/* Slowmode */}
+          <div>
+            <label className={`block text-sm font-semibold mb-2 ${nightMode ? 'text-white/70' : 'text-black/70'}`}>
+              Slowmode <span className={`font-normal ${nightMode ? 'text-white/30' : 'text-black/30'}`}>(optional)</span>
+            </label>
+            <select
+              value={slowmode}
+              onChange={e => setSlowmode(Number(e.target.value))}
+              className={`w-full px-4 py-3 rounded-xl text-sm transition-all ${
+                nightMode ? 'text-white' : 'text-black'
+              }`}
+              style={{
+                background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)',
+                border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+              }}
+            >
+              <option value={0}>Off</option>
+              <option value={5}>5 seconds</option>
+              <option value={10}>10 seconds</option>
+              <option value={15}>15 seconds</option>
+              <option value={30}>30 seconds</option>
+              <option value={60}>1 minute</option>
+              <option value={120}>2 minutes</option>
+              <option value={300}>5 minutes</option>
+              <option value={600}>10 minutes</option>
+            </select>
+            <p className={`text-xs mt-1.5 ${nightMode ? 'text-white/30' : 'text-black/30'}`}>
+              Limits how often members can send messages
+            </p>
           </div>
 
           {/* Create button */}

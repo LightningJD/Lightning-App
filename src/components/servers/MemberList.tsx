@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Search, Shield, UserX, ChevronDown, Ban, UserCheck } from 'lucide-react';
+import { ArrowLeft, Search, Shield, UserX, ChevronDown, Ban, UserCheck, Clock } from 'lucide-react';
 
 interface MemberUser {
   id: string; display_name: string; username: string;
@@ -36,17 +36,23 @@ interface MemberListProps {
   bans?: BannedUser[];
   onBanMember?: (userId: string, reason?: string) => void;
   onUnbanMember?: (userId: string) => void;
+  onTimeoutMember?: (userId: string, durationMinutes: number, reason?: string) => void;
+  onRemoveTimeout?: (userId: string) => void;
 }
 
 const MemberList: React.FC<MemberListProps> = ({
   nightMode, members, roles, currentUserId, permissions,
-  onAssignRole, onRemoveMember, onBack, bans, onBanMember, onUnbanMember
+  onAssignRole, onRemoveMember, onBack, bans, onBanMember, onUnbanMember,
+  onTimeoutMember, onRemoveTimeout
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [showBanned, setShowBanned] = useState(false);
   const [banReasonInput, setBanReasonInput] = useState('');
   const [banConfirmUserId, setBanConfirmUserId] = useState<string | null>(null);
+  const [timeoutConfirmUserId, setTimeoutConfirmUserId] = useState<string | null>(null);
+  const [timeoutDuration, setTimeoutDuration] = useState(10);
+  const [timeoutReason, setTimeoutReason] = useState('');
 
   const sortedRoles = useMemo(() => [...roles].sort((a, b) => b.position - a.position), [roles]);
   const currentMember = useMemo(() => members.find(m => m.user_id === currentUserId), [members, currentUserId]);
@@ -224,6 +230,14 @@ const MemberList: React.FC<MemberListProps> = ({
                     onSetBanConfirm={setBanConfirmUserId}
                     banReasonInput={banReasonInput}
                     onSetBanReason={setBanReasonInput}
+                    onTimeoutMember={onTimeoutMember}
+                    timeoutConfirmUserId={timeoutConfirmUserId}
+                    onSetTimeoutConfirm={setTimeoutConfirmUserId}
+                    timeoutDuration={timeoutDuration}
+                    onSetTimeoutDuration={setTimeoutDuration}
+                    timeoutReason={timeoutReason}
+                    onSetTimeoutReason={setTimeoutReason}
+                    onRemoveTimeout={onRemoveTimeout}
                   />
                 ))}
               </div>
@@ -308,9 +322,20 @@ const MemberRow: React.FC<{
   onSetBanConfirm?: (userId: string | null) => void;
   banReasonInput?: string;
   onSetBanReason?: (reason: string) => void;
-}> = ({ member, nightMode: nm, canManage, roles, permissions, isDropdownOpen, onToggleDropdown, onAssignRole, onRemoveMember, canBan, onBanMember, banConfirmUserId, onSetBanConfirm, banReasonInput, onSetBanReason }) => {
+  onTimeoutMember?: (userId: string, durationMinutes: number, reason?: string) => void;
+  timeoutConfirmUserId?: string | null;
+  onSetTimeoutConfirm?: (userId: string | null) => void;
+  timeoutDuration?: number;
+  onSetTimeoutDuration?: (d: number) => void;
+  timeoutReason?: string;
+  onSetTimeoutReason?: (r: string) => void;
+  onRemoveTimeout?: (userId: string) => void;
+}> = ({ member, nightMode: nm, canManage, roles, permissions, isDropdownOpen, onToggleDropdown, onAssignRole, onRemoveMember, canBan, onBanMember, banConfirmUserId, onSetBanConfirm, banReasonInput, onSetBanReason, onTimeoutMember, timeoutConfirmUserId, onSetTimeoutConfirm, timeoutDuration, onSetTimeoutDuration, timeoutReason, onSetTimeoutReason, onRemoveTimeout }) => {
   const user = member.user;
   const showBanConfirm = banConfirmUserId === member.user_id && canBan && onBanMember && onSetBanConfirm && onSetBanReason;
+  const timedOutUntil = (member as any).timed_out_until;
+  const isTimedOut = timedOutUntil && new Date(timedOutUntil) > new Date();
+  const showTimeoutConfirm = timeoutConfirmUserId === member.user_id && onTimeoutMember && onSetTimeoutConfirm && onSetTimeoutDuration && onSetTimeoutReason;
 
   return (
     <div>
@@ -347,9 +372,23 @@ const MemberRow: React.FC<{
 
         {/* Name & username */}
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-semibold truncate ${nm ? 'text-white' : 'text-black'}`}>
-            {user?.display_name || 'Unknown'}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className={`text-sm font-semibold truncate ${nm ? 'text-white' : 'text-black'}`}>
+              {user?.display_name || 'Unknown'}
+            </p>
+            {isTimedOut && (
+              <span
+                className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                style={{
+                  color: nm ? '#f59e0b' : '#d97706',
+                  background: nm ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.08)',
+                  border: `1px solid ${nm ? 'rgba(245,158,11,0.25)' : 'rgba(245,158,11,0.2)'}`,
+                }}
+              >
+                Timed out
+              </span>
+            )}
+          </div>
           <p className={`text-xs truncate ${nm ? 'text-white/40' : 'text-black/40'}`}>
             @{user?.username || 'unknown'}
           </p>
@@ -439,6 +478,31 @@ const MemberRow: React.FC<{
                 <Ban className="w-4 h-4" />
               </button>
             )}
+            {canManage && onSetTimeoutConfirm && (isTimedOut ? (
+              onRemoveTimeout && (
+                <button
+                  onClick={() => onRemoveTimeout(member.user_id)}
+                  className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                    nm ? 'hover:bg-amber-500/15 text-amber-400/60 hover:text-amber-400' : 'hover:bg-amber-50 text-amber-500/50 hover:text-amber-600'
+                  }`}
+                  title="Remove timeout"
+                >
+                  <Clock className="w-4 h-4" />
+                </button>
+              )
+            ) : (
+              onTimeoutMember && (
+                <button
+                  onClick={() => onSetTimeoutConfirm(timeoutConfirmUserId === member.user_id ? null : member.user_id)}
+                  className={`p-1.5 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                    nm ? 'hover:bg-amber-500/15 text-white/30 hover:text-amber-400' : 'hover:bg-amber-50 text-black/25 hover:text-amber-500'
+                  }`}
+                  title="Timeout member"
+                >
+                  <Clock className="w-4 h-4" />
+                </button>
+              )
+            ))}
           </div>
         )}
       </div>
@@ -479,6 +543,70 @@ const MemberRow: React.FC<{
             </button>
             <button
               onClick={() => { onSetBanConfirm(null); onSetBanReason(''); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 ${
+                nm ? 'bg-white/10 text-white' : 'bg-black/5 text-black'
+              }`}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Timeout confirmation — rendered below the member row */}
+      {showTimeoutConfirm && (
+        <div
+          className="px-4 pb-3 pt-2 mx-4 mb-2 rounded-xl"
+          style={{
+            background: nm ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)',
+            border: `1px solid ${nm ? 'rgba(245,158,11,0.12)' : 'rgba(245,158,11,0.1)'}`,
+          }}
+        >
+          <p className={`text-xs font-semibold mb-1.5 ${nm ? 'text-amber-300' : 'text-amber-600'}`}>
+            Timeout {member.user?.display_name || 'this user'}?
+          </p>
+          <select
+            value={timeoutDuration ?? 10}
+            onChange={(e) => onSetTimeoutDuration(Number(e.target.value))}
+            className={`w-full px-3 py-1.5 rounded-lg text-xs mb-2 ${
+              nm ? 'text-white bg-white/5 border border-white/10'
+              : 'text-black bg-white/50 border border-black/10'
+            }`}
+          >
+            <option value={1}>1 minute</option>
+            <option value={5}>5 minutes</option>
+            <option value={10}>10 minutes</option>
+            <option value={30}>30 minutes</option>
+            <option value={60}>1 hour</option>
+            <option value={360}>6 hours</option>
+            <option value={1440}>1 day</option>
+            <option value={10080}>1 week</option>
+          </select>
+          <input
+            type="text"
+            value={timeoutReason || ''}
+            onChange={(e) => onSetTimeoutReason(e.target.value)}
+            placeholder="Reason (optional)..."
+            className={`w-full px-3 py-1.5 rounded-lg text-xs mb-2 ${
+              nm ? 'text-white placeholder-white/30 bg-white/5 border border-white/10'
+              : 'text-black placeholder-black/30 bg-white/50 border border-black/10'
+            }`}
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                onTimeoutMember(member.user_id, timeoutDuration ?? 10, timeoutReason || undefined);
+                onSetTimeoutConfirm(null);
+                onSetTimeoutDuration(10);
+                onSetTimeoutReason('');
+              }}
+              className="flex-1 py-1.5 rounded-lg text-white text-xs font-bold transition-all active:scale-95"
+              style={{ background: 'rgba(245,158,11,0.85)' }}
+            >
+              Confirm Timeout
+            </button>
+            <button
+              onClick={() => { onSetTimeoutConfirm(null); onSetTimeoutDuration(10); onSetTimeoutReason(''); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 ${
                 nm ? 'bg-white/10 text-white' : 'bg-black/5 text-black'
               }`}

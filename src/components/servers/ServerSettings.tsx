@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Copy, RefreshCw, Trash2, Shield, Check, X, UserPlus, Clock, Crown } from 'lucide-react';
+import { ArrowLeft, Copy, RefreshCw, Trash2, Shield, Check, X, UserPlus, Clock, Crown, Image as ImageIcon, MessageSquare, Bell, ArrowRightLeft } from 'lucide-react';
 import SubscriptionSettings from '../premium/SubscriptionSettings';
 import CosmeticsEditor from '../premium/CosmeticsEditor';
 import { useUserProfile } from '../useUserProfile';
+import { uploadServerIcon } from '../../lib/cloudinary';
+import { showError, showSuccess } from '../../lib/toast';
+import { transferServerOwnership } from '../../lib/database';
 
 interface ServerSettingsProps {
   nightMode: boolean;
@@ -16,6 +19,9 @@ interface ServerSettingsProps {
     invite_code?: string;
     is_private: boolean;
     member_count: number;
+    welcome_enabled?: boolean;
+    welcome_message?: string;
+    default_notification_level?: string;
   };
   permissions: {
     manage_server: boolean;
@@ -49,6 +55,13 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
   const [showDangerZone, setShowDangerZone] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [iconUrl, setIconUrl] = useState(server.icon_url || '');
+  const [uploadingIcon, setUploadingIcon] = useState(false);
+  const [welcomeEnabled, setWelcomeEnabled] = useState(server.welcome_enabled ?? false);
+  const [welcomeMessage, setWelcomeMessage] = useState(server.welcome_message || '');
+  const [defaultNotification, setDefaultNotification] = useState(server.default_notification_level || 'all');
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferUserId, setTransferUserId] = useState('');
 
   useEffect(() => {
     const changed = name !== server.name || description !== (server.description || '') || iconEmoji !== server.icon_emoji;
@@ -57,8 +70,26 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
 
   const handleSave = () => {
     if (!name.trim()) return;
-    onUpdate({ name: name.trim(), description: description.trim(), icon_emoji: iconEmoji });
+    onUpdate({ name: name.trim(), description: description.trim(), icon_emoji: iconEmoji, icon_url: iconUrl || null });
     setHasChanges(false);
+  };
+
+  const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { showError('Please select an image file'); return; }
+    if (file.size > 10 * 1024 * 1024) { showError('Image must be under 10MB'); return; }
+    setUploadingIcon(true);
+    try {
+        const url = await uploadServerIcon(file);
+        setIconUrl(url);
+        onUpdate({ icon_url: url });
+    } catch (err) {
+        console.error('Icon upload failed:', err);
+        showError('Failed to upload icon. Please try again.');
+    }
+    setUploadingIcon(false);
+    e.target.value = '';
   };
 
   const handleCopyInvite = async () => {
@@ -142,6 +173,22 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
                 {emoji}
               </button>
             ))}
+          </div>
+          {/* Custom image upload */}
+          <div className="mt-3 flex items-center gap-3">
+            {iconUrl && (
+              <img src={iconUrl} alt="Server icon" className="w-11 h-11 rounded-full object-cover" style={{ border: `2px solid ${nm ? 'rgba(79,150,255,0.5)' : 'rgba(79,150,255,0.3)'}` }} />
+            )}
+            <label className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all hover:scale-[1.02] active:scale-95 ${nm ? 'bg-white/10 text-white/70 hover:bg-white/15' : 'bg-black/5 text-black/60 hover:bg-black/10'}`}>
+              <ImageIcon className="w-3.5 h-3.5" />
+              {uploadingIcon ? 'Uploading...' : iconUrl ? 'Change Image' : 'Upload Image'}
+              <input type="file" accept="image/*" onChange={handleIconUpload} className="hidden" disabled={uploadingIcon} />
+            </label>
+            {iconUrl && (
+              <button onClick={() => { setIconUrl(''); onUpdate({ icon_url: null }); }} className={`text-xs ${nm ? 'text-white/30 hover:text-white/50' : 'text-black/30 hover:text-black/50'}`}>
+                Remove
+              </button>
+            )}
           </div>
         </div>
 
@@ -277,6 +324,64 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
           </div>
         </div>
 
+        {/* Welcome Message */}
+        {permissions.manage_server && (
+          <div className="rounded-2xl p-5" style={cardStyle}>
+            <div className="flex items-center justify-between mb-3">
+              <label className={`flex items-center gap-2 text-sm font-semibold ${nm ? 'text-white/70' : 'text-black/70'}`}>
+                <MessageSquare className="w-4 h-4" />
+                Welcome Message
+              </label>
+              <button
+                onClick={() => { setWelcomeEnabled(!welcomeEnabled); onUpdate({ welcome_enabled: !welcomeEnabled }); }}
+                className={`w-10 h-6 rounded-full transition-colors relative ${welcomeEnabled ? 'bg-blue-500' : (nm ? 'bg-white/20' : 'bg-black/20')}`}
+              >
+                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${welcomeEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+              </button>
+            </div>
+            {welcomeEnabled && (
+              <>
+                <textarea
+                  value={welcomeMessage}
+                  onChange={e => setWelcomeMessage(e.target.value)}
+                  onBlur={() => onUpdate({ welcome_message: welcomeMessage })}
+                  placeholder="Welcome to {server}! We're glad you're here, {user}!"
+                  rows={3}
+                  maxLength={500}
+                  className={`w-full px-4 py-3 rounded-xl text-sm resize-none transition-all ${nm ? 'text-white placeholder-white/30' : 'text-black placeholder-black/40'}`}
+                  style={inputStyle}
+                />
+                <p className={`text-xs mt-2 ${nm ? 'text-white/30' : 'text-black/30'}`}>
+                  Use {'{user}'} for the member's name, {'{server}'} for server name
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Default Notification Level */}
+        {permissions.manage_server && (
+          <div className="rounded-2xl p-5" style={cardStyle}>
+            <label className={`flex items-center gap-2 text-sm font-semibold mb-3 ${nm ? 'text-white/70' : 'text-black/70'}`}>
+              <Bell className="w-4 h-4" />
+              Default Notifications
+            </label>
+            <select
+              value={defaultNotification}
+              onChange={e => { setDefaultNotification(e.target.value); onUpdate({ default_notification_level: e.target.value }); }}
+              className={`w-full px-4 py-3 rounded-xl text-sm transition-all ${nm ? 'text-white' : 'text-black'}`}
+              style={inputStyle}
+            >
+              <option value="all">All Messages</option>
+              <option value="mentions">Only @Mentions</option>
+              <option value="none">Nothing</option>
+            </select>
+            <p className={`text-xs mt-2 ${nm ? 'text-white/30' : 'text-black/30'}`}>
+              New members will use this notification setting by default
+            </p>
+          </div>
+        )}
+
         {/* Premium & Billing */}
         {permissions.manage_server && (
           <div className="rounded-2xl p-5" style={cardStyle}>
@@ -333,6 +438,14 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
                   This action is permanent and cannot be undone.
                 </p>
                 <button
+                  onClick={() => setShowTransferModal(true)}
+                  className="text-xs font-medium transition-all active:scale-95 px-3 py-1.5 rounded-lg mr-2 mb-2 flex items-center gap-1.5"
+                  style={{ background: 'rgba(245,158,11,0.08)', color: nm ? 'rgba(245,158,11,0.7)' : 'rgba(245,158,11,0.8)' }}
+                >
+                  <ArrowRightLeft className="w-3 h-3" />
+                  Transfer Ownership
+                </button>
+                <button
                   onClick={() => { setShowDeleteConfirm(true); setDeleteConfirmName(''); }}
                   className="text-xs font-medium transition-all active:scale-95 px-3 py-1.5 rounded-lg"
                   style={{ background: 'rgba(239,68,68,0.08)', color: nm ? 'rgba(239,68,68,0.5)' : 'rgba(239,68,68,0.6)' }}
@@ -344,6 +457,86 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
           </div>
         )}
       </div>
+
+      {/* Transfer Ownership Modal */}
+      {showTransferModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowTransferModal(false); setTransferUserId(''); }} />
+          <div
+            className="relative w-full max-w-sm rounded-2xl overflow-hidden"
+            style={{
+              background: nm ? 'rgba(20,20,30,0.95)' : 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              border: `1px solid ${nm ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+              boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+            }}
+          >
+            <div className="px-6 pt-6 pb-3 text-center" style={{ background: nm ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)' }}>
+              <div className="w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-3"
+                style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                <ArrowRightLeft className="w-6 h-6 text-amber-400" />
+              </div>
+              <h3 className={`text-lg font-bold ${nm ? 'text-white' : 'text-black'}`}>
+                Transfer Ownership
+              </h3>
+              <p className={`text-sm mt-1 ${nm ? 'text-white/50' : 'text-black/50'}`}>
+                This will make another member the owner of {server.name}. You will be demoted to Admin.
+              </p>
+            </div>
+            <div className="px-6 py-4">
+              <p className={`text-xs mb-2 ${nm ? 'text-white/50' : 'text-black/50'}`}>
+                Enter the user ID of the new owner:
+              </p>
+              <input
+                type="text"
+                value={transferUserId}
+                onChange={e => setTransferUserId(e.target.value)}
+                placeholder="User ID"
+                className={`w-full px-4 py-3 rounded-xl text-sm transition-all ${nm ? 'text-white placeholder-white/20' : 'text-black placeholder-black/20'}`}
+                style={{
+                  background: nm ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  border: `1px solid ${nm ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+                }}
+                autoFocus
+              />
+            </div>
+            <div className="px-6 pb-6 flex gap-2">
+              <button
+                onClick={() => { setShowTransferModal(false); setTransferUserId(''); }}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+                  nm ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!transferUserId.trim() || !profile?.supabaseId) return;
+                  const success = await transferServerOwnership(server.id, profile.supabaseId, transferUserId.trim());
+                  if (success) {
+                    showSuccess('Ownership transferred successfully');
+                    setShowTransferModal(false);
+                    setTransferUserId('');
+                    onUpdate({}); // Trigger refresh
+                  } else {
+                    showError('Transfer failed. Make sure the user is a server member.');
+                  }
+                }}
+                disabled={!transferUserId.trim()}
+                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-all active:scale-95 disabled:opacity-20 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                style={{
+                  background: transferUserId.trim() ? 'rgba(245,158,11,0.85)' : 'rgba(245,158,11,0.3)',
+                  boxShadow: transferUserId.trim() ? '0 2px 8px rgba(245,158,11,0.3)' : 'none',
+                }}
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5" />
+                Transfer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
