@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Smile, Plus, X, Reply, Trash2, MoreVertical, UserX, Image as ImageIcon } from 'lucide-react';
-import { sendMessage, getConversation, getUserConversations, subscribeToMessages, subscribeToMessageReactions, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy, createGroup, sendGroupMessage, addReaction, removeReaction, getMessageReactions, deleteMessage, blockUser, markConversationAsRead, getFriends } from '../lib/database';
+import { createGroup, sendGroupMessage, blockUser, sendMessage } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { showError, showSuccess } from '../lib/toast';
-import { checkBeforeSend } from '../lib/contentFilter';
 import { ConversationSkeleton } from './SkeletonLoader';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
-import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/secrets';
-import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
-import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
-import { validateMessage, sanitizeInput } from '../lib/inputValidation';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { uploadMessageImage } from '../lib/cloudinary';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
+import { useMessages } from '../hooks/useMessages';
+import { useNewChat } from '../hooks/useNewChat';
+import type { Message, Conversation } from '../hooks/useMessages';
+import type { Connection } from '../hooks/useNewChat';
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: any): string => {
@@ -38,54 +36,6 @@ const decodeHTMLEntities = (text: string): string => {
   return textArea.value;
 };
 
-interface Message {
-  id: number | string;
-  sender_id: string;
-  recipient_id: string;
-  content: string;
-  created_at: string;
-  image_url?: string;
-  reply_to_message_id?: string;
-  reply_to?: {
-    id: string | number;
-    content: string;
-    sender: {
-      username: string;
-      display_name: string;
-      avatar_emoji: string;
-    };
-  };
-  sender?: {
-    username: string;
-    display_name: string;
-    avatar_emoji: string;
-  };
-}
-
-interface Conversation {
-  id: number | string;
-  userId: string;
-  name: string;
-  avatar: string;
-  avatarImage?: string;
-  lastMessage: string;
-  timestamp: string;
-  online?: boolean;
-  unreadCount?: number;
-}
-
-interface Connection {
-  id: number | string;
-  name: string;
-  avatar: string;
-  status: string;
-}
-
-interface Reaction {
-  emoji: string;
-  userId: string;
-}
-
 interface MessagesTabProps {
   nightMode: boolean;
   onConversationsCountChange?: (count: number) => void;
@@ -97,98 +47,70 @@ interface MessagesTabProps {
 const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCountChange, startChatWith, initialConversation, onBack }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
-  const [activeChat, setActiveChat] = useState<number | string | null>(initialConversation?.id ?? null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [newMessage, setNewMessage] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
-  const [showReactionPicker, setShowReactionPicker] = useState<number | string | null>(null);
-  const [messageReactions, setMessageReactions] = useState<Record<string | number, Reaction[]>>({});
-  const [showAllEmojis, setShowAllEmojis] = useState<Record<string | number, boolean>>({});
-  const [expandedReactions, setExpandedReactions] = useState<Record<string | number, boolean>>({});
-  const [showNewChatDialog, setShowNewChatDialog] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [newChatMessage, setNewChatMessage] = useState<string>('');
-  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
-  const [selectedConnections, setSelectedConnections] = useState<Connection[]>([]);
-  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  const [pendingImage, setPendingImage] = useState<File | null>(null);
-  const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
-  const [uploadingImage, setUploadingImage] = useState<boolean>(false);
-  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Extracted hooks ──────────────────────────────────────
+  const msg = useMessages({
+    userId: profile?.supabaseId,
+    profile: profile ? {
+      supabaseId: profile.supabaseId,
+      username: profile.username,
+      displayName: profile.displayName,
+      avatar: profile.avatar,
+    } : undefined,
+    initialConversationId: initialConversation?.id,
+    onConversationsCountChange,
+  });
+
+  const {
+    activeChat, setActiveChat,
+    messages, conversations,
+    loading, isInitialLoad,
+    messageReactions,
+    showReactionPicker, setShowReactionPicker,
+    showAllEmojis, setShowAllEmojis,
+    expandedReactions, setExpandedReactions,
+    newMessage, setNewMessage,
+    replyingTo, setReplyingTo,
+    pendingImage, pendingImagePreview, uploadingImage,
+    imageInputRef,
+    messagesEndRef, messagesContainerRef, messageRefs,
+    handleReaction, handleSendMessage, handleDeleteMessage,
+    handleImageSelect, clearPendingImage,
+    isMessageInBottomHalf,
+  } = msg;
+
+  const newChat = useNewChat({
+    userId: profile?.supabaseId,
+    startChatWith,
+  });
+
+  const {
+    showNewChatDialog, setShowNewChatDialog,
+    searchQuery, setSearchQuery,
+    newChatMessage, setNewChatMessage,
+    showSuggestions, setShowSuggestions,
+    selectedConnections, setSelectedConnections,
+    connections, loadingConnections,
+    recipientInputRef,
+  } = newChat;
+
+  // ── Local UI state (kept in component) ───────────────────
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
-  const [showConversationMenu, setShowConversationMenu] = useState<boolean>(false);
+  const [showConversationMenu, setShowConversationMenu] = useState(false);
   const [viewingChatUser, setViewingChatUser] = useState<any>(null);
   const [mobileActionMenu, setMobileActionMenu] = useState<number | string | null>(null);
   const messageLongPressRef = useRef<NodeJS.Timeout | null>(null);
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const recipientInputRef = useRef<HTMLInputElement>(null);
-  const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
-  const reactionSubscriptionRef = useRef<any>(null);
-  const userIsScrollingRef = useRef(false);
-
-  // Helper function to check if message is in bottom half of viewport
-  const isMessageInBottomHalf = (messageId: string | number): boolean => {
-    const messageEl = messageRefs.current[messageId];
-    if (!messageEl) return false;
-
-    const rect = messageEl.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const messageMiddle = rect.top + (rect.height / 2);
-
-    return messageMiddle > (viewportHeight / 2);
-  };
-
-  // Real friends from database
-  const [connections, setConnections] = useState<Connection[]>([]);
-  const [loadingConnections, setLoadingConnections] = useState(false);
-
-  // Load friends when new chat dialog opens
-  useEffect(() => {
-    const loadFriends = async () => {
-      if (!showNewChatDialog || !profile?.supabaseId) return;
-      setLoadingConnections(true);
-      try {
-        const friends = await getFriends(profile.supabaseId);
-        const mapped: Connection[] = friends.map((f: any) => ({
-          id: f.id,
-          name: f.display_name || f.username || 'User',
-          avatar: f.avatar_emoji || '👤',
-          status: f.is_online ? 'online' : 'offline'
-        }));
-        setConnections(mapped);
-      } catch (err) {
-        console.error('Error loading friends for chat:', err);
-        setConnections([]);
-      }
-      setLoadingConnections(false);
-    };
-    loadFriends();
-  }, [showNewChatDialog, profile?.supabaseId]);
-
-  // Auto-focus on recipient input when dialog opens
-  useEffect(() => {
-    if (showNewChatDialog && recipientInputRef.current) {
-      recipientInputRef.current.focus();
-    }
-  }, [showNewChatDialog]);
 
   // Close conversation menu when switching chats
   useEffect(() => {
     setShowConversationMenu(false);
   }, [activeChat]);
 
-  // Open New Chat dialog prefilled when launched from Connect/Search
+  // Block guests from accessing messages
   useEffect(() => {
-    if (startChatWith && startChatWith.id && startChatWith.name) {
-      setSelectedConnections([{ id: startChatWith.id, name: startChatWith.name, avatar: startChatWith.avatar || '👤', status: 'online' }]);
-      setShowNewChatDialog(true);
-      setShowSuggestions(false);
-    }
-  }, [startChatWith]);
+    if (isGuest) checkAndShowModal();
+  }, [isGuest]);
 
   // Reaction emojis (same as Groups)
   const reactionEmojis = [
@@ -197,639 +119,6 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     '🤲', '😇', '😊', '😢', '😮', '🎉',
     '🫂', '✋', '🥰', '😌', '✅', '💯'
   ];
-
-  // Handle reaction toggle
-  const handleReaction = async (messageId: string | number, emoji: string): Promise<void> => {
-    if (!profile?.supabaseId) return;
-
-    const reactions = messageReactions[messageId] || [];
-    const existingReaction = reactions.find(
-      r => r.userId === profile.supabaseId && r.emoji === emoji
-    );
-
-    if (existingReaction) {
-      // Optimistically remove reaction from UI immediately
-      setMessageReactions(prev => ({
-        ...prev,
-        [messageId]: reactions.filter(r => r.userId !== profile?.supabaseId || r.emoji !== emoji)
-      }));
-
-      // Then remove from database in background
-      // @ts-ignore - message id type compatibility
-      const result = await removeReaction(String(messageId), profile.supabaseId, emoji);
-      if (!result) {
-        // Rollback on error
-        setMessageReactions(prev => ({
-          ...prev,
-          [messageId]: reactions
-        }));
-      } else {
-        // Don't reload immediately - let the subscription handle it
-        // This prevents the reaction from disappearing
-        console.log('✅ Reaction removed successfully');
-      }
-    } else {
-      // Optimistically add reaction to UI immediately
-      setMessageReactions(prev => ({
-        ...prev,
-        [messageId]: [...reactions, { emoji, userId: profile.supabaseId }]
-      }));
-
-      // Then add to database in background
-      // @ts-ignore - message id type compatibility
-      const result = await addReaction(String(messageId), profile.supabaseId, emoji);
-      if (!result) {
-        // Rollback on error
-        setMessageReactions(prev => ({
-          ...prev,
-          [messageId]: reactions
-        }));
-      } else {
-        // Don't reload immediately - let the subscription handle it
-        // This prevents the reaction from disappearing
-        console.log('✅ Reaction added successfully');
-      }
-    }
-  };
-
-  // Block guests from accessing messages (Freemium Browse & Block)
-  useEffect(() => {
-    if (isGuest) {
-      console.log('🚫 Guest attempted to access Messages - blocking');
-      checkAndShowModal();
-    }
-  }, [isGuest]);
-
-  // Load conversations from database
-  useEffect(() => {
-    const loadConversations = async () => {
-      if (profile?.supabaseId) {
-        try {
-          const userConversations = await getUserConversations(profile.supabaseId);
-
-          // Filter out conversations with blocked users
-          const unblockedConversations = [];
-          for (const convo of userConversations) {
-            try {
-              const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
-              const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
-              if (!blocked && !blockedBy) {
-                unblockedConversations.push(convo);
-              }
-            } catch (blockError) {
-              // Continue even if block check fails
-              console.error('Error checking blocked status:', blockError);
-              unblockedConversations.push(convo);
-            }
-          }
-
-          setConversations(unblockedConversations);
-          // Inform parent for badge count based on total unread messages (0 when none)
-          const totalUnread = unblockedConversations.reduce(
-            (sum: number, convo: any) => sum + (convo.unreadCount || 0),
-            0
-          );
-          onConversationsCountChange?.(totalUnread);
-          setIsInitialLoad(false);
-        } catch (error: any) {
-          console.error('Error loading conversations:', error);
-          // Set empty conversations on error and stop loading
-          setConversations([]);
-          setIsInitialLoad(false);
-          onConversationsCountChange?.(0);
-          // Don't show error toast for connection issues - just log it
-          if (error?.message && !error.message.includes('Failed to fetch')) {
-            showError('Failed to load conversations. Please check your connection.');
-          }
-        }
-      } else {
-        setIsInitialLoad(false);
-      }
-    };
-
-    loadConversations();
-  }, [profile?.supabaseId]);
-
-  // Subscribe to new messages for real-time updates
-  useEffect(() => {
-    if (!profile?.supabaseId) return;
-
-    let isMounted = true;
-    console.log('📡 Setting up real-time message subscription...');
-
-    const subscription = subscribeToMessages(profile.supabaseId, async (payload: any) => {
-      if (!isMounted) return; // Prevent state updates after unmount
-      console.log('📨 New message received!', payload);
-
-      // Reload conversations to update the list with new unread counts
-      const updatedConversations = await getUserConversations(profile.supabaseId);
-      // Filter out blocked users
-      const unblockedConversations: any[] = [];
-      for (const convo of updatedConversations) {
-        const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
-        const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
-        if (!blocked && !blockedBy) {
-          unblockedConversations.push(convo);
-        }
-      }
-      if (isMounted) {
-        setConversations(unblockedConversations);
-        const totalUnread = unblockedConversations.reduce(
-          (sum: number, convo: any) => sum + (convo.unreadCount || 0),
-          0
-        );
-        onConversationsCountChange?.(totalUnread);
-      }
-
-      // If the message is for the active chat, reload messages and mark as read
-      // @ts-ignore - activeChat type compatibility
-      if (activeChat && payload.new.sender_id === activeChat) {
-        // Mark as read since user is viewing the conversation
-        await markConversationAsRead(profile.supabaseId, payload.new.sender_id);
-
-        // @ts-ignore - activeChat type compatibility
-        getConversation(profile.supabaseId, activeChat)
-          .then(async (data) => {
-            if (isMounted && data && data.length >= 0) {
-              // Only update if we got valid data (even if empty array)
-              setMessages(data);
-              // Reload reactions for all messages
-              const reactionsMap: Record<string | number, any[]> = {};
-              for (const msg of data || []) {
-                const reactions = await getMessageReactions(String(msg.id));
-                reactionsMap[msg.id] = reactions.map((r: any) => ({
-                  emoji: r.emoji,
-                  userId: r.user_id
-                }));
-              }
-              setMessageReactions(reactionsMap);
-
-              // Reload conversations again to update unread count after marking as read
-              const refreshedConversations = await getUserConversations(profile.supabaseId);
-              const refreshedUnblocked: any[] = [];
-              for (const convo of refreshedConversations) {
-                const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
-                const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
-                if (!blocked && !blockedBy) {
-                  refreshedUnblocked.push(convo);
-                }
-              }
-              if (isMounted) {
-                setConversations(refreshedUnblocked);
-                const totalUnread = refreshedUnblocked.reduce(
-                  (sum: number, convo: any) => sum + (convo.unreadCount || 0),
-                  0
-                );
-                onConversationsCountChange?.(totalUnread);
-              }
-            }
-          })
-          .catch(error => {
-            console.error('Failed to load messages from real-time subscription:', error);
-            // Don't clear messages on error - keep existing messages
-          });
-      }
-    });
-
-    // Cleanup subscription on unmount
-    return () => {
-      isMounted = false;
-      console.log('🔌 Cleaning up message subscription...');
-      if (subscription) {
-        unsubscribe(subscription);
-      }
-    };
-  }, [profile?.supabaseId, activeChat]);
-
-  // Subscribe to message reactions for real-time updates
-  useEffect(() => {
-    if (!activeChat) return;
-
-    let isMounted = true;
-    console.log('📡 Setting up real-time reaction subscription...');
-
-    const reactionSubscription = subscribeToMessageReactions((payload: any) => {
-      if (!isMounted) return;
-      console.log('🎭 Reaction update received!', payload);
-
-      // Reload reactions for the affected message
-      if (payload.new?.message_id || payload.old?.message_id) {
-        const messageId = payload.new?.message_id || payload.old?.message_id;
-        
-        // Always update reactions - the subscription will only fire for relevant messages
-        getMessageReactions(String(messageId))
-          .then(reactions => {
-            if (isMounted) {
-              // Use functional update to ensure we have the latest state
-              setMessageReactions(prev => ({
-                ...prev,
-                [messageId]: reactions.map((r: any) => ({
-                  emoji: r.emoji,
-                  userId: r.user_id
-                }))
-              }));
-              console.log(`✅ Updated reactions for message ${messageId}:`, reactions);
-            }
-          })
-          .catch(error => {
-            console.error('Failed to reload reactions:', error);
-          });
-      }
-    });
-
-    reactionSubscriptionRef.current = reactionSubscription;
-
-    // Cleanup subscription on unmount
-    return () => {
-      isMounted = false;
-      console.log('🔌 Cleaning up reaction subscription...');
-      if (reactionSubscription) {
-        unsubscribe(reactionSubscription);
-      }
-    };
-  }, [activeChat]);
-
-  // Load messages when opening a chat
-  useEffect(() => {
-    const loadMessages = async () => {
-      if (activeChat && profile?.supabaseId) {
-        setLoading(true);
-        const conversation = conversations.find(c => c.id === activeChat);
-        if (conversation) {
-          // Mark conversation as read when opening
-          await markConversationAsRead(profile.supabaseId, conversation.userId);
-
-          // Load conversation from database
-          const conversationMessages = await getConversation(
-            profile.supabaseId,
-            conversation.userId
-          );
-          setMessages(conversationMessages || []);
-
-          // Load reactions for all messages
-          const reactionsMap: Record<string | number, any[]> = {};
-          for (const msg of conversationMessages || []) {
-            const reactions = await getMessageReactions(String(msg.id));
-            reactionsMap[msg.id] = reactions.map((r: any) => ({
-              emoji: r.emoji,
-              userId: r.user_id
-            }));
-          }
-          setMessageReactions(reactionsMap);
-
-          // Reload conversations to update unread counts
-          const updatedConversations = await getUserConversations(profile.supabaseId);
-          // Filter out blocked users
-          const unblockedConversations = [];
-          for (const convo of updatedConversations) {
-            const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
-            const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
-            if (!blocked && !blockedBy) {
-              unblockedConversations.push(convo);
-            }
-          }
-          setConversations(unblockedConversations);
-        }
-        setLoading(false);
-      }
-    };
-
-    loadMessages();
-  }, [activeChat, profile?.supabaseId]);
-
-  // Track if user is scrolled up (not near bottom)
-  useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-      userIsScrollingRef.current = distanceFromBottom > 150;
-    };
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [activeChat]);
-
-  // Scroll to bottom when messages change, only if user is near bottom
-  useEffect(() => {
-    if (!userIsScrollingRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      showError('Please select an image file');
-      return;
-    }
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      showError('Image must be under 10MB');
-      return;
-    }
-    setPendingImage(file);
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setPendingImagePreview(ev.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-    // Reset file input so same file can be re-selected
-    e.target.value = '';
-  };
-
-  const clearPendingImage = () => {
-    setPendingImage(null);
-    setPendingImagePreview(null);
-  };
-
-  const handleSendMessage = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    if ((!newMessage.trim() && !pendingImage) || !profile?.supabaseId) return;
-
-    // Validate message content (only if there's text)
-    if (newMessage.trim()) {
-      const validation = validateMessage(newMessage, 'message');
-      if (!validation.valid) {
-        showError(validation.errors[0] || 'Invalid message');
-        return;
-      }
-
-      // Profanity check
-      const profanityResult = checkBeforeSend(newMessage);
-      if (!profanityResult.allowed && profanityResult.flag) {
-        if (profanityResult.severity === 'high') {
-          showError('This message contains content that violates community guidelines');
-          return;
-        }
-        if (profanityResult.severity === 'medium') {
-          if (!window.confirm('This message may contain inappropriate content. Send anyway?')) {
-            return;
-          }
-        }
-      }
-    }
-
-    // Check rate limit
-    // @ts-ignore - showError type compatibility
-    if (!checkAndNotify('send_message', showError)) {
-      return;
-    }
-
-    const conversation = conversations.find(c => c.id === activeChat);
-    if (!conversation) return;
-
-    // Check if either user has blocked the other
-    const blocked = await isUserBlocked(profile.supabaseId, conversation.userId);
-    const blockedBy = await isBlockedBy(profile.supabaseId, conversation.userId);
-    if (blocked || blockedBy) {
-      showError('Unable to send message to this user');
-      return;
-    }
-
-    // Check message privacy settings
-    const { allowed, reason } = await canSendMessage(conversation.userId, profile.supabaseId);
-    if (!allowed) {
-      showError(reason || 'Unable to send message');
-      return;
-    }
-
-    // Sanitize and save the original message content and previous messages
-    const messageContent = newMessage.trim() ? sanitizeInput(newMessage) : '';
-    const previousMessages = [...messages];
-    const imageToUpload = pendingImage;
-    const imagePreview = pendingImagePreview;
-    
-    // Capture reply target and clear reply state BEFORE sending
-    // Only reply if the message being replied to still exists in current messages AND has valid content
-    const replyTarget = replyingTo && 
-                       messages.some(m => m.id === replyingTo.id && m.content) && 
-                       replyingTo.content ? replyingTo : null;
-    const replyToId = replyTarget?.id ? String(replyTarget.id) : undefined;
-    
-    // Clear reply state immediately so UI updates
-    setReplyingTo(null);
-    
-    // Log for debugging
-    if (replyingTo && !replyTarget) {
-      console.log('⚠️ Reply target invalid or deleted, skipping reply');
-    }
-
-    // Optimistically add message to UI
-    const tempMessage: Message = {
-      id: Date.now(),
-      sender_id: profile.supabaseId,
-      recipient_id: conversation.userId,
-      content: messageContent || (imageToUpload ? '📷 Image' : ''),
-      created_at: new Date().toISOString(),
-      image_url: imagePreview || undefined,
-      reply_to_message_id: replyToId,
-      reply_to: replyTarget ? {
-        id: replyTarget.id,
-        content: replyTarget.content,
-        sender: replyTarget.sender ? {
-          username: replyTarget.sender.username || '',
-          display_name: replyTarget.sender.display_name || '',
-          avatar_emoji: replyTarget.sender.avatar_emoji || '👤'
-        } : {
-          username: profile.username || '',
-          display_name: profile.displayName || '',
-          avatar_emoji: profile.avatar || '👤'
-        }
-      } : undefined,
-      sender: {
-        username: profile.username || '',
-        display_name: profile.displayName || '',
-        avatar_emoji: profile.avatar || '👤'
-      }
-    };
-
-    setMessages([...messages, tempMessage]);
-    setNewMessage('');
-    setPendingImage(null);
-    setPendingImagePreview(null);
-
-    try {
-      // Upload image if attached
-      let uploadedImageUrl: string | undefined;
-      if (imageToUpload) {
-        setUploadingImage(true);
-        try {
-          uploadedImageUrl = await uploadMessageImage(imageToUpload);
-        } catch (imgErr) {
-          console.error('Image upload failed:', imgErr);
-          showError('Failed to upload image');
-          setUploadingImage(false);
-          // Revert optimistic update
-          setMessages(previousMessages);
-          return;
-        }
-        setUploadingImage(false);
-      }
-
-      // Send to database
-      const finalContent = messageContent || (uploadedImageUrl ? '📷 Image' : '');
-      console.log('Sending message...', {
-        from: profile.supabaseId,
-        to: conversation.userId,
-        content: finalContent,
-        replyTo: replyToId,
-        imageUrl: uploadedImageUrl
-      });
-
-      const result = await sendMessage(
-        profile.supabaseId,
-        conversation.userId,
-        finalContent,
-        replyToId,
-        uploadedImageUrl
-      );
-
-      if (result.error) {
-        // Error occurred, throw with detailed message
-        throw new Error(result.error);
-      }
-
-      const savedMessage = result.data;
-      if (!savedMessage) {
-        throw new Error('Failed to send message: No data returned');
-      }
-
-      console.log('✅ Message sent to database!', savedMessage);
-
-      // Record rate limit attempt (after successful send)
-      recordAttempt('send_message');
-
-      // Check message milestone secrets
-      // Count total messages sent by this user (rough estimate from all conversations)
-      const allConvos = await getUserConversations(profile.supabaseId);
-      let totalMessages = 0;
-      if (allConvos) {
-        for (const convo of allConvos) {
-          try {
-            const convoMessages = await getConversation(profile.supabaseId, convo.userId) as Message[];
-            totalMessages += convoMessages?.filter(m => m.sender_id === profile.supabaseId).length || 0;
-          } catch (error) {
-            console.error(`Failed to load messages for conversation ${convo.id}:`, error);
-            // Continue to next conversation
-          }
-        }
-      }
-
-      // Check milestones: 1st message, 100 messages
-      if (totalMessages === 1) {
-        checkMilestoneSecret('messages', 1);
-      } else if (totalMessages === 100) {
-        checkMilestoneSecret('messages', 100);
-      }
-
-      // Check message content for secrets (Amen 3x, scripture sharing)
-      checkMessageSecrets(messageContent);
-
-      // Track message timing for early bird / night owl secrets
-      trackMessageByHour();
-      const earlyBirdCount = getEarlyBirdMessages();
-      const nightOwlCount = getNightOwlMessages();
-
-      if (earlyBirdCount >= 10) {
-        unlockSecret('early_bird_messenger');
-      }
-      if (nightOwlCount >= 10) {
-        unlockSecret('night_owl_messenger');
-      }
-
-      // Track message streak for consistent encourager
-      const streak = trackMessageStreak();
-      if (streak >= 7) {
-        unlockSecret('messages_streak_7');
-      }
-
-      // Immediately replace optimistic message with real message from database
-      // This ensures correct timestamp and all fields are accurate
-      setMessages(prev => {
-        const tempId = tempMessage.id;
-        const filtered = prev.filter(m => m.id !== tempId);
-        // Add the saved message with correct database timestamp
-        const updated = [...filtered, savedMessage];
-        // Sort by created_at to maintain chronological order
-        return updated.sort((a, b) =>
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        );
-      });
-
-      // Reload messages to get the real data with correct timestamp and reactions
-      // Do this in background, but don't clear messages if it fails
-      getConversation(profile.supabaseId, conversation.userId)
-        .then(async (updatedMessages) => {
-          if (updatedMessages && updatedMessages.length > 0 && activeChat === conversation.id) {
-            console.log('Loaded messages from database:', updatedMessages);
-            setMessages(updatedMessages);
-            
-            // Reload reactions for all messages, preserving existing optimistic updates
-            // Load reactions asynchronously without blocking
-            (async () => {
-              const reactionsMap: Record<string | number, any[]> = {};
-              for (const msg of updatedMessages || []) {
-                try {
-                  const reactions = await getMessageReactions(String(msg.id));
-                  reactionsMap[msg.id] = reactions.map((r: any) => ({
-                    emoji: r.emoji,
-                    userId: r.user_id
-                  }));
-                } catch (error) {
-                  console.error(`Failed to load reactions for message ${msg.id}:`, error);
-                  // Keep existing reactions if load fails
-                }
-              }
-              
-              // Update reactions, merging with existing to preserve optimistic updates
-              setMessageReactions(prev => {
-                const merged: Record<string | number, any[]> = { ...prev };
-                // Only update reactions for messages we successfully loaded
-                Object.keys(reactionsMap).forEach(msgId => {
-                  merged[msgId] = reactionsMap[msgId];
-                });
-                return merged;
-              });
-            })();
-          }
-        })
-        .catch(error => {
-          console.error('Error reloading messages (non-critical):', error);
-          // Don't clear messages on error - we already have the saved message in state
-        });
-
-      // Reply state will be cleared after successful send
-
-      // Reload reactions for the new message
-      if (savedMessage?.id) {
-        const reactions = await getMessageReactions(String(savedMessage.id));
-        setMessageReactions(prev => ({
-          ...prev,
-          [savedMessage.id]: reactions.map((r: any) => ({
-            emoji: r.emoji,
-            userId: r.user_id
-          }))
-        }));
-      }
-    } catch (error: any) {
-      console.error('❌ Failed to send message:', error);
-      console.error('Error stack:', error?.stack);
-      console.error('Full error object:', error);
-
-      // Show detailed error message
-      const errorMessage = error?.message || error?.error || 'Failed to send message. Please try again.';
-      showError(errorMessage);
-
-      // Revert to previous messages (remove optimistic message)
-      setMessages(previousMessages);
-      // Restore the message text so user can try again
-      setNewMessage(messageContent);
-    }
-  };
 
   if (activeChat) {
     const conversation = conversations.find(c => c.id === activeChat);

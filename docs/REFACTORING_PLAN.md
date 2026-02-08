@@ -210,7 +210,7 @@ These changes are mechanical and cannot break functionality.
 **Do ONE component per session. Never two.**
 
 ### Step 4.1 — Decompose GroupsTab (2,207 lines)
-- [ ] **Status**: Not started
+- [x] **Status**: DONE (Feb 8, 2026) — commit 43b0ae0. Extracted useGroupManagement, useGroupChat, useGroupMembers hooks. 2,207 → 1,667 lines.
 - **What to do**:
   - Extract `useGroupMessages()` hook — all message sending/receiving/subscription logic
   - Extract `useGroupMembers()` hook — member list, roles, permissions
