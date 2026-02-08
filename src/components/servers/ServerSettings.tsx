@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Copy, RefreshCw, Trash2, Shield, Check, X, UserPlus, Clock } from 'lucide-react';
+import { ArrowLeft, Copy, RefreshCw, Trash2, Shield, Check, X, UserPlus, Clock, Crown } from 'lucide-react';
+import SubscriptionSettings from '../premium/SubscriptionSettings';
+import CosmeticsEditor from '../premium/CosmeticsEditor';
+import { useUserProfile } from '../useUserProfile';
 
 interface ServerSettingsProps {
   nightMode: boolean;
@@ -35,6 +38,7 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
   nightMode, server, permissions, onUpdate, onDelete, onBack, onGenerateInvite,
   pendingRequests = [], onApproveRequest, onRejectRequest,
 }) => {
+  const { profile } = useUserProfile();
   const [name, setName] = useState(server.name);
   const [description, setDescription] = useState(server.description || '');
   const [iconEmoji, setIconEmoji] = useState(server.icon_emoji);
@@ -270,6 +274,31 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
             <p>Visibility: {server.is_private ? 'Private' : 'Public'}</p>
           </div>
         </div>
+
+        {/* Premium & Billing */}
+        {permissions.manage_server && (
+          <div className="rounded-2xl p-5" style={cardStyle}>
+            <SubscriptionSettings
+              nightMode={nm}
+              serverId={server.id}
+              serverName={server.name}
+              memberCount={server.member_count}
+              userEmail={profile?.email || ''}
+              userId={profile?.supabaseId || ''}
+            />
+          </div>
+        )}
+
+        {/* Customization (Cosmetics) */}
+        {permissions.manage_server && (
+          <div className="rounded-2xl p-5" style={cardStyle}>
+            <CosmeticsEditor
+              nightMode={nm}
+              serverId={server.id}
+              serverName={server.name}
+            />
+          </div>
+        )}
 
         {/* Save Button */}
         {permissions.manage_server && (

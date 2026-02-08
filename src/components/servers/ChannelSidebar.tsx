@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash, BellOff, Lock, FolderInput, UserPlus } from 'lucide-react';
+import { useServerPremium } from '../../contexts/PremiumContext';
+import ServerBannerDisplay from '../premium/ServerBannerDisplay';
+import VerifiedBadge from '../premium/VerifiedBadge';
+import TrialBanner from '../premium/TrialBanner';
+import GracePeriodBanner from '../premium/GracePeriodBanner';
 
 interface ChannelSidebarProps {
   nightMode: boolean;
@@ -55,6 +60,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   onShareInvite, canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory,
   onReorderCategories, onUpdateChannel, onDeleteChannel, onReorderChannels, onMoveChannelToCategory, unreadCounts
 }) => {
+  const { premium, isPremium } = useServerPremium(serverId);
+
   // Persist collapse state in localStorage per server
   const storageKey = `lightning_collapsed_${serverId}`;
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(() => {
@@ -490,6 +497,16 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         borderRight: fullWidth ? 'none' : `1px solid ${nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
       }}
     >
+      {/* Premium banner */}
+      {isPremium && premium.cosmetics?.banner_url && (
+        <ServerBannerDisplay
+          bannerUrl={premium.cosmetics.banner_url}
+          serverName={serverName}
+          nightMode={nightMode}
+          className="h-24"
+        />
+      )}
+
       {/* Server name header */}
       <div
         className="px-4 py-3.5 flex items-center gap-2.5"
@@ -501,7 +518,9 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0"
           style={{
-            background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
+            background: isPremium && premium.cosmetics?.accent_primary
+              ? `linear-gradient(135deg, ${premium.cosmetics.accent_primary} 0%, ${premium.cosmetics.accent_secondary || premium.cosmetics.accent_primary} 100%)`
+              : 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
             boxShadow: '0 2px 8px rgba(59, 130, 246, 0.25)',
           }}
         >
@@ -510,7 +529,26 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         <h3 className={`font-bold text-sm truncate flex-1 ${nightMode ? 'text-white' : 'text-black'}`}>
           {serverName}
         </h3>
+        {isPremium && premium.cosmetics?.is_verified && (
+          <VerifiedBadge size="sm" />
+        )}
       </div>
+
+      {/* Trial / Grace Period banners */}
+      {premium.status === 'trialing' && premium.daysUntilTrialEnd !== undefined && premium.daysUntilTrialEnd <= 7 && (
+        <TrialBanner nightMode={nightMode} daysLeft={premium.daysUntilTrialEnd} />
+      )}
+      {premium.isPastDue && premium.subscription?.grace_period_end && (
+        <GracePeriodBanner
+          nightMode={nightMode}
+          daysLeft={Math.max(0, Math.ceil((new Date(premium.subscription.grace_period_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))}
+          onUpdatePayment={() => {
+            // This would open the billing portal — we need the stripe_customer_id
+            // For now, navigate to settings
+            if (typeof onOpenSettings === 'function') onOpenSettings();
+          }}
+        />
+      )}
 
       {/* Channel list */}
       <div className="flex-1 overflow-y-auto py-3 px-2.5 space-y-2">

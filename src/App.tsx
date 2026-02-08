@@ -36,6 +36,8 @@ import AdminDashboard from './components/AdminDashboard';
 import { supabase } from './lib/supabase';
 import { registerServiceWorker, setupPushNotifications, isPushSupported, getNotificationPermission, unsubscribeFromPush } from './lib/webPush';
 import { GuestModalProvider } from './contexts/GuestModalContext';
+import { PremiumProvider } from './contexts/PremiumContext';
+import ProSettings from './components/premium/ProSettings';
 import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './lib/guestTestimony';
 import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets, checkMilestoneSecret, checkActivitySecrets } from './lib/secrets';
 import { trackDailyLogin, trackThemeChange, trackNightModeUsage, trackAvatarChange } from './lib/activityTracker';
@@ -1190,6 +1192,7 @@ function App() {
         console.error('App Error:', error, errorInfo);
       }}
     >
+      <PremiumProvider userId={userProfile?.supabaseId}>
       <GuestModalProvider nightMode={nightMode}>
         <div className="min-h-screen pb-12 relative">
           {/* Referral code capture from URL */}
@@ -1362,6 +1365,23 @@ function App() {
                         }}
                       />
                       {/* Email & Password removed - using Google OAuth only per roadmap */}
+                    </div>
+
+                    {/* Lightning Pro */}
+                    <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
+                      <div className={`px-4 py-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'} border-b`}>
+                        <h3 className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-600'} uppercase tracking-wider flex items-center gap-1.5`}>
+                          <Zap className="w-3 h-3" />
+                          Lightning Pro
+                        </h3>
+                      </div>
+                      <div className="p-4">
+                        <ProSettings
+                          nightMode={nightMode}
+                          userEmail={userProfile?.email || ''}
+                          userId={userProfile?.supabaseId || ''}
+                        />
+                      </div>
                     </div>
 
                     <div className={`${nightMode ? 'bg-white/5' : 'bg-white'} rounded-xl border ${nightMode ? 'border-white/10' : 'border-slate-200'} overflow-hidden`}>
@@ -1949,6 +1969,7 @@ function App() {
           )}
         </div>
       </GuestModalProvider>
+      </PremiumProvider>
     </ErrorBoundary>
   );
 }
