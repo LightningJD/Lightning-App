@@ -924,19 +924,25 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         setShowConversationMenu(false);
                         setActiveChat(null);
                         // Reload conversations and filter out blocked users
-                        const updatedConversations = await getUserConversations(profile.supabaseId);
-                        if (updatedConversations) {
+                        try {
+                          const updatedConversations = await getUserConversations(profile.supabaseId);
                           const filtered = [];
-                          for (const convo of updatedConversations) {
-                            const isBlocked = await isUserBlocked(profile.supabaseId, convo.userId);
-                            const isBlockedByUser = await isBlockedBy(profile.supabaseId, convo.userId);
-                            if (!isBlocked && !isBlockedByUser) {
+                          for (const convo of (updatedConversations || [])) {
+                            try {
+                              const blk = await isUserBlocked(profile.supabaseId, convo.userId);
+                              const blkBy = await isBlockedBy(profile.supabaseId, convo.userId);
+                              if (!blk && !blkBy) {
+                                filtered.push(convo);
+                              }
+                            } catch {
+                              // On error checking block status, keep the conversation visible
                               filtered.push(convo);
                             }
                           }
                           setConversations(filtered);
-                        } else {
-                          setConversations([]);
+                        } catch {
+                          // If conversation reload fails, just remove the blocked user from current list
+                          setConversations(prev => prev.filter(c => c.userId !== conversation.userId));
                         }
                       } catch (error) {
                         console.error('Error blocking user:', error);
