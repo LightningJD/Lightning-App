@@ -233,6 +233,26 @@ export const uploadGroupAvatar = async (file: File): Promise<string> => {
 };
 
 /**
+ * Upload server icon
+ * @param {File} file - Image file
+ * @returns {Promise<string>} - Image URL
+ */
+export const uploadServerIcon = async (file: File): Promise<string> => {
+  const result = await uploadImage(file, {
+    folder: 'lightning/server-icons',
+    transformation: {
+      width: 256,
+      height: 256,
+      crop: 'fill',
+      quality: 'auto',
+      fetch_format: 'auto'
+    }
+  });
+
+  return result.url;
+};
+
+/**
  * Upload message image (for group chats)
  * @param {File} file - Image file
  * @returns {Promise<string>} - Image URL

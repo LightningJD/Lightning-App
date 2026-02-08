@@ -150,7 +150,17 @@ export {
   getUnreadCounts,
   getPendingInviteRequests,
   approveInviteRequest,
-  rejectInviteRequest
+  rejectInviteRequest,
+  timeoutMember,
+  removeTimeout,
+  isMemberTimedOut,
+  addAuditLogEntry,
+  getAuditLog,
+  transferServerOwnership,
+  getChannelNotificationOverride,
+  setChannelNotificationOverride,
+  getUserNotificationOverrides,
+  sendWelcomeMessage
 } from './servers.js';
 
 // Real-time Subscriptions

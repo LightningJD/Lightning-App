@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash, BellOff, Lock, FolderInput, UserPlus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash, BellOff, Lock, FolderInput, UserPlus, Bell, Check, ScrollText } from 'lucide-react';
 import { useServerPremium } from '../../contexts/PremiumContext';
 import ServerBannerDisplay from '../premium/ServerBannerDisplay';
 import VerifiedBadge from '../premium/VerifiedBadge';
@@ -20,6 +20,7 @@ interface ChannelSidebarProps {
   onOpenRoles?: () => void;
   onOpenMembers?: () => void;
   onShareInvite?: () => void;
+  onOpenAuditLog?: () => void;
   canManageChannels: boolean;
   fullWidth?: boolean;
   onCreateCategory?: (name: string) => void;
@@ -31,6 +32,8 @@ interface ChannelSidebarProps {
   onReorderChannels?: (orderedIds: string[], categoryId: string | null) => void;
   onMoveChannelToCategory?: (channelId: string, targetCategoryId: string | null) => void;
   unreadCounts?: Record<string, number>;
+  channelNotificationOverrides?: Record<string, string>;
+  onSetChannelNotification?: (channelId: string, level: string) => void;
 }
 
 // Map common channel names to emoji icons
@@ -57,8 +60,9 @@ const getChannelEmoji = (name: string): string => {
 const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   nightMode, serverName, serverEmoji, serverId, categories, channels,
   activeChannelId, onSelectChannel, onCreateChannel, onOpenSettings, onOpenRoles, onOpenMembers,
-  onShareInvite, canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory,
-  onReorderCategories, onUpdateChannel, onDeleteChannel, onReorderChannels, onMoveChannelToCategory, unreadCounts
+  onShareInvite, onOpenAuditLog, canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory,
+  onReorderCategories, onUpdateChannel, onDeleteChannel, onReorderChannels, onMoveChannelToCategory, unreadCounts,
+  channelNotificationOverrides, onSetChannelNotification
 }) => {
   const { premium, isPremium } = useServerPremium(serverId);
 
@@ -91,6 +95,9 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
 
   // Move to Category submenu
   const [showMoveSubmenu, setShowMoveSubmenu] = useState(false);
+
+  // Notification submenu
+  const [showNotifSubmenu, setShowNotifSubmenu] = useState(false);
 
   // Per-channel mute (localStorage)
   const muteStorageKey = `lightning_muted_${serverId}`;
@@ -228,6 +235,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     e.preventDefault();
     e.stopPropagation();
     setShowMoveSubmenu(false);
+    setShowNotifSubmenu(false);
     setContextMenu({ type: 'channel', id: channelId, x: e.clientX, y: e.clientY });
   };
 
@@ -244,6 +252,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     const touch = e.touches[0];
     const timer = setTimeout(() => {
       setShowMoveSubmenu(false);
+      setShowNotifSubmenu(false);
       setContextMenu({ type: 'channel', id: channelId, x: touch.clientX, y: touch.clientY });
     }, 500);
     setLongPressTimer(timer);
@@ -783,6 +792,17 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               <UserPlus className="w-4 h-4" />
             </button>
           )}
+          {onOpenAuditLog && canManageChannels && (
+            <button
+              onClick={onOpenAuditLog}
+              className={`p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5'
+              }`}
+              title="Audit Log"
+            >
+              <ScrollText className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {canManageChannels && (
@@ -1011,15 +1031,77 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
 
                 <div className={`mx-2 ${nightMode ? 'border-t border-white/10' : 'border-t border-black/10'}`} />
 
-                {/* Mute/Unmute - available to ALL users */}
-                <button
-                  onClick={() => { toggleMuteChannel(contextMenu.id); setContextMenu(null); }}
-                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                    nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                  }`}
-                >
-                  <BellOff className="w-4 h-4" /> {mutedChannels.has(contextMenu.id) ? 'Unmute Channel' : 'Mute Channel'}
-                </button>
+                {/* Notification settings - available to ALL users */}
+                {onSetChannelNotification ? (
+                  <div className="relative">
+                    <button
+                      onClick={() => { setShowNotifSubmenu(!showNotifSubmenu); setShowMoveSubmenu(false); }}
+                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                        nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                      }`}
+                    >
+                      <Bell className="w-4 h-4" /> Notifications
+                      <ChevronRight className="w-3 h-3 ml-auto" />
+                    </button>
+                    {showNotifSubmenu && (
+                      <div
+                        className={`absolute top-0 rounded-xl shadow-xl border overflow-hidden min-w-[150px] ${
+                          nightMode ? 'border-white/10' : 'border-black/10'
+                        }`}
+                        style={{
+                          ...(contextMenu.x + 320 > window.innerWidth
+                            ? { right: '100%', marginRight: '4px' }
+                            : { left: '100%', marginLeft: '4px' }),
+                          background: nightMode ? 'rgba(20, 20, 20, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                        }}
+                      >
+                        {[
+                          { value: 'default', label: 'Server Default' },
+                          { value: 'all', label: 'All Messages' },
+                          { value: 'mentions', label: '@Mentions Only' },
+                          { value: 'none', label: 'Nothing (Mute)' },
+                        ].map(opt => {
+                          const currentLevel = channelNotificationOverrides?.[contextMenu.id] || 'default';
+                          const isSelected = currentLevel === opt.value;
+                          return (
+                            <button
+                              key={opt.value}
+                              onClick={() => {
+                                onSetChannelNotification(contextMenu.id, opt.value);
+                                if (opt.value === 'none') {
+                                  if (!mutedChannels.has(contextMenu.id)) toggleMuteChannel(contextMenu.id);
+                                } else {
+                                  if (mutedChannels.has(contextMenu.id)) toggleMuteChannel(contextMenu.id);
+                                }
+                                setContextMenu(null);
+                                setShowNotifSubmenu(false);
+                              }}
+                              className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors flex items-center gap-2 ${
+                                isSelected
+                                  ? nightMode ? 'bg-blue-500/10 text-blue-300' : 'bg-blue-500/10 text-blue-600'
+                                  : nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                              }`}
+                            >
+                              {opt.label}
+                              {isSelected && <Check className="w-3 h-3 ml-auto" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { toggleMuteChannel(contextMenu.id); setContextMenu(null); }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                      nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                    }`}
+                  >
+                    <BellOff className="w-4 h-4" /> {mutedChannels.has(contextMenu.id) ? 'Unmute Channel' : 'Mute Channel'}
+                  </button>
+                )}
 
                 {canManageChannels && onDeleteChannel && (
                   <button
