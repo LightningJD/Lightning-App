@@ -28,7 +28,7 @@ import { generateTestimony } from './lib/api/claude';
 import { checkBeforeSend } from './lib/contentFilter';
 import { geocodeCity } from './hooks/useGeolocation';
 import { useUserProfile } from './components/useUserProfile';
-import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests, createChurch, joinChurchByCode, resolveReferralCode, createPendingReferral, checkAndRunBpReset, recordDeviceFingerprint } from './lib/database';
+import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests, createChurch, joinChurchByCode, resolveReferralCode, createPendingReferral, checkAndRunBpReset, recordDeviceFingerprint, updateOnlineStatus } from './lib/database';
 import { isAdmin } from './lib/database/users';
 import { generateDeviceFingerprint } from './lib/deviceFingerprint';
 import ReferralRedirect from './components/ReferralRedirect';
@@ -187,6 +187,49 @@ function App() {
     return () => {
       isMounted = false;
       clearInterval(interval);
+    };
+  }, [userProfile?.supabaseId]);
+
+  // Online presence: heartbeat every 60s, go offline on tab hide / page unload
+  React.useEffect(() => {
+    if (!userProfile?.supabaseId) return;
+
+    const userId = userProfile.supabaseId;
+
+    // Set online immediately
+    updateOnlineStatus(userId, true);
+
+    // Heartbeat every 60 seconds
+    const heartbeat = setInterval(() => {
+      updateOnlineStatus(userId, true);
+    }, 60000);
+
+    // Go offline when tab hidden, online when visible
+    const handleVisibility = () => {
+      if (document.hidden) {
+        updateOnlineStatus(userId, false);
+      } else {
+        updateOnlineStatus(userId, true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Go offline on page unload
+    const handleUnload = () => {
+      // Use sendBeacon for reliable unload
+      if (navigator.sendBeacon) {
+        // Can't use supabase SDK in unload, but we can set last_seen
+        // Fall back to synchronous approach
+      }
+      updateOnlineStatus(userId, false);
+    };
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      clearInterval(heartbeat);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('beforeunload', handleUnload);
+      updateOnlineStatus(userId, false);
     };
   }, [userProfile?.supabaseId]);
 

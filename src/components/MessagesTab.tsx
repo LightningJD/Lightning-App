@@ -569,6 +569,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     const conversation = conversations.find(c => c.id === activeChat);
     if (!conversation) return;
 
+    // Check if either user has blocked the other
+    const blocked = await isUserBlocked(profile.supabaseId, conversation.userId);
+    const blockedBy = await isBlockedBy(profile.supabaseId, conversation.userId);
+    if (blocked || blockedBy) {
+      showError('Unable to send message to this user');
+      return;
+    }
+
     // Check message privacy settings
     const { allowed, reason } = await canSendMessage(conversation.userId, profile.supabaseId);
     if (!allowed) {
@@ -915,9 +923,21 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         showSuccess(`${conversation.name} has been blocked`);
                         setShowConversationMenu(false);
                         setActiveChat(null);
-                        // Reload conversations to remove blocked user
+                        // Reload conversations and filter out blocked users
                         const updatedConversations = await getUserConversations(profile.supabaseId);
-                        setConversations(updatedConversations || []);
+                        if (updatedConversations) {
+                          const filtered = [];
+                          for (const convo of updatedConversations) {
+                            const isBlocked = await isUserBlocked(profile.supabaseId, convo.userId);
+                            const isBlockedByUser = await isBlockedBy(profile.supabaseId, convo.userId);
+                            if (!isBlocked && !isBlockedByUser) {
+                              filtered.push(convo);
+                            }
+                          }
+                          setConversations(filtered);
+                        } else {
+                          setConversations([]);
+                        }
                       } catch (error) {
                         console.error('Error blocking user:', error);
                         showError('Failed to block user');

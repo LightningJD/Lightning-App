@@ -3,7 +3,7 @@ import { X, MapPin, MessageCircle, Flag, UserPlus, Heart, UserX, UserCheck, User
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
 import { sanitizeUserContent } from '../lib/sanitization';
-import { sendFriendRequest, checkFriendshipStatus, blockUser, isUserBlocked, followUser, unfollowUser, isFollowing as checkIsFollowing, getFollowerCount } from '../lib/database';
+import { sendFriendRequest, checkFriendshipStatus, blockUser, isUserBlocked, followUser, unfollowUser, isFollowing as checkIsFollowing, getFollowerCount, acceptFriendRequest, declineFriendRequest, getPendingFriendRequests } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
 import ProfileCard from './ProfileCard';
 
@@ -72,6 +72,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
   const [showReport, setShowReport] = useState<boolean>(false);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [friendStatus, setFriendStatus] = useState<'none' | 'pending' | 'accepted' | 'rejected'>('none');
+  const [incomingRequestId, setIncomingRequestId] = useState<string | null>(null);
   const [sendingRequest, setSendingRequest] = useState(false);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const [blocking, setBlocking] = useState<boolean>(false);
@@ -94,6 +95,15 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         setIsBlocked(blocked);
         setFollowing(isFollowingUser);
         setFollowerCount(followers);
+
+        // Check if there's an incoming friend request from this user
+        if (status === 'pending') {
+          const pendingRequests = await getPendingFriendRequests(currentUserProfile.supabaseId);
+          const incoming = pendingRequests.find((r: any) => r.user_id_1 === user.id);
+          if (incoming) {
+            setIncomingRequestId(incoming.id);
+          }
+        }
 
         // Check profile visibility
         const { supabase } = await import('../lib/supabase');
@@ -387,30 +397,77 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                   </button>
                 )}
 
-                {/* Add Friend button */}
-                <button
-                  onClick={handleSendFriendRequest}
-                  disabled={friendStatus !== 'none' || sendingRequest}
-                  className={`${userProfileVisibility === 'public' ? 'flex-1' : 'w-full'} px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${nightMode ? 'border-white/20' : 'border-white/30'
-                    } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  style={nightMode ? {
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
-                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)'
-                  } : {
-                    background: 'rgba(255, 255, 255, 0.25)',
-                    backdropFilter: 'blur(30px)',
-                    WebkitBackdropFilter: 'blur(30px)',
-                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-                  }}
-                  aria-label={`Add ${user.displayName} as friend`}
-                >
-                  <UserPlus className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`} />
-                  <span className={nightMode ? 'text-slate-100' : 'text-slate-900'}>
-                    {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
-                  </span>
-                </button>
+                {/* Add Friend / Accept Request buttons */}
+                {friendStatus === 'pending' && incomingRequestId ? (
+                  // Incoming request — show Accept/Decline
+                  <div className={`${userProfileVisibility === 'public' ? 'flex-1' : 'w-full'} flex gap-2`}>
+                    <button
+                      onClick={async () => {
+                        setSendingRequest(true);
+                        const result = await acceptFriendRequest(incomingRequestId);
+                        if (result) {
+                          setFriendStatus('accepted');
+                          setIncomingRequestId(null);
+                          showSuccess(`You and ${user.displayName} are now friends!`);
+                        } else {
+                          showError('Failed to accept request');
+                        }
+                        setSendingRequest(false);
+                      }}
+                      disabled={sendingRequest}
+                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 ${
+                        nightMode
+                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30'
+                          : 'bg-blue-500 text-white hover:bg-blue-600'
+                      }`}
+                    >
+                      <UserCheck className="w-5 h-5" />
+                      Accept
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setSendingRequest(true);
+                        await declineFriendRequest(incomingRequestId);
+                        setFriendStatus('none');
+                        setIncomingRequestId(null);
+                        setSendingRequest(false);
+                      }}
+                      disabled={sendingRequest}
+                      className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 border ${
+                        nightMode
+                          ? 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'
+                          : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                      }`}
+                    >
+                      <UserX className="w-5 h-5" />
+                      Decline
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleSendFriendRequest}
+                    disabled={friendStatus !== 'none' || sendingRequest}
+                    className={`${userProfileVisibility === 'public' ? 'flex-1' : 'w-full'} px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${nightMode ? 'border-white/20' : 'border-white/30'
+                      } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    style={nightMode ? {
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)'
+                    } : {
+                      background: 'rgba(255, 255, 255, 0.25)',
+                      backdropFilter: 'blur(30px)',
+                      WebkitBackdropFilter: 'blur(30px)',
+                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                    }}
+                    aria-label={`Add ${user.displayName} as friend`}
+                  >
+                    <UserPlus className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`} />
+                    <span className={nightMode ? 'text-slate-100' : 'text-slate-900'}>
+                      {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
+                    </span>
+                  </button>
+                )}
               </div>
             )}
 
