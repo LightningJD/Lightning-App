@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 /**
  * Captures referral code from URL (/ref/:code) and stores in localStorage
@@ -13,7 +13,6 @@ const ReferralRedirect: React.FC = () => {
     if (match) {
       const code = match[1];
       localStorage.setItem('lightning_referral_code', code);
-      console.log('🔗 Referral code captured:', code);
       // Redirect to home (clear the /ref/ path)
       window.history.replaceState({}, '', '/');
     }

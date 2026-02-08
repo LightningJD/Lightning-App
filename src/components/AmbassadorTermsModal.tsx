@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { X, Shield } from 'lucide-react';
 
 interface AmbassadorTermsModalProps {
@@ -9,6 +9,18 @@ interface AmbassadorTermsModalProps {
 }
 
 const AmbassadorTermsModal: React.FC<AmbassadorTermsModalProps> = ({ nightMode, isOpen, onClose, onAccept }) => {
+  // Escape key to close
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, handleKeyDown]);
+
   if (!isOpen) return null;
 
   return (
@@ -42,7 +54,9 @@ const AmbassadorTermsModal: React.FC<AmbassadorTermsModalProps> = ({ nightMode, 
               <h2 className={`text-lg font-bold ${nightMode ? 'text-white' : 'text-black'}`}>Ambassador Program</h2>
             </div>
             <button
+              type="button"
               onClick={onClose}
+              aria-label="Close"
               className={`p-1.5 rounded-xl transition-all hover:scale-110 active:scale-95 ${
                 nightMode ? 'hover:bg-white/10 text-white/50' : 'hover:bg-black/5 text-black/50'
               }`}
@@ -82,7 +96,7 @@ const AmbassadorTermsModal: React.FC<AmbassadorTermsModalProps> = ({ nightMode, 
 
               <div className="flex gap-2">
                 <span>5.</span>
-                <p><strong>Blessing Points Reset:</strong> Blessing Points (BP) reset every 2 weeks. Overall Points (OP) are permanent and reflect your lifetime contributions.</p>
+                <p><strong>Blessing Points Reset:</strong> Blessing Points (BP) reset every Sunday at 7:30 PM PST. Overall Points (OP) are permanent and reflect your lifetime contributions.</p>
               </div>
             </div>
 
@@ -95,6 +109,7 @@ const AmbassadorTermsModal: React.FC<AmbassadorTermsModalProps> = ({ nightMode, 
         {/* Actions */}
         <div className="p-6 pt-2 space-y-3">
           <button
+            type="button"
             onClick={onAccept}
             className="w-full py-3.5 rounded-xl text-white font-bold transition-all active:scale-95 hover:scale-[1.02]"
             style={{
@@ -105,6 +120,7 @@ const AmbassadorTermsModal: React.FC<AmbassadorTermsModalProps> = ({ nightMode, 
             I Agree — Let's Go!
           </button>
           <button
+            type="button"
             onClick={onClose}
             className={`w-full py-3 rounded-xl font-medium transition-all active:scale-95 ${
               nightMode ? 'text-white/50 hover:bg-white/5' : 'text-black/50 hover:bg-black/5'

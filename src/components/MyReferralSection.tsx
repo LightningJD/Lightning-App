@@ -188,6 +188,7 @@ const MyReferralSection: React.FC<MyReferralSectionProps> = ({ nightMode, userId
             </span>
           </div>
           <button
+            type="button"
             onClick={handleCopy}
             className={`p-2.5 rounded-xl transition-all active:scale-95 ${
               copied
@@ -195,15 +196,18 @@ const MyReferralSection: React.FC<MyReferralSectionProps> = ({ nightMode, userId
                 : nightMode ? 'bg-white/6 hover:bg-white/10 text-white/60' : 'bg-black/4 hover:bg-black/8 text-black/60'
             }`}
             title="Copy link"
+            aria-label="Copy referral link"
           >
             <Copy className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => setShowQR(!showQR)}
             className={`p-2.5 rounded-xl transition-all active:scale-95 ${
               nightMode ? 'bg-white/6 hover:bg-white/10 text-white/60' : 'bg-black/4 hover:bg-black/8 text-black/60'
             }`}
             title="Show QR code"
+            aria-label="Toggle QR code"
           >
             <span className="text-sm">QR</span>
           </button>
@@ -274,6 +278,7 @@ const MyReferralSection: React.FC<MyReferralSectionProps> = ({ nightMode, userId
 
         {/* Share Button */}
         <button
+          type="button"
           onClick={handleShare}
           className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-all active:scale-95 hover:scale-[1.02] flex items-center justify-center gap-2"
           style={{

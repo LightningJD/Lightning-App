@@ -95,12 +95,14 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-  // Auto-validate referral code from localStorage on mount
+  // Auto-validate referral code from localStorage on mount only
+  const initialReferralCode = useRef(referralCode);
   useEffect(() => {
-    if (referralCode) {
+    const code = initialReferralCode.current;
+    if (code) {
       (async () => {
         setIsValidatingReferral(true);
-        const referrer = await resolveReferralCode(referralCode);
+        const referrer = await resolveReferralCode(code);
         if (referrer) {
           setReferralValidated({ username: referrer.username });
         }
@@ -802,8 +804,9 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
 
             {currentStep < steps.length - 1 ? (
               <button
-                onClick={handleNext}
-                className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-slate-100 border border-white/20`}
+                onClick={() => { handleNext(); }}
+                disabled={isValidatingReferral}
+                className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-slate-100 border border-white/20 disabled:opacity-50`}
                 style={{
                   background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
                   boxShadow: nightMode

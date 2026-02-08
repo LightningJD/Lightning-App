@@ -61,7 +61,9 @@ const BpResetBanner: React.FC<BpResetBannerProps> = ({ nightMode, userId }) => {
       >
         {/* Dismiss */}
         <button
+          type="button"
           onClick={handleDismiss}
+          aria-label="Dismiss"
           className={`absolute top-3 right-3 p-1.5 rounded-lg transition-all hover:scale-110 active:scale-95 ${
             nightMode ? 'hover:bg-white/10 text-white/40' : 'hover:bg-black/5 text-black/40'
           }`}
@@ -73,7 +75,7 @@ const BpResetBanner: React.FC<BpResetBannerProps> = ({ nightMode, userId }) => {
         <div className="flex items-center gap-2 mb-4">
           <Trophy className={`w-5 h-5 ${nightMode ? 'text-yellow-400' : 'text-yellow-600'}`} />
           <span className={`text-sm font-bold ${nightMode ? 'text-yellow-300' : 'text-yellow-800'}`}>
-            Biweekly Top Ambassadors
+            Weekly Top Ambassadors
           </span>
         </div>
 
