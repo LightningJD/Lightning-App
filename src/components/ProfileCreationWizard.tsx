@@ -84,6 +84,8 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
         const referrer = await resolveReferralCode(code);
         if (referrer) {
           setReferralValidated({ username: referrer.username });
+        } else {
+          setReferralError('Invalid referral code');
         }
         setIsValidatingReferral(false);
       })();
@@ -117,7 +119,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   const handleNext = async () => {
     if (validateStep(currentStep)) {
       // On step 0, validate referral code if entered but not yet validated
-      if (currentStep === 0 && referralCode.trim() && !referralValidated && !referralError) {
+      if (currentStep === 0 && referralCode.trim() && !referralValidated) {
         setIsValidatingReferral(true);
         const referrer = await resolveReferralCode(referralCode);
         setIsValidatingReferral(false);
@@ -147,10 +149,10 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     setIsSubmitting(true);
     try {
       await onComplete({ ...formData, _coords: detectedCoords, _churchId: churchResult?.id, _pendingChurch: churchResult?._pendingCreate ? churchResult : undefined, _referralCode: referralValidated ? referralCode : undefined } as any);
+      // Don't reset isSubmitting on success — parent will unmount this component
     } catch (error) {
       console.error('Error creating profile:', error);
       setErrors({ submit: 'Failed to create profile. Please try again.' });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -189,22 +191,15 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     }
   };
 
-  const handleCreateChurch = async () => {
+  const handleCreateChurch = () => {
     if (!churchName.trim()) {
       setChurchError('Church name is required');
       return;
     }
-    setIsJoiningChurch(true);
     setChurchError('');
-    try {
-      // We'll create the church with a temporary approach — store the data and create after profile
-      setChurchResult({ _pendingCreate: true, name: churchName, denomination: churchDenomination });
-      setChurchMode('choose');
-    } catch {
-      setChurchError('Failed to create church. Please try again.');
-    } finally {
-      setIsJoiningChurch(false);
-    }
+    // Store the data and create the church after profile is saved
+    setChurchResult({ _pendingCreate: true, name: churchName, denomination: churchDenomination });
+    setChurchMode('choose');
   };
 
   const renderStepContent = () => {
@@ -222,6 +217,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                 value={formData.displayName}
                 onChange={(e) => handleInputChange('displayName', e.target.value)}
                 placeholder="John Doe"
+                maxLength={50}
                 className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   nightMode
                     ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
@@ -245,6 +241,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                   value={formData.location}
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   placeholder="City, State"
+                  maxLength={100}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     nightMode
                       ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
@@ -295,10 +292,10 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
             {/* Referral Code (optional) */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Referral Code <span className={`font-normal text-xs ${nightMode ? 'text-slate-400' : 'text-slate-400'}`}>(optional)</span>
+                Referral Code <span className={`font-normal text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>(optional)</span>
               </label>
               <div className="relative">
-                <span className={`absolute left-4 top-1/2 -translate-y-1/2 ${nightMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                <span className={`absolute left-4 top-1/2 -translate-y-1/2 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
                   <Gift className="w-4 h-4" />
                 </span>
                 <input
@@ -580,8 +577,8 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
             </p>
 
             {errors.submit && (
-              <div className="p-3 rounded-lg bg-red-100 border border-red-300">
-                <p className="text-red-700 text-sm text-center">{errors.submit}</p>
+              <div className={`p-3 rounded-lg border ${nightMode ? 'bg-red-500/10 border-red-500/30' : 'bg-red-100 border-red-300'}`}>
+                <p className={`text-sm text-center ${nightMode ? 'text-red-400' : 'text-red-700'}`}>{errors.submit}</p>
               </div>
             )}
           </div>
@@ -610,7 +607,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
         >
           {/* Header */}
           <div
-            className={`p-6 ${nightMode ? '' : ''}`}
+            className="p-6"
             style={{
               background: nightMode
                 ? 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)'

@@ -690,6 +690,9 @@ function App() {
           profileCompleted: true
         });
 
+        // Dispatch profile update so hooks re-sync
+        window.dispatchEvent(new CustomEvent('profileUpdated'));
+
         // Auto-launch testimony questionnaire after profile creation
         setTimeout(() => {
           setShowTestimonyQuestionnaire(true);
@@ -899,8 +902,8 @@ function App() {
         updateToSuccess(toastId, 'Testimony updated successfully!');
         setShowTestimonyEdit(false);
 
-        // Reload the page to reflect changes
-        setTimeout(() => window.location.reload(), 1000);
+        // Dispatch profile update event to refresh testimony data
+        window.dispatchEvent(new CustomEvent('profileUpdated'));
       } else {
         throw new Error('Failed to update testimony');
       }
@@ -1031,9 +1034,6 @@ function App() {
 
           // Dispatch custom event to trigger profile refresh
           window.dispatchEvent(new CustomEvent('profileUpdated'));
-
-          // Force reload to show new testimony
-          setTimeout(() => window.location.reload(), 1000);
         } else {
           console.error('❌ Database returned null when saving testimony');
           updateToError(toastId, 'Failed to save testimony. Please try again.');

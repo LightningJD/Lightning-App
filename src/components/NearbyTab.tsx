@@ -73,6 +73,11 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showRanks, setShowRanks] = useState(false);
 
+  // Collapse leaderboard when switching sub-tabs
+  useEffect(() => {
+    setShowRanks(false);
+  }, [activeDiscoverTab]);
+
   // Load users and friends from database
   useEffect(() => {
     const loadData = async () => {
@@ -512,7 +517,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
               onClick={() => setShowRanks(!showRanks)}
               className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] ${
                 nightMode
-                  ? 'bg-white/[0.04] hover:bg-white/[0.07] text-white/60 border border-white/8'
+                  ? 'bg-white/[0.04] hover:bg-white/[0.07] text-white/60 border border-white/[0.08]'
                   : 'bg-white/20 hover:bg-white/30 text-black/50 border border-white/30'
               }`}
               style={{
@@ -525,7 +530,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
               {showRanks ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
             {showRanks && (
-              <div className="mt-3">
+              <div className="mt-3 -mx-4">
                 <LeaderboardView
                   nightMode={nightMode}
                   currentUserId={profile.supabaseId}
@@ -604,9 +609,6 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
         </div>
       )}
 
-      {activeDiscoverTab === 'home' && (
-        <div className="px-4 mb-3" />
-      )}
 
 
       <div className="px-4 pb-20" key={activeDiscoverTab}>
@@ -1054,7 +1056,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
                           location_city: user.location_city,
                           location: user.location_city,
                         } as any)}
-                        className={`text-blue-600 hover:text-blue-700 font-semibold ${nightMode ? 'text-blue-400 hover:text-blue-300' : ''}`}
+                        className={`font-semibold ${nightMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
                       >
                         View Profile
                       </button>
