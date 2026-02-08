@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, MessageCircle } from 'lucide-react';
 import { useUserProfile } from './useUserProfile';
-import { getUserConversations, getUserServers, subscribeToMessages, unsubscribe, isUserBlocked, isBlockedBy } from '../lib/database';
+import { getUserConversations, getUserServers, createServer, subscribeToMessages, unsubscribe, isUserBlocked, isBlockedBy } from '../lib/database';
 import MessagesTab from './MessagesTab';
 import ServersTab from './servers/ServersTab';
+import CreateServerDialog from './servers/CreateServerDialog';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
 import { ConversationSkeleton } from './SkeletonLoader';
 
@@ -100,6 +101,9 @@ const ChatTab: React.FC<ChatTabProps> = ({
 
   // For viewing a user's profile
   const [viewingUser, setViewingUser] = useState<any>(null);
+
+  // Create server dialog
+  const [showCreateServer, setShowCreateServer] = useState(false);
 
   // ── Fetch data ──────────────────────────────────────────────
 
@@ -212,6 +216,22 @@ const ChatTab: React.FC<ChatTabProps> = ({
     onActiveServerChange?.(null);
     loadData();
   }, [loadData, onActiveServerChange]);
+
+  // ── Create server handler ────────────────────────────────
+
+  const handleCreateServer = useCallback(async (name: string, description: string, iconEmoji: string) => {
+    if (!profile?.supabaseId) return;
+    const result = await createServer(profile.supabaseId, { name, description, iconEmoji });
+    if (result) {
+      // Refresh server list and auto-select the new server
+      const refreshed = await getUserServers(profile.supabaseId);
+      setServers((refreshed || []) as Server[]);
+      setSelectedServerId(result.id);
+      onActiveServerChange?.(name, iconEmoji);
+      setView('server');
+    }
+    setShowCreateServer(false);
+  }, [profile?.supabaseId, onActiveServerChange]);
 
   // ── Determine active rail item ────────────────────────────
 
@@ -451,17 +471,13 @@ const ChatTab: React.FC<ChatTabProps> = ({
         {/* Divider before + button */}
         <div className={`w-8 h-[2px] rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
 
-        {/* New Chat button */}
+        {/* Add a Server button */}
         <button
-          onClick={() => {
-            setDmStartChatWith(null);
-            setSelectedConversation(null);
-            setView('dm');
-          }}
+          onClick={() => setShowCreateServer(true)}
           className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-95 hover:rounded-xl ${
             nightMode ? 'bg-white/10 hover:bg-green-500/30 text-green-400 hover:text-green-300' : 'bg-white/30 hover:bg-green-500/20 text-green-600 hover:text-green-700'
           }`}
-          title="New message"
+          title="Add a Server"
         >
           <Plus className="w-5 h-5" />
         </button>
@@ -492,6 +508,14 @@ const ChatTab: React.FC<ChatTabProps> = ({
           }}
         />
       )}
+
+      {/* Create Server Dialog */}
+      <CreateServerDialog
+        nightMode={nightMode}
+        isOpen={showCreateServer}
+        onClose={() => setShowCreateServer(false)}
+        onCreate={handleCreateServer}
+      />
     </div>
   );
 };
