@@ -97,6 +97,14 @@ export const onRequestOptions: PagesFunction<Env> = async () => {
 };
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
+  // Rate limit: 5 checkout attempts per minute per IP
+  const { checkRateLimit, getClientIP, rateLimitResponse } = await import('./_rateLimit');
+  const ip = getClientIP(context.request);
+  const rl = checkRateLimit(ip, 'stripe-checkout', 5, 60_000);
+  if (!rl.allowed) {
+    return rateLimitResponse(rl.retryAfterMs, CORS_HEADERS);
+  }
+
   try {
     const { serverId, userId, userEmail, type, tier, interval, timezone } = await context.request.json() as any;
 

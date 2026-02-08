@@ -288,6 +288,14 @@ export const onRequestOptions: PagesFunction<Env> = async () => {
 export const onRequestPost: PagesFunction<Env> = async (context) => {
     const { request, env } = context;
 
+    // Rate limit: 10 requests per minute per IP (Layer 3 supplement)
+    const { checkRateLimit, getClientIP, rateLimitResponse } = await import('./_rateLimit');
+    const ip = getClientIP(request);
+    const rl = checkRateLimit(ip, 'generate-testimony', 10, 60_000);
+    if (!rl.allowed) {
+        return rateLimitResponse(rl.retryAfterMs, CORS_HEADERS);
+    }
+
     // Validate environment
     if (!env.CLAUDE_API_KEY) {
         return Response.json(

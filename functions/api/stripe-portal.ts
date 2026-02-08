@@ -27,6 +27,14 @@ export const onRequestOptions: PagesFunction<Env> = async () => {
 };
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
+  // Rate limit: 10 portal requests per minute per IP
+  const { checkRateLimit, getClientIP, rateLimitResponse } = await import('./_rateLimit');
+  const ip = getClientIP(context.request);
+  const rl = checkRateLimit(ip, 'stripe-portal', 10, 60_000);
+  if (!rl.allowed) {
+    return rateLimitResponse(rl.retryAfterMs, CORS_HEADERS);
+  }
+
   try {
     const { stripeCustomerId, returnUrl } = await context.request.json() as any;
 
