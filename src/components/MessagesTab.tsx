@@ -1813,7 +1813,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         // Send the initial message to the group
                         if (newGroup && (newGroup as any).id) {
                           await sendGroupMessage((newGroup as any).id, profile.supabaseId, newChatMessage.trim());
-                          showSuccess('Group chat created! Check the Groups tab.');
+                          showSuccess('Group chat created!');
                         }
                       }
                     } catch (error) {

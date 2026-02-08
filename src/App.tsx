@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useClerk, useSession } from '@clerk/clerk-react';
-import { User, MessageCircle, Users, Home, Search, Zap, Plus, X, Edit3, Camera, Lock, Eye, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music, MapPin } from 'lucide-react';
+import { User, MessageCircle, Users, Home, Search, Zap, Plus, X, Edit3, Camera, Ban, Flag, Bell, Globe, FileText, Shield, HelpCircle, Phone, Info, LogOut, Music, MapPin } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from './lib/toast';
 import ErrorBoundary, { ComponentErrorBoundary } from './components/ErrorBoundary';
@@ -26,6 +26,7 @@ import LinkSpotify from './components/LinkSpotify';
 import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
 import { generateTestimony } from './lib/api/claude';
 import { checkBeforeSend } from './lib/contentFilter';
+import { geocodeCity } from './hooks/useGeolocation';
 import { useUserProfile } from './components/useUserProfile';
 import { createTestimony, updateUserProfile, updateUserLocation, updateTestimony, getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests, createChurch, joinChurchByCode } from './lib/database';
 import { isAdmin } from './lib/database/users';
@@ -48,9 +49,9 @@ function App() {
 
   const [currentTab, setCurrentTab] = useState('home');
   const [showMenu, setShowMenu] = useState(false);
-  const [showTestimonyPrompt, setShowTestimonyPrompt] = useState(false);
+  // showTestimonyPrompt removed — replaced by showTestimonyQuestionnaire
   const [sortBy, setSortBy] = useState('recommended');
-  const [activeConnectTab, setActiveConnectTab] = useState('home');
+  const [activeDiscoverTab, setActiveDiscoverTab] = useState('home');
   const selectedTheme = localStorage.getItem('lightningTheme') || 'periwinkle';
   const [nightMode, setNightMode] = useState(localStorage.getItem('lightningNightMode') === 'true');
   const [showProfileWizard, setShowProfileWizard] = useState(false);
@@ -61,7 +62,6 @@ function App() {
   const [showTestimonyQuestionnaire, setShowTestimonyQuestionnaire] = useState(false);
   const [notificationCounts, setNotificationCounts] = React.useState({
     messages: 0,
-    groups: 0,
     find: 0
   });
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -159,7 +159,7 @@ function App() {
     document.body.style.backgroundColor = nightMode ? darkBg : lightBg;
   }, [nightMode]);
 
-  // Poll for friend request badges (Connect tab) every 30 seconds
+  // Poll for friend request badges (Find tab) every 30 seconds
   React.useEffect(() => {
     if (!userProfile?.supabaseId) return;
 
@@ -169,7 +169,7 @@ function App() {
       try {
         const pending = await getPendingFriendRequests(userProfile.supabaseId);
         if (isMounted) {
-          setNotificationCounts(prev => ({ ...prev, connect: pending.length }));
+          setNotificationCounts(prev => ({ ...prev, find: pending.length }));
         }
       } catch {
         // Silently fail — badge is non-critical
@@ -626,6 +626,18 @@ function App() {
           } catch (locErr) {
             console.error('Failed to save location coordinates:', locErr);
           }
+        } else if (profileData.location && typeof profileData.location === 'string') {
+          // No GPS coords but user typed a city — geocode it for Nearby discovery
+          try {
+            const coords = await geocodeCity(profileData.location);
+            if (coords) {
+              await updateUserLocation(userProfile.supabaseId, coords.lat, coords.lng);
+              console.log('📍 Geocoded typed city to coordinates:', profileData.location, coords);
+            }
+          } catch (geoErr) {
+            console.error('Failed to geocode city:', geoErr);
+            // Non-fatal: profile was saved, just coordinates failed
+          }
         }
 
         updateToSuccess(toastId, 'Profile setup complete! Welcome to Lightning!');
@@ -698,13 +710,27 @@ function App() {
         console.log('✅ Profile updated successfully!', updated);
 
         // Save GPS coordinates if provided
+        let savedCoords: { lat: number; lng: number } | null = null;
         if (profileData._coords?.lat && profileData._coords?.lng) {
           try {
             await updateUserLocation(userProfile.supabaseId, profileData._coords.lat, profileData._coords.lng);
+            savedCoords = { lat: profileData._coords.lat, lng: profileData._coords.lng };
             console.log('📍 Updated user location coordinates');
           } catch (locErr) {
             console.error('Failed to update location coordinates:', locErr);
             // Non-fatal: profile was saved, just coordinates failed
+          }
+        } else if (profileData.location && typeof profileData.location === 'string') {
+          // No GPS coords but user typed/changed city — geocode it for Nearby discovery
+          try {
+            const coords = await geocodeCity(profileData.location);
+            if (coords) {
+              await updateUserLocation(userProfile.supabaseId, coords.lat, coords.lng);
+              savedCoords = coords;
+              console.log('📍 Geocoded typed city to coordinates:', profileData.location, coords);
+            }
+          } catch (geoErr) {
+            console.error('Failed to geocode city:', geoErr);
           }
         }
 
@@ -718,7 +744,10 @@ function App() {
           if (profileData.location !== undefined) next.location = profileData.location;
           if (profileData.avatar !== undefined) next.avatar = profileData.avatar;
           if (profileData.avatarUrl !== undefined) next.avatarImage = profileData.avatarUrl;
-          if (profileData._coords) {
+          if (savedCoords) {
+            next.locationLat = savedCoords.lat;
+            next.locationLng = savedCoords.lng;
+          } else if (profileData._coords) {
             next.locationLat = profileData._coords.lat;
             next.locationLng = profileData._coords.lng;
           }
@@ -1016,8 +1045,8 @@ function App() {
             <NearbyTab
               sortBy={sortBy}
               setSortBy={setSortBy}
-              activeConnectTab={activeConnectTab}
-              setActiveConnectTab={setActiveConnectTab}
+              activeDiscoverTab={activeDiscoverTab}
+              setActiveDiscoverTab={setActiveDiscoverTab}
               nightMode={nightMode}
               onNavigateToMessages={(user: any) => {
                 setStartChatWith({ id: String(user.id), name: user.displayName || user.username || 'User', avatar: user.avatar || user.avatar_emoji || '👤' });
@@ -1089,11 +1118,11 @@ function App() {
                   )}
 
                   {currentTab === 'home' && (
-                    <div className="font-semibold text-black text-xl flex items-center gap-2">
+                    <div className="font-semibold text-black text-xl flex items-center gap-2 min-w-0 flex-1">
                       {activeServerName ? (
                         <>
-                          {activeServerEmoji && <span className="text-lg">{activeServerEmoji}</span>}
-                          <span className="truncate max-w-[200px]">{activeServerName}</span>
+                          {activeServerEmoji && <span className="text-lg flex-shrink-0">{activeServerEmoji}</span>}
+                          <span className="truncate">{activeServerName}</span>
                         </>
                       ) : 'Home'}
                     </div>
@@ -1102,17 +1131,15 @@ function App() {
                     <div className="font-semibold text-black text-xl">Find</div>
                   )}
 
-                  {currentTab === 'find' && (
-                    <button
-                      onClick={() => setShowMenu(true)}
-                      className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
-                      aria-label="Open settings menu"
-                    >
-                      <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setShowMenu(true)}
+                    className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
+                    aria-label="Open settings menu"
+                  >
+                    <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1135,11 +1162,11 @@ function App() {
                   )}
 
                   {currentTab === 'home' && (
-                    <div className="font-semibold text-slate-100 text-xl flex items-center gap-2">
+                    <div className="font-semibold text-slate-100 text-xl flex items-center gap-2 min-w-0 flex-1">
                       {activeServerName ? (
                         <>
-                          {activeServerEmoji && <span className="text-lg">{activeServerEmoji}</span>}
-                          <span className="truncate max-w-[200px]">{activeServerName}</span>
+                          {activeServerEmoji && <span className="text-lg flex-shrink-0">{activeServerEmoji}</span>}
+                          <span className="truncate">{activeServerName}</span>
                         </>
                       ) : 'Home'}
                     </div>
@@ -1148,17 +1175,15 @@ function App() {
                     <div className="font-semibold text-slate-100 text-xl">Find</div>
                   )}
 
-                  {currentTab === 'find' && (
-                    <button
-                      onClick={() => setShowMenu(true)}
-                      className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
-                      aria-label="Open settings menu"
-                    >
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setShowMenu(true)}
+                    className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
+                    aria-label="Open settings menu"
+                  >
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1576,10 +1601,10 @@ function App() {
       `}</style>
 
           {/* Testimony Prompt Button */}
-          {!profile.hasTestimony && !showTestimonyPrompt && (
+          {currentTab === 'you' && !profile.hasTestimony && !showTestimonyQuestionnaire && (
             <button
               onClick={() => {
-                setShowTestimonyPrompt(true);
+                setShowTestimonyQuestionnaire(true);
                 setTestimonyStartTime(Date.now());
               }}
               className="fixed bottom-20 right-6 w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-110 z-40 text-slate-100 border border-white/20"
@@ -1606,190 +1631,7 @@ function App() {
             </button>
           )}
 
-          {/* OLD Testimony Creation Modal - REPLACED BY TestimonyQuestionnaire Component 
-          {showTestimonyPrompt && (
-            <>
-              <div
-                className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
-                onClick={() => {
-                  setShowTestimonyPrompt(false);
-                  setTestimonyStep(0);
-                  setTestimonyAnswers({});
-                }}
-              />
-              <div
-                className={`fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] rounded-2xl shadow-2xl z-50 max-h-[80vh] overflow-hidden flex flex-col ${nightMode ? 'bg-[#0a0a0a]' : 'bg-white'}`}
-                style={{
-                  animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                  transformOrigin: 'bottom right'
-                }}
-              >
-                <div className={`p-6 ${nightMode ? '' : ''}`} style={{ background: nightMode ? 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)' : themes[selectedTheme].lightGradient }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-6 h-6 text-white" />
-                      <h2 className="text-xl font-bold text-white">Share Your Story</h2>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setShowTestimonyPrompt(false);
-                        setTestimonyStep(0);
-                        setTestimonyAnswers({});
-                      }}
-                      className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full hover:bg-white/30 transition-colors"
-                    >
-                      <X className="w-5 h-5 text-white" />
-                    </button>
-                  </div>
-                  <p className="text-sm mt-2 text-white/90">Sharing the power of testimonies</p>
-
-                  <div className="flex gap-1 mt-4">
-                    {testimonyQuestions.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`flex-1 h-1 rounded-full transition-all ${index <= testimonyStep ? 'bg-white' : 'bg-white/30'}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-6">
-                  {!generatedTestimony ? (
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className={`text-lg font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                          Question {testimonyStep + 1} of {testimonyQuestions.length}
-                        </h3>
-                        <p className={`font-medium mb-1 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                          {testimonyQuestions[testimonyStep].question}
-                        </p>
-                        <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
-                          💡 {testimonyQuestions[testimonyStep].hint}
-                        </p>
-                      </div>
-
-                      <textarea
-                        key={testimonyStep}
-                        value={testimonyAnswers[testimonyStep] || ''}
-                        onChange={(e) => handleTestimonyAnswer(e.target.value)}
-                        placeholder={testimonyQuestions[testimonyStep].placeholder}
-                        className={`w-full h-40 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm ${nightMode
-                          ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                          : 'bg-white border-slate-200 text-slate-900'
-                          }`}
-                        autoFocus
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 text-green-600 mb-4">
-                        <Sparkles className="w-5 h-5" />
-                        <h3 className="text-lg font-semibold">Your Testimony is Ready!</h3>
-                      </div>
-                      <div className={`rounded-lg p-6 border-2 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'}`}>
-                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>{generatedTestimony}</p>
-                      </div>
-                      <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>You can edit this testimony in your profile settings.</p>
-                    </div>
-                  )}
-                </div>
-
-                {!generatedTestimony ? (
-                  <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
-                    {testimonyStep > 0 && (
-                      <button
-                        onClick={previousTestimonyStep}
-                        disabled={isGenerating}
-                        className={`px-4 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 ${nightMode
-                          ? 'bg-white/5 hover:bg-white/10 text-slate-100'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                          }`}
-                      >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back
-                      </button>
-                    )}
-                    <button
-                      onClick={nextTestimonyStep}
-                      disabled={!testimonyAnswers[testimonyStep]?.trim() || isGenerating}
-                      className={`flex-1 px-5 py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border shadow-sm ${testimonyAnswers[testimonyStep]?.trim() && !isGenerating
-                        ? nightMode
-                          ? 'text-slate-100 border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-400'
-                          : 'text-white border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400'
-                        : nightMode
-                          ? 'bg-white/5 text-slate-100/60 cursor-not-allowed border-white/10'
-                          : 'bg-slate-200 text-slate-500 cursor-not-allowed border-slate-300'
-                        }`}
-                      style={testimonyAnswers[testimonyStep]?.trim() && !isGenerating ? {
-                        background: nightMode ? 'rgba(59, 130, 246, 0.95)' : 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
-                        boxShadow: nightMode
-                          ? '0 6px 18px rgba(59, 130, 246, 0.35)'
-                          : '0 6px 18px rgba(59, 130, 246, 0.35)',
-                        transform: 'translateY(0)'
-                      } : {}}
-                      onMouseEnter={(e) => {
-                        if (testimonyAnswers[testimonyStep]?.trim() && !isGenerating) {
-                          e.currentTarget.style.transform = 'translateY(-1px)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (testimonyAnswers[testimonyStep]?.trim() && !isGenerating) {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                        }
-                      }}
-                      aria-label="Next"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Generating...
-                        </>
-                      ) : testimonyStep === testimonyQuestions.length - 1 ? (
-                        <>
-                          <Sparkles className="w-4 h-4" />
-                          Generate Story
-                        </>
-                      ) : (
-                        <>
-                          Next
-                          <ArrowRight className="w-4 h-4" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
-                    <button
-                      onClick={() => {
-                        setShowTestimonyPrompt(false);
-                        setTestimonyStep(0);
-                        setTestimonyAnswers({});
-                        setGeneratedTestimony(null);
-                      }}
-                      className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors text-slate-100 border ${nightMode ? 'border-white/20' : 'border-white/30'}`}
-                      style={{
-                        background: nightMode ? 'rgba(79, 150, 255, 0.85)' : themes[selectedTheme].lightGradient,
-                        backdropFilter: 'blur(30px)',
-                        WebkitBackdropFilter: 'blur(30px)'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (nightMode) {
-                          e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (nightMode) {
-                          e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
-                        }
-                      }}
-                    >
-                      Save to Profile
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
-          )} */}
+          {/* Old testimony modal removed — replaced by TestimonyQuestionnaire component */}
 
 
           {/* Profile Creation Wizard */}

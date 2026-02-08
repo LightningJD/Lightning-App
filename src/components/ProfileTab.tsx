@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2, Globe, Lock } from 'lucide-react';
+import { Heart, Share2, Plus, Edit3, MapPin, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useGuestModalContext } from '../contexts/GuestModalContext';
 import { trackTestimonyView } from '../lib/guestSession';
 import { checkBeforeSend } from '../lib/contentFilter';

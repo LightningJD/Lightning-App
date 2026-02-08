@@ -92,12 +92,13 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
 
   // Mobile responsive: show one panel at a time on small screens
   type MobileView = 'servers' | 'channels' | 'chat';
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
   const [mobileView, setMobileView] = useState<MobileView>('channels');
-  const [, forceUpdate] = useState(0);
 
   useEffect(() => {
-    const handleResize = () => forceUpdate(n => n + 1);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);

@@ -6,6 +6,37 @@ export interface GeolocationResult {
   cityName: string;
 }
 
+/**
+ * Forward-geocode a city name (e.g. "LA", "Las Vegas", "Los Angelos") into lat/lng.
+ * Uses OpenStreetMap Nominatim (free, no API key). Handles abbreviations and typos.
+ * Returns null if geocoding fails — non-blocking, best-effort.
+ */
+export async function geocodeCity(cityText: string): Promise<{ lat: number; lng: number } | null> {
+  if (!cityText?.trim()) return null;
+
+  try {
+    const query = encodeURIComponent(cityText.trim());
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
+      { headers: { 'User-Agent': 'LightningApp/1.0' } }
+    );
+
+    if (!response.ok) return null;
+
+    const results = await response.json();
+    if (results && results.length > 0) {
+      const lat = parseFloat(results[0].lat);
+      const lng = parseFloat(results[0].lon);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        return { lat, lng };
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 interface UseGeolocationReturn {
   detect: () => Promise<GeolocationResult>;
   isDetecting: boolean;
