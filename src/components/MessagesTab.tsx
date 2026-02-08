@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Smile, Plus, X, Reply, Trash2, MoreVertical, UserX, Image as ImageIcon } from 'lucide-react';
-import { sendMessage, getConversation, getUserConversations, subscribeToMessages, subscribeToMessageReactions, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy, createGroup, sendGroupMessage, addReaction, removeReaction, getMessageReactions, deleteMessage, blockUser, markConversationAsRead } from '../lib/database';
+import { sendMessage, getConversation, getUserConversations, subscribeToMessages, subscribeToMessageReactions, unsubscribe, canSendMessage, isUserBlocked, isBlockedBy, createGroup, sendGroupMessage, addReaction, removeReaction, getMessageReactions, deleteMessage, blockUser, markConversationAsRead, getFriends } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { showError, showSuccess } from '../lib/toast';
 import { checkBeforeSend } from '../lib/contentFilter';
@@ -142,19 +142,32 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
     return messageMiddle > (viewportHeight / 2);
   };
 
-  // Example connections/friends - these would come from database
-  const connections = [
-    { id: 1, name: 'Sarah Mitchell', avatar: '👤', status: 'online' },
-    { id: 2, name: 'John Rivers', avatar: '🧑', status: 'offline' },
-    { id: 3, name: 'Emma Grace', avatar: '👩', status: 'online' },
-    { id: 4, name: 'Michael Davis', avatar: '👨', status: 'online' },
-    { id: 5, name: 'Rachel Thompson', avatar: '👩', status: 'offline' },
-    { id: 6, name: 'David Wilson', avatar: '🧑', status: 'online' },
-    { id: 7, name: 'Lisa Anderson', avatar: '👤', status: 'offline' },
-    { id: 8, name: 'James Parker', avatar: '👨', status: 'online' },
-    { id: 9, name: 'Maria Garcia', avatar: '👩', status: 'online' },
-    { id: 10, name: 'Robert Chen', avatar: '🧑', status: 'offline' },
-  ];
+  // Real friends from database
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [loadingConnections, setLoadingConnections] = useState(false);
+
+  // Load friends when new chat dialog opens
+  useEffect(() => {
+    const loadFriends = async () => {
+      if (!showNewChatDialog || !profile?.supabaseId) return;
+      setLoadingConnections(true);
+      try {
+        const friends = await getFriends(profile.supabaseId);
+        const mapped: Connection[] = friends.map((f: any) => ({
+          id: f.id,
+          name: f.display_name || f.username || 'User',
+          avatar: f.avatar_emoji || '👤',
+          status: f.is_online ? 'online' : 'offline'
+        }));
+        setConnections(mapped);
+      } catch (err) {
+        console.error('Error loading friends for chat:', err);
+        setConnections([]);
+      }
+      setLoadingConnections(false);
+    };
+    loadFriends();
+  }, [showNewChatDialog, profile?.supabaseId]);
 
   // Auto-focus on recipient input when dialog opens
   useEffect(() => {
@@ -1740,7 +1753,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
               />
 
               {/* Suggestions Dropdown */}
-              {showSuggestions && searchQuery && (
+              {showSuggestions && (searchQuery || connections.length > 0) && (
                 <div
                   className={`absolute top-full left-0 right-0 mt-3 rounded-lg border max-h-48 overflow-y-auto z-10 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-white border-white/25'}`}
                   style={nightMode ? {
@@ -1756,10 +1769,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                 >
                   {connections
                     .filter(conn =>
-                      conn.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                      (!searchQuery || conn.name.toLowerCase().includes(searchQuery.toLowerCase())) &&
                       !selectedConnections.some(sc => sc.id === conn.id)
                     )
-                    .slice(0, 5)
+                    .slice(0, 8)
                     .map((conn) => (
                       <button
                         key={conn.id}
@@ -1785,12 +1798,16 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                       </button>
                     ))}
 
-                  {connections.filter(conn =>
-                    conn.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                  {loadingConnections ? (
+                    <div className={`px-4 py-6 text-center text-sm ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
+                      Loading friends...
+                    </div>
+                  ) : connections.filter(conn =>
+                    (!searchQuery || conn.name.toLowerCase().includes(searchQuery.toLowerCase())) &&
                     !selectedConnections.some(sc => sc.id === conn.id)
                   ).length === 0 && (
                       <div className={`px-4 py-6 text-center text-sm ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
-                        {selectedConnections.length > 0 ? 'All matching friends already added' : 'No connections found'}
+                        {connections.length === 0 ? 'No friends yet — add friends first!' : selectedConnections.length > 0 ? 'All matching friends already added' : 'No matching friends found'}
                       </div>
                     )}
                 </div>

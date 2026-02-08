@@ -7,6 +7,7 @@ import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
 import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony, updateUserProfile, leaveChurch, regenerateChurchInviteCode } from '../lib/database';
 import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
+import { showError } from '../lib/toast';
 import TestimonyShareModal from './TestimonyShareModal';
 import { deleteTestimony } from '../lib/database';
 import ProfileCard from './ProfileCard';
@@ -192,27 +193,23 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
     );
 
     if (success && comment) {
-      // Verify current user profile exists and has required fields
-      if (!currentUserProfile || !currentUserProfile.username) {
-        console.error('Cannot add comment: current user profile data incomplete');
-        setIsSubmittingComment(false);
-        return;
-      }
-
       // Add comment to local state with the COMMENTER's profile data (not testimony owner's)
+      // Use fallbacks for username/displayName so UI always updates even if profile data is sparse
       setComments((prev: any[]) => [...prev, {
         ...(comment as any),
         users: {
-          username: currentUserProfile.username,
-          display_name: currentUserProfile.displayName,
-          avatar_emoji: currentUserProfile.avatar,
-          avatar_url: currentUserProfile.avatarImage
+          username: currentUserProfile?.username || currentUserProfile?.displayName || 'User',
+          display_name: currentUserProfile?.displayName || currentUserProfile?.username || 'User',
+          avatar_emoji: currentUserProfile?.avatar || '👤',
+          avatar_url: currentUserProfile?.avatarImage
         }
       }]);
       setNewComment('');
 
       // Check if this unlocked the first comment secret
       await checkTestimonyAnalyticsSecrets(profile.story.id);
+    } else if (!success) {
+      showError('Failed to post comment. Please try again.');
     }
 
     setIsSubmittingComment(false);
