@@ -27,6 +27,8 @@
   - `useGroupManagement.ts` — group CRUD, discovery, invites
   - `useGroupChat.ts` — group messages, sending, real-time
   - `useGroupMembers.ts` — member list, roles, permissions
+  - `useChannelMessages.ts` — channel message CRUD, reactions, typing, search, @mentions
+  - `useServerState.ts` — server/channel/role/member/ban/invite state + all handlers
 - `src/lib/database/index.ts` — barrel export for all 18 database modules
 - `src/lib/supabase.ts` — Supabase client initialization
 - `functions/api/*` — Cloudflare Pages serverless functions
