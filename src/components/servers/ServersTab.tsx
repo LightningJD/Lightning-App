@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Hash } from 'lucide-react';
+import { ArrowLeft, Hash, Link } from 'lucide-react';
+import { showSuccess, showError } from '../../lib/toast';
 import { useUserProfile } from '../useUserProfile';
 import { useGuestModalContext } from '../../contexts/GuestModalContext';
 import {
@@ -31,6 +32,10 @@ import {
   getServerBans,
   getUnreadCounts,
   markChannelRead,
+  getPendingInviteRequests,
+  approveInviteRequest,
+  rejectInviteRequest,
+  joinByInviteCode,
 } from '../../lib/database';
 import ServerSidebar from './ServerSidebar';
 import ChannelSidebar from './ChannelSidebar';
@@ -83,6 +88,14 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
 
   // Unread counts
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+  // Invite requests
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+
+  // Join by invite code
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [joining, setJoining] = useState(false);
 
   // Dialogs
   const [showCreateServer, setShowCreateServer] = useState(false);
@@ -159,19 +172,21 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     setViewMode('chat');
   }, [activeServerId]);
 
-  // Load members, roles, permissions when active server changes
+  // Load members, roles, permissions, and pending requests when active server changes
   useEffect(() => {
     const loadServerData = async () => {
       if (!activeServerId || !profile?.supabaseId) return;
 
-      const [membersResult, rolesResult, permsResult] = await Promise.all([
+      const [membersResult, rolesResult, permsResult, pendingResult] = await Promise.all([
         getServerMembers(activeServerId),
         getServerRoles(activeServerId),
         getMemberPermissions(activeServerId, profile.supabaseId),
+        getPendingInviteRequests(activeServerId),
       ]);
 
       setMembers(membersResult || []);
       setRoles(rolesResult || []);
+      setPendingRequests(pendingResult || []);
       if (permsResult?.permissions) {
         setPermissions(permsResult.permissions);
       }
@@ -265,6 +280,68 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     }
     return code;
   }, [activeServerId]);
+
+  const handleApproveRequest = useCallback(async (requestId: string) => {
+    if (!profile?.supabaseId || !activeServerId) return;
+    const success = await approveInviteRequest(requestId, profile.supabaseId);
+    if (success) {
+      setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+      // Refresh members list
+      const refreshed = await getServerMembers(activeServerId);
+      setMembers(refreshed || []);
+    }
+  }, [profile?.supabaseId, activeServerId]);
+
+  const handleRejectRequest = useCallback(async (requestId: string) => {
+    if (!profile?.supabaseId) return;
+    const success = await rejectInviteRequest(requestId, profile.supabaseId);
+    if (success) {
+      setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+    }
+  }, [profile?.supabaseId]);
+
+  const handleShareInvite = useCallback(async () => {
+    const server = servers.find(s => s.id === activeServerId);
+    if (!server?.invite_code) {
+      // Generate one first if none exists
+      const code = await handleGenerateInvite();
+      if (code) {
+        try {
+          await navigator.clipboard.writeText(code);
+          showSuccess('Invite code copied!');
+        } catch { /* clipboard unavailable */ }
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(server.invite_code);
+      showSuccess('Invite code copied!');
+    } catch { /* clipboard unavailable */ }
+  }, [activeServerId, servers, handleGenerateInvite]);
+
+  const handleJoinByCode = useCallback(async () => {
+    if (!profile?.supabaseId || !joinCode.trim()) return;
+    setJoining(true);
+    try {
+      const result = await joinByInviteCode(joinCode.trim(), profile.supabaseId);
+      if (!result) {
+        showError('Invalid invite code. Please check and try again.');
+      } else if (result.status === 'already_member') {
+        showSuccess('You\'re already a member of this server!');
+        setShowJoinDialog(false);
+        setJoinCode('');
+      } else if (result.status === 'already_pending') {
+        showError('You already have a pending request for this server.');
+      } else if (result.status === 'pending') {
+        showSuccess('Join request sent! An admin will review it.');
+        setShowJoinDialog(false);
+        setJoinCode('');
+      }
+    } catch {
+      showError('Something went wrong. Please try again.');
+    }
+    setJoining(false);
+  }, [profile?.supabaseId, joinCode]);
 
   const handleAssignRole = useCallback(async (userId: string, roleId: string) => {
     if (!activeServerId) return;
@@ -427,16 +504,85 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
         <p className={`text-center mb-6 max-w-xs ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
           Create a server for your church or community, or join one with an invite link.
         </p>
-        <button
-          onClick={() => setShowCreateServer(true)}
-          className="px-8 py-3.5 rounded-xl text-white font-bold transition-all active:scale-95 hover:scale-[1.02]"
-          style={{
-            background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
-            boxShadow: '0 4px 16px rgba(59, 130, 246, 0.35)',
-          }}
-        >
-          Create a Server
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowCreateServer(true)}
+            className="px-6 py-3.5 rounded-xl text-white font-bold transition-all active:scale-95 hover:scale-[1.02]"
+            style={{
+              background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
+              boxShadow: '0 4px 16px rgba(59, 130, 246, 0.35)',
+            }}
+          >
+            Create Server
+          </button>
+          <button
+            onClick={() => setShowJoinDialog(true)}
+            className={`px-6 py-3.5 rounded-xl font-bold transition-all active:scale-95 hover:scale-[1.02] flex items-center gap-2 ${
+              nightMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
+            }`}
+          >
+            <Link className="w-4 h-4" /> Join
+          </button>
+        </div>
+
+        {/* Join by Invite Code Dialog */}
+        {showJoinDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+            onClick={(e) => { if (e.target === e.currentTarget) { setShowJoinDialog(false); setJoinCode(''); } }}
+          >
+            <div className="w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden"
+              style={{
+                background: nightMode ? 'rgba(15,15,25,0.95)' : 'rgba(255,255,255,0.95)',
+                backdropFilter: 'blur(30px)', WebkitBackdropFilter: 'blur(30px)',
+                border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+              }}
+            >
+              <div className="p-6" style={{ background: 'linear-gradient(135deg, rgba(79,150,255,0.15) 0%, rgba(59,130,246,0.05) 100%)' }}>
+                <h2 className={`text-xl font-bold ${nightMode ? 'text-white' : 'text-black'}`}>Join a Server</h2>
+                <p className={`text-sm mt-1 ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
+                  Enter an invite code to request to join
+                </p>
+              </div>
+              <div className="p-6 space-y-4">
+                <input
+                  type="text"
+                  value={joinCode}
+                  onChange={e => setJoinCode(e.target.value)}
+                  placeholder="Enter invite code"
+                  className={`w-full px-4 py-3 rounded-xl text-sm font-mono ${nightMode ? 'text-white placeholder-white/30' : 'text-black placeholder-black/40'}`}
+                  style={{
+                    background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)',
+                    border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+                  }}
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setShowJoinDialog(false); setJoinCode(''); }}
+                    className={`flex-1 py-3 rounded-xl font-semibold transition-all active:scale-95 ${nightMode ? 'bg-white/10 text-white' : 'bg-black/5 text-black'}`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleJoinByCode}
+                    disabled={joining || !joinCode.trim()}
+                    className="flex-1 py-3 rounded-xl text-white font-bold transition-all active:scale-95 disabled:opacity-40"
+                    style={{
+                      background: 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
+                      boxShadow: joinCode.trim() ? '0 4px 12px rgba(59,130,246,0.3)' : 'none',
+                    }}
+                  >
+                    {joining ? 'Joining...' : 'Join Server'}
+                  </button>
+                </div>
+                <p className={`text-xs text-center ${nightMode ? 'text-white/30' : 'text-black/30'}`}>
+                  An admin will need to approve your request to join
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <CreateServerDialog
           nightMode={nightMode}
@@ -465,6 +611,9 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onDelete={handleDeleteServer}
           onBack={handleBackFromContent}
           onGenerateInvite={handleGenerateInvite}
+          pendingRequests={pendingRequests}
+          onApproveRequest={handleApproveRequest}
+          onRejectRequest={handleRejectRequest}
         />
       );
     }
@@ -603,6 +752,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
                   onOpenSettings={() => { setViewMode('settings'); setMobileView('chat'); }}
                   onOpenRoles={() => { setViewMode('roles'); setMobileView('chat'); }}
                   onOpenMembers={() => { setViewMode('members'); setMobileView('chat'); }}
+                  onShareInvite={handleShareInvite}
                   canManageChannels={permissions.manage_channels}
                   fullWidth
                   onCreateCategory={handleCreateCategory}
@@ -705,6 +855,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onOpenSettings={() => setViewMode('settings')}
           onOpenRoles={() => setViewMode('roles')}
           onOpenMembers={() => setViewMode('members')}
+          onShareInvite={handleShareInvite}
           canManageChannels={permissions.manage_channels}
           onCreateCategory={handleCreateCategory}
           onRenameCategory={handleRenameCategory}

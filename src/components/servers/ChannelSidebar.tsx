@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash, BellOff, Lock, FolderInput } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash, BellOff, Lock, FolderInput, UserPlus } from 'lucide-react';
 
 interface ChannelSidebarProps {
   nightMode: boolean;
@@ -14,6 +14,7 @@ interface ChannelSidebarProps {
   onOpenSettings: () => void;
   onOpenRoles?: () => void;
   onOpenMembers?: () => void;
+  onShareInvite?: () => void;
   canManageChannels: boolean;
   fullWidth?: boolean;
   onCreateCategory?: (name: string) => void;
@@ -51,8 +52,8 @@ const getChannelEmoji = (name: string): string => {
 const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   nightMode, serverName, serverEmoji, serverId, categories, channels,
   activeChannelId, onSelectChannel, onCreateChannel, onOpenSettings, onOpenRoles, onOpenMembers,
-  canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory, onReorderCategories,
-  onUpdateChannel, onDeleteChannel, onReorderChannels, onMoveChannelToCategory, unreadCounts
+  onShareInvite, canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory,
+  onReorderCategories, onUpdateChannel, onDeleteChannel, onReorderChannels, onMoveChannelToCategory, unreadCounts
 }) => {
   // Persist collapse state in localStorage per server
   const storageKey = `lightning_collapsed_${serverId}`;
@@ -721,17 +722,30 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
           background: nightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)',
         }}
       >
-        {onOpenMembers && (
-          <button
-            onClick={onOpenMembers}
-            className={`w-full flex items-center gap-2.5 text-xs px-3 py-2 rounded-xl transition-all hover:scale-[1.02] active:scale-95 ${
-              nightMode ? 'text-white/50 hover:text-white/80 hover:bg-white/5' : 'text-black/50 hover:text-black/80 hover:bg-black/5'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            Members
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {onOpenMembers && (
+            <button
+              onClick={onOpenMembers}
+              className={`flex-1 flex items-center gap-2.5 text-xs px-3 py-2 rounded-xl transition-all hover:scale-[1.02] active:scale-95 ${
+                nightMode ? 'text-white/50 hover:text-white/80 hover:bg-white/5' : 'text-black/50 hover:text-black/80 hover:bg-black/5'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              Members
+            </button>
+          )}
+          {onShareInvite && (
+            <button
+              onClick={onShareInvite}
+              className={`p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
+                nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5'
+              }`}
+              title="Invite People"
+            >
+              <UserPlus className="w-4 h-4" />
+            </button>
+          )}
+        </div>
 
         {canManageChannels && (
           <div className="flex items-center gap-1">
