@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
 import UserCard from './UserCard';
 import { UserCardSkeleton } from './SkeletonLoader';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
 import LeaderboardView from './LeaderboardView';
+import MyReferralSection from './MyReferralSection';
 import BpResetBanner from './BpResetBanner';
 import { useUserProfile } from './useUserProfile';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
   getFriends,
   findNearbyUsers,
@@ -71,6 +71,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
   const [nearbyPeople, setNearbyPeople] = useState<User[]>([]);
   const [isLoadingPeople, setIsLoadingPeople] = useState<boolean>(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [showRanks, setShowRanks] = useState(false);
 
   // Load users and friends from database
   useEffect(() => {
@@ -496,6 +497,45 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
         </div>
       </div>
 
+      {/* Ambassador Card — always visible at top */}
+      {profile?.supabaseId && profile?.username && (
+        <div>
+          <MyReferralSection
+            nightMode={nightMode}
+            userId={profile.supabaseId}
+            username={profile.username}
+          />
+          {/* Expandable Ranks / Leaderboard */}
+          <div className="px-4 mt-2">
+            <button
+              type="button"
+              onClick={() => setShowRanks(!showRanks)}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] ${
+                nightMode
+                  ? 'bg-white/[0.04] hover:bg-white/[0.07] text-white/60 border border-white/8'
+                  : 'bg-white/20 hover:bg-white/30 text-black/50 border border-white/30'
+              }`}
+              style={{
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+              }}
+            >
+              <Trophy className="w-4 h-4" />
+              {showRanks ? 'Hide Leaderboard' : 'View Leaderboard'}
+              {showRanks ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            {showRanks && (
+              <div className="mt-3">
+                <LeaderboardView
+                  nightMode={nightMode}
+                  currentUserId={profile.supabaseId}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="px-4">
         <div
           className={`rounded-xl border p-2 flex gap-2 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
@@ -535,16 +575,6 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
             aria-label="Discover people"
           >
             People
-          </button>
-          <button
-            onClick={() => setActiveDiscoverTab('ranks')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeDiscoverTab === 'ranks' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
-            style={{
-              background: 'transparent'
-            }}
-            aria-label="View leaderboard"
-          >
-            Ranks
           </button>
         </div>
       </div>
@@ -1032,17 +1062,6 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
                   </div>
                 );
               })}
-            </div>
-          )
-        ) : activeDiscoverTab === 'ranks' ? (
-          profile?.supabaseId ? (
-            <LeaderboardView
-              nightMode={nightMode}
-              currentUserId={profile.supabaseId}
-            />
-          ) : (
-            <div className={`text-center py-10 text-sm ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
-              Sign in to view the leaderboard
             </div>
           )
         ) : null}

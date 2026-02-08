@@ -25,7 +25,7 @@ export const TESTIMONY_QUESTIONS: TestimonyQuestion[] = [
     },
     {
         id: 'question2',
-        question: 'What was the lowest point? What moment or season made you realize you couldn\'t keep going the way you were?',
+        question: 'What was the lowest point? What moment or season made you realize you needed to make a change?',
         placeholder: 'Describe the struggle that brought you to the end of yourself. Was there a specific moment you hit rock bottom \u2014 a night, a conversation, a realization? What were you feeling?',
         hint: 'Don\'t just list struggles \u2014 take us to the moment. What were you doing? What were you feeling?',
         minLength: 70,
