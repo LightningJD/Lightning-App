@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
+import { Search, X, ChevronDown, ChevronUp, Trophy, UserPlus, UserX } from 'lucide-react';
 import UserCard from './UserCard';
 import { UserCardSkeleton } from './SkeletonLoader';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
@@ -20,7 +20,10 @@ import {
   getFeedTestimonies,
   getTrendingTestimony,
   getChurchMembers,
-  getFriendsOfFriends
+  getFriendsOfFriends,
+  getPendingFriendRequests,
+  acceptFriendRequest,
+  declineFriendRequest
 } from '../lib/database';
 
 interface User {
@@ -72,11 +75,28 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
   const [isLoadingPeople, setIsLoadingPeople] = useState<boolean>(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [showRanks, setShowRanks] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [processingRequest, setProcessingRequest] = useState<string | null>(null);
 
   // Collapse leaderboard when switching sub-tabs
   useEffect(() => {
     setShowRanks(false);
   }, [activeDiscoverTab]);
+
+  // Load pending friend requests
+  useEffect(() => {
+    const loadPendingRequests = async () => {
+      if (!profile?.supabaseId) return;
+      try {
+        const pending = await getPendingFriendRequests(profile.supabaseId);
+        setPendingRequests(pending || []);
+      } catch {
+        // Silent fail
+      }
+    };
+    loadPendingRequests();
+    // Re-check when switching to Friends tab
+  }, [profile?.supabaseId, activeDiscoverTab]);
 
   // Load users and friends from database
   useEffect(() => {
@@ -657,44 +677,127 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
             ))}
           </div>
         ) : activeDiscoverTab === 'friends' ? (
-          sortedFriends.length === 0 ? (
-            <div
-              className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-              style={nightMode ? {} : {
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(30px)',
-                WebkitBackdropFilter: 'blur(30px)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-              }}
-            >
-              <div className="text-6xl mb-4">👥</div>
-              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No friends yet</p>
-              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
-                Browse the People tab to discover and connect with believers near you!
-              </p>
-              <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
-                <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                  💡 Tip: Visit the <span className="font-bold">People</span> tab to find believers near you
-                </p>
+          <div className="space-y-4">
+            {/* Pending Friend Requests */}
+            {pendingRequests.length > 0 && (
+              <div>
+                <h3 className={`text-sm font-bold mb-2 flex items-center gap-2 ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                  <UserPlus className="w-4 h-4" />
+                  Friend Requests ({pendingRequests.length})
+                </h3>
+                <div className="space-y-2">
+                  {pendingRequests.map((request: any) => {
+                    const sender = request.sender;
+                    if (!sender) return null;
+                    return (
+                      <div
+                        key={request.id}
+                        className={`flex items-center gap-3 p-3 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'bg-white/40 border-white/30'}`}
+                        style={nightMode ? {} : {
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
+                        }}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-lg flex-shrink-0">
+                          {sender.avatar_emoji || '👤'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-semibold text-sm truncate ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                            {sender.display_name || sender.username}
+                          </p>
+                          <p className={`text-xs truncate ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                            @{sender.username}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <button
+                            onClick={async () => {
+                              setProcessingRequest(request.id);
+                              const result = await acceptFriendRequest(request.id);
+                              if (result) {
+                                setPendingRequests(prev => prev.filter(r => r.id !== request.id));
+                                // Refresh friends list
+                                if (profile?.supabaseId) {
+                                  const updatedFriends = await getFriends(profile.supabaseId);
+                                  // @ts-ignore
+                                  setFriends(updatedFriends || []);
+                                }
+                              }
+                              setProcessingRequest(null);
+                            }}
+                            disabled={processingRequest === request.id}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${
+                              nightMode
+                                ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
+                                : 'bg-blue-500 text-white hover:bg-blue-600'
+                            }`}
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={async () => {
+                              setProcessingRequest(request.id);
+                              await declineFriendRequest(request.id);
+                              setPendingRequests(prev => prev.filter(r => r.id !== request.id));
+                              setProcessingRequest(null);
+                            }}
+                            disabled={processingRequest === request.id}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-50 ${
+                              nightMode
+                                ? 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {sortedFriends.map((user) => (
-                <UserCard
-                  key={user.id}
-                  user={user}
-                  showReason={false}
-                  isFriend={true}
-                  nightMode={nightMode}
-                  onViewProfile={handleViewProfile}
-                  onMessage={handleMessage}
-                  onAddFriend={handleAddFriend}
-                  onUnfriend={handleUnfriend}
-                />
-              ))}
-            </div>
-          )
+            )}
+
+            {/* Friends List */}
+            {sortedFriends.length === 0 && pendingRequests.length === 0 ? (
+              <div
+                className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
+                style={nightMode ? {} : {
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(30px)',
+                  WebkitBackdropFilter: 'blur(30px)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                }}
+              >
+                <div className="text-6xl mb-4">👥</div>
+                <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No friends yet</p>
+                <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
+                  Browse the People tab to discover and connect with believers near you!
+                </p>
+                <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
+                  <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                    💡 Tip: Visit the <span className="font-bold">People</span> tab to find believers near you
+                  </p>
+                </div>
+              </div>
+            ) : sortedFriends.length > 0 && (
+              <div className="space-y-3">
+                {sortedFriends.map((user) => (
+                  <UserCard
+                    key={user.id}
+                    user={user}
+                    showReason={false}
+                    isFriend={true}
+                    nightMode={nightMode}
+                    onViewProfile={handleViewProfile}
+                    onMessage={handleMessage}
+                    onAddFriend={handleAddFriend}
+                    onUnfriend={handleUnfriend}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         ) : activeDiscoverTab === 'people' ? (
           isLoadingPeople ? (
             <div className="space-y-3">

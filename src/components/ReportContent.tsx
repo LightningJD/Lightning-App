@@ -56,7 +56,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
 
     // Validate details if provided
     if (details) {
-      const validation = validateMessage(details, 'testimony');
+      const validation = validateMessage(details, 'comment');
       if (!validation.valid) {
         showError(validation.errors[0]);
         return;
