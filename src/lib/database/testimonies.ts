@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { checkAndConfirmReferral } from './referrals';
 
 interface TestimonyData {
   title?: string;
@@ -60,6 +61,13 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
     // @ts-ignore - Supabase generated types don't allow update on this table
     .update({ has_testimony: true })
     .eq('id', userId);
+
+  // Check if this completes a pending referral (profile + testimony = confirmed)
+  try {
+    await checkAndConfirmReferral(userId);
+  } catch (err) {
+    console.error('Error checking referral confirmation:', err);
+  }
 
   return data;
 };

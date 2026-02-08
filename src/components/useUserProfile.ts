@@ -194,6 +194,12 @@ export const useUserProfile = (): UseUserProfileReturn => {
     favoriteVerseRef: supabaseUser?.favorite_verse_ref || null,
     faithInterests: supabaseUser?.faith_interests || [],
     entryNumber: supabaseUser?.entry_number || null,
+    // Referral & Points
+    referralCode: (supabaseUser as any)?.referral_code || null,
+    blessingPoints: (supabaseUser as any)?.blessing_points || 0,
+    overallPoints: (supabaseUser as any)?.overall_points || 0,
+    ambassadorTermsAccepted: !!(supabaseUser as any)?.ambassador_terms_accepted_at,
+    isFlagged: (supabaseUser as any)?.is_flagged || false,
     music: (() => {
       const songUrl = supabaseUser?.spotify_url;
       if (!songUrl) return null;

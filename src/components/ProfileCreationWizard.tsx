@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, Check, Navigation, Church, Plus, KeyRound } from 'lucide-react';
+import { User, MapPin, FileText, Sparkles, ArrowRight, ArrowLeft, Check, Navigation, Church, Plus, KeyRound, Gift } from 'lucide-react';
 import { useGeolocation } from '../hooks/useGeolocation';
-import { createChurch, joinChurchByCode } from '../lib/database';
+import { createChurch, joinChurchByCode, resolveReferralCode } from '../lib/database';
 
 interface FormData {
   displayName: string;
@@ -30,6 +30,14 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [detectedCoords, setDetectedCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { detect, isDetecting, error: geoError } = useGeolocation();
+
+  // Referral code state
+  const [referralCode, setReferralCode] = useState(() => {
+    return localStorage.getItem('lightning_referral_code') || '';
+  });
+  const [referralValidated, setReferralValidated] = useState<{ username: string } | null>(null);
+  const [referralError, setReferralError] = useState('');
+  const [isValidatingReferral, setIsValidatingReferral] = useState(false);
 
   // Church step state
   const [churchMode, setChurchMode] = useState<'choose' | 'join' | 'create'>('choose');
@@ -87,6 +95,20 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
+  // Auto-validate referral code from localStorage on mount
+  useEffect(() => {
+    if (referralCode) {
+      (async () => {
+        setIsValidatingReferral(true);
+        const referrer = await resolveReferralCode(referralCode);
+        if (referrer) {
+          setReferralValidated({ username: referrer.username });
+        }
+        setIsValidatingReferral(false);
+      })();
+    }
+  }, []);
+
   // Auto-focus on first input when step changes
   useEffect(() => {
     if (inputRef.current) {
@@ -142,7 +164,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await onComplete({ ...formData, _coords: detectedCoords, _churchId: churchResult?.id, _pendingChurch: churchResult?._pendingCreate ? churchResult : undefined } as any);
+      await onComplete({ ...formData, _coords: detectedCoords, _churchId: churchResult?.id, _pendingChurch: churchResult?._pendingCreate ? churchResult : undefined, _referralCode: referralValidated ? referralCode : undefined } as any);
     } catch (error) {
       console.error('Error creating profile:', error);
       setErrors({ submit: 'Failed to create profile. Please try again.' });
@@ -253,6 +275,60 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
               <p className={`text-xs mt-1 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
                 Letters, numbers, and underscores only
               </p>
+            </div>
+
+            {/* Referral Code (optional) */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                Referral Code <span className={`font-normal text-xs ${nightMode ? 'text-slate-400' : 'text-slate-400'}`}>(optional)</span>
+              </label>
+              <div className="relative">
+                <span className={`absolute left-4 top-1/2 -translate-y-1/2 ${nightMode ? 'text-slate-400' : 'text-slate-400'}`}>
+                  <Gift className="w-4 h-4" />
+                </span>
+                <input
+                  type="text"
+                  value={referralCode}
+                  onChange={(e) => {
+                    const val = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    setReferralCode(val);
+                    setReferralValidated(null);
+                    setReferralError('');
+                  }}
+                  onBlur={async () => {
+                    if (!referralCode.trim()) {
+                      setReferralValidated(null);
+                      setReferralError('');
+                      return;
+                    }
+                    setIsValidatingReferral(true);
+                    const referrer = await resolveReferralCode(referralCode);
+                    if (referrer) {
+                      setReferralValidated({ username: referrer.username });
+                      setReferralError('');
+                    } else {
+                      setReferralValidated(null);
+                      setReferralError('Invalid referral code');
+                    }
+                    setIsValidatingReferral(false);
+                  }}
+                  placeholder="e.g. marcus7291"
+                  className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    nightMode
+                      ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
+                      : 'bg-white border-slate-200 text-slate-900'
+                  } ${referralError ? 'border-red-500' : referralValidated ? 'border-green-500' : ''}`}
+                />
+              </div>
+              {isValidatingReferral && (
+                <p className={`text-xs mt-1 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>Checking code...</p>
+              )}
+              {referralValidated && (
+                <p className="text-green-500 text-xs mt-1">Referred by @{referralValidated.username}</p>
+              )}
+              {referralError && (
+                <p className="text-red-500 text-xs mt-1">{referralError}</p>
+              )}
             </div>
           </div>
         );

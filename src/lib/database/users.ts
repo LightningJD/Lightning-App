@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import type { User, NearbyUser } from '../../types';
+import { ensureReferralCode } from './referrals';
 
 // ============================================
 // USER OPERATIONS
@@ -82,11 +83,20 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
         .single();
       if (error) {
         console.error('❌ Error updating existing Supabase user:', error);
+        // Ensure referral code exists for existing users
+        const username = (existing as any).username || clerkUser.username || 'user';
+        await ensureReferralCode(existing.id, username);
         return existing as unknown as User; // Return existing to avoid breaking UI
       }
+      // Ensure referral code exists for existing users
+      const username = (updated as any)?.username || (existing as any).username || clerkUser.username || 'user';
+      await ensureReferralCode(existing.id, username);
       return updated as unknown as User;
     }
 
+    // Ensure referral code exists for existing users
+    const existingUsername = (existing as any).username || clerkUser.username || 'user';
+    await ensureReferralCode(existing.id, existingUsername);
     return existing as unknown as User;
   }
 
@@ -113,6 +123,10 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
     console.error('❌ Error creating Supabase user:', createError);
     return null;
   }
+
+  // Generate referral code for new user
+  const newUsername = (created as any)?.username || clerkUser.username || 'user';
+  await ensureReferralCode(created.id, newUsername);
 
   console.log('✅ Successfully created new user:', created.id);
   return created as unknown as User;

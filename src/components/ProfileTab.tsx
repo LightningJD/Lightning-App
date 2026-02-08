@@ -11,6 +11,7 @@ import TestimonyShareModal from './TestimonyShareModal';
 import { deleteTestimony } from '../lib/database';
 import ProfileCard from './ProfileCard';
 import ChurchCard from './ChurchCard';
+import MyReferralSection from './MyReferralSection';
 
 interface ProfileTabProps {
   profile: any;
@@ -300,6 +301,14 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
         </div>
       )}
 
+      {/* Ambassador / Referral Section — only on own profile */}
+      {profile?.supabaseId && profile?.supabaseId === currentUserProfile?.supabaseId && (
+        <MyReferralSection
+          nightMode={nightMode}
+          userId={profile.supabaseId}
+          username={profile.username}
+        />
+      )}
 
       {/* Dot connector between Faith Profile and Testimony */}
       {(profile.bio || profile.churchName || profile.favoriteVerse || (profile.faithInterests && profile.faithInterests.length > 0) || profile.yearSaved || (profile.music && profile.music.spotifyUrl)) && profile?.story?.id && (
