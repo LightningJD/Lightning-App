@@ -121,23 +121,21 @@ const PricingTable: React.FC<PricingTableProps> = ({
           const monthlyEquivalent = interval === 'annual' ? Math.round(tier.annual_price_cents / 12) : tier.monthly_price_cents;
 
           return (
-            <button
+            <div
               key={tier.id}
-              onClick={() => onSelectTier?.(tier, interval)}
-              disabled={isCurrent || isLoading}
-              className={`w-full text-left p-4 rounded-xl border transition-all ${
+              className={`w-full p-4 rounded-xl border transition-all ${
                 isRecommended
                   ? nightMode
-                    ? 'border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/15'
-                    : 'border-blue-500/40 bg-blue-50 hover:bg-blue-100'
+                    ? 'border-blue-500/50 bg-blue-500/10'
+                    : 'border-blue-500/40 bg-blue-50'
                   : isCurrent
                     ? nightMode
-                      ? 'border-green-500/30 bg-green-500/5 cursor-default'
-                      : 'border-green-500/30 bg-green-50 cursor-default'
+                      ? 'border-green-500/30 bg-green-500/5'
+                      : 'border-green-500/30 bg-green-50'
                     : nightMode
-                      ? 'border-white/10 bg-white/5 hover:bg-white/10'
-                      : 'border-slate-200 bg-white hover:bg-slate-50'
-              } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      ? 'border-white/10 bg-white/5'
+                      : 'border-slate-200 bg-white'
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -174,7 +172,24 @@ const PricingTable: React.FC<PricingTableProps> = ({
                   )}
                 </div>
               </div>
-            </button>
+              {!isCurrent && (
+                <button
+                  onClick={() => onSelectTier?.(tier, interval)}
+                  disabled={isLoading}
+                  className="w-full mt-3 py-2.5 rounded-lg text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: isRecommended
+                      ? 'linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)'
+                      : nightMode
+                        ? 'rgba(255,255,255,0.12)'
+                        : 'rgba(0,0,0,0.8)',
+                    boxShadow: isRecommended ? '0 3px 12px rgba(59,130,246,0.35)' : 'none',
+                  }}
+                >
+                  {isLoading ? 'Setting up...' : 'Start Free Trial'}
+                </button>
+              )}
+            </div>
           );
         })}
       </div>
