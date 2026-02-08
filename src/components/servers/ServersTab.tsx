@@ -52,11 +52,12 @@ interface ServersTabProps {
   onActiveServerChange?: (serverName: string | null, serverEmoji?: string) => void;
   initialServerId?: string;
   onBack?: () => void;
+  hideServerRail?: boolean;
 }
 
 type ViewMode = 'chat' | 'settings' | 'roles' | 'members';
 
-const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange, initialServerId, onBack }) => {
+const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange, initialServerId, onBack, hideServerRail }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
   const { isServerPremium } = usePremium();
@@ -66,6 +67,15 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
   const [activeServerId, setActiveServerId] = useState<string | null>(initialServerId || null);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
+
+  // Sync activeServerId when parent changes it (e.g. clicking a different server in ChatTab's rail)
+  useEffect(() => {
+    if (initialServerId && initialServerId !== activeServerId) {
+      setActiveServerId(initialServerId);
+      setActiveChannelId(null);
+      setViewMode('chat');
+    }
+  }, [initialServerId]);
 
   // Server data
   const [categories, setCategories] = useState<any[]>([]);
@@ -694,8 +704,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
         {/* Mobile: Servers sidebar + Channels list */}
         {(mobileView === 'servers' || mobileView === 'channels') && (
           <div className="flex flex-row h-full">
-            {/* Server icons sidebar (vertical, Discord-style) */}
-            <div
+            {/* Server icons sidebar (vertical, Discord-style) — hidden when parent provides its own rail */}
+            {!hideServerRail && <div
               className="flex flex-col items-center gap-2 py-2 px-1.5 overflow-y-auto flex-shrink-0"
               style={{
                 width: '56px',
@@ -751,7 +761,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
               >
                 +
               </button>
-            </div>
+            </div>}
 
             {/* Channel list (fills remaining width) */}
             {activeServer && (
@@ -848,14 +858,14 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
   // ── DESKTOP LAYOUT (unchanged) ────────────────────────────────
   return (
     <div className="flex h-full" style={{ height: 'calc(100vh - 120px)' }}>
-      {/* Server sidebar (icons) */}
-      <ServerSidebar
+      {/* Server sidebar (icons) — hidden when parent provides its own rail */}
+      {!hideServerRail && <ServerSidebar
         nightMode={nightMode}
         servers={servers}
         activeServerId={activeServerId}
         onSelectServer={handleSelectServer}
         onCreateServer={() => setShowCreateServer(true)}
-      />
+      />}
 
       {/* Channel sidebar */}
       {activeServer && (

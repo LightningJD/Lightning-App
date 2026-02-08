@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, MessageCircle } from 'lucide-react';
 import { useUserProfile } from './useUserProfile';
-import { getUserConversations, getUserServers, createServer, subscribeToMessages, unsubscribe, isUserBlocked, isBlockedBy } from '../lib/database';
+import { getUserConversations, getUserServers, createServer, getFriends, subscribeToMessages, unsubscribe, isUserBlocked, isBlockedBy } from '../lib/database';
 import MessagesTab from './MessagesTab';
 import ServersTab from './servers/ServersTab';
 import CreateServerDialog from './servers/CreateServerDialog';
@@ -89,6 +89,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
   // View state
   const [view, setView] = useState<ChatView>('list');
   const [dmConversations, setDmConversations] = useState<Conversation[]>([]);
+  const [friendsWithoutConvos, setFriendsWithoutConvos] = useState<Array<{ id: string; name: string; avatar: string; avatarImage?: string; online?: boolean }>>([]);
   const [servers, setServers] = useState<Server[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -114,9 +115,10 @@ const ChatTab: React.FC<ChatTabProps> = ({
     }
 
     try {
-      const [convos, srvs] = await Promise.all([
+      const [convos, srvs, friends] = await Promise.all([
         getUserConversations(profile.supabaseId),
         getUserServers(profile.supabaseId),
+        getFriends(profile.supabaseId),
       ]);
 
       // Filter blocked users from conversations
@@ -135,6 +137,19 @@ const ChatTab: React.FC<ChatTabProps> = ({
 
       setDmConversations(filteredConvos);
       setServers((srvs || []) as Server[]);
+
+      // Find friends who don't have an existing conversation
+      const convoUserIds = new Set(filteredConvos.map(c => String(c.userId)));
+      const friendsNoConvo = (friends || [])
+        .filter((f: any) => !convoUserIds.has(String(f.id)))
+        .map((f: any) => ({
+          id: f.id,
+          name: f.display_name || f.username || 'User',
+          avatar: f.avatar_emoji || '👤',
+          avatarImage: f.avatar_url,
+          online: f.is_online,
+        }));
+      setFriendsWithoutConvos(friendsNoConvo);
 
       // Report unread count
       const totalUnread = filteredConvos.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
@@ -259,6 +274,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
           initialServerId={selectedServerId}
           onBack={handleBackFromServer}
           onActiveServerChange={onActiveServerChange}
+          hideServerRail
         />
       );
     }
@@ -267,10 +283,10 @@ const ChatTab: React.FC<ChatTabProps> = ({
     return (
       <div className="overflow-y-auto h-full">
         <div className="px-4 py-3">
-          {/* Messages Header */}
+          {/* Direct Messages Header */}
           <div className="flex items-center justify-between mb-3">
             <p className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-              Messages
+              Direct Messages
             </p>
             <button
               onClick={() => {
@@ -292,7 +308,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
                 <ConversationSkeleton key={i} nightMode={nightMode} />
               ))}
             </div>
-          ) : dmConversations.length === 0 ? (
+          ) : dmConversations.length === 0 && friendsWithoutConvos.length === 0 ? (
             <div
               className={`rounded-xl border p-8 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
               style={nightMode ? {} : {
@@ -307,11 +323,12 @@ const ChatTab: React.FC<ChatTabProps> = ({
                 No conversations yet
               </p>
               <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                Start chatting with someone from the Find tab!
+                Connect with others in the Find tab to start messaging!
               </p>
             </div>
           ) : (
             <div className="space-y-1">
+              {/* Active conversations */}
               {dmConversations.map((convo) => (
                 <div
                   key={convo.id}
@@ -388,6 +405,79 @@ const ChatTab: React.FC<ChatTabProps> = ({
                   </button>
                 </div>
               ))}
+
+              {/* Friends without conversations */}
+              {friendsWithoutConvos.length > 0 && (
+                <>
+                  <div className={`px-1 pt-3 pb-1`}>
+                    <p className={`text-xs font-semibold uppercase tracking-wider ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                      Friends
+                    </p>
+                  </div>
+                  {friendsWithoutConvos.map((friend) => (
+                    <div
+                      key={friend.id}
+                      className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${
+                        nightMode ? 'hover:bg-white/5' : 'hover:bg-white/30'
+                      }`}
+                      style={nightMode ? {} : {
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                      }}
+                    >
+                      {/* Avatar */}
+                      <button
+                        className="relative flex-shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewingUser({
+                            id: friend.id,
+                            displayName: friend.name,
+                            avatar: friend.avatar,
+                            avatarImage: friend.avatarImage,
+                            online: friend.online,
+                          });
+                        }}
+                        aria-label={`View ${friend.name}'s profile`}
+                      >
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl overflow-hidden ${
+                          nightMode ? 'bg-white/10' : 'bg-white/50'
+                        }`}
+                        style={{ boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }}
+                        >
+                          {friend.avatarImage ? (
+                            <img src={friend.avatarImage} alt={friend.name} className="w-full h-full rounded-full object-cover" />
+                          ) : (
+                            friend.avatar || '👤'
+                          )}
+                        </div>
+                        {friend.online && (
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2"
+                               style={{ borderColor: nightMode ? '#1a1a2e' : '#f0f4ff' }}
+                          />
+                        )}
+                      </button>
+
+                      {/* Name - tappable to start chat */}
+                      <button
+                        className="flex-1 min-w-0 text-left active:scale-[0.98] transition-all"
+                        onClick={() => {
+                          setDmStartChatWith({ id: friend.id, name: friend.name, avatar: friend.avatar });
+                          setSelectedConversation(null);
+                          setView('dm');
+                        }}
+                      >
+                        <p className={`font-semibold text-sm truncate ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                          {friend.name}
+                        </p>
+                        <p className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                          Tap to message
+                        </p>
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           )}
         </div>
