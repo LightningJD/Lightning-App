@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Copy, RefreshCw, Trash2, Shield } from 'lucide-react';
+import { ArrowLeft, Copy, RefreshCw, Trash2, Shield, Check, X, UserPlus, Clock } from 'lucide-react';
 
 interface ServerSettingsProps {
   nightMode: boolean;
@@ -17,18 +17,23 @@ interface ServerSettingsProps {
   permissions: {
     manage_server: boolean;
     manage_channels: boolean;
+    manage_members: boolean;
     create_invite: boolean;
   };
   onUpdate: (updates: any) => void;
   onDelete: () => void;
   onBack: () => void;
   onGenerateInvite: () => Promise<string | null>;
+  pendingRequests?: any[];
+  onApproveRequest?: (requestId: string) => Promise<void>;
+  onRejectRequest?: (requestId: string) => Promise<void>;
 }
 
 const SERVER_EMOJIS = ['\u{26EA}', '\u{271D}\u{FE0F}', '\u{1F54A}\u{FE0F}', '\u{1F64F}', '\u{2B50}', '\u{1F525}', '\u{1F492}', '\u{1F4D6}', '\u{1F31F}', '\u{1F49C}', '\u{1F3E0}', '\u{1F3B5}'];
 
 const ServerSettings: React.FC<ServerSettingsProps> = ({
   nightMode, server, permissions, onUpdate, onDelete, onBack, onGenerateInvite,
+  pendingRequests = [], onApproveRequest, onRejectRequest,
 }) => {
   const [name, setName] = useState(server.name);
   const [description, setDescription] = useState(server.description || '');
@@ -188,6 +193,74 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
             </div>
           )}
         </div>
+
+        {/* Pending Join Requests (admin/owner only) */}
+        {permissions.manage_members && pendingRequests.length > 0 && (
+          <div className="rounded-2xl p-5" style={cardStyle}>
+            <label className={`block text-sm font-semibold mb-3 ${nm ? 'text-white/70' : 'text-black/70'}`}>
+              <span className="flex items-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                Pending Join Requests
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
+                  {pendingRequests.length}
+                </span>
+              </span>
+            </label>
+            <div className="space-y-2.5">
+              {pendingRequests.map((req: any) => {
+                const user = req.user;
+                const displayName = user?.display_name || user?.username || 'Unknown';
+                const avatar = user?.avatar_emoji || '👤';
+                const avatarUrl = user?.avatar_url;
+                const requestDate = new Date(req.created_at).toLocaleDateString();
+
+                return (
+                  <div key={req.id} className="flex items-center gap-3 p-3 rounded-xl" style={{
+                    background: nm ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                    border: `1px solid ${nm ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
+                  }}>
+                    {/* Avatar */}
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0" style={{
+                      background: nm ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                    }}>
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt={displayName} className="w-full h-full rounded-full object-cover" />
+                      ) : avatar}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-semibold truncate ${nm ? 'text-white' : 'text-black'}`}>{displayName}</p>
+                      <p className={`text-xs flex items-center gap-1 ${nm ? 'text-white/40' : 'text-black/40'}`}>
+                        <Clock className="w-3 h-3" /> {requestDate}
+                      </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={() => onApproveRequest?.(req.id)}
+                        className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                        style={{ background: 'rgba(34,197,94,0.15)' }}
+                        title="Approve"
+                      >
+                        <Check className="w-4 h-4 text-green-500" />
+                      </button>
+                      <button
+                        onClick={() => onRejectRequest?.(req.id)}
+                        className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                        style={{ background: 'rgba(239,68,68,0.15)' }}
+                        title="Reject"
+                      >
+                        <X className="w-4 h-4 text-red-500" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Server Info */}
         <div className="rounded-2xl p-5" style={cardStyle}>

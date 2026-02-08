@@ -79,7 +79,7 @@ export const createServer = async (creatorId: string, serverData: CreateServerDa
       send_messages: true,
       pin_messages: isOwner || isAdmin || isMod,
       delete_messages: isOwner || isAdmin || isMod,
-      create_invite: isOwner || isAdmin || isMod,
+      create_invite: true, // All roles can share invite codes; joining requires admin approval
       kick_members: isOwner || isAdmin || isMod,
       ban_members: isOwner || isAdmin,
     };
@@ -304,7 +304,7 @@ export const generateInviteCode = async (serverId: string): Promise<string | nul
 };
 
 /**
- * Join a server by invite code
+ * Join a server by invite code — creates a pending request that admins must approve
  */
 export const joinByInviteCode = async (code: string, userId: string): Promise<any> => {
   if (!supabase) return null;
@@ -321,37 +321,168 @@ export const joinByInviteCode = async (code: string, userId: string): Promise<an
     return null;
   }
 
-  // Get default role
-  const { data: defaultRole } = await supabase
-    .from('server_roles')
-    .select('*')
-    .eq('server_id', (server as any).id)
-    .eq('is_default', true)
+  const serverId = (server as any).id;
+
+  // Check if user is already a member
+  const { data: existingMember } = await supabase
+    .from('server_members')
+    .select('id')
+    .eq('server_id', serverId)
+    .eq('user_id', userId)
     .single();
 
-  if (!defaultRole) {
-    console.error('No default role found for server');
-    return null;
+  if (existingMember) {
+    return { status: 'already_member', server };
   }
 
-  // Add user as member
-  const { data, error } = await supabase
-    .from('server_members')
+  // Check if there's already a pending request
+  const { data: existingRequest } = await supabase
+    .from('server_invite_requests')
+    // @ts-ignore
+    .select('*')
+    .eq('server_id', serverId)
+    .eq('user_id', userId)
+    .eq('status', 'pending')
+    .single();
+
+  if (existingRequest) {
+    return { status: 'already_pending', server };
+  }
+
+  // Create a pending invite request
+  const { data: request, error } = await supabase
+    .from('server_invite_requests')
     // @ts-ignore
     .insert({
-      server_id: (server as any).id,
+      server_id: serverId,
       user_id: userId,
-      role_id: (defaultRole as any).id
+      invite_code: code,
+      status: 'pending'
     })
     .select()
     .single();
 
   if (error) {
-    console.error('Error joining server:', error);
+    console.error('Error creating invite request:', error);
     return null;
   }
 
-  return { server, membership: data };
+  return { status: 'pending', server, request };
+};
+
+/**
+ * Get pending invite requests for a server (admin view)
+ */
+export const getPendingInviteRequests = async (serverId: string): Promise<any[]> => {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('server_invite_requests')
+    // @ts-ignore
+    .select('*, user:users!user_id(id, username, display_name, avatar_emoji, avatar_url)')
+    .eq('server_id', serverId)
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching pending invite requests:', error);
+    return [];
+  }
+
+  return data || [];
+};
+
+/**
+ * Approve an invite request — adds user to server with default role
+ */
+export const approveInviteRequest = async (requestId: string, reviewerId: string): Promise<boolean> => {
+  if (!supabase) return false;
+
+  // Get the request
+  const { data: request, error: fetchErr } = await supabase
+    .from('server_invite_requests')
+    // @ts-ignore
+    .select('*')
+    .eq('id', requestId)
+    .single();
+
+  if (fetchErr || !request) {
+    console.error('Error fetching invite request:', fetchErr);
+    return false;
+  }
+
+  const serverId = (request as any).server_id;
+  const userId = (request as any).user_id;
+
+  // Get default role
+  const { data: defaultRole } = await supabase
+    .from('server_roles')
+    .select('*')
+    .eq('server_id', serverId)
+    .eq('is_default', true)
+    .single();
+
+  if (!defaultRole) {
+    console.error('No default role found for server');
+    return false;
+  }
+
+  // Add user as member
+  const { error: memberErr } = await supabase
+    .from('server_members')
+    // @ts-ignore
+    .insert({
+      server_id: serverId,
+      user_id: userId,
+      role_id: (defaultRole as any).id
+    });
+
+  if (memberErr) {
+    console.error('Error adding member:', memberErr);
+    return false;
+  }
+
+  // Mark request as approved
+  const { error: updateErr } = await supabase
+    .from('server_invite_requests')
+    // @ts-ignore
+    .update({
+      status: 'approved',
+      reviewed_by: reviewerId,
+      reviewed_at: new Date().toISOString()
+    })
+    .eq('id', requestId);
+
+  if (updateErr) {
+    console.error('Error updating invite request:', updateErr);
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * Reject an invite request
+ */
+export const rejectInviteRequest = async (requestId: string, reviewerId: string): Promise<boolean> => {
+  if (!supabase) return false;
+
+  const { error } = await supabase
+    .from('server_invite_requests')
+    // @ts-ignore
+    .update({
+      status: 'rejected',
+      reviewed_by: reviewerId,
+      reviewed_at: new Date().toISOString()
+    })
+    .eq('id', requestId);
+
+  if (error) {
+    console.error('Error rejecting invite request:', error);
+    return false;
+  }
+
+  return true;
 };
 
 // ============================================

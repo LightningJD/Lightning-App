@@ -147,7 +147,10 @@ export {
   getTypingIndicators,
   searchChannelMessages,
   markChannelRead,
-  getUnreadCounts
+  getUnreadCounts,
+  getPendingInviteRequests,
+  approveInviteRequest,
+  rejectInviteRequest
 } from './servers.js';
 
 // Real-time Subscriptions
