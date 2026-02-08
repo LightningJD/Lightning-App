@@ -75,6 +75,16 @@ const ChatTab: React.FC<ChatTabProps> = ({
 }) => {
   const { profile } = useUserProfile();
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // View state
   const [view, setView] = useState<ChatView>('list');
   const [dmConversations, setDmConversations] = useState<Conversation[]>([]);
@@ -367,10 +377,13 @@ const ChatTab: React.FC<ChatTabProps> = ({
 
   // ── Single layout with persistent server rail ─────────────
 
+  // On mobile, hide the server rail when inside a DM or server chat (full-screen chat like Discord)
+  const showRail = !isMobile || view === 'list';
+
   return (
     <div className="flex" style={{ height: 'calc(100vh - 7.5rem)' }}>
-      {/* Server Rail (always visible, Discord-style) */}
-      <div
+      {/* Server Rail (hidden on mobile when in DM/server chat) */}
+      {showRail && <div
         className={`w-[72px] flex-shrink-0 flex flex-col items-center py-3 gap-1.5 overflow-y-auto border-r ${
           nightMode ? 'border-white/10' : 'border-white/20'
         }`}
@@ -452,7 +465,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
         >
           <Plus className="w-5 h-5" />
         </button>
-      </div>
+      </div>}
 
       {/* Main Panel (changes based on view) */}
       <div className="flex-1 overflow-hidden">

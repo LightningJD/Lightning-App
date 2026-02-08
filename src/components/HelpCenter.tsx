@@ -19,7 +19,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ isOpen, onClose, nightMode, onC
       faqs: [
         {
           question: 'How do I create my testimony?',
-          answer: 'Go to your Profile tab and tap "Add Testimony". You can either write your own testimony or use our AI assistant to help you articulate your faith journey. The AI will ask you questions about your faith experience and help create a meaningful testimony.'
+          answer: 'Go to the You tab and tap "Add Testimony". You can either write your own testimony or use our AI assistant to help you articulate your faith journey. The AI will ask you questions about your faith experience and help create a meaningful testimony.'
         },
         {
           question: 'What is Lightning?',
@@ -37,11 +37,11 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ isOpen, onClose, nightMode, onC
       faqs: [
         {
           question: 'How do I make my profile private?',
-          answer: 'Go to Settings > Privacy & Safety > Make Profile Private. When enabled, only your friends can see your full profile and testimony. You won\'t appear in the Find tab to users who aren\'t your friends.'
+          answer: 'All profiles on Lightning are public so that believers can find and connect with each other. Your profile is visible to everyone in the app.'
         },
         {
           question: 'Who can see my testimony?',
-          answer: 'You can control testimony visibility in Settings > Privacy & Safety > Who Can See Testimony. Options include: Everyone (all app users), Friends Only (only accepted connections), or Just Me (private).'
+          answer: 'Your testimony is visible to all users on Lightning. Sharing your story openly helps inspire and encourage others in their faith journey.'
         },
         {
           question: 'How do I block someone?',
@@ -67,7 +67,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ isOpen, onClose, nightMode, onC
         },
         {
           question: 'How do I find Christians near me?',
-          answer: 'The Connect tab automatically shows Christians in your area (within 25 miles by default). Make sure location services are enabled for the app to see nearby users.'
+          answer: 'The Find tab automatically shows Christians in your area (within 25 miles by default). Make sure location services are enabled for the app to see nearby users. You can also type your city name and we\'ll find people near you.'
         }
       ]
     },
@@ -77,11 +77,11 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ isOpen, onClose, nightMode, onC
       faqs: [
         {
           question: 'How do I send a message?',
-          answer: 'Go to the Messages tab and tap the + button to start a new conversation. Select a friend from your connections list and type your message. You can only message users you\'re connected with.'
+          answer: 'Go to the Home tab and tap the + button to start a new conversation. Select a friend from your connections list and type your message. You can only message users you\'re connected with.'
         },
         {
           question: 'How do I create a group?',
-          answer: 'Go to the Groups tab and tap "Create Group". Give your group a name and description, then invite friends to join. Groups can be public (anyone can join) or private (invite-only).'
+          answer: 'From the Home tab, tap the + button on the server rail to create a new server for your church or community. You can then create channels for different topics and invite friends to join.'
         },
         {
           question: 'Can I delete messages?',
@@ -103,7 +103,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ isOpen, onClose, nightMode, onC
         },
         {
           question: 'Can I edit my testimony?',
-          answer: 'Yes! Go to your Profile tab and tap the edit button on your testimony. You can update it anytime as your faith journey continues to evolve.'
+          answer: 'Yes! Go to the You tab and tap the edit button on your testimony. You can update it anytime as your faith journey continues to evolve.'
         },
         {
           question: 'What is AI testimony generation?',

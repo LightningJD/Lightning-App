@@ -15,7 +15,6 @@ import {
   isUserBlocked,
   isBlockedBy,
   searchUsers,
-  getAllUsers,
   getFeedTestimonies,
   getTrendingTestimony,
   getChurchMembers,
@@ -44,13 +43,13 @@ interface User {
 interface NearbyTabProps {
   sortBy: string;
   setSortBy: (sortBy: string) => void;
-  activeConnectTab: string;
-  setActiveConnectTab: (tab: string) => void;
+  activeDiscoverTab: string;
+  setActiveDiscoverTab: (tab: string) => void;
   nightMode: boolean;
   onNavigateToMessages?: (user: any) => void;
 }
 
-const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectTab, setActiveConnectTab, nightMode, onNavigateToMessages }) => {
+const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscoverTab, setActiveDiscoverTab, nightMode, onNavigateToMessages }) => {
   const { profile } = useUserProfile();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [viewingUser, setViewingUser] = useState<User | null>(null);
@@ -98,16 +97,6 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
             profile.supabaseId
           );
           usersToShow = nearby || [];
-
-          // Fallback: if no nearby users found, show all users
-          if (usersToShow.length === 0) {
-            const allUsers = await getAllUsers(profile.supabaseId, 50);
-            usersToShow = allUsers || [];
-          }
-        } else {
-          // Fallback: show all users when location is not available
-          const allUsers = await getAllUsers(profile.supabaseId, 50);
-          usersToShow = allUsers || [];
         }
 
         // Filter out current user and existing friends
@@ -181,7 +170,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
   // Load testimonies based on active tab (home = church feed, discover = all)
   useEffect(() => {
     const loadTestimonies = async () => {
-      if (activeConnectTab === 'home') {
+      if (activeDiscoverTab === 'home') {
         setIsLoadingTestimonies(true);
         try {
           // Home feed: church testimonies + friends' cross-church testimonies
@@ -212,12 +201,12 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     };
 
     loadTestimonies();
-  }, [activeConnectTab, profile?.supabaseId, friends]);
+  }, [activeDiscoverTab, profile?.supabaseId, friends]);
 
   // Load People tab data (church members, friends of friends, nearby)
   useEffect(() => {
     const loadPeople = async () => {
-      if (activeConnectTab !== 'people' || !profile?.supabaseId) return;
+      if (activeDiscoverTab !== 'people' || !profile?.supabaseId) return;
 
       setIsLoadingPeople(true);
       try {
@@ -231,7 +220,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
           friendIds.length > 0 ? getFriendsOfFriends(profile.supabaseId, friendIds) : Promise.resolve([]),
           profile.locationLat && profile.locationLng
             ? findNearbyUsers(profile.locationLat, profile.locationLng, profile.searchRadius || 25, profile.supabaseId)
-            : getAllUsers(profile.supabaseId, 30)
+            : Promise.resolve([])
         ]);
 
         // Filter church members: remove self, existing friends, and blocked users
@@ -317,7 +306,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
     };
 
     loadPeople();
-  }, [activeConnectTab, profile?.supabaseId, friends]);
+  }, [activeDiscoverTab, profile?.supabaseId, friends]);
 
   // Search handler with debouncing
   useEffect(() => {
@@ -516,8 +505,8 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
           }}
         >
           <button
-            onClick={() => setActiveConnectTab('home')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'home' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            onClick={() => setActiveDiscoverTab('home')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeDiscoverTab === 'home' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
             style={{
               background: 'transparent'
             }}
@@ -526,18 +515,8 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
             Home
           </button>
           <button
-            onClick={() => setActiveConnectTab('people')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'people' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
-            style={{
-              background: 'transparent'
-            }}
-            aria-label="Discover people"
-          >
-            People
-          </button>
-          <button
-            onClick={() => setActiveConnectTab('friends')}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeConnectTab === 'friends' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            onClick={() => setActiveDiscoverTab('friends')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeDiscoverTab === 'friends' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
             style={{
               background: 'transparent'
             }}
@@ -545,10 +524,20 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
           >
             Friends
           </button>
+          <button
+            onClick={() => setActiveDiscoverTab('people')}
+            className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeDiscoverTab === 'people' ? nightMode ? 'text-slate-100 border-b-2 border-white' : 'text-black border-b-2 border-black' : nightMode ? 'text-white/50 hover:text-slate-50/70 border-b-2 border-transparent' : 'text-black/50 hover:text-black/70 border-b-2 border-transparent'}`}
+            style={{
+              background: 'transparent'
+            }}
+            aria-label="Discover people"
+          >
+            People
+          </button>
         </div>
       </div>
 
-      {activeConnectTab === 'home' && (
+      {activeDiscoverTab === 'home' && (
         <div className="px-4 mb-3">
           {(profile as any)?.church ? (
             <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${nightMode ? 'bg-white/[0.04]' : 'bg-blue-50/50'}`}>
@@ -568,12 +557,12 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
         </div>
       )}
 
-      {activeConnectTab === 'home' && (
+      {activeDiscoverTab === 'home' && (
         <div className="px-4 mb-3" />
       )}
 
 
-      <div className="px-4 pb-20" key={activeConnectTab}>
+      <div className="px-4 pb-20" key={activeDiscoverTab}>
         {searchQuery ? (
           // Show search results
           isSearching ? (
@@ -618,7 +607,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               <UserCardSkeleton key={i} nightMode={nightMode} />
             ))}
           </div>
-        ) : activeConnectTab === 'friends' ? (
+        ) : activeDiscoverTab === 'friends' ? (
           sortedFriends.length === 0 ? (
             <div
               className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
@@ -657,7 +646,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               ))}
             </div>
           )
-        ) : activeConnectTab === 'people' ? (
+        ) : activeDiscoverTab === 'people' ? (
           isLoadingPeople ? (
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -785,7 +774,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
               )}
             </div>
           )
-        ) : activeConnectTab === 'home' ? (
+        ) : activeDiscoverTab === 'home' ? (
           isLoadingTestimonies ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -821,7 +810,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeConnectT
           ) : (
             <div className="space-y-4">
               {/* Trending testimony card */}
-              {activeConnectTab === 'home' && trendingTestimony && (
+              {activeDiscoverTab === 'home' && trendingTestimony && (
                 <div
                   className={`rounded-xl border p-4 relative overflow-hidden ${nightMode ? 'border-amber-500/30' : 'border-amber-300/60 shadow-[0_4px_20px_rgba(245,158,11,0.15)]'}`}
                   style={{
