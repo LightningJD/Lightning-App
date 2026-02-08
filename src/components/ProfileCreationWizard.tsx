@@ -146,8 +146,22 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (validateStep(currentStep)) {
+      // On step 0, validate referral code if entered but not yet validated
+      if (currentStep === 0 && referralCode.trim() && !referralValidated && !referralError) {
+        setIsValidatingReferral(true);
+        const referrer = await resolveReferralCode(referralCode);
+        setIsValidatingReferral(false);
+        if (referrer) {
+          setReferralValidated({ username: referrer.username });
+          setReferralError('');
+        } else {
+          setReferralValidated(null);
+          setReferralError('Invalid referral code');
+          return; // Don't advance — show error
+        }
+      }
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       }

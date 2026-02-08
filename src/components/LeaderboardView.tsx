@@ -18,13 +18,18 @@ const LeaderboardView: React.FC<LeaderboardViewProps> = ({ nightMode, currentUse
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [lb, ce] = await Promise.all([
-        getLeaderboard(currentUserId),
-        getCycleEndTime()
-      ]);
-      setData(lb);
-      setCycleEnd(ce);
-      setLoading(false);
+      try {
+        const [lb, ce] = await Promise.all([
+          getLeaderboard(currentUserId),
+          getCycleEndTime()
+        ]);
+        setData(lb);
+        setCycleEnd(ce);
+      } catch (err) {
+        console.error('Error loading leaderboard:', err);
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [currentUserId]);

@@ -16,15 +16,19 @@ const BpResetBanner: React.FC<BpResetBannerProps> = ({ nightMode, userId }) => {
 
   useEffect(() => {
     const check = async () => {
-      const result = await getLastCycleWinners();
-      if (!result || result.winners.length === 0) return;
+      try {
+        const result = await getLastCycleWinners();
+        if (!result || result.winners.length === 0) return;
 
-      const dismissed = await hasDismissedBpReset(userId, result.cycleId);
-      if (dismissed) return;
+        const dismissed = await hasDismissedBpReset(userId, result.cycleId);
+        if (dismissed) return;
 
-      setCycleId(result.cycleId);
-      setWinners(result.winners);
-      setVisible(true);
+        setCycleId(result.cycleId);
+        setWinners(result.winners);
+        setVisible(true);
+      } catch (err) {
+        console.error('Error checking BP reset banner:', err);
+      }
     };
 
     check();

@@ -83,18 +83,18 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
         .single();
       if (error) {
         console.error('❌ Error updating existing Supabase user:', error);
-        // Ensure referral code exists for existing users
+        // Ensure referral code exists for existing users (single call)
         const username = (existing as any).username || clerkUser.username || 'user';
         await ensureReferralCode(existing.id, username);
         return existing as unknown as User; // Return existing to avoid breaking UI
       }
-      // Ensure referral code exists for existing users
+      // Ensure referral code exists for existing users (single call)
       const username = (updated as any)?.username || (existing as any).username || clerkUser.username || 'user';
       await ensureReferralCode(existing.id, username);
       return updated as unknown as User;
     }
 
-    // Ensure referral code exists for existing users
+    // No updates needed but ensure referral code exists (single call)
     const existingUsername = (existing as any).username || clerkUser.username || 'user';
     await ensureReferralCode(existing.id, existingUsername);
     return existing as unknown as User;

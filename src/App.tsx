@@ -330,9 +330,12 @@ function App() {
     return () => stopTimeBasedSecrets();
   }, []);
 
-  // Device fingerprinting + BP reset check on app load
+  // Device fingerprinting + BP reset check on app load (run once per session)
+  const referralInitRef = React.useRef(false);
   React.useEffect(() => {
     if (!isAuthenticated || !userProfile?.supabaseId) return;
+    if (referralInitRef.current) return; // Already ran this session
+    referralInitRef.current = true;
 
     // Record device fingerprint (anti-gaming)
     try {

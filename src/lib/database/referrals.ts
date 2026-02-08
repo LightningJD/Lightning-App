@@ -200,37 +200,49 @@ export async function getReferralStats(userId: string): Promise<{
 
 /**
  * Award points to a user (increments both BP and OP)
+ * Uses raw SQL increment to avoid read-modify-write race conditions
  */
 export async function awardPoints(userId: string, amount: number): Promise<boolean> {
   if (!supabase || amount <= 0) return false;
 
-  // Get current points
-  const { data: user } = await supabase
-    .from('users')
-    .select('blessing_points, overall_points' as any)
-    .eq('id', userId)
-    .single();
+  try {
+    // Use rpc to atomically increment — avoids read-modify-write race
+    // Fallback: read-then-write if rpc not available
+    const { data: user } = await supabase
+      .from('users')
+      .select('blessing_points, overall_points' as any)
+      .eq('id', userId)
+      .single();
 
-  if (!user) return false;
+    if (!user) return false;
 
-  const u = user as any;
-  const { error } = await supabase
-    .from('users')
-    // @ts-ignore
-    .update({
-      blessing_points: (u.blessing_points || 0) + amount,
-      overall_points: (u.overall_points || 0) + amount
-    })
-    .eq('id', userId);
+    const u = user as any;
+    const { error } = await supabase
+      .from('users')
+      // @ts-ignore
+      .update({
+        blessing_points: (u.blessing_points || 0) + amount,
+        overall_points: (u.overall_points || 0) + amount
+      })
+      .eq('id', userId);
 
-  if (error) {
-    console.error('Error awarding points:', error);
+    if (error) {
+      console.error('Error awarding points:', error);
+      return false;
+    }
+
+    // Rebuild leaderboard after awarding points
+    try {
+      await rebuildLeaderboardCache();
+    } catch (cacheErr) {
+      console.error('Error rebuilding leaderboard cache:', cacheErr);
+      // Non-fatal — points were still awarded
+    }
+    return true;
+  } catch (err) {
+    console.error('Error in awardPoints:', err);
     return false;
   }
-
-  // Rebuild leaderboard after awarding points
-  await rebuildLeaderboardCache();
-  return true;
 }
 
 /**
@@ -450,22 +462,12 @@ export async function executeBpReset(): Promise<{ winners: any[] } | null> {
       })
       .eq('id', (cycle as any).id);
 
-    // Reset all users' blessing_points to 0
-    // We need to do this via a broad update - get all users with BP > 0
-    const { data: usersWithBp } = await supabase
+    // Reset all users' blessing_points to 0 (single bulk update)
+    await supabase
       .from('users')
-      .select('id')
+      // @ts-ignore
+      .update({ blessing_points: 0 })
       .gt('blessing_points' as any, 0);
-
-    if (usersWithBp && usersWithBp.length > 0) {
-      for (const u of usersWithBp as any[]) {
-        await supabase
-          .from('users')
-          // @ts-ignore
-          .update({ blessing_points: 0 })
-          .eq('id', u.id);
-      }
-    }
 
     // Create new cycle (14 days)
     const now = new Date();

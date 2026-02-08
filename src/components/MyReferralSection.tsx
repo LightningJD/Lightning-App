@@ -32,17 +32,22 @@ const MyReferralSection: React.FC<MyReferralSectionProps> = ({ nightMode, userId
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const [s, p, ce, accepted] = await Promise.all([
-        getReferralStats(userId),
-        getUserPoints(userId),
-        getCycleEndTime(),
-        hasAcceptedAmbassadorTerms(userId)
-      ]);
-      setStats(s);
-      setPoints(p);
-      setCycleEnd(ce);
-      setTermsAccepted(accepted);
-      setLoading(false);
+      try {
+        const [s, p, ce, accepted] = await Promise.all([
+          getReferralStats(userId),
+          getUserPoints(userId),
+          getCycleEndTime(),
+          hasAcceptedAmbassadorTerms(userId)
+        ]);
+        setStats(s);
+        setPoints(p);
+        setCycleEnd(ce);
+        setTermsAccepted(accepted);
+      } catch (err) {
+        console.error('Error loading referral data:', err);
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [userId]);
@@ -96,7 +101,10 @@ const MyReferralSection: React.FC<MyReferralSectionProps> = ({ nightMode, userId
       setShowTerms(true);
       return;
     }
+    doShare();
+  };
 
+  const doShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
@@ -105,7 +113,6 @@ const MyReferralSection: React.FC<MyReferralSectionProps> = ({ nightMode, userId
           url: referralUrl,
         });
       } catch {
-        // User cancelled or error
         handleCopy();
       }
     } else {
@@ -117,8 +124,8 @@ const MyReferralSection: React.FC<MyReferralSectionProps> = ({ nightMode, userId
     await acceptAmbassadorTerms(userId);
     setTermsAccepted(true);
     setShowTerms(false);
-    // After accepting, trigger the share
-    handleShare();
+    // After accepting, trigger the share directly (no recursion)
+    doShare();
   };
 
   if (loading) {
