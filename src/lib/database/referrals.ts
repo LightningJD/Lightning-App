@@ -5,6 +5,40 @@ import { supabase } from '../supabase';
 // ============================================
 
 /**
+ * Get the next Sunday at 7:30 PM PST (03:30 UTC Monday) after a given date.
+ * If the given date IS a Sunday but before 7:30 PM PST, returns that same Sunday.
+ * Otherwise returns the following Sunday.
+ */
+function getNextSundayReset(from: Date = new Date()): Date {
+  // Work in UTC. Sunday 7:30 PM PST = Monday 03:30 UTC
+  // So we find the next Monday 03:30 UTC after `from`
+  const target = new Date(from);
+
+  // Set to 03:30 UTC
+  target.setUTCHours(3, 30, 0, 0);
+
+  // Find the next Monday (day 1 in JS getUTCDay())
+  const currentDay = target.getUTCDay(); // 0=Sun, 1=Mon, ...
+  let daysUntilMonday = (1 - currentDay + 7) % 7;
+
+  // If today IS Monday but we're past 03:30 UTC, go to next Monday
+  if (daysUntilMonday === 0 && from >= target) {
+    daysUntilMonday = 7;
+  }
+  // If today is before Monday, the target is already in the future
+  // But if daysUntilMonday === 0 and from < target, keep it (this Monday 03:30 UTC)
+
+  target.setUTCDate(target.getUTCDate() + daysUntilMonday);
+
+  // Ensure it's in the future
+  if (target <= from) {
+    target.setUTCDate(target.getUTCDate() + 7);
+  }
+
+  return target;
+}
+
+/**
  * Generate a referral code from username: {username}{4 random digits}
  */
 export function generateReferralCode(username: string): string {
@@ -469,16 +503,16 @@ export async function executeBpReset(): Promise<{ winners: any[] } | null> {
       .update({ blessing_points: 0 })
       .gt('blessing_points' as any, 0);
 
-    // Create new cycle (14 days)
+    // Create new cycle ending next Sunday at 7:30 PM PST
     const now = new Date();
-    const cycleEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const nextReset = getNextSundayReset(now);
 
     await supabase
       .from('bp_cycles' as any)
       // @ts-ignore
       .insert({
         cycle_start: now.toISOString(),
-        cycle_end: cycleEnd.toISOString(),
+        cycle_end: nextReset.toISOString(),
         is_current: true
       });
 
@@ -501,16 +535,16 @@ export async function checkAndRunBpReset(): Promise<{ winners: any[] } | null> {
 
   const cycle = await getCurrentCycle();
   if (!cycle) {
-    // No current cycle — create initial one
+    // No current cycle — create one ending next Sunday 7:30 PM PST
     const now = new Date();
-    const cycleEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const nextReset = getNextSundayReset(now);
 
     await supabase
       .from('bp_cycles' as any)
       // @ts-ignore
       .insert({
         cycle_start: now.toISOString(),
-        cycle_end: cycleEnd.toISOString(),
+        cycle_end: nextReset.toISOString(),
         is_current: true
       });
 
