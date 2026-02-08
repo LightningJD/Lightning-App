@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { countWords } from '../wordCount';
 
 interface TestimonyData {
   title?: string;
@@ -37,7 +38,7 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
       question2_answer: testimonyData.question2,
       question3_answer: testimonyData.question3,
       question4_answer: testimonyData.question4,
-      word_count: testimonyData.content.split(' ').length,
+      word_count: countWords(testimonyData.content),
       is_public: testimonyData.isPublic ?? true,
       music_spotify_url: testimonyData.musicSpotifyUrl,
       music_track_name: testimonyData.musicTrackName,

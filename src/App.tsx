@@ -30,6 +30,7 @@ import { saveGuestTestimony, getGuestTestimony, clearGuestTestimony } from './li
 import { unlockSecret, startTimeBasedSecrets, stopTimeBasedSecrets, checkTestimonySecrets, checkHolidaySecrets, checkProfileSecrets, checkMilestoneSecret, checkActivitySecrets } from './lib/secrets';
 import { trackDailyLogin, trackThemeChange, trackNightModeUsage, trackAvatarChange } from './lib/activityTracker';
 import { initSentry, setUser as setSentryUser } from './lib/sentry';
+import { countWords } from './lib/wordCount';
 import type { UserUpdate } from './types';
 
 function App() {
@@ -607,10 +608,20 @@ Now I get to ${testimonyAnswers[3]?.substring(0, 150)}... God uses my story to b
 
         // If testimony was edited, update it separately
         if (profileData.testimonyContent && userProfile.story?.id && userProfile.supabaseId) {
-          await updateTestimony(userProfile.story.id, userProfile.supabaseId, {
-            content: profileData.testimonyContent,
-            lesson: profileData.testimonyLesson
-          });
+          try {
+            const testimonyUpdated = await updateTestimony(userProfile.story.id, userProfile.supabaseId, {
+              content: profileData.testimonyContent,
+              lesson: profileData.testimonyLesson
+            });
+
+            if (!testimonyUpdated) {
+              console.warn('Testimony update returned null');
+              showError('Profile updated but testimony failed to save');
+            }
+          } catch (testimonyError) {
+            console.error('Error updating testimony:', testimonyError);
+            showError('Profile updated but testimony failed to save');
+          }
         }
 
         updateToSuccess(toastId, 'Profile updated successfully!');
@@ -707,7 +718,7 @@ Now I get to ${formData.question4?.substring(0, 150)}... God uses my story to br
         question2_answer: formData.question2,
         question3_answer: formData.question3,
         question4_answer: formData.question4,
-        word_count: updatedContent.split(' ').length
+        word_count: countWords(updatedContent)
       });
 
       if (updated) {

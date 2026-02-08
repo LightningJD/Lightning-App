@@ -37,7 +37,7 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
 
   const userData: any = {
     clerk_user_id: clerkUser.id,
-    username: clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress.split('@')[0],
+    username: clerkUser.username || (clerkUser.emailAddresses && clerkUser.emailAddresses.length > 0 ? clerkUser.emailAddresses[0].emailAddress.split('@')[0] : 'user'),
     display_name: clerkUser.fullName || clerkUser.firstName || 'User',
     email: clerkUser.primaryEmailAddress?.emailAddress,
     avatar_emoji: clerkUser.publicMetadata?.customAvatar || clerkUser.firstName?.charAt(0)?.toUpperCase() || '👤',
@@ -89,15 +89,23 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
     updated_at: new Date().toISOString()
   };
 
-  // Only add fields that are provided
-  if (profileData.displayName) updates.display_name = profileData.displayName;
-  if (profileData.username) updates.username = profileData.username;
-  if (profileData.bio) updates.bio = profileData.bio;
-  if (profileData.location) updates.location_city = profileData.location;
-  if (profileData.avatar) updates.avatar_emoji = profileData.avatar;
+  // Only add fields that are provided (check !== undefined to allow empty strings and false values)
+  if (profileData.displayName !== undefined) updates.display_name = profileData.displayName;
+  if (profileData.username !== undefined) updates.username = profileData.username;
+  if (profileData.bio !== undefined) updates.bio = profileData.bio;
+  if (profileData.location !== undefined) updates.location_city = profileData.location;
+  if (profileData.avatar !== undefined) updates.avatar_emoji = profileData.avatar;
   if (profileData.avatarUrl !== undefined) updates.avatar_url = profileData.avatarUrl;
   if (profileData.profileCompleted !== undefined) updates.profile_completed = profileData.profileCompleted;
-  if (profileData.search_radius !== undefined) updates.search_radius = profileData.search_radius;
+  if (profileData.search_radius !== undefined) {
+    // Validate search radius is within acceptable range (5-100 miles)
+    const radius = profileData.search_radius;
+    if (radius < 5 || radius > 100) {
+      console.warn(`Invalid search radius: ${radius}. Must be between 5 and 100 miles.`);
+      throw new Error('Search radius must be between 5 and 100 miles');
+    }
+    updates.search_radius = radius;
+  }
 
   const { data, error} = await supabase
     .from('users')

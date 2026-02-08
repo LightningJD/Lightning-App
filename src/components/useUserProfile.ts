@@ -51,7 +51,7 @@ export const useUserProfile = () => {
   const profile = {
     supabaseId: supabaseUser?.id, // Supabase UUID for database operations
     clerkUserId: user.id,
-    username: supabaseUser?.username || user.username || user.emailAddresses[0]?.emailAddress.split('@')[0] || 'user',
+    username: supabaseUser?.username || user.username || (user.emailAddresses && user.emailAddresses.length > 0 ? user.emailAddresses[0].emailAddress.split('@')[0] : null) || 'user',
     displayName: supabaseUser?.display_name || user.fullName || user.firstName || user.username || 'User',
     avatar: supabaseUser?.avatar_emoji || user.publicMetadata?.customAvatar || getDefaultAvatar(),
     avatarImage: supabaseUser?.avatar_url || user.imageUrl, // Cloudinary upload or Clerk's image
