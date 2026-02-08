@@ -1,41 +1,18 @@
 import { supabase } from '../supabase';
 import type { User, NearbyUser } from '../../types';
+import type { DatabaseUser, ClerkUser, ProfileUpdateData } from '../../types/database';
 
 // ============================================
 // USER OPERATIONS
 // ============================================
 
-interface ClerkUser {
-  id: string;
-  username?: string;
-  emailAddresses: Array<{ emailAddress: string }>;
-  fullName?: string;
-  firstName?: string;
-  primaryEmailAddress?: { emailAddress: string };
-  publicMetadata?: {
-    customAvatar?: string;
-    bio?: string;
-  };
-}
-
-interface ProfileUpdateData {
-  displayName?: string;
-  username?: string;
-  bio?: string;
-  location?: string;
-  avatar?: string;
-  avatarUrl?: string | null;
-  profileCompleted?: boolean;
-  search_radius?: number;
-}
-
 /**
  * Create or update user in Supabase when they sign up with Clerk
  */
-export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | null> => {
+export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<DatabaseUser | null> => {
   if (!supabase) return null;
 
-  const userData: any = {
+  const userData: Partial<DatabaseUser> = {
     clerk_user_id: clerkUser.id,
     username: clerkUser.username || (clerkUser.emailAddresses && clerkUser.emailAddresses.length > 0 ? clerkUser.emailAddresses[0].emailAddress.split('@')[0] : 'user'),
     display_name: clerkUser.fullName || clerkUser.firstName || 'User',

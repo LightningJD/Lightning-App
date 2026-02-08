@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import { countWords } from '../wordCount';
+import type { Testimony, ViewTrackingResult, LikeToggleResult, LikedResult, CountResult, CommentResult, CommentsResult } from '../../types/database';
 
 interface TestimonyData {
   title?: string;
@@ -23,7 +24,7 @@ interface TestimonyData {
 /**
  * Create a new testimony
  */
-export const createTestimony = async (userId: string, testimonyData: TestimonyData): Promise<any> => {
+export const createTestimony = async (userId: string, testimonyData: TestimonyData): Promise<Testimony | null> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
@@ -65,8 +66,9 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
 
 /**
  * Get testimony by user ID
+ * Returns the most recent testimony for the user
  */
-export const getTestimonyByUserId = async (userId: string): Promise<any> => {
+export const getTestimonyByUserId = async (userId: string): Promise<Testimony | null> => {
   if (!supabase) return null;
 
   const { data, error } = await supabase
@@ -74,15 +76,15 @@ export const getTestimonyByUserId = async (userId: string): Promise<any> => {
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
+    .limit(1);
 
-  if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+  if (error) {
     console.error('Error fetching testimony:', error);
     return null;
   }
 
-  return data;
+  // Return first testimony if exists, null otherwise
+  return data && data.length > 0 ? (data[0] as Testimony) : null;
 };
 
 /**
@@ -94,8 +96,8 @@ export const getTestimonyByUserId = async (userId: string): Promise<any> => {
 export const updateTestimony = async (
   testimonyId: string,
   userId: string,
-  updates: Record<string, any>
-): Promise<any> => {
+  updates: Partial<Testimony>
+): Promise<Testimony | null> => {
   if (!supabase) return null;
 
   // First verify the testimony belongs to this user
@@ -105,7 +107,8 @@ export const updateTestimony = async (
     .eq('id', testimonyId)
     .single();
 
-  if (!testimony || (testimony as any).user_id !== userId) {
+  // Type guard: testimony should have user_id field
+  if (!testimony || !(testimony as { user_id: string }).user_id || (testimony as { user_id: string }).user_id !== userId) {
     console.warn(`Unauthorized testimony update attempt: testimony=${testimonyId}, user=${userId}`);
     throw new Error('Unauthorized: You can only update your own testimonies');
   }

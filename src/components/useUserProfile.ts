@@ -1,14 +1,15 @@
 import { useUser } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
 import { syncUserToSupabase, getTestimonyByUserId } from '../lib/database';
+import type { DatabaseUser, Testimony } from '../types/database';
 
 /**
  * Custom hook to sync Clerk user data with Lightning app profile
  */
 export const useUserProfile = () => {
   const { user, isLoaded, isSignedIn } = useUser();
-  const [supabaseUser, setSupabaseUser] = useState<any>(null);
-  const [testimony, setTestimony] = useState<any>(null);
+  const [supabaseUser, setSupabaseUser] = useState<DatabaseUser | null>(null);
+  const [testimony, setTestimony] = useState<Testimony | null>(null);
 
   // Sync user to Supabase when they sign in
   useEffect(() => {

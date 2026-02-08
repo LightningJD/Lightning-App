@@ -319,14 +319,17 @@ function App() {
   // Auto-save guest testimony when user signs up
   React.useEffect(() => {
     let isMounted = true; // Track if component is still mounted
+    let hasSaved = false; // Track if we've already attempted to save (prevent duplicate saves)
+    let reloadTimeout: NodeJS.Timeout | null = null; // Track reload timeout for cleanup
 
     const autoSaveGuestTestimony = async () => {
-      if (!isMounted) return; // Exit early if unmounted
+      if (!isMounted || hasSaved) return; // Exit early if unmounted or already saved
 
       if (isAuthenticated && userProfile?.supabaseId) {
         const guestTestimony = getGuestTestimony();
 
         if (guestTestimony) {
+          hasSaved = true; // Mark as attempting to save to prevent race conditions
           console.log('🎉 User signed up! Auto-saving guest testimony to database...');
           const toastId = showLoading('Saving your testimony...');
 
@@ -358,13 +361,19 @@ function App() {
 
               // Reload to show the testimony on profile (only if still mounted)
               if (isMounted) {
-                setTimeout(() => window.location.reload(), 1500);
+                reloadTimeout = setTimeout(() => {
+                  if (isMounted) {
+                    window.location.reload();
+                  }
+                }, 1500);
               }
             } else {
+              hasSaved = false; // Allow retry if save failed
               throw new Error('Failed to save testimony');
             }
           } catch (error) {
             console.error('❌ Failed to auto-save guest testimony:', error);
+            hasSaved = false; // Allow retry on error
             if (isMounted) {
               updateToError(toastId, 'Testimony saved locally. You can publish it from your profile.');
             }
@@ -377,6 +386,9 @@ function App() {
 
     return () => {
       isMounted = false; // Cleanup
+      if (reloadTimeout) {
+        clearTimeout(reloadTimeout); // Cancel pending reload on unmount
+      }
     };
   }, [isAuthenticated, userProfile?.supabaseId]);
 
