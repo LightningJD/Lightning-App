@@ -222,7 +222,7 @@ These changes are mechanical and cannot break functionality.
 - **Risk**: Medium — 43 hooks means complex state interdependencies
 
 ### Step 4.2 — Decompose MessagesTab (1,973 lines)
-- [ ] **Status**: Not started
+- [x] **Status**: DONE (Feb 8, 2026) — commit e6f14b8. Extracted useMessages (555 lines) and useNewChat (91 lines) hooks. 1,973 → 1,262 lines.
 - **What to do**:
   - Extract `useConversation()` hook — message loading, sending, real-time subscription
   - Extract `<ConversationList />` component — sidebar conversation list
@@ -233,7 +233,7 @@ These changes are mechanical and cannot break functionality.
 - **Risk**: Medium — real-time subscriptions are the tricky part
 
 ### Step 4.3 — Decompose ChannelChat (1,644 lines)
-- [ ] **Status**: Not started
+- [x] **Status**: DONE (Feb 8, 2026) — Extracted useChannelMessages hook (666 lines). 1,644 → 1,070 lines. Component retains JSX render helpers.
 - **What to do**:
   - Extract `useChannelMessages()` hook — channel message CRUD, real-time sub, typing indicators
   - Extract `<ChannelMessageList />` component — message rendering with pins, reactions, replies
