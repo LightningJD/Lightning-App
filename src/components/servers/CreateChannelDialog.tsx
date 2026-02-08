@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { sanitizeInput } from '../../lib/inputValidation';
 import { showError } from '../../lib/toast';
@@ -21,6 +21,11 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
   const [emojiIcon, setEmojiIcon] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Sync categoryId when defaultCategoryId changes (e.g. clicking + on different categories)
+  useEffect(() => {
+    setCategoryId(defaultCategoryId || '');
+  }, [defaultCategoryId]);
 
   if (!isOpen) return null;
 

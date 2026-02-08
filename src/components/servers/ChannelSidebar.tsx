@@ -656,7 +656,12 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                         <Plus className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={(e) => handleCategoryContextMenu(e, group.id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setContextMenu({ type: 'category', id: group.id, x: rect.left, y: rect.bottom + 4 });
+                        }}
                         className={`p-0.5 rounded transition-all ${
                           nightMode ? 'text-white/30 hover:text-white/60 hover:bg-white/5' : 'text-black/30 hover:text-black/60 hover:bg-black/5'
                         }`}
@@ -731,7 +736,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               <button
                 onClick={handleCreateCategory}
                 disabled={!newCategoryName.trim()}
-                className={`text-xs font-semibold px-2 py-0.5 rounded transition-all ${
+                className={`text-xs font-semibold px-2 py-0.5 rounded transition-all flex-shrink-0 whitespace-nowrap ${
                   newCategoryName.trim()
                     ? 'text-blue-500 hover:bg-blue-500/10'
                     : nightMode ? 'text-white/20' : 'text-black/20'
@@ -741,7 +746,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               </button>
               <button
                 onClick={() => { setShowCreateCategory(false); setNewCategoryName(''); }}
-                className={`p-0.5 rounded transition-all ${
+                className={`p-0.5 rounded transition-all flex-shrink-0 ${
                   nightMode ? 'text-white/30 hover:text-white/60' : 'text-black/30 hover:text-black/60'
                 }`}
               >
