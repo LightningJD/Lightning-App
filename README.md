@@ -1,421 +1,176 @@
-# ⚡ Lightning - Christian Social Testimony Directory
+# ⚡ Lightning
 
-> **Connect with believers. Share your faith journey. Build community.**
+**A Christian testimony directory with built-in community features.**
 
-A modern, faith-based social platform where Christians share testimonies, find nearby believers, and build authentic spiritual communities through AI-powered features and real connections.
+> *"Every generation has a testimony and every testimony has the power to change a generation."*
 
----
-
-## 🌐 Live App
-
-**Production:** [https://lightningsocial.io](https://lightningsocial.io)
-
-**Status:** ✅ Production Ready | 🚀 Actively Deployed | 📈 Ready for Beta Users
+Lightning is a Christian testimony directory with built-in community features — powered by AI-assisted testimony generation that makes sharing your story as easy as answering four questions.
 
 ---
 
-## 📖 About Lightning
+## 🔥 What is Lightning?
 
-Lightning is a Christian social testimony directory that helps believers:
-- 📝 **Write and share faith testimonies** with AI-powered assistance
-- 👥 **Find nearby Christians** using location-based matching (5-100 mile radius)
-- 💬 **Connect through real-time messaging** - DMs and group chats
-- 🙏 **Build spiritual communities** through groups and shared experiences
-- 🎵 **Express faith through music** - Link YouTube songs to testimonies
-- 🏆 **Grow in faith** through gamification (hidden achievements & milestones)
+Lightning is a **Christian testimony directory** with built-in community features. Communities get their own testimony directory where members can share, discover, and be encouraged by each other's stories.
 
-### 🎯 Target Audience
+### For Communities
+- **Testimony Directory** — A living, searchable archive of your community's stories
+- **Leader Dashboard** — See themes across your community, surface testimonies by topic (identity, anxiety, addiction, healing), and prep messages with real stories from your people
+- **Growth Analytics** — Track engagement, new testimonies, and community health
+- **Embeddable** — Share your testimony directory on your website, in newsletters, and during services
 
-Christians seeking:
-- Authentic faith-based connections
-- A safe space to share testimonies
-- Local believers for in-person fellowship
-- Meaningful spiritual community online
+### For Individuals
+- **AI-Powered Testimony Generation** — Answer four guided questions and Lightning crafts your testimony into a shareable story
+- **Shareable Testimony Cards** — Beautiful cards optimized for social media that spread your story beyond your church walls
+- **Multi-Community Membership** — Belong to multiple communities at once — all in one place
+- **Connect & Encourage** — Discover testimonies from people in your community and encourage them directly
 
 ---
 
-## ✨ Core Features
+## 🏗️ Platform Architecture
 
-### 🙏 Testimony Sharing
-- **AI-Powered Creation** - Guided testimony builder with smart prompts
-- **Rich Formatting** - Add music, images, and structured content
-- **Privacy Controls** - Public, friends-only, or private testimonies
-- **Engagement** - Like, comment, and encourage others
-- **Search & Discovery** - Find testimonies by topic, location, or user
+Lightning is built as a **platform** — not just an app. Christian communities are the core unit, and individuals create testimonies within those spaces.
 
-### 👥 Social Connections
-- **Friend Requests** - Send/accept/decline friend requests
-- **Nearby Believers** - Location-based discovery (configurable radius)
-- **User Profiles** - Avatar emojis, bios, locations, faith journeys
-- **Blocking & Reporting** - Safe community with moderation tools
-- **Privacy Settings** - Control profile visibility and message permissions
-
-### 💬 Real-Time Messaging
-- **Direct Messages** - One-on-one conversations
-- **Group Chats** - Create and manage spiritual communities
-- **Message Reactions** - Emoji reactions to messages
-- **Pin Messages** - Highlight important discussions
-- **Online Status** - See who's active now
-- **Privacy Controls** - Control who can message you
-
-### 🔐 Privacy & Safety
-- **Granular Privacy** - Control testimony visibility, profile access, messaging
-- **Blocking System** - Two-way blocking with complete filtering
-- **Content Reporting** - Report users, testimonies, or inappropriate content
-- **Admin Moderation** - Review queue for reported content
-- **Rate Limiting** - Prevents spam and abuse
-- **Input Validation** - XSS/SQL injection protection
-
-### 🏆 Gamification (Hidden Features)
-- **Secret Achievements** - Unlock rewards for spiritual milestones
-- **Activity Tracking** - Message streaks, early bird/night owl badges
-- **Faith Milestones** - First testimony, 100 messages, 7-day streaks
-- **Discovery System** - Hidden secrets revealed through usage
-
-### 🎨 User Experience
-- **🌙 Dark Mode** - Beautiful light/dark theme (auto-switching)
-- **📱 Responsive** - Perfect on phones, tablets, and desktop
-- **⚡ Fast** - Global CDN, optimized performance
-- **🎵 Music Player** - Embedded YouTube player for testimony songs
-- **🔔 Notifications** - Customizable alerts for messages, friend requests
-- **🌍 Location Services** - PostGIS-powered radius search
+```
+Lightning Platform
+├── Communities
+│   ├── Testimony Directory (searchable, filterable)
+│   ├── Leader Dashboard (analytics, themes, content tools)
+│   ├── Member Management (invites, roles, moderation)
+├── Individual Profiles
+│   ├── Testimony (AI-generated from 4-question framework)
+│   ├── Community Memberships (multi-community)
+│   └── Shareable Testimony Cards
+└── AI Engine
+    ├── Testimony Generation (OpenAI)
+    ├── Theme Detection (across community testimonies)
+    └── Future: Real-time Translation (global reach)
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- **React 19** - Latest features with concurrent rendering
-- **TypeScript** - 100% type-safe codebase (21,000+ lines)
-- **Vite** - Lightning-fast build tool
-- **Tailwind CSS** - Utility-first styling
-- **Lucide React** - Beautiful icon library
-
-### Backend & Services
-- **Clerk** - Modern authentication (email, social login)
-- **Supabase** - PostgreSQL database + PostGIS + real-time
-- **Cloudinary** - Image upload and optimization
-- **Sentry** - Error monitoring with session replay
-
-### Infrastructure
-- **Cloudflare Pages** - Global CDN, unlimited bandwidth
-- **GitHub Actions** - Automated CI/CD
-- **Playwright** - Autonomous E2E testing (61 tests)
-- **Vitest** - Unit testing (193+ tests)
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React + TypeScript, Tailwind CSS, Vite |
+| **Authentication** | Clerk (email, Google, Apple sign-in) |
+| **Database** | Supabase (PostgreSQL) |
+| **AI** | OpenAI API (testimony generation, theme detection) |
+| **Storage** | Supabase Storage (profile images, testimony cards) |
+| **Hosting** | TBD |
 
 ---
 
-## 📊 Project Stats
+## 📊 Data Model (Core)
 
-| Metric | Value |
-|--------|-------|
-| **Production Code** | ~21,000 lines |
-| **Components** | 30 React components |
-| **Libraries** | 16 utility modules |
-| **Database Tables** | 13 tables |
-| **E2E Tests** | 61 automated tests |
-| **Unit Tests** | 193+ tests |
-| **Type Safety** | 100% TypeScript |
-| **Test Coverage** | Core features covered |
-| **Deployment** | Automated via GitHub |
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Git
-
-### Installation
-
-```bash
-# 1. Clone repository
-git clone https://github.com/LightningJD/Lightning-App.git
-cd Lightning-App
-
-# 2. Install dependencies
-npm install
-
-# 3. Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your keys
-
-# 4. Run development server
-npm run dev
-
-# 5. Open browser
-# Navigate to http://localhost:5173
 ```
+communities
+├── id (uuid)
+├── name
+├── type (community | group)
+├── slug (unique URL path)
+└── created_at
 
-### Environment Variables
+community_members
+├── id (uuid)
+├── community_id → communities
+├── user_id → users
+├── role (admin | leader | member)
+└── joined_at
 
-Create `.env.local` with:
+users
+├── id (uuid)
+├── clerk_id
+├── display_name
+├── bio
+└── created_at
 
-```env
-# Clerk Authentication
-VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
-
-# Supabase Database
-VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGc...
-
-# Cloudinary Images
-VITE_CLOUDINARY_CLOUD_NAME=your_cloud
-VITE_CLOUDINARY_UPLOAD_PRESET=your_preset
-
-# Sentry Error Monitoring (Optional)
-VITE_SENTRY_DSN=https://...
+testimonies
+├── id (uuid)
+├── user_id → users
+├── community_id → communities
+├── raw_answers (jsonb — the 4 questions)
+├── generated_story (text — AI output)
+├── tags (array — topics/themes)
+├── visibility (community_only | public)
+├── card_image_url
+└── created_at
 ```
-
-See setup guides in `/docs` folder for detailed instructions.
-
----
-
-## 🧪 Testing
-
-Lightning has comprehensive autonomous testing:
-
-### Run All Tests
-```bash
-# Unit tests
-npm run test
-
-# E2E tests (autonomous browser testing)
-npm run test:e2e
-
-# Run both
-npm run test:all
-
-# Watch mode
-npm run test:ui
-
-# Coverage report
-npm run test:coverage
-```
-
-### E2E Testing Features
-- ✅ **61 automated tests** across 6 test suites
-- ✅ **Autonomous AI testing** - clicks buttons, fills forms
-- ✅ **Multi-browser** - Chrome, Firefox, Safari, Mobile
-- ✅ **Screenshot on failure** - visual debugging
-- ✅ **Parallel execution** - fast test runs
-- ✅ **CI/CD integration** - runs on every push
-
-Test suites:
-- `e2e/friend-requests.spec.ts` - Friend request flows (7 tests)
-- `e2e/messaging.spec.ts` - Direct messages & groups (10 tests)
-- `e2e/groups.spec.ts` - Group management (13 tests)
-- `e2e/settings-privacy.spec.ts` - Privacy & settings (16 tests)
-- `e2e/testimonies.spec.ts` - Testimony CRUD (8 tests)
-- `e2e/profile.spec.ts` - Profile viewing & editing (7 tests)
-
-See [AUTONOMOUS_TESTING.md](AUTONOMOUS_TESTING.md) for details.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-Lightning-App/
-├── src/
-│   ├── components/        # 30 React components
-│   │   ├── AuthWrapper.tsx
-│   │   ├── NearbyTab.tsx
-│   │   ├── MessagesTab.tsx
-│   │   ├── GroupsTab.tsx
-│   │   ├── ProfileTab.tsx
-│   │   └── ...
-│   ├── lib/              # 16 utility libraries
-│   │   ├── database/     # Database operations (modular)
-│   │   ├── secrets.ts    # Gamification system
-│   │   ├── validation.ts # Input validation
-│   │   ├── sanitization.ts # XSS protection
-│   │   └── ...
-│   ├── hooks/            # Custom React hooks
-│   ├── contexts/         # React context providers
-│   ├── types/            # TypeScript definitions
-│   └── test/             # Unit tests (193+ tests)
-├── e2e/                  # E2E tests (61 tests)
-├── docs/                 # Comprehensive documentation
-├── supabase/             # Database migrations & types
-└── public/               # Static assets
+/Lightning-App
+├── /.claude
+│   ├── project_context.md      # AI dev session context
+│   ├── known_issues.md         # Active bugs
+│   └── api_integrations.md     # Clerk, Supabase, OpenAI setup notes
+├── /src
+│   ├── /components             # React components
+│   ├── /pages                  # Route-level pages
+│   ├── /hooks                  # Custom React hooks
+│   ├── /lib                    # Supabase client, OpenAI client, utils
+│   ├── /types                  # TypeScript types
+│   └── App.tsx                 # Root component
+├── /supabase
+│   └── /migrations             # Database migrations
+├── DEVLOG.md                   # Development session log
+├── README.md                   # This file
+├── package.json
+└── .env.local                  # Environment variables (not committed)
 ```
 
 ---
 
-## 📚 Documentation
+## 🔐 Environment Variables
 
-### Setup Guides
-- [Quick Start](docs/QUICK_START.md) - Get running in 5 minutes
-- [Supabase Setup](docs/SUPABASE_SETUP.md) - Database configuration
-- [Clerk Setup](docs/CLERK_SETUP.md) - Authentication setup
-- [Cloudinary Setup](docs/CLOUDINARY_SETUP.md) - Image uploads
-
-### Development Docs
-- [Roadmap](docs/ROADMAP.md) - Feature roadmap & progress
-- [Security](docs/SECURITY.md) - Security best practices
-- [Developer Handoff](docs/DEVELOPER_HANDOFF.md) - Onboarding guide
-- [TypeScript Audit](docs/TYPESCRIPT_AUDIT.md) - Type safety report
-
-### Testing Docs
-- [Autonomous Testing](AUTONOMOUS_TESTING.md) - AI-powered E2E testing
-- [Running Tests Guide](RUNNING_TESTS_GUIDE.md) - Test execution
-- [Bugs Fixed Summary](BUGS_FIXED_SUMMARY.md) - Recent bug fixes
-
-### Deployment
-- [Cloudflare Migration](docs/CLOUDFLARE_MIGRATION_GUIDE.md) - Hosting setup
-- [Database Backup](docs/DATABASE_BACKUP_GUIDE.md) - Backup procedures
-
----
-
-## 🏗️ Recent Development (Feb 2026)
-
-### Latest Updates
-- ✅ **Autonomous Testing Infrastructure** - 61 E2E tests, AI-powered
-- ✅ **Bug Fixes** - Fixed 15 silent failure bugs (user feedback)
-- ✅ **User Search** - Search for users with seamless UI
-- ✅ **Search Radius** - Configurable 5-100 mile radius
-- ✅ **Test Coverage** - 193+ unit tests, 61 E2E tests
-- ✅ **Quality Improvements** - Better error handling, toast notifications
-
-### Recent Commits
-```
-99257ee - Fix EditTestimonyDialog.tsx - Add missing toast notifications
-3b6c9be - Add comprehensive summary of all bug fixes
-9274e99 - Fix silent failure bugs in ProfileCreationWizard and ProfileTab
-b907407 - Fix 10 silent failure bugs in GroupsTab.tsx
-83aa26d - Add comprehensive autonomous test suite (61 tests total)
+```env
+VITE_CLERK_PUBLISHABLE_KEY=pk_...
+CLERK_SECRET_KEY=sk_...
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+OPENAI_API_KEY=sk-...
 ```
 
-See [BUGS_FIXED_SUMMARY.md](BUGS_FIXED_SUMMARY.md) for details on recent fixes.
+-----
 
----
+## 🏃 Getting Started
 
-## 🎯 Current Status
-
-**Phase:** Production Ready ✅
-
-### Completed
-- ✅ Core features (testimonies, messaging, groups, profiles)
-- ✅ Authentication & authorization (Clerk)
-- ✅ Database & real-time (Supabase)
-- ✅ Privacy & safety features (blocking, reporting, moderation)
-- ✅ Settings & preferences (16/17 features)
-- ✅ TypeScript migration (100% type-safe)
-- ✅ Autonomous testing (61 E2E + 193+ unit tests)
-- ✅ Production deployment (Cloudflare Pages)
-- ✅ Error monitoring (Sentry)
-- ✅ Performance optimization
-- ✅ Security hardening (XSS, SQL injection, rate limiting)
-
-### Ready For
-- 🎯 **Beta launch** - Ready for first 50 users
-- 🎯 **User feedback** - All core features working
-- 🎯 **Scale testing** - Infrastructure ready for growth
-
-See [ROADMAP.md](docs/ROADMAP.md) for detailed roadmap.
-
----
-
-## 🚀 Deployment
-
-### Automatic Deployment
-- **Platform:** Cloudflare Pages
-- **Trigger:** Push to `main` branch
-- **Build:** `npm run build`
-- **Output:** `dist/`
-- **URL:** https://lightningsocial.io
-- **Custom Domain:** Configured with DNS
-
-### Manual Deployment
 ```bash
-# Build for production
-npm run build
+# Clone the repo
+git clone https://github.com/LightningJD/Lightning-App.git
+cd Lightning-App
 
-# Preview locally
-npm run preview
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Fill in your Clerk, Supabase, and OpenAI keys
+
+# Run development server
+npm run dev
 ```
 
-### Environment Setup
-Configure these in Cloudflare Pages dashboard:
-- `VITE_CLERK_PUBLISHABLE_KEY`
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `VITE_CLOUDINARY_CLOUD_NAME`
-- `VITE_CLOUDINARY_UPLOAD_PRESET`
-- `VITE_SENTRY_DSN` (optional)
+-----
 
----
+## 🙏 Mission
 
-## 🤝 Contributing
+**Wear your testimony.**
 
-This is currently a private project. Contributions are welcome from team members.
+Lightning exists to make sharing your faith story as natural as posting a photo. By giving every Christian community a testimony directory and every believer a platform, we're building the infrastructure for a generation of Christ followers to encourage each other and reach the world — one story at a time.
 
-### Development Workflow
-1. Create feature branch from `main`
-2. Implement changes with tests
-3. Run `npm run test:all` to verify
-4. Submit pull request for review
-5. Merge after approval and passing tests
+-----
 
-### Code Quality
-- ✅ TypeScript required (no `any` types)
-- ✅ Tests required for new features
-- ✅ Error handling required (try/catch + toast)
-- ✅ Input validation required (all user inputs)
-- ✅ Security review for auth/database changes
+## 📜 Legal
 
----
+- Users must be 13+ (COPPA compliant)
+- All testimonies are user-generated content
+- AI-generated stories are reviewed and editable by users before publishing
+- Community leaders can moderate content within their directory
 
-## 🙏 Mission & Values
+-----
 
-**Mission:** Help Christians share their faith testimonies and build authentic spiritual communities through technology.
-
-**Values:**
-- 🙏 **Faith-First** - Biblical principles guide design
-- 💙 **Authenticity** - Real stories, real connections
-- 🔒 **Safety** - Protected community with moderation
-- 🌍 **Accessibility** - Available to believers everywhere
-- ⚡ **Excellence** - Quality code, great UX
-
----
-
-## 📄 License
-
-All rights reserved. This project is not open source.
-
-© 2026 Lightning App. Built with ❤️ for the faith community.
-
----
-
-## 📞 Support
-
-- **Email:** support@lightning-app.dev
-- **Bug Reports:** [GitHub Issues](https://github.com/LightningJD/Lightning-App/issues)
-- **Documentation:** `/docs` folder
-
----
-
-## 🙌 Acknowledgments
-
-**Built with:**
-- React, TypeScript, Vite, Tailwind CSS
-- Clerk, Supabase, Cloudinary, Sentry
-- Cloudflare Pages, GitHub Actions, Playwright
-
-**Special thanks to:**
-- The Christian community for inspiration
-- All beta testers and early users
-- Open source maintainers
-
----
-
-**Live App:** [https://lightningsocial.io](https://lightningsocial.io)
-
-**Repository:** [github.com/LightningJD/Lightning-App](https://github.com/LightningJD/Lightning-App)
-
----
-
-*Last Updated: February 8, 2026*
+*Built with 🔥 by Jordyn Lightning*
