@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import type { User, NearbyUser } from '../../types';
-import { ensureReferralCode } from './referrals';
+import { ensureReferralCode, generateReferralCode } from './referrals';
 
 // ============================================
 // USER OPERATIONS
@@ -201,6 +201,21 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   if (error) {
     console.error('Error updating user profile:', error);
     return null;
+  }
+
+  // If username changed, regenerate referral code to match new username
+  if (profileData.username && data) {
+    try {
+      const newCode = generateReferralCode(profileData.username);
+      await supabase
+        .from('users')
+        // @ts-ignore
+        .update({ referral_code: newCode })
+        .eq('id', userId);
+    } catch (codeErr) {
+      console.error('Error regenerating referral code:', codeErr);
+      // Non-fatal — profile was still updated
+    }
   }
 
   return data as unknown as User;
