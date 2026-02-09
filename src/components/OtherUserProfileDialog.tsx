@@ -264,8 +264,8 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         {/* Scrollable Content */}
         <div className="h-full overflow-y-auto">
           <div className="p-6 space-y-4">
-            {/* Profile Header */}
-            <div className="flex flex-col items-center text-center pt-10">
+            {/* Profile Header — matches "You" page layout */}
+            <div className="flex flex-col items-center text-center pt-10 px-4">
               {(() => {
                 const avatarImg = fullProfile?.avatar_url || user.avatarImage;
                 const avatarEmoji = fullProfile?.avatar_emoji || user.avatar;
@@ -275,59 +275,66 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                 return (
                   <>
                     <div
-                      className={`w-28 h-28 rounded-full flex items-center justify-center text-6xl shadow-lg border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'
+                      className={`w-[237px] h-[237px] rounded-full flex items-center justify-center shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'
                         } mb-4 overflow-hidden`}
                     >
                       {avatarImg ? (
                         <img src={avatarImg} alt={`${displayName}'s avatar`} className="w-full h-full object-cover" />
                       ) : (
-                        avatarEmoji
+                        <span className="text-[12.14rem] leading-none select-none">{avatarEmoji}</span>
                       )}
                     </div>
 
-                    <h2 id="profile-title" className={`text-2xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                      {displayName}
-                    </h2>
-                    {username && (
-                      <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm opacity-70 mt-1`}>@{username}</p>
-                    )}
+                    <div className="text-center w-full">
+                      <h2 id="profile-title" className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center justify-center gap-1.5`}>
+                        {displayName}
+                      </h2>
+                      {username && (
+                        <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm opacity-70 mt-1`}>@{username}</p>
+                      )}
 
-                    {/* Location */}
-                    {location && (
-                      <div className={`flex items-center justify-center gap-1.5 mt-2 ${nightMode ? 'text-slate-100' : 'text-black'} text-sm`}>
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>{location}</span>
-                      </div>
-                    )}
+                      {/* Location */}
+                      {location && (
+                        <div className={`flex items-center justify-center gap-1.5 mt-2 ${nightMode ? 'text-slate-100' : 'text-black'} text-sm`}>
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span>{location}</span>
+                        </div>
+                      )}
 
-                    {/* Distance (if available) */}
-                    {user.distance && (
-                      <div className={`flex items-center gap-1.5 mt-1 text-xs ${nightMode ? 'text-slate-100' : 'text-black'} opacity-60`}>
-                        <MapPin className="w-3 h-3" />
-                        <span>{user.distance} away</span>
-                      </div>
-                    )}
+                      {/* Distance (if available) */}
+                      {user.distance && (
+                        <div className={`flex items-center justify-center gap-1.5 mt-1 text-xs ${nightMode ? 'text-slate-100' : 'text-black'} opacity-60`}>
+                          <MapPin className="w-3 h-3" />
+                          <span>{user.distance} away</span>
+                        </div>
+                      )}
 
-                    {/* Online Status */}
-                    {user.online !== undefined && (
-                      <div className={`flex items-center gap-2 mt-2 text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                        <div className={`w-2 h-2 rounded-full ${user.online ? 'bg-green-500' : 'bg-gray-400'}`} />
-                        <span>{user.online ? 'Online' : 'Offline'}</span>
-                      </div>
-                    )}
+                      {/* Online Status */}
+                      {user.online !== undefined && (
+                        <div className={`flex items-center justify-center gap-2 mt-2 text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                          <div className={`w-2 h-2 rounded-full ${user.online ? 'bg-green-500' : 'bg-gray-400'}`} />
+                          <span>{user.online ? 'Online' : 'Offline'}</span>
+                        </div>
+                      )}
+                    </div>
                   </>
                 );
               })()}
             </div>
 
-            {/* Bio */}
-            {(fullProfile?.bio || user.bio) && (
-              <div className={`rounded-xl p-4 ${nightMode ? 'bg-white/5' : 'bg-white/40'}`}>
-                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
-                  {fullProfile?.bio || user.bio}
-                </p>
-              </div>
-            )}
+            {/* Bio — hide the default placeholder bio */}
+            {(() => {
+              const bioText = fullProfile?.bio || user.bio;
+              const defaultBio = 'Welcome to Lightning! Share your testimony to inspire others.';
+              if (!bioText || bioText === defaultBio) return null;
+              return (
+                <div className={`rounded-xl p-4 ${nightMode ? 'bg-white/5' : 'bg-white/40'}`}>
+                  <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
+                    {bioText}
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Profile Card (Faith Profile) */}
             {(() => {
