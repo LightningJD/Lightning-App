@@ -14,7 +14,7 @@ export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabase
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: false
+        detectSessionInUrl: true
       }
     })
   : null;
