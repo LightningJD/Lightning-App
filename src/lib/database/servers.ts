@@ -555,10 +555,13 @@ export const getChannelsByServer = async (serverId: string): Promise<{ categorie
 export const updateChannel = async (channelId: string, updates: UpdateChannelData): Promise<any> => {
   if (!supabase) return null;
 
+  // Extract allowed_role_ids before sending to DB (not a column)
+  const { allowed_role_ids, ...dbUpdates } = updates as any;
+
   const { data, error } = await supabase
     .from('server_channels')
     // @ts-ignore
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update({ ...dbUpdates, updated_at: new Date().toISOString() })
     .eq('id', channelId)
     .select()
     .single();
@@ -566,6 +569,16 @@ export const updateChannel = async (channelId: string, updates: UpdateChannelDat
   if (error) {
     console.error('Error updating channel:', error);
     return null;
+  }
+
+  // Sync channel role access if provided
+  if (allowed_role_ids !== undefined) {
+    if (dbUpdates.is_private === false) {
+      // Channel made public — clear all access entries
+      await setChannelRoleAccess(channelId, []);
+    } else {
+      await setChannelRoleAccess(channelId, allowed_role_ids);
+    }
   }
 
   return data;
@@ -585,6 +598,69 @@ export const deleteChannel = async (channelId: string): Promise<boolean | null> 
   if (error) {
     console.error('Error deleting channel:', error);
     return null;
+  }
+
+  return true;
+};
+
+// ============================================
+// CHANNEL ROLE ACCESS (Private Channel Permissions)
+// ============================================
+
+/**
+ * Get role access for multiple channels at once (bulk)
+ * Returns a map of channelId -> roleId[]
+ */
+export const getChannelRoleAccessBulk = async (channelIds: string[]): Promise<Record<string, string[]>> => {
+  if (!supabase || channelIds.length === 0) return {};
+
+  const { data, error } = await supabase
+    .from('channel_role_access')
+    .select('channel_id, role_id')
+    .in('channel_id', channelIds);
+
+  if (error) {
+    console.error('Error fetching channel role access:', error);
+    return {};
+  }
+
+  const result: Record<string, string[]> = {};
+  for (const row of (data || [])) {
+    if (!result[row.channel_id]) result[row.channel_id] = [];
+    result[row.channel_id].push(row.role_id);
+  }
+  return result;
+};
+
+/**
+ * Set role access for a channel (replaces all existing entries)
+ */
+export const setChannelRoleAccess = async (channelId: string, roleIds: string[]): Promise<boolean> => {
+  if (!supabase) return false;
+
+  // Delete all existing access entries for this channel
+  const { error: deleteError } = await supabase
+    .from('channel_role_access')
+    .delete()
+    .eq('channel_id', channelId);
+
+  if (deleteError) {
+    console.error('Error clearing channel role access:', deleteError);
+    return false;
+  }
+
+  // Insert new entries
+  if (roleIds.length > 0) {
+    const rows = roleIds.map(roleId => ({ channel_id: channelId, role_id: roleId }));
+    const { error: insertError } = await supabase
+      .from('channel_role_access')
+      // @ts-ignore
+      .insert(rows);
+
+    if (insertError) {
+      console.error('Error setting channel role access:', insertError);
+      return false;
+    }
   }
 
   return true;

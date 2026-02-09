@@ -174,6 +174,7 @@ export interface CreateChannelData {
   categoryId?: string;
   isPrivate?: boolean;
   emojiIcon?: string;
+  allowedRoleIds?: string[];
 }
 
 export interface CreateRoleData {
@@ -198,6 +199,7 @@ export interface UpdateChannelData {
   position?: number;
   is_private?: boolean;
   emoji_icon?: string;
+  allowed_role_ids?: string[];
 }
 
 export interface UpdateRoleData {

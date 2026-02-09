@@ -150,7 +150,9 @@ export {
   getUnreadCounts,
   getPendingInviteRequests,
   approveInviteRequest,
-  rejectInviteRequest
+  rejectInviteRequest,
+  getChannelRoleAccessBulk,
+  setChannelRoleAccess
 } from './servers.js';
 
 // Real-time Subscriptions
