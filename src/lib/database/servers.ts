@@ -514,6 +514,11 @@ export const createChannel = async (serverId: string, channelData: CreateChannel
     return null;
   }
 
+  // If channel is private and has allowed roles, set access entries
+  if (data && channelData.isPrivate && channelData.allowedRoleIds && channelData.allowedRoleIds.length > 0) {
+    await setChannelRoleAccess(data.id, channelData.allowedRoleIds);
+  }
+
   return data;
 };
 

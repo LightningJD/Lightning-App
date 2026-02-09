@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Lock } from 'lucide-react';
 import { sanitizeInput } from '../../lib/inputValidation';
 import { showError } from '../../lib/toast';
 
@@ -7,13 +7,14 @@ interface CreateChannelDialogProps {
   nightMode: boolean;
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, topic: string, categoryId?: string, emojiIcon?: string) => void;
+  onCreate: (name: string, topic: string, categoryId?: string, emojiIcon?: string, isPrivate?: boolean, allowedRoleIds?: string[]) => void;
   categories: Array<{ id: string; name: string }>;
   defaultCategoryId?: string;
+  roles?: Array<{ id: string; name: string; color: string; position: number; is_default: boolean }>;
 }
 
 const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
-  nightMode, isOpen, onClose, onCreate, categories, defaultCategoryId
+  nightMode, isOpen, onClose, onCreate, categories, defaultCategoryId, roles
 }) => {
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('');
@@ -21,6 +22,8 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
   const [emojiIcon, setEmojiIcon] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [allowedRoleIds, setAllowedRoleIds] = useState<string[]>([]);
 
   // Sync categoryId when defaultCategoryId changes (e.g. clicking + on different categories)
   useEffect(() => {
@@ -40,12 +43,14 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
       return;
     }
     setLoading(true);
-    await onCreate(sanitizedName, topic.trim(), categoryId || undefined, emojiIcon || undefined);
+    await onCreate(sanitizedName, topic.trim(), categoryId || undefined, emojiIcon || undefined, isPrivate || undefined, isPrivate ? allowedRoleIds : undefined);
     setLoading(false);
     setName('');
     setTopic('');
     setEmojiIcon('');
     setShowEmojiPicker(false);
+    setIsPrivate(false);
+    setAllowedRoleIds([]);
     onClose();
   };
 
@@ -219,6 +224,89 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
               }}
             />
           </div>
+
+          {/* Private Channel toggle */}
+          <div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Lock className={`w-4 h-4 ${nightMode ? 'text-white/50' : 'text-black/50'}`} />
+                <span className={`text-sm font-semibold ${nightMode ? 'text-white/70' : 'text-black/70'}`}>
+                  Private Channel
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setIsPrivate(!isPrivate); if (isPrivate) setAllowedRoleIds([]); }}
+                className={`relative w-10 h-5.5 rounded-full transition-all duration-200 ${
+                  isPrivate ? 'bg-blue-500' : nightMode ? 'bg-white/15' : 'bg-black/15'
+                }`}
+                style={{ width: 40, height: 22 }}
+              >
+                <div
+                  className="absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white shadow-sm transition-all duration-200"
+                  style={{
+                    width: 18, height: 18, top: 2,
+                    left: isPrivate ? 20 : 2,
+                  }}
+                />
+              </button>
+            </div>
+            <p className={`text-xs mt-1 ${nightMode ? 'text-white/30' : 'text-black/30'}`}>
+              Only selected roles can see this channel
+            </p>
+          </div>
+
+          {/* Role selector when private is enabled */}
+          {isPrivate && roles && roles.filter(r => !r.is_default).length > 0 && (
+            <div>
+              <p className={`text-xs font-semibold mb-1.5 ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
+                Roles with access
+              </p>
+              <div
+                className="space-y-1 max-h-32 overflow-y-auto rounded-xl p-2"
+                style={{
+                  background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                  border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+                }}
+              >
+                {roles
+                  .filter(r => !r.is_default)
+                  .sort((a, b) => a.position - b.position)
+                  .map(role => (
+                    <label
+                      key={role.id}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-all ${
+                        nightMode ? 'hover:bg-white/5' : 'hover:bg-black/5'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={allowedRoleIds.includes(role.id)}
+                        onChange={() => {
+                          setAllowedRoleIds(prev =>
+                            prev.includes(role.id)
+                              ? prev.filter(id => id !== role.id)
+                              : [...prev, role.id]
+                          );
+                        }}
+                        className="rounded accent-blue-500"
+                      />
+                      <div
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: role.color || '#888' }}
+                      />
+                      <span className={`text-sm ${nightMode ? 'text-white/80' : 'text-black/80'}`}>
+                        {role.name}
+                      </span>
+                    </label>
+                  ))
+                }
+              </div>
+              <p className={`text-xs mt-1.5 ${nightMode ? 'text-white/25' : 'text-black/25'}`}>
+                Server owner and "Manage Channels" roles always have access.
+              </p>
+            </div>
+          )}
 
           {/* Create button */}
           <button

@@ -290,6 +290,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
     onReorderChannels: sv.handleReorderChannels,
     onMoveChannelToCategory: sv.handleMoveChannelToCategory,
     unreadCounts: sv.unreadCounts,
+    roles: sv.roles,
+    channelAccess: sv.channelAccess,
   };
 
   // ── MOBILE LAYOUT ─────────────────────────────────────────────
@@ -426,6 +428,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onCreate={sv.handleCreateChannel}
           categories={sv.categories}
           defaultCategoryId={sv.createChannelCategoryId}
+          roles={sv.roles}
         />
       </div>
     );
@@ -473,6 +476,7 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
         onCreate={sv.handleCreateChannel}
         categories={sv.categories}
         defaultCategoryId={sv.createChannelCategoryId}
+        roles={sv.roles}
       />
     </div>
   );
