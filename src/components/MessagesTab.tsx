@@ -355,7 +355,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                       )}
                     </div>
 
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       {/* Name and timestamp */}
                       <div className="flex items-baseline gap-2 mb-1">
                         <span className={`text-sm font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
@@ -434,7 +434,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                             )}
                             {/* Message text (hide placeholder text for image-only messages) */}
                             {msg.content && msg.content !== '📷 Image' && (
-                              <p className="text-[15px] break-words whitespace-pre-wrap leading-snug">{decodeHTMLEntities(msg.content)}</p>
+                              <p className="text-[15px] whitespace-pre-wrap leading-snug" style={{ overflowWrap: 'break-word', wordBreak: 'normal' }}>{decodeHTMLEntities(msg.content)}</p>
                             )}
 
                             {/* Reaction Picker */}
