@@ -154,7 +154,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ isOpen, onClose, nightMod
                   <li>Encryption of data in transit and at rest</li>
                   <li>Regular security audits and updates</li>
                   <li>Limited access to personal information</li>
-                  <li>Secure authentication through Clerk</li>
+                  <li>Secure authentication through Supabase Auth</li>
                   <li>Regular backups and disaster recovery procedures</li>
                 </ul>
               </section>
@@ -187,8 +187,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ isOpen, onClose, nightMod
                 </h3>
                 <p className="leading-relaxed mb-3">We use the following third-party services:</p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li><strong>Clerk:</strong> For authentication and user management</li>
-                  <li><strong>Supabase:</strong> For database and real-time features</li>
+                  <li><strong>Supabase:</strong> For authentication, database, and real-time features</li>
                   <li><strong>Cloudinary:</strong> For image storage and processing</li>
                   <li><strong>OpenAI:</strong> For AI-powered testimony generation</li>
                   <li><strong>Sentry:</strong> For error monitoring and app stability</li>

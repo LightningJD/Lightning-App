@@ -15,7 +15,6 @@
     "test:run": "vitest run"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.53.2",
     "@sentry/react": "^10.22.0",
     "@supabase/supabase-js": "^2.75.1",
     "dompurify": "^3.3.0",
