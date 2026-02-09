@@ -683,7 +683,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestim
                             })}
                           </span>
                         </div>
-                        <p className={`text-sm leading-relaxed ${nightMode ? 'text-slate-300' : 'text-gray-800'}`}>
+                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-300' : 'text-gray-800'}`}>
                           {comment.content}
                         </p>
                       </div>
