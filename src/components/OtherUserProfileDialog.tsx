@@ -245,14 +245,14 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
     <>
       {/* Full-screen Profile View */}
       <div
-        className={`fixed inset-0 z-[60] overflow-hidden animate-in slide-in-from-right duration-300 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50'
+        className={`fixed inset-0 z-[60] flex flex-col animate-in slide-in-from-right duration-300 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50'
           }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="profile-title"
       >
-        {/* Top Navigation Bar */}
-        <div className={`sticky top-0 z-10 flex items-center px-4 py-3 ${nightMode ? 'bg-[#0a0a0a]/95 border-b border-white/10' : 'bg-white/80 border-b border-black/5'} backdrop-blur-md`}>
+        {/* Top Navigation Bar — fixed, never scrolls */}
+        <div className={`flex-shrink-0 flex items-center px-4 py-3 ${nightMode ? 'bg-[#0a0a0a] border-b border-white/10' : 'bg-white/80 border-b border-black/5'}`}>
           <button
             onClick={onClose}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-100' : 'hover:bg-black/5 text-black'}`}
@@ -263,8 +263,8 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="h-full overflow-y-auto">
+        {/* Scrollable Content — fills remaining space below nav bar */}
+        <div className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-4">
             {/* Profile Header — matches "You" page layout */}
             <div className="flex flex-col items-center text-center pt-4 px-4">
