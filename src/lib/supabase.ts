@@ -28,11 +28,6 @@ export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabase
         }
         return null;
       },
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false
-      }
     })
   : null;
 
