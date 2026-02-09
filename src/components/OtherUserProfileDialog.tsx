@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, MessageCircle, Flag, UserPlus, Heart, UserX, UserCheck, Users } from 'lucide-react';
+import { X, MapPin, MessageCircle, Flag, UserPlus, Heart, UserX, UserCheck, Users, ArrowLeft } from 'lucide-react';
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
 import { sanitizeUserContent } from '../lib/sanitization';
@@ -243,80 +243,81 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Full-screen Profile View */}
       <div
-        className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
-        onClick={onClose}
-        aria-label="Close dialog"
-      />
-
-      {/* Dialog */}
-      <div
-        className={`fixed inset-x-4 top-20 bottom-20 max-w-2xl mx-auto z-50 rounded-2xl overflow-hidden animate-in zoom-in-95 duration-300 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50'
+        className={`fixed inset-0 z-50 overflow-hidden animate-in slide-in-from-right duration-300 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50'
           }`}
-        style={{
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)'
-        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="profile-title"
       >
-        {/* Close Button */}
+        {/* Back Button */}
         <button
           onClick={onClose}
-          className={`absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-100' : 'bg-white/50 hover:bg-white/70 text-black'
+          className={`absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${nightMode ? 'bg-white/10 hover:bg-white/15 text-slate-100' : 'bg-black/5 hover:bg-black/10 text-black'
             }`}
-          aria-label="Close profile"
+          aria-label="Go back"
         >
-          <X className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5" />
         </button>
 
         {/* Scrollable Content */}
         <div className="h-full overflow-y-auto">
           <div className="p-6 space-y-4">
             {/* Profile Header */}
-            <div className="flex flex-col items-center text-center pt-4">
-              <div
-                className={`w-28 h-28 rounded-full flex items-center justify-center text-6xl shadow-lg border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'
-                  } mb-4 overflow-hidden`}
-              >
-                {user.avatarImage ? (
-                  <img src={user.avatarImage} alt={`${user.displayName}'s avatar`} className="w-full h-full object-cover" />
-                ) : (
-                  user.avatar
-                )}
-              </div>
+            <div className="flex flex-col items-center text-center pt-10">
+              {(() => {
+                const avatarImg = fullProfile?.avatar_url || user.avatarImage;
+                const avatarEmoji = fullProfile?.avatar_emoji || user.avatar;
+                const displayName = fullProfile?.display_name || user.displayName;
+                const username = fullProfile?.username || user.username;
+                const location = fullProfile?.location_city || user.location;
+                return (
+                  <>
+                    <div
+                      className={`w-28 h-28 rounded-full flex items-center justify-center text-6xl shadow-lg border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'
+                        } mb-4 overflow-hidden`}
+                    >
+                      {avatarImg ? (
+                        <img src={avatarImg} alt={`${displayName}'s avatar`} className="w-full h-full object-cover" />
+                      ) : (
+                        avatarEmoji
+                      )}
+                    </div>
 
-              <h2 id="profile-title" className={`text-2xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                {user.displayName}
-              </h2>
-              <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm opacity-70 mt-1`}>@{user.username}</p>
+                    <h2 id="profile-title" className={`text-2xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                      {displayName}
+                    </h2>
+                    {username && (
+                      <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm opacity-70 mt-1`}>@{username}</p>
+                    )}
 
-              {/* Location */}
-              {user.location && (
-                <div className={`flex items-center justify-center gap-1.5 mt-2 ${nightMode ? 'text-slate-100' : 'text-black'} text-sm`}>
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>{user.location}</span>
-                </div>
-              )}
+                    {/* Location */}
+                    {location && (
+                      <div className={`flex items-center justify-center gap-1.5 mt-2 ${nightMode ? 'text-slate-100' : 'text-black'} text-sm`}>
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>{location}</span>
+                      </div>
+                    )}
 
-              {/* Distance (if available) */}
-              {user.distance && (
-                <div className={`flex items-center gap-1.5 mt-1 text-xs ${nightMode ? 'text-slate-100' : 'text-black'} opacity-60`}>
-                  <MapPin className="w-3 h-3" />
-                  <span>{user.distance} away</span>
-                </div>
-              )}
+                    {/* Distance (if available) */}
+                    {user.distance && (
+                      <div className={`flex items-center gap-1.5 mt-1 text-xs ${nightMode ? 'text-slate-100' : 'text-black'} opacity-60`}>
+                        <MapPin className="w-3 h-3" />
+                        <span>{user.distance} away</span>
+                      </div>
+                    )}
 
-              {/* Online Status */}
-              {user.online !== undefined && (
-                <div className={`flex items-center gap-2 mt-2 text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                  <div className={`w-2 h-2 rounded-full ${user.online ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  <span>{user.online ? 'Online' : 'Offline'}</span>
-                </div>
-              )}
-
+                    {/* Online Status */}
+                    {user.online !== undefined && (
+                      <div className={`flex items-center gap-2 mt-2 text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                        <div className={`w-2 h-2 rounded-full ${user.online ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        <span>{user.online ? 'Online' : 'Offline'}</span>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             {/* Bio */}
@@ -325,21 +326,6 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                 <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
                   {fullProfile?.bio || user.bio}
                 </p>
-              </div>
-            )}
-
-            {/* Testimony */}
-            {testimony && (
-              <div className={`rounded-xl p-4 ${nightMode ? 'bg-white/5' : 'bg-white/40'}`}>
-                <h3 className={`text-sm font-bold mb-2 ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>⚡ Testimony</h3>
-                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
-                  {testimony.content?.length > 300 ? testimony.content.slice(0, 300) + '...' : testimony.content}
-                </p>
-                {testimony.lesson && (
-                  <p className={`text-xs mt-2 italic ${nightMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                    💡 {testimony.lesson}
-                  </p>
-                )}
               </div>
             )}
 
@@ -568,83 +554,91 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
               </div>
             )}
 
-            {/* Dot connector to testimony */}
-            {(user.bio || user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved || (user.music && user.music.spotifyUrl)) && user.story && user.story.content && (
-              <div className="flex flex-col items-center py-1">
-                <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    background: nightMode ? 'rgba(96,165,250,0.5)' : 'rgba(59,130,246,0.45)',
-                    boxShadow: nightMode
-                      ? '0 0 8px rgba(96,165,250,0.4)'
-                      : '0 0 6px rgba(59,130,246,0.3)',
-                  }}
-                />
-                <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
-              </div>
-            )}
+            {/* Testimony Section — uses DB-fetched testimony, falls back to user.story */}
+            {(() => {
+              const storyContent = testimony?.content || user.story?.content;
+              const storyTitle = testimony?.title || user.story?.title;
+              const storyLesson = testimony?.lesson || user.story?.lesson;
+              const storyId = testimony?.id || user.story?.id;
+              if (!storyContent) return null;
 
-            {/* Testimony Section */}
-            {user.story && user.story.content && (
-              <div
-                className={`p-6 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/30 shadow-lg'}`}
-                style={
-                  nightMode
-                    ? {}
-                    : {
-                      background: 'rgba(255, 255, 255, 0.2)',
-                      backdropFilter: 'blur(30px)',
-                      WebkitBackdropFilter: 'blur(30px)',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-                    }
-                }
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center gap-2`}>
-                    <span>✨</span> {user.story.title || 'My Testimony'}
-                  </h3>
-                  <button
-                    onClick={() => {
-                      if (user.story) {
-                        setReportData({
-                          type: 'testimony',
-                          content: {
-                            id: user.story.id,
-                            ownerId: user.id,
-                            name: user.story.title || 'Testimony'
-                          }
-                        });
-                        setShowReport(true);
-                      }
-                    }}
-                    className={`p-2 rounded-lg transition-colors ${nightMode
-                      ? 'hover:bg-white/10 text-slate-400 hover:text-red-400'
-                      : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
-                      }`}
-                    aria-label="Report testimony"
-                  >
-                    <Flag className="w-4 h-4" />
-                  </button>
-                </div>
-                <p
-                  className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}
-                  dangerouslySetInnerHTML={{ __html: sanitizeUserContent(user.story.content) }}
-                />
-
-                {user.story.lesson && (
-                  <div className={`mt-4 p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
-                    <p className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-700'} mb-2 uppercase tracking-wider`}>
-                      A Lesson Learned
-                    </p>
-                    <p
-                      className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} italic`}
-                      dangerouslySetInnerHTML={{ __html: sanitizeUserContent(user.story.lesson) }}
+              return (
+                <>
+                  {/* Dot connector */}
+                  <div className="flex flex-col items-center py-1">
+                    <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{
+                        background: nightMode ? 'rgba(96,165,250,0.5)' : 'rgba(59,130,246,0.45)',
+                        boxShadow: nightMode
+                          ? '0 0 8px rgba(96,165,250,0.4)'
+                          : '0 0 6px rgba(59,130,246,0.3)',
+                      }}
                     />
+                    <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
                   </div>
-                )}
-              </div>
-            )}
+
+                  <div
+                    className={`p-6 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/30 shadow-lg'}`}
+                    style={
+                      nightMode
+                        ? {}
+                        : {
+                          background: 'rgba(255, 255, 255, 0.2)',
+                          backdropFilter: 'blur(30px)',
+                          WebkitBackdropFilter: 'blur(30px)',
+                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
+                        }
+                    }
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center gap-2`}>
+                        <span>✨</span> {storyTitle || 'My Testimony'}
+                      </h3>
+                      {storyId && (
+                        <button
+                          onClick={() => {
+                            setReportData({
+                              type: 'testimony',
+                              content: {
+                                id: storyId,
+                                ownerId: user.id,
+                                name: storyTitle || 'Testimony'
+                              }
+                            });
+                            setShowReport(true);
+                          }}
+                          className={`p-2 rounded-lg transition-colors ${nightMode
+                            ? 'hover:bg-white/10 text-slate-400 hover:text-red-400'
+                            : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
+                            }`}
+                          aria-label="Report testimony"
+                        >
+                          <Flag className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    <p
+                      className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} leading-relaxed whitespace-pre-wrap`}
+                      dangerouslySetInnerHTML={{ __html: sanitizeUserContent(storyContent) }}
+                    />
+
+                    {storyLesson && (
+                      <div className={`mt-4 p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
+                        <p className={`text-xs font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-700'} mb-2 uppercase tracking-wider`}>
+                          A Lesson Learned
+                        </p>
+                        <p
+                          className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'} italic`}
+                          dangerouslySetInnerHTML={{ __html: sanitizeUserContent(storyLesson) }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
 
             {/* Mutual Friends */}
             {user.mutualFriends !== undefined && user.mutualFriends > 0 && (
