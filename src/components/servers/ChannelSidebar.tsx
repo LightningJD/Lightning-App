@@ -1062,7 +1062,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         <>
           <div className="fixed inset-0 z-[100] bg-black/30" onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); setEditChannelPrivate(false); setEditChannelEmoji(''); setEditChannelAllowedRoles([]); setShowEmojiPicker(false); }} />
           <div
-            className="fixed z-[101] rounded-2xl shadow-2xl p-5 w-[90%] max-w-sm"
+            className="fixed z-[101] rounded-2xl shadow-2xl p-5 w-[90%] max-w-sm max-h-[90vh] overflow-y-auto"
             style={{
               top: '50%',
               left: '50%',

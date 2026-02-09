@@ -65,7 +65,7 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
-        className="w-full max-w-md rounded-3xl shadow-2xl overflow-hidden"
+        className="w-full max-w-md rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]"
         style={{
           background: nightMode ? 'rgba(15, 15, 25, 0.95)' : 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(30px)',
