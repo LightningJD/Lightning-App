@@ -245,7 +245,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
     <>
       {/* Full-screen Profile View */}
       <div
-        className={`fixed inset-0 z-50 overflow-hidden animate-in slide-in-from-right duration-300 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50'
+        className={`fixed inset-0 z-[60] overflow-hidden animate-in slide-in-from-right duration-300 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50'
           }`}
         role="dialog"
         aria-modal="true"
