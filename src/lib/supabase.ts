@@ -11,8 +11,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 /**
  * Mutable token getter — set by useUserProfile when Clerk session loads.
- * This allows the module-level Supabase client to use Clerk's session token
- * for RLS without needing to create the client inside a React component.
+ * This will be used by the accessToken callback once we tighten RLS policies
+ * in Step 5.4. For now, with permissive policies, the anon key is sufficient.
  */
 let _getClerkToken: (() => Promise<string | null>) | null = null;
 
@@ -22,11 +22,10 @@ export const setClerkTokenGetter = (getter: () => Promise<string | null>) => {
 
 export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabaseAnonKey
   ? createClient<Database>(supabaseUrl, supabaseAnonKey, {
-      accessToken: async () => {
-        if (_getClerkToken) {
-          return await _getClerkToken();
-        }
-        return null;
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false,
       },
     })
   : null;
