@@ -969,7 +969,11 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
 
                 {/* Move to Category */}
                 {canManageChannels && onMoveChannelToCategory && categories.length > 0 && (
-                  <div className="relative">
+                  <div
+                    className="relative"
+                    onMouseEnter={() => setShowMoveSubmenu(true)}
+                    onMouseLeave={() => setShowMoveSubmenu(false)}
+                  >
                     <button
                       onClick={() => setShowMoveSubmenu(!showMoveSubmenu)}
                       className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
