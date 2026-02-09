@@ -34,6 +34,14 @@ import {
   rejectInviteRequest,
   joinByInviteCode,
   getChannelRoleAccessBulk,
+  setChannelRoleAccess,
+  timeoutMember,
+  removeTimeout,
+  isMemberTimedOut,
+  addAuditLogEntry,
+  setChannelNotificationOverride,
+  getUserNotificationOverrides,
+  sendWelcomeMessage,
 } from '../lib/database';
 
 // ── Types ──────────────────────────────────────────────────────
@@ -68,7 +76,7 @@ export function useServerState({
   const [servers, setServers] = useState<any[]>([]);
   const [activeServerId, setActiveServerId] = useState<string | null>(initialServerId || null);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'chat' | 'settings' | 'roles' | 'members'>('chat');
+  const [viewMode, setViewMode] = useState<'chat' | 'settings' | 'roles' | 'members' | 'audit'>('chat');
   const [loading, setLoading] = useState(true);
 
   // Server data
@@ -87,6 +95,12 @@ export function useServerState({
 
   // Unread counts
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+
+  // Timeout state
+  const [isTimedOut, setIsTimedOut] = useState(false);
+
+  // Channel notification overrides
+  const [channelNotificationOverrides, setChannelNotificationOverrides] = useState<Record<string, string>>({});
 
   // Invite requests
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
@@ -554,6 +568,47 @@ export function useServerState({
     }
   }, [channels]);
 
+  // ── Timeout handlers ──────────────────────────────────────────
+
+  const handleTimeoutMember = useCallback(async (userId: string, minutes: number) => {
+    if (!activeServerId) return;
+    await timeoutMember(activeServerId, userId, minutes);
+    await addAuditLogEntry(activeServerId, supabaseId || '', 'timeout_member', { userId, minutes });
+    // Refresh members
+    const refreshedMembers = await getServerMembers(activeServerId);
+    setMembers(refreshedMembers || []);
+    showSuccess('Member timed out');
+  }, [activeServerId, supabaseId]);
+
+  const handleRemoveTimeout = useCallback(async (userId: string) => {
+    if (!activeServerId) return;
+    await removeTimeout(activeServerId, userId);
+    await addAuditLogEntry(activeServerId, supabaseId || '', 'remove_timeout', { userId });
+    showSuccess('Timeout removed');
+  }, [activeServerId, supabaseId]);
+
+  // Check if current user is timed out
+  useEffect(() => {
+    if (!activeServerId || !supabaseId) { setIsTimedOut(false); return; }
+    isMemberTimedOut(activeServerId, supabaseId).then(setIsTimedOut).catch(() => setIsTimedOut(false));
+  }, [activeServerId, supabaseId]);
+
+  // ── Channel notification handlers ─────────────────────────────
+
+  const handleSetChannelNotification = useCallback(async (channelId: string, level: string) => {
+    if (!supabaseId) return;
+    await setChannelNotificationOverride(channelId, supabaseId, level);
+    setChannelNotificationOverrides(prev => ({ ...prev, [channelId]: level }));
+  }, [supabaseId]);
+
+  // Load notification overrides
+  useEffect(() => {
+    if (!supabaseId || !activeServerId) return;
+    getUserNotificationOverrides(supabaseId).then(overrides => {
+      setChannelNotificationOverrides(overrides || {});
+    }).catch(() => {});
+  }, [supabaseId, activeServerId]);
+
   return {
     // Core state
     servers, activeServerId, setActiveServerId,
@@ -603,5 +658,12 @@ export function useServerState({
 
     // Ban handlers
     handleBanMember, handleUnbanMember,
+
+    // Timeout handlers
+    handleTimeoutMember, handleRemoveTimeout,
+    isTimedOut,
+
+    // Notification handlers
+    channelNotificationOverrides, handleSetChannelNotification,
   };
 }

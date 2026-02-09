@@ -175,6 +175,7 @@ export interface CreateChannelData {
   isPrivate?: boolean;
   emojiIcon?: string;
   allowedRoleIds?: string[];
+  slowmodeSeconds?: number;
 }
 
 export interface CreateRoleData {
@@ -190,6 +191,9 @@ export interface UpdateServerData {
   icon_url?: string;
   banner_url?: string;
   is_private?: boolean;
+  welcome_enabled?: boolean;
+  welcome_message?: string;
+  default_notification_level?: string;
 }
 
 export interface UpdateChannelData {

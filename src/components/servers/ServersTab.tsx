@@ -12,6 +12,7 @@ import CreateChannelDialog from './CreateChannelDialog';
 import ServerSettings from './ServerSettings';
 import RoleManager from './RoleManager';
 import MemberList from './MemberList';
+import AuditLog from './AuditLog';
 
 interface ServersTabProps {
   nightMode: boolean;
@@ -20,6 +21,8 @@ interface ServersTabProps {
   onBack?: () => void;
   hideServerRail?: boolean;
 }
+
+type ViewMode = 'chat' | 'settings' | 'roles' | 'members' | 'audit';
 
 const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange, initialServerId, onBack, hideServerRail }) => {
   const { profile } = useUserProfile();
@@ -230,6 +233,19 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           bans={sv.bans}
           onBanMember={sv.handleBanMember}
           onUnbanMember={sv.handleUnbanMember}
+          onTimeoutMember={sv.handleTimeoutMember}
+          onRemoveTimeout={sv.handleRemoveTimeout}
+        />
+      );
+    }
+
+    // Audit log view
+    if (sv.viewMode === 'audit' && sv.activeServerId) {
+      return (
+        <AuditLog
+          nightMode={nightMode}
+          serverId={sv.activeServerId}
+          onBack={handleBackFromContent}
         />
       );
     }
@@ -248,6 +264,8 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           serverId={sv.activeServerId || undefined}
           members={sv.members}
           permissions={sv.permissions}
+          slowmodeSeconds={(activeChannel as any)?.slowmode_seconds || 0}
+          isTimedOut={sv.isTimedOut}
         />
       );
     }
@@ -368,6 +386,9 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
                   onOpenSettings={() => { sv.setViewMode('settings'); setMobileView('chat'); }}
                   onOpenRoles={() => { sv.setViewMode('roles'); setMobileView('chat'); }}
                   onOpenMembers={() => { sv.setViewMode('members'); setMobileView('chat'); }}
+                  onOpenAuditLog={() => { sv.setViewMode('audit'); setMobileView('chat'); }}
+                  channelNotificationOverrides={sv.channelNotificationOverrides}
+                  onSetChannelNotification={sv.handleSetChannelNotification}
                   fullWidth
                 />
               </div>
@@ -453,6 +474,9 @@ const ServersTab: React.FC<ServersTabProps> = ({ nightMode, onActiveServerChange
           onOpenSettings={() => sv.setViewMode('settings')}
           onOpenRoles={() => sv.setViewMode('roles')}
           onOpenMembers={() => sv.setViewMode('members')}
+          onOpenAuditLog={() => sv.setViewMode('audit')}
+          channelNotificationOverrides={sv.channelNotificationOverrides}
+          onSetChannelNotification={sv.handleSetChannelNotification}
         />
       )}
 

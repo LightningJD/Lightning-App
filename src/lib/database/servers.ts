@@ -504,7 +504,8 @@ export const createChannel = async (serverId: string, channelData: CreateChannel
       name: channelData.name.toLowerCase().replace(/\s+/g, '-'),
       topic: channelData.topic,
       is_private: channelData.isPrivate ?? false,
-      emoji_icon: channelData.emojiIcon || null
+      emoji_icon: channelData.emojiIcon || null,
+      slowmode_seconds: channelData.slowmodeSeconds || 0
     })
     .select()
     .single();
@@ -1665,6 +1666,395 @@ export const markChannelRead = async (channelId: string, userId: string): Promis
 /**
  * Get unread message counts per channel for a user in a server
  */
+// ============================================
+// TIMEOUT SYSTEM
+// ============================================
+
+/**
+ * Timeout a member (temporary mute)
+ */
+export const timeoutMember = async (
+  serverId: string,
+  userId: string,
+  timedOutBy: string,
+  durationMinutes: number,
+  reason?: string
+): Promise<any> => {
+  if (!supabase) return null;
+
+  const timedOutUntil = new Date();
+  timedOutUntil.setMinutes(timedOutUntil.getMinutes() + durationMinutes);
+
+  const { data, error } = await supabase
+    .from('server_members')
+    // @ts-ignore
+    .update({ timed_out_until: timedOutUntil.toISOString() })
+    .eq('server_id', serverId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error timing out member:', error);
+    return null;
+  }
+
+  // Log to audit log
+  await addAuditLogEntry(serverId, timedOutBy, 'member_timeout', 'member', userId, undefined, {
+    duration_minutes: durationMinutes,
+    reason: reason || null,
+    expires_at: timedOutUntil.toISOString(),
+  });
+
+  return data;
+};
+
+/**
+ * Remove timeout from a member
+ */
+export const removeTimeout = async (serverId: string, userId: string, removedBy: string): Promise<boolean> => {
+  if (!supabase) return false;
+
+  const { error } = await supabase
+    .from('server_members')
+    // @ts-ignore
+    .update({ timed_out_until: null })
+    .eq('server_id', serverId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Error removing timeout:', error);
+    return false;
+  }
+
+  await addAuditLogEntry(serverId, removedBy, 'member_timeout_removed', 'member', userId);
+
+  return true;
+};
+
+/**
+ * Check if a member is currently timed out
+ */
+export const isMemberTimedOut = async (serverId: string, userId: string): Promise<boolean> => {
+  if (!supabase) return false;
+
+  const { data, error } = await supabase
+    .from('server_members')
+    .select('timed_out_until')
+    .eq('server_id', serverId)
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) return false;
+
+  const timedOutUntil = (data as any).timed_out_until;
+  if (!timedOutUntil) return false;
+
+  return new Date(timedOutUntil) > new Date();
+};
+
+// ============================================
+// AUDIT LOG
+// ============================================
+
+/**
+ * Add an entry to the server audit log
+ */
+export const addAuditLogEntry = async (
+  serverId: string,
+  actorId: string,
+  actionType: string,
+  targetType?: string,
+  targetId?: string,
+  targetName?: string,
+  details?: Record<string, any>
+): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('server_audit_log')
+    // @ts-ignore
+    .insert({
+      server_id: serverId,
+      actor_id: actorId,
+      action_type: actionType,
+      target_type: targetType || null,
+      target_id: targetId || null,
+      target_name: targetName || null,
+      details: details || null,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding audit log entry:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
+ * Get audit log entries for a server
+ */
+export const getAuditLog = async (
+  serverId: string,
+  options?: { limit?: number; offset?: number; actionType?: string }
+): Promise<any[]> => {
+  if (!supabase) return [];
+
+  let query = supabase
+    .from('server_audit_log')
+    // @ts-ignore
+    .select('*, actor:users!actor_id(id, username, display_name, avatar_emoji, avatar_url)')
+    .eq('server_id', serverId)
+    .order('created_at', { ascending: false });
+
+  if (options?.actionType) {
+    query = query.eq('action_type', options.actionType);
+  }
+
+  const pageSize = options?.limit || 50;
+  const offset = options?.offset || 0;
+  query = query.range(offset, offset + pageSize - 1);
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching audit log:', error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// ============================================
+// OWNERSHIP TRANSFER
+// ============================================
+
+/**
+ * Transfer server ownership to another member
+ */
+export const transferServerOwnership = async (
+  serverId: string,
+  currentOwnerId: string,
+  newOwnerId: string
+): Promise<boolean> => {
+  if (!supabase) return false;
+
+  // Get Owner and Admin roles
+  const { data: roles } = await supabase
+    .from('server_roles')
+    .select('id, name')
+    .eq('server_id', serverId);
+
+  if (!roles) return false;
+
+  const ownerRole = (roles as any[]).find((r: any) => r.name === 'Owner');
+  const adminRole = (roles as any[]).find((r: any) => r.name === 'Admin');
+
+  if (!ownerRole || !adminRole) return false;
+
+  // Demote current owner to Admin
+  const { error: demoteErr } = await supabase
+    .from('server_members')
+    // @ts-ignore
+    .update({ role_id: adminRole.id })
+    .eq('server_id', serverId)
+    .eq('user_id', currentOwnerId);
+
+  if (demoteErr) {
+    console.error('Error demoting current owner:', demoteErr);
+    return false;
+  }
+
+  // Promote new owner
+  const { error: promoteErr } = await supabase
+    .from('server_members')
+    // @ts-ignore
+    .update({ role_id: ownerRole.id })
+    .eq('server_id', serverId)
+    .eq('user_id', newOwnerId);
+
+  if (promoteErr) {
+    console.error('Error promoting new owner:', promoteErr);
+    return false;
+  }
+
+  // Update server creator_id
+  const { error: updateErr } = await supabase
+    .from('servers')
+    // @ts-ignore
+    .update({ creator_id: newOwnerId })
+    .eq('id', serverId);
+
+  if (updateErr) {
+    console.error('Error updating server creator:', updateErr);
+  }
+
+  // Log the transfer
+  await addAuditLogEntry(serverId, currentOwnerId, 'ownership_transferred', 'member', newOwnerId);
+
+  return true;
+};
+
+// ============================================
+// CHANNEL NOTIFICATION OVERRIDES
+// ============================================
+
+/**
+ * Get notification override for a channel
+ */
+export const getChannelNotificationOverride = async (
+  channelId: string,
+  userId: string
+): Promise<string | null> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('channel_notification_overrides')
+    .select('level')
+    .eq('channel_id', channelId)
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) return null;
+  return (data as any).level;
+};
+
+/**
+ * Set notification override for a channel
+ */
+export const setChannelNotificationOverride = async (
+  channelId: string,
+  userId: string,
+  level: string // 'default' | 'all' | 'mentions' | 'none'
+): Promise<boolean> => {
+  if (!supabase) return false;
+
+  if (level === 'default') {
+    // Remove override
+    const { error } = await supabase
+      .from('channel_notification_overrides')
+      .delete()
+      .eq('channel_id', channelId)
+      .eq('user_id', userId);
+
+    return !error;
+  }
+
+  const { error } = await supabase
+    .from('channel_notification_overrides')
+    // @ts-ignore
+    .upsert({
+      channel_id: channelId,
+      user_id: userId,
+      level,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'channel_id,user_id' });
+
+  if (error) {
+    console.error('Error setting notification override:', error);
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * Get all notification overrides for a user in a server
+ */
+export const getUserNotificationOverrides = async (
+  serverId: string,
+  userId: string
+): Promise<Record<string, string>> => {
+  if (!supabase) return {};
+
+  // Get all channel IDs for this server
+  const { data: channels } = await supabase
+    .from('server_channels')
+    .select('id')
+    .eq('server_id', serverId);
+
+  if (!channels || channels.length === 0) return {};
+
+  const channelIds = channels.map((c: any) => c.id);
+
+  const { data, error } = await supabase
+    .from('channel_notification_overrides')
+    .select('channel_id, level')
+    .eq('user_id', userId)
+    .in('channel_id', channelIds);
+
+  if (error) return {};
+
+  const overrides: Record<string, string> = {};
+  (data || []).forEach((d: any) => {
+    overrides[d.channel_id] = d.level;
+  });
+
+  return overrides;
+};
+
+// ============================================
+// WELCOME MESSAGE
+// ============================================
+
+/**
+ * Send welcome message to new member in #general channel
+ */
+export const sendWelcomeMessage = async (serverId: string, userId: string, displayName: string): Promise<boolean> => {
+  if (!supabase) return false;
+
+  // Get server welcome settings + name + creator in one query
+  const { data: server } = await supabase
+    .from('servers')
+    .select('name, welcome_enabled, welcome_message, creator_id')
+    .eq('id', serverId)
+    .single();
+
+  if (!server || !(server as any).welcome_enabled || !(server as any).welcome_message) return false;
+
+  // Find #general channel (or first channel)
+  const { data: channels } = await supabase
+    .from('server_channels')
+    .select('id, name')
+    .eq('server_id', serverId)
+    .order('position', { ascending: true });
+
+  if (!channels || channels.length === 0) return false;
+
+  const generalChannel = (channels as any[]).find((c: any) => c.name === 'general') || channels[0];
+
+  // Format welcome message (replaceAll for multiple occurrences)
+  const serverName = (server as any).name || '';
+  const message = ((server as any).welcome_message as string)
+    .replaceAll('{user}', displayName)
+    .replaceAll('{server}', serverName);
+
+  const serverData = server;
+
+  const { error } = await supabase
+    .from('channel_messages')
+    // @ts-ignore
+    .insert({
+      channel_id: (generalChannel as any).id,
+      sender_id: (serverData as any).creator_id,
+      content: `👋 ${message}`,
+    });
+
+  if (error) {
+    console.error('Error sending welcome message:', error);
+    return false;
+  }
+
+  return true;
+};
+
+// ============================================
+// UNREAD TRACKING
+// ============================================
+
 export const getUnreadCounts = async (serverId: string, userId: string): Promise<Record<string, number>> => {
   if (!supabase) return {};
 

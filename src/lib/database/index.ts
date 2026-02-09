@@ -152,7 +152,17 @@ export {
   approveInviteRequest,
   rejectInviteRequest,
   getChannelRoleAccessBulk,
-  setChannelRoleAccess
+  setChannelRoleAccess,
+  timeoutMember,
+  removeTimeout,
+  isMemberTimedOut,
+  addAuditLogEntry,
+  getAuditLog,
+  transferServerOwnership,
+  getChannelNotificationOverride,
+  setChannelNotificationOverride,
+  getUserNotificationOverrides,
+  sendWelcomeMessage
 } from './servers.js';
 
 // Real-time Subscriptions

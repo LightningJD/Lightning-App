@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Pin, Send, Smile, X, Image as ImageIcon, Edit3, Trash2, Reply, CornerUpRight, Search, Check, MoreHorizontal } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Pin, Send, Smile, X, Image as ImageIcon, Edit3, Trash2, Reply, CornerUpRight, Search, Check, MoreHorizontal, Clock } from 'lucide-react';
 import { useChannelMessages } from '../../hooks/useChannelMessages';
 import type { ChannelMessage, MessageReaction } from '../../hooks/useChannelMessages';
 
@@ -19,6 +19,8 @@ interface ChannelChatProps {
     pin_messages: boolean;
     delete_messages: boolean;
   };
+  slowmodeSeconds?: number;
+  isTimedOut?: boolean;
 }
 
 // ── Constants ──────────────────────────────────────────────────
@@ -62,12 +64,34 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   userDisplayName,
   serverId,
   members,
-  permissions
+  permissions,
+  slowmodeSeconds = 0,
+  isTimedOut = false,
 }) => {
   // All state + logic from the hook
   const ch = useChannelMessages({
     channelId, userId, userDisplayName, serverId, members, permissions,
   });
+
+  // Slowmode tracking (UI-only, wraps around the hook)
+  const [slowmodeCooldown, setSlowmodeCooldown] = useState(0);
+  const slowmodeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Start slowmode cooldown after sending a message
+  useEffect(() => {
+    if (slowmodeSeconds > 0 && slowmodeCooldown > 0) {
+      slowmodeTimerRef.current = setInterval(() => {
+        setSlowmodeCooldown(prev => {
+          if (prev <= 1) {
+            if (slowmodeTimerRef.current) clearInterval(slowmodeTimerRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => { if (slowmodeTimerRef.current) clearInterval(slowmodeTimerRef.current); };
+    }
+  }, [slowmodeCooldown, slowmodeSeconds]);
 
   // UI-only state
   const [expandedImage, setExpandedImage] = React.useState<string | null>(null);
@@ -75,6 +99,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   const messageLongPressRef = useRef<NodeJS.Timeout | null>(null);
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
+  // (Refs, data loading, and handlers are all managed by useChannelMessages hook above)
   // ── Render @mention text ───────────────────────────────────
 
   const renderMessageContent = (content: string) => {
@@ -854,8 +879,26 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         </div>
       )}
 
+      {/* ── Slowmode / Timeout indicator ─────────────────── */}
+      {(slowmodeCooldown > 0 || isTimedOut) && permissions.send_messages && (
+        <div
+          className="px-4 py-2 flex items-center gap-2 flex-shrink-0"
+          style={{
+            borderTop: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+            background: isTimedOut
+              ? nightMode ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)'
+              : nightMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)',
+          }}
+        >
+          <Clock className={`w-3.5 h-3.5 ${isTimedOut ? 'text-red-400' : 'text-amber-400'}`} />
+          <span className={`text-xs font-medium ${isTimedOut ? (nightMode ? 'text-red-300' : 'text-red-600') : (nightMode ? 'text-amber-300' : 'text-amber-600')}`}>
+            {isTimedOut ? 'You are timed out in this server' : `Slowmode active — wait ${slowmodeCooldown}s`}
+          </span>
+        </div>
+      )}
+
       {/* ── Message Input — pill-shaped glass bar ──────────── */}
-      {permissions.send_messages ? (
+      {permissions.send_messages && !isTimedOut ? (
         <form
           onSubmit={ch.handleSendMessage}
           className="px-4 py-3 flex gap-3 items-end flex-shrink-0"
@@ -929,7 +972,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           />
           <button
             type="submit"
-            disabled={!ch.newMessage.trim() && !ch.pendingImage}
+            disabled={(!ch.newMessage.trim() && !ch.pendingImage) || slowmodeCooldown > 0 || isTimedOut}
             className="w-10 h-10 rounded-full disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center transition-all duration-300 text-white hover:scale-110 hover:-translate-y-0.5 active:scale-95"
             style={{
               background: (ch.newMessage.trim() || ch.pendingImage)
@@ -954,7 +997,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
             color: nightMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
           }}
         >
-          You do not have permission to send messages in this channel.
+          {isTimedOut ? 'You are timed out and cannot send messages.' : 'You do not have permission to send messages in this channel.'}
         </div>
       )}
 
