@@ -32,6 +32,8 @@ interface ChannelSidebarProps {
   onReorderChannels?: (orderedIds: string[], categoryId: string | null) => void;
   onMoveChannelToCategory?: (channelId: string, targetCategoryId: string | null) => void;
   unreadCounts?: Record<string, number>;
+  roles?: Array<{ id: string; name: string; color: string; position: number; is_default: boolean }>;
+  channelAccess?: Record<string, string[]>;
 }
 
 // Map common channel names to emoji icons
@@ -59,7 +61,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   nightMode, serverName, serverEmoji, serverId, categories, channels,
   activeChannelId, onSelectChannel, onCreateChannel, onOpenSettings, onOpenRoles, onOpenMembers,
   onShareInvite, canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory,
-  onReorderCategories, onUpdateChannel, onDeleteChannel, onReorderChannels, onMoveChannelToCategory, unreadCounts
+  onReorderCategories, onUpdateChannel, onDeleteChannel, onReorderChannels, onMoveChannelToCategory, unreadCounts,
+  roles, channelAccess
 }) => {
   const { premium, isPremium } = useServerPremium(serverId);
 
@@ -87,6 +90,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   const [editChannelName, setEditChannelName] = useState('');
   const [editChannelTopic, setEditChannelTopic] = useState('');
   const [editChannelPrivate, setEditChannelPrivate] = useState(false);
+  const [editChannelAllowedRoles, setEditChannelAllowedRoles] = useState<string[]>([]);
   const [editChannelEmoji, setEditChannelEmoji] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -314,6 +318,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       setEditChannelTopic(ch.topic || '');
       setEditChannelPrivate(ch.is_private || false);
       setEditChannelEmoji(ch.emoji_icon || '');
+      setEditChannelAllowedRoles(channelAccess?.[channelId] || []);
       setShowEmojiPicker(false);
     }
     setContextMenu(null);
@@ -326,6 +331,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         topic: editChannelTopic.trim() || null,
         is_private: editChannelPrivate,
         emoji_icon: editChannelEmoji || null,
+        allowed_role_ids: editChannelPrivate ? editChannelAllowedRoles : [],
       });
     }
     setEditingChannelId(null);
@@ -333,6 +339,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     setEditChannelTopic('');
     setEditChannelPrivate(false);
     setEditChannelEmoji('');
+    setEditChannelAllowedRoles([]);
     setShowEmojiPicker(false);
   };
 
@@ -1053,7 +1060,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       {/* Channel edit modal — rendered via portal to escape backdrop-filter containing block */}
       {editingChannelId && createPortal(
         <>
-          <div className="fixed inset-0 z-[100] bg-black/30" onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); setEditChannelPrivate(false); setEditChannelEmoji(''); setShowEmojiPicker(false); }} />
+          <div className="fixed inset-0 z-[100] bg-black/30" onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); setEditChannelPrivate(false); setEditChannelEmoji(''); setEditChannelAllowedRoles([]); setShowEmojiPicker(false); }} />
           <div
             className="fixed z-[101] rounded-2xl shadow-2xl p-5 w-[90%] max-w-sm"
             style={{
@@ -1158,6 +1165,52 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                   <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${editChannelPrivate ? 'translate-x-5' : 'translate-x-1'}`} />
                 </button>
               </div>
+
+              {/* Role access selector (shown when private) */}
+              {editChannelPrivate && roles && roles.filter(r => !r.is_default).length > 0 && (
+                <div>
+                  <p className={`text-xs font-semibold mb-2 ${nightMode ? 'text-white/60' : 'text-black/60'}`}>
+                    Roles with access
+                  </p>
+                  <div
+                    className={`space-y-1 max-h-32 overflow-y-auto rounded-xl p-2 ${
+                      nightMode ? 'bg-white/5 border border-white/10' : 'bg-black/3 border border-black/5'
+                    }`}
+                  >
+                    {roles.filter(r => !r.is_default).sort((a, b) => a.position - b.position).map(role => (
+                      <label
+                        key={role.id}
+                        className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                          nightMode ? 'hover:bg-white/5' : 'hover:bg-black/3'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={editChannelAllowedRoles.includes(role.id)}
+                          onChange={() => {
+                            setEditChannelAllowedRoles(prev =>
+                              prev.includes(role.id)
+                                ? prev.filter(id => id !== role.id)
+                                : [...prev, role.id]
+                            );
+                          }}
+                          className="w-3.5 h-3.5 rounded accent-blue-500"
+                        />
+                        <div
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: role.color || '#99AAB5' }}
+                        />
+                        <span className={`text-xs font-medium ${nightMode ? 'text-white/70' : 'text-black/70'}`}>
+                          {role.name}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className={`text-[10px] mt-1.5 ${nightMode ? 'text-white/25' : 'text-black/25'}`}>
+                    Server owner and "Manage Channels" roles always have access.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-2 mt-4">
@@ -1170,7 +1223,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                 Save
               </button>
               <button
-                onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); setEditChannelPrivate(false); setEditChannelEmoji(''); setShowEmojiPicker(false); }}
+                onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); setEditChannelPrivate(false); setEditChannelEmoji(''); setEditChannelAllowedRoles([]); setShowEmojiPicker(false); }}
                 className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
                   nightMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
                 }`}
