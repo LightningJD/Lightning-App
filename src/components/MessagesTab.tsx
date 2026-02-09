@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Smile, Plus, X, Reply, Trash2, MoreVertical, UserX, Image as ImageIcon } from 'lucide-react';
-import { createGroup, sendGroupMessage, blockUser, sendMessage } from '../lib/database';
+import { createGroup, sendGroupMessage, blockUser, sendMessage, getUserConversations, isUserBlocked, isBlockedBy } from '../lib/database';
 import { useUserProfile } from './useUserProfile';
 import { showError, showSuccess } from '../lib/toast';
 import { ConversationSkeleton } from './SkeletonLoader';
@@ -39,7 +39,7 @@ const decodeHTMLEntities = (text: string): string => {
 interface MessagesTabProps {
   nightMode: boolean;
   onConversationsCountChange?: (count: number) => void;
-  startChatWith?: { id: string; name: string; avatar?: string } | null;
+  startChatWith?: { id: string; name: string; avatar?: string; avatarImage?: string; online?: boolean } | null;
   initialConversation?: { id: string | number; userId: string } | null;
   onBack?: () => void;
 }
@@ -63,7 +63,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
 
   const {
     activeChat, setActiveChat,
-    messages, conversations,
+    messages, conversations, setConversations,
     loading, isInitialLoad,
     messageReactions,
     showReactionPicker, setShowReactionPicker,
@@ -102,6 +102,42 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   const messageLongPressRef = useRef<NodeJS.Timeout | null>(null);
   const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
+  // When startChatWith is provided, open chat directly instead of showing dialog
+  useEffect(() => {
+    if (!startChatWith?.id || !startChatWith?.name) return;
+
+    // Check if conversation already exists in the list
+    const existing = conversations.find(c => c.userId === startChatWith.id);
+    if (existing) {
+      // Conversation exists — just open it
+      setActiveChat(existing.id);
+      setShowNewChatDialog(false);
+      return;
+    }
+
+    // No existing conversation — create a virtual one so the chat view renders
+    const virtualConvo: Conversation = {
+      id: startChatWith.id,
+      userId: startChatWith.id,
+      name: startChatWith.name,
+      avatar: startChatWith.avatar || '👤',
+      avatarImage: startChatWith.avatarImage,
+      lastMessage: '',
+      timestamp: new Date().toISOString(),
+      online: startChatWith.online,
+      unreadCount: 0,
+    };
+
+    // Add virtual conversation to the list and open it
+    setConversations(prev => {
+      // Avoid duplicates
+      if (prev.some(c => c.userId === startChatWith.id)) return prev;
+      return [virtualConvo, ...prev];
+    });
+    setActiveChat(startChatWith.id);
+    setShowNewChatDialog(false);
+  }, [startChatWith]);
+
   // Close conversation menu when switching chats
   useEffect(() => {
     setShowConversationMenu(false);
@@ -121,7 +157,19 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   ];
 
   if (activeChat) {
-    const conversation = conversations.find(c => c.id === activeChat);
+    const conversation = conversations.find(c => c.id === activeChat)
+      // Fallback: build a virtual conversation from startChatWith for friends without prior messages
+      || (startChatWith?.id === String(activeChat) ? {
+        id: startChatWith.id,
+        userId: startChatWith.id,
+        name: startChatWith.name,
+        avatar: startChatWith.avatar || '👤',
+        avatarImage: startChatWith.avatarImage,
+        lastMessage: '',
+        timestamp: new Date().toISOString(),
+        online: startChatWith.online,
+        unreadCount: 0,
+      } as Conversation : null);
 
     if (!conversation) {
       // If conversations haven't loaded yet, show a loading indicator instead of null

@@ -10,7 +10,7 @@ interface Connection {
 
 interface UseNewChatOptions {
   userId?: string;
-  startChatWith?: { id: string; name: string; avatar?: string } | null;
+  startChatWith?: { id: string; name: string; avatar?: string; avatarImage?: string; online?: boolean } | null;
 }
 
 export function useNewChat({ userId, startChatWith }: UseNewChatOptions) {
@@ -53,19 +53,8 @@ export function useNewChat({ userId, startChatWith }: UseNewChatOptions) {
     }
   }, [showNewChatDialog]);
 
-  // Pre-fill from startChatWith prop
-  useEffect(() => {
-    if (startChatWith?.id && startChatWith?.name) {
-      setSelectedConnections([{
-        id: startChatWith.id,
-        name: startChatWith.name,
-        avatar: startChatWith.avatar || '👤',
-        status: 'online',
-      }]);
-      setShowNewChatDialog(true);
-      setShowSuggestions(false);
-    }
-  }, [startChatWith]);
+  // Note: startChatWith is now handled directly by MessagesTab
+  // which opens the chat view immediately instead of showing the dialog.
 
   // Reset state when dialog closes
   const closeDialog = () => {

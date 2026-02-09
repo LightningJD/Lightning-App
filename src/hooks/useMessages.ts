@@ -243,24 +243,27 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
       if (!activeChat || !userId) return;
       setLoading(true);
       const conversation = conversations.find(c => c.id === activeChat);
-      if (conversation) {
-        await markConversationAsRead(userId, conversation.userId);
-        const conversationMessages = await getConversation(userId, conversation.userId);
-        setMessages(conversationMessages || []);
+      // Use conversation.userId if found, otherwise treat activeChat as a userId
+      // (supports virtual conversations created for friends without prior messages)
+      const chatUserId = conversation?.userId || String(activeChat);
 
-        // Load reactions
-        const reactionsMap: Record<string | number, any[]> = {};
-        for (const msg of conversationMessages || []) {
-          const reactions = await getMessageReactions(String(msg.id));
-          reactionsMap[msg.id] = reactions.map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
-        }
-        setMessageReactions(reactionsMap);
+      await markConversationAsRead(userId, chatUserId);
+      const conversationMessages = await getConversation(userId, chatUserId);
+      setMessages(conversationMessages || []);
 
-        // Refresh conversations for unread counts
-        const updated = await getUserConversations(userId);
-        const unblocked = await filterBlockedConversations(userId, updated);
-        setConversations(unblocked);
+      // Load reactions
+      const reactionsMap: Record<string | number, any[]> = {};
+      for (const msg of conversationMessages || []) {
+        const reactions = await getMessageReactions(String(msg.id));
+        reactionsMap[msg.id] = reactions.map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
       }
+      setMessageReactions(reactionsMap);
+
+      // Refresh conversations for unread counts
+      const updated = await getUserConversations(userId);
+      const unblocked = await filterBlockedConversations(userId, updated);
+      setConversations(unblocked);
+
       setLoading(false);
     };
     loadMessages();
@@ -356,14 +359,16 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     if (!checkAndNotify('send_message', showError)) return;
 
     const conversation = conversations.find(c => c.id === activeChat);
-    if (!conversation) return;
+    // For virtual conversations (friends without prior messages), use activeChat as userId
+    const chatUserId = conversation?.userId || String(activeChat);
+    if (!conversation && !activeChat) return;
 
     // Block checks
-    const blocked = await isUserBlocked(profile.supabaseId, conversation.userId);
-    const blockedBy = await isBlockedBy(profile.supabaseId, conversation.userId);
+    const blocked = await isUserBlocked(profile.supabaseId, chatUserId);
+    const blockedBy = await isBlockedBy(profile.supabaseId, chatUserId);
     if (blocked || blockedBy) { showError('Unable to send message to this user'); return; }
 
-    const { allowed, reason } = await canSendMessage(conversation.userId, profile.supabaseId);
+    const { allowed, reason } = await canSendMessage(chatUserId, profile.supabaseId);
     if (!allowed) { showError(reason || 'Unable to send message'); return; }
 
     // Prepare
@@ -380,7 +385,7 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     const tempMessage: Message = {
       id: Date.now(),
       sender_id: profile.supabaseId,
-      recipient_id: conversation.userId,
+      recipient_id: chatUserId,
       content: messageContent || (imageToUpload ? '📷 Image' : ''),
       created_at: new Date().toISOString(),
       image_url: imagePreview || undefined,
@@ -429,7 +434,7 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
 
       // Send to database
       const finalContent = messageContent || (uploadedImageUrl ? '📷 Image' : '');
-      const result = await sendMessage(profile.supabaseId, conversation.userId, finalContent, replyToId, uploadedImageUrl);
+      const result = await sendMessage(profile.supabaseId, chatUserId, finalContent, replyToId, uploadedImageUrl);
       if (result.error) throw new Error(result.error);
 
       const savedMessage = result.data;
@@ -463,9 +468,9 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
       });
 
       // Background reload
-      getConversation(profile.supabaseId, conversation.userId)
+      getConversation(profile.supabaseId, chatUserId)
         .then(async (updatedMessages) => {
-          if (updatedMessages && updatedMessages.length > 0 && activeChat === conversation.id) {
+          if (updatedMessages && updatedMessages.length > 0 && activeChat) {
             setMessages(updatedMessages);
             const reactionsMap: Record<string | number, any[]> = {};
             for (const msg of updatedMessages || []) {

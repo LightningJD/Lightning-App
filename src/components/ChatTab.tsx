@@ -98,7 +98,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
   const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
 
   // For passing through to MessagesTab when a new chat is needed
-  const [dmStartChatWith, setDmStartChatWith] = useState<{ id: string; name: string; avatar?: string } | null>(null);
+  const [dmStartChatWith, setDmStartChatWith] = useState<{ id: string; name: string; avatar?: string; avatarImage?: string; online?: boolean } | null>(null);
 
   // For viewing a user's profile
   const [viewingUser, setViewingUser] = useState<any>(null);
@@ -462,7 +462,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
                       <button
                         className="flex-1 min-w-0 text-left active:scale-[0.98] transition-all"
                         onClick={() => {
-                          setDmStartChatWith({ id: friend.id, name: friend.name, avatar: friend.avatar });
+                          setDmStartChatWith({ id: friend.id, name: friend.name, avatar: friend.avatar, avatarImage: friend.avatarImage, online: friend.online });
                           setSelectedConversation(null);
                           setView('dm');
                         }}
