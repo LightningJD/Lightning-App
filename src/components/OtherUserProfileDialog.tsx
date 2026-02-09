@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, MessageCircle, Flag, UserPlus, Heart, UserX, UserCheck, Users, ArrowLeft } from 'lucide-react';
+import { MapPin, MessageCircle, Flag, UserPlus, UserX, UserCheck, Users, ArrowLeft } from 'lucide-react';
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
 import { sanitizeUserContent } from '../lib/sanitization';
