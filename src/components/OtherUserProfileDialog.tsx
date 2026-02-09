@@ -241,127 +241,132 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
 
   if (!user) return null;
 
+  // Resolve all profile fields from DB or fallback
+  const avatarImg = fullProfile?.avatar_url || user.avatarImage;
+  const avatarEmoji = fullProfile?.avatar_emoji || user.avatar;
+  const displayName = fullProfile?.display_name || user.displayName;
+  const username = fullProfile?.username || user.username;
+  const location = fullProfile?.location_city || user.location;
+
+  // ProfileCard fields
+  const churchName = fullProfile?.church_name || user.churchName || church?.name;
+  const churchLocation = fullProfile?.church_location || user.churchLocation || church?.location;
+  const denomination = fullProfile?.denomination || user.denomination || church?.denomination;
+  const yearSaved = fullProfile?.year_saved || user.yearSaved;
+  const isBaptized = fullProfile?.is_baptized || user.isBaptized;
+  const yearBaptized = fullProfile?.year_baptized || user.yearBaptized;
+  const favoriteVerse = fullProfile?.favorite_verse || user.favoriteVerse;
+  const favoriteVerseRef = fullProfile?.favorite_verse_ref || user.favoriteVerseRef;
+  const faithInterests = fullProfile?.faith_interests || user.faithInterests;
+  const spotifyUrl = fullProfile?.spotify_url || user.music?.spotifyUrl;
+  const songName = (fullProfile as any)?.song_name || user.music?.trackName;
+  const songArtist = (fullProfile as any)?.song_artist || user.music?.artist;
+
+  const hasProfileCard = churchName || favoriteVerse || (faithInterests && faithInterests.length > 0) || yearSaved || spotifyUrl;
+
+  // Bio — hide the default placeholder
+  const bioText = fullProfile?.bio || user.bio;
+  const defaultBio = 'Welcome to Lightning! Share your testimony to inspire others.';
+  const hasBio = bioText && bioText !== defaultBio;
+
+  // Testimony
+  const storyContent = testimony?.content || user.story?.content;
+  const storyTitle = testimony?.title || user.story?.title;
+  const storyLesson = testimony?.lesson || user.story?.lesson;
+  const storyId = testimony?.id || user.story?.id;
+
+  // App theme dark gradient (matches AppLayout)
+  const darkGradient = `linear-gradient(135deg, rgba(17, 24, 39, 0.42) 0%, transparent 100%),
+                        radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.035) 0%, transparent 60%),
+                        linear-gradient(45deg, #0a0a0a 0%, #15121c 50%, #191e27 100%)`;
+
   return (
     <>
-      {/* Full-screen Profile View */}
+      {/* Profile View — sits between header and bottom nav, matches app layout */}
       <div
-        className={`fixed inset-0 z-[60] flex flex-col animate-in slide-in-from-right duration-300 ${nightMode ? 'bg-[#0a0a0a]' : 'bg-gradient-to-b from-purple-50 via-blue-50 to-pink-50'
-          }`}
+        className="fixed inset-0 z-[35] flex flex-col animate-in slide-in-from-right duration-300"
+        style={{
+          background: nightMode ? darkGradient : 'linear-gradient(135deg, rgba(219, 234, 254, 0.63) 0%, transparent 100%), radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.175) 0%, transparent 60%), linear-gradient(45deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%)',
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="profile-title"
       >
-        {/* Top Navigation Bar — fixed, never scrolls */}
-        <div className={`flex-shrink-0 flex items-center px-4 py-3 ${nightMode ? 'bg-[#0a0a0a] border-b border-white/10' : 'bg-white/80 border-b border-black/5'}`}>
-          <button
-            onClick={onClose}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-100' : 'hover:bg-black/5 text-black'}`}
-            aria-label="Go back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">Back</span>
-          </button>
+        {/* Top bar — matches app header style exactly */}
+        <div className={`flex-shrink-0 backdrop-blur-xl border-b ${nightMode ? 'bg-black/10 border-white/10' : 'bg-white/10 border-white/20'}`}>
+          <div className="px-5 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={onClose}
+                className={`flex items-center gap-1.5 -ml-1 py-1 rounded-lg transition-colors ${nightMode ? 'text-slate-100 hover:text-white' : 'text-black hover:text-black/80'}`}
+                aria-label="Go back"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="font-semibold text-xl">Back</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Scrollable Content — fills remaining space below nav bar */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-6 space-y-4">
-            {/* Profile Header — matches "You" page layout */}
-            <div className="flex flex-col items-center text-center pt-4 px-4">
-              {(() => {
-                const avatarImg = fullProfile?.avatar_url || user.avatarImage;
-                const avatarEmoji = fullProfile?.avatar_emoji || user.avatar;
-                const displayName = fullProfile?.display_name || user.displayName;
-                const username = fullProfile?.username || user.username;
-                const location = fullProfile?.location_city || user.location;
-                return (
-                  <>
-                    <div
-                      className={`w-[237px] h-[237px] rounded-full flex items-center justify-center shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'
-                        } mb-4 overflow-hidden`}
-                    >
-                      {avatarImg ? (
-                        <img src={avatarImg} alt={`${displayName}'s avatar`} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-[12.14rem] leading-none select-none">{avatarEmoji}</span>
-                      )}
-                    </div>
+        {/* Scrollable Content — with bottom padding for nav bar */}
+        <div className="flex-1 overflow-y-auto pb-20">
+          <div className="py-4 space-y-4">
+            {/* Profile Header — matches "You" page layout exactly */}
+            <div className="flex flex-col items-center -mt-8 relative z-10 px-4 pt-6">
+              <div
+                className={`w-[237px] h-[237px] rounded-full flex items-center justify-center shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'
+                  } mb-4 overflow-hidden`}
+              >
+                {avatarImg ? (
+                  <img src={avatarImg} alt={`${displayName}'s avatar`} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[12.14rem] leading-none select-none">{avatarEmoji}</span>
+                )}
+              </div>
 
-                    <div className="text-center w-full">
-                      <h2 id="profile-title" className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center justify-center gap-1.5`}>
-                        {displayName}
-                      </h2>
-                      {username && (
-                        <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm opacity-70 mt-1`}>@{username}</p>
-                      )}
+              <div className="text-center w-full">
+                {/* Username first (big), then displayName below — matches You page */}
+                <h2 id="profile-title" className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'} flex items-center justify-center gap-1.5`}>
+                  {username || displayName}
+                </h2>
+                {displayName && username && displayName !== username && (
+                  <p className={`${nightMode ? 'text-slate-100' : 'text-black'} text-sm opacity-70 mt-1`}>{displayName}</p>
+                )}
 
-                      {/* Location */}
-                      {location && (
-                        <div className={`flex items-center justify-center gap-1.5 mt-2 ${nightMode ? 'text-slate-100' : 'text-black'} text-sm`}>
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{location}</span>
-                        </div>
-                      )}
+                {/* Location */}
+                {location && (
+                  <div className={`flex items-center justify-center gap-1.5 mt-2 ${nightMode ? 'text-slate-100' : 'text-black'} text-sm`}>
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>{location}</span>
+                  </div>
+                )}
 
-                      {/* Distance (if available) */}
-                      {user.distance && (
-                        <div className={`flex items-center justify-center gap-1.5 mt-1 text-xs ${nightMode ? 'text-slate-100' : 'text-black'} opacity-60`}>
-                          <MapPin className="w-3 h-3" />
-                          <span>{user.distance} away</span>
-                        </div>
-                      )}
-
-                      {/* Online Status */}
-                      {user.online !== undefined && (
-                        <div className={`flex items-center justify-center gap-2 mt-2 text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                          <div className={`w-2 h-2 rounded-full ${user.online ? 'bg-green-500' : 'bg-gray-400'}`} />
-                          <span>{user.online ? 'Online' : 'Offline'}</span>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                );
-              })()}
+                {/* Distance (if available) */}
+                {user.distance && (
+                  <div className={`flex items-center justify-center gap-1.5 mt-1 text-xs ${nightMode ? 'text-slate-100' : 'text-black'} opacity-60`}>
+                    <MapPin className="w-3 h-3" />
+                    <span>{user.distance} away</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Bio — hide the default placeholder bio */}
-            {(() => {
-              const bioText = fullProfile?.bio || user.bio;
-              const defaultBio = 'Welcome to Lightning! Share your testimony to inspire others.';
-              if (!bioText || bioText === defaultBio) return null;
-              return (
+            {/* Bio */}
+            {hasBio && (
+              <div className="px-4">
                 <div className={`rounded-xl p-4 ${nightMode ? 'bg-white/5' : 'bg-white/40'}`}>
                   <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
                     {bioText}
                   </p>
                 </div>
-              );
-            })()}
+              </div>
+            )}
 
-            {/* Profile Card (Faith Profile) */}
-            {(() => {
-              const bio = fullProfile?.bio || user.bio;
-              const churchName = fullProfile?.church_name || user.churchName || church?.name;
-              const churchLocation = fullProfile?.church_location || user.churchLocation || church?.location;
-              const denomination = fullProfile?.denomination || user.denomination || church?.denomination;
-              const yearSaved = fullProfile?.year_saved || user.yearSaved;
-              const isBaptized = fullProfile?.is_baptized || user.isBaptized;
-              const yearBaptized = fullProfile?.year_baptized || user.yearBaptized;
-              const favoriteVerse = fullProfile?.favorite_verse || user.favoriteVerse;
-              const favoriteVerseRef = fullProfile?.favorite_verse_ref || user.favoriteVerseRef;
-              const faithInterests = fullProfile?.faith_interests || user.faithInterests;
-              const spotifyUrl = fullProfile?.spotify_url || user.music?.spotifyUrl;
-              const songName = (fullProfile as any)?.song_name || user.music?.trackName;
-              const songArtist = (fullProfile as any)?.song_artist || user.music?.artist;
-
-              const hasProfileCard = churchName || favoriteVerse || (faithInterests && faithInterests.length > 0) || yearSaved || spotifyUrl;
-              if (!hasProfileCard) return null;
-
-              return (
+            {/* Profile Card (Faith Profile) — full size, matches You page */}
+            {hasProfileCard && (
+              <div className="px-4">
                 <ProfileCard
                   nightMode={nightMode}
-                  compact
-                  hideStats
                   profile={{
                     churchName,
                     churchLocation,
@@ -389,64 +394,66 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                     } : null,
                   }}
                 />
-              );
-            })()}
+              </div>
+            )}
 
             {/* Action Buttons */}
-            <div className="flex gap-3 max-w-md mx-auto pt-2">
-              {!isBlocked && (
+            <div className="px-4">
+              <div className="flex gap-3 max-w-md mx-auto pt-2">
+                {!isBlocked && (
+                  <button
+                    onClick={() => onMessage(user)}
+                    className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-100 border ${nightMode ? 'border-white/20' : 'border-white/30'
+                      }`}
+                    style={{
+                      background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                      boxShadow: nightMode
+                        ? '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                        : '0 4px 12px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                    }}
+                    aria-label={`Send message to ${user.displayName}`}
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Message
+                  </button>
+                )}
+
+                {isBlocked && (
+                  <div className={`flex-1 px-6 py-3 rounded-xl border text-center ${nightMode ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-white/50 border-white/30 text-slate-500'
+                    }`}>
+                    <UserX className="w-5 h-5 inline-block mr-2" />
+                    <span className="text-sm font-medium">Blocked</span>
+                  </div>
+                )}
+
                 <button
-                  onClick={() => onMessage(user)}
-                  className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-slate-100 border ${nightMode ? 'border-white/20' : 'border-white/30'
-                    }`}
-                  style={{
-                    background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
-                    boxShadow: nightMode
-                      ? '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                      : '0 4px 12px rgba(59, 130, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                  onClick={() => {
+                    setReportData({ type: 'user', content: { id: user.id, name: user.displayName || user.username } });
+                    setShowReport(true);
                   }}
-                  aria-label={`Send message to ${user.displayName}`}
+                  className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10' : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
+                    }`}
+                  aria-label={`Report ${user.displayName}`}
+                  title={`Report ${user.displayName}`}
                 >
-                  <MessageCircle className="w-5 h-5" />
-                  Message
+                  <Flag className="w-5 h-5" />
                 </button>
-              )}
 
-              {isBlocked && (
-                <div className={`flex-1 px-6 py-3 rounded-xl border text-center ${nightMode ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-white/50 border-white/30 text-slate-500'
-                  }`}>
-                  <UserX className="w-5 h-5 inline-block mr-2" />
-                  <span className="text-sm font-medium">Blocked</span>
-                </div>
-              )}
-
-              <button
-                onClick={() => {
-                  setReportData({ type: 'user', content: { id: user.id, name: user.displayName || user.username } });
-                  setShowReport(true);
-                }}
-                className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${nightMode ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10' : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
-                  }`}
-                aria-label={`Report ${user.displayName}`}
-                title={`Report ${user.displayName}`}
-              >
-                <Flag className="w-5 h-5" />
-              </button>
-
-              {!isBlocked && (
-                <button
-                  onClick={handleBlockUser}
-                  disabled={blocking}
-                  className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${nightMode
-                    ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10'
-                    : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
-                    } ${blocking ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  aria-label={`Block ${user.displayName}`}
-                  title={`Block ${user.displayName}`}
-                >
-                  <UserX className="w-5 h-5" />
-                </button>
-              )}
+                {!isBlocked && (
+                  <button
+                    onClick={handleBlockUser}
+                    disabled={blocking}
+                    className={`px-4 py-3 rounded-xl transition-all duration-200 flex items-center gap-2 border ${nightMode
+                      ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 border-white/10'
+                      : 'bg-white/80 hover:bg-red-50 text-slate-600 hover:text-red-600 border-white/30 shadow-md'
+                      } ${blocking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    aria-label={`Block ${user.displayName}`}
+                    title={`Block ${user.displayName}`}
+                  >
+                    <UserX className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Follower count for public profiles */}
@@ -459,135 +466,131 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
 
             {/* Follow / Add Friend Buttons */}
             {!isBlocked && (
-              <div className="flex gap-2">
-                {/* Follow button for public profiles */}
-                {userProfileVisibility === 'public' && (
-                  <button
-                    onClick={handleToggleFollow}
-                    disabled={isTogglingFollow}
-                    className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${
-                      following
-                        ? nightMode ? 'border-blue-500/30 bg-blue-500/10' : 'border-blue-300 bg-blue-50'
-                        : nightMode ? 'border-white/20' : 'border-white/30'
-                    } ${isTogglingFollow ? 'opacity-50' : ''}`}
-                    style={!following ? (nightMode ? {
-                      background: 'linear-gradient(135deg, rgba(79, 150, 255, 0.15) 0%, rgba(79, 150, 255, 0.05) 100%)',
-                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                    } : {
-                      background: 'rgba(59, 130, 246, 0.08)',
-                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
-                    }) : {}}
-                  >
-                    {following ? (
-                      <UserCheck className={`w-4 h-4 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                    ) : (
-                      <UserPlus className={`w-4 h-4 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
-                    )}
-                    <span className={nightMode ? 'text-blue-400' : 'text-blue-600'}>
-                      {following ? 'Following' : 'Follow'}
-                    </span>
-                  </button>
-                )}
+              <div className="px-4">
+                <div className="flex gap-2">
+                  {/* Follow button for public profiles */}
+                  {userProfileVisibility === 'public' && (
+                    <button
+                      onClick={handleToggleFollow}
+                      disabled={isTogglingFollow}
+                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${
+                        following
+                          ? nightMode ? 'border-blue-500/30 bg-blue-500/10' : 'border-blue-300 bg-blue-50'
+                          : nightMode ? 'border-white/20' : 'border-white/30'
+                      } ${isTogglingFollow ? 'opacity-50' : ''}`}
+                      style={!following ? (nightMode ? {
+                        background: 'linear-gradient(135deg, rgba(79, 150, 255, 0.15) 0%, rgba(79, 150, 255, 0.05) 100%)',
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                      } : {
+                        background: 'rgba(59, 130, 246, 0.08)',
+                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
+                      }) : {}}
+                    >
+                      {following ? (
+                        <UserCheck className={`w-4 h-4 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                      ) : (
+                        <UserPlus className={`w-4 h-4 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                      )}
+                      <span className={nightMode ? 'text-blue-400' : 'text-blue-600'}>
+                        {following ? 'Following' : 'Follow'}
+                      </span>
+                    </button>
+                  )}
 
-                {/* Add Friend / Accept Request buttons */}
-                {friendStatus === 'pending' && incomingRequestId ? (
-                  // Incoming request — show Accept/Decline
-                  <div className={`${userProfileVisibility === 'public' ? 'flex-1' : 'w-full'} flex gap-2`}>
-                    <button
-                      onClick={async () => {
-                        setSendingRequest(true);
-                        const result = await acceptFriendRequest(incomingRequestId);
-                        if (result) {
-                          setFriendStatus('accepted');
+                  {/* Add Friend / Accept Request buttons */}
+                  {friendStatus === 'pending' && incomingRequestId ? (
+                    // Incoming request — show Accept/Decline
+                    <div className={`${userProfileVisibility === 'public' ? 'flex-1' : 'w-full'} flex gap-2`}>
+                      <button
+                        onClick={async () => {
+                          setSendingRequest(true);
+                          const result = await acceptFriendRequest(incomingRequestId);
+                          if (result) {
+                            setFriendStatus('accepted');
+                            setIncomingRequestId(null);
+                            showSuccess(`You and ${user.displayName} are now friends!`);
+                          } else {
+                            showError('Failed to accept request');
+                          }
+                          setSendingRequest(false);
+                        }}
+                        disabled={sendingRequest}
+                        className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 ${
+                          nightMode
+                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30'
+                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                        }`}
+                      >
+                        <UserCheck className="w-5 h-5" />
+                        Accept
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setSendingRequest(true);
+                          await declineFriendRequest(incomingRequestId);
+                          setFriendStatus('none');
                           setIncomingRequestId(null);
-                          showSuccess(`You and ${user.displayName} are now friends!`);
-                        } else {
-                          showError('Failed to accept request');
-                        }
-                        setSendingRequest(false);
-                      }}
-                      disabled={sendingRequest}
-                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 ${
-                        nightMode
-                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30'
-                          : 'bg-blue-500 text-white hover:bg-blue-600'
-                      }`}
-                    >
-                      <UserCheck className="w-5 h-5" />
-                      Accept
-                    </button>
+                          setSendingRequest(false);
+                        }}
+                        disabled={sendingRequest}
+                        className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 border ${
+                          nightMode
+                            ? 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'
+                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                        }`}
+                      >
+                        <UserX className="w-5 h-5" />
+                        Decline
+                      </button>
+                    </div>
+                  ) : (
                     <button
-                      onClick={async () => {
-                        setSendingRequest(true);
-                        await declineFriendRequest(incomingRequestId);
-                        setFriendStatus('none');
-                        setIncomingRequestId(null);
-                        setSendingRequest(false);
+                      onClick={handleSendFriendRequest}
+                      disabled={friendStatus !== 'none' || sendingRequest}
+                      className={`${userProfileVisibility === 'public' ? 'flex-1' : 'w-full'} px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${nightMode ? 'border-white/20' : 'border-white/30'
+                        } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      style={nightMode ? {
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)'
+                      } : {
+                        background: 'rgba(255, 255, 255, 0.25)',
+                        backdropFilter: 'blur(30px)',
+                        WebkitBackdropFilter: 'blur(30px)',
+                        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
                       }}
-                      disabled={sendingRequest}
-                      className={`px-4 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 border ${
-                        nightMode
-                          ? 'bg-white/5 text-slate-400 border-white/10 hover:bg-white/10'
-                          : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
-                      }`}
+                      aria-label={`Add ${user.displayName} as friend`}
                     >
-                      <UserX className="w-5 h-5" />
-                      Decline
+                      <UserPlus className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`} />
+                      <span className={nightMode ? 'text-slate-100' : 'text-slate-900'}>
+                        {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
+                      </span>
                     </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleSendFriendRequest}
-                    disabled={friendStatus !== 'none' || sendingRequest}
-                    className={`${userProfileVisibility === 'public' ? 'flex-1' : 'w-full'} px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 border ${nightMode ? 'border-white/20' : 'border-white/30'
-                      } ${friendStatus !== 'none' || sendingRequest ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    style={nightMode ? {
-                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
-                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(10px)',
-                      WebkitBackdropFilter: 'blur(10px)'
-                    } : {
-                      background: 'rgba(255, 255, 255, 0.25)',
-                      backdropFilter: 'blur(30px)',
-                      WebkitBackdropFilter: 'blur(30px)',
-                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-                    }}
-                    aria-label={`Add ${user.displayName} as friend`}
-                  >
-                    <UserPlus className={`w-5 h-5 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`} />
-                    <span className={nightMode ? 'text-slate-100' : 'text-slate-900'}>
-                      {friendStatus === 'accepted' ? 'Friends' : friendStatus === 'pending' ? 'Pending' : sendingRequest ? 'Sending...' : 'Add Friend'}
-                    </span>
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
             )}
 
             {/* Testimony Section — uses DB-fetched testimony, falls back to user.story */}
-            {(() => {
-              const storyContent = testimony?.content || user.story?.content;
-              const storyTitle = testimony?.title || user.story?.title;
-              const storyLesson = testimony?.lesson || user.story?.lesson;
-              const storyId = testimony?.id || user.story?.id;
-              if (!storyContent) return null;
+            {storyContent && (
+              <>
+                {/* Dot connector */}
+                <div className="flex flex-col items-center py-1">
+                  <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      background: nightMode ? 'rgba(96,165,250,0.5)' : 'rgba(59,130,246,0.45)',
+                      boxShadow: nightMode
+                        ? '0 0 8px rgba(96,165,250,0.4)'
+                        : '0 0 6px rgba(59,130,246,0.3)',
+                    }}
+                  />
+                  <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
+                </div>
 
-              return (
-                <>
-                  {/* Dot connector */}
-                  <div className="flex flex-col items-center py-1">
-                    <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        background: nightMode ? 'rgba(96,165,250,0.5)' : 'rgba(59,130,246,0.45)',
-                        boxShadow: nightMode
-                          ? '0 0 8px rgba(96,165,250,0.4)'
-                          : '0 0 6px rgba(59,130,246,0.3)',
-                      }}
-                    />
-                    <div className={`w-px h-2.5 ${nightMode ? 'bg-blue-400/25' : 'bg-blue-500/20'}`} />
-                  </div>
-
+                <div className="px-4">
                   <div
                     className={`p-6 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/30 shadow-lg'}`}
                     style={
@@ -645,26 +648,28 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                       </div>
                     )}
                   </div>
-                </>
-              );
-            })()}
+                </div>
+              </>
+            )}
 
             {/* Mutual Friends */}
             {user.mutualFriends !== undefined && user.mutualFriends > 0 && (
-              <div
-                className={`p-4 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'bg-white/50 border-white/30'}`}
-                style={
-                  nightMode
-                    ? {}
-                    : {
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)'
-                    }
-                }
-              >
-                <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                  <span className="font-semibold">{user.mutualFriends}</span> mutual {user.mutualFriends === 1 ? 'friend' : 'friends'}
-                </p>
+              <div className="px-4">
+                <div
+                  className={`p-4 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'bg-white/50 border-white/30'}`}
+                  style={
+                    nightMode
+                      ? {}
+                      : {
+                        backdropFilter: 'blur(20px)',
+                        WebkitBackdropFilter: 'blur(20px)'
+                      }
+                  }
+                >
+                  <p className={`text-sm ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                    <span className="font-semibold">{user.mutualFriends}</span> mutual {user.mutualFriends === 1 ? 'friend' : 'friends'}
+                  </p>
+                </div>
               </div>
             )}
           </div>
