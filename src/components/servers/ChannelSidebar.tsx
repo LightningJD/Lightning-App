@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash, BellOff, Lock, FolderInput, UserPlus, Check } from 'lucide-react';
 import { useServerPremium } from '../../contexts/PremiumContext';
 import ServerBannerDisplay from '../premium/ServerBannerDisplay';
@@ -840,8 +841,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         )}
       </div>
 
-      {/* Context menu */}
-      {contextMenu && (
+      {/* Context menu — rendered via portal to escape backdrop-filter containing block */}
+      {contextMenu && createPortal(
         <>
           <div className="fixed inset-0 z-[100]" onClick={() => { setContextMenu(null); setShowMoveSubmenu(false); }} />
           <div
@@ -1041,11 +1042,12 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               </>
             )}
           </div>
-        </>
+        </>,
+        document.body
       )}
 
-      {/* Channel edit modal */}
-      {editingChannelId && (
+      {/* Channel edit modal — rendered via portal to escape backdrop-filter containing block */}
+      {editingChannelId && createPortal(
         <>
           <div className="fixed inset-0 z-[100] bg-black/30" onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); setEditChannelPrivate(false); setEditChannelEmoji(''); setShowEmojiPicker(false); }} />
           <div
@@ -1173,7 +1175,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
