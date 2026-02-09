@@ -8,5 +8,6 @@ afterEach(() => {
 });
 
 // Mock environment variables
+vi.stubEnv('VITE_CLERK_PUBLISHABLE_KEY', 'pk_test_mock');
 vi.stubEnv('VITE_SUPABASE_URL', 'https://mock.supabase.co');
 vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'mock-anon-key');

@@ -5,7 +5,7 @@ import { trackTestimonyView } from '../lib/guestSession';
 import { checkBeforeSend } from '../lib/contentFilter';
 import { unlockSecret, checkTestimonyAnalyticsSecrets } from '../lib/secrets';
 import { trackTestimonyView as trackDbTestimonyView, toggleTestimonyLike, hasUserLikedTestimony, getTestimonyComments, addTestimonyComment, canViewTestimony, updateUserProfile, leaveChurch, regenerateChurchInviteCode } from '../lib/database';
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
+import { useUser } from '@clerk/clerk-react';
 import { sanitizeUserContent } from '../lib/sanitization';
 import { showError } from '../lib/toast';
 import { usePremium } from '../contexts/PremiumContext';
@@ -25,7 +25,7 @@ interface ProfileTabProps {
 }
 
 const ProfileTab: React.FC<ProfileTabProps> = ({ profile, nightMode, onAddTestimony, onEditTestimony, currentUserProfile }) => {
-  const { user } = useSupabaseAuth();
+  const { user } = useUser();
   const { isUserPro } = usePremium();
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);

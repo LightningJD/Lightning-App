@@ -1,15 +1,10 @@
+import { useUser, useSession } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
-import { getTestimonyByUserId, getChurchById } from '../lib/database';
-import { supabase } from '../lib/supabase';
+import { syncUserToSupabase, getTestimonyByUserId, getChurchById } from '../lib/database';
 
 
 /**
- * Custom hook to sync Supabase Auth user data with Lightning app profile.
- *
- * After Supabase Auth sign-up, the user has a UUID in auth.users.
- * We look up (or create) a row in public.users by matching email,
- * then build the same profile object the rest of the app expects.
+ * Custom hook to sync Clerk user data with Lightning app profile
  */
 export interface UseUserProfileReturn {
   isLoading: boolean;
@@ -20,97 +15,69 @@ export interface UseUserProfileReturn {
 }
 
 export const useUserProfile = (): UseUserProfileReturn => {
-  const { user: authUser, isLoading: authLoading, isAuthenticated } = useSupabaseAuth();
+  const { user, isLoaded, isSignedIn } = useUser();
+  const { session } = useSession();
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [testimony, setTestimony] = useState<any>(null);
   const [church, setChurch] = useState<any>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSyncing, setIsSyncing] = useState(true);
 
-  // Sync user to public.users when they sign in or when refresh is triggered
+  // Sync user to Supabase when they sign in or when refresh is triggered
   useEffect(() => {
     const syncUser = async () => {
-      if (authLoading) return;
+      // Wait for Clerk to load
+      if (!isLoaded) return;
 
-      if (isAuthenticated && authUser && supabase) {
+      if (isSignedIn && user && session) {
         try {
-          const email = authUser.email;
-          const metadata = authUser.user_metadata || {};
-
-          // Try to find existing user by email first (links Clerk-era accounts)
-          let dbUser: any = null;
-
-          if (email) {
-            const { data: existingByEmail } = await supabase
-              .from('users')
-              .select('*')
-              .eq('email', email)
-              .single();
-
-            if (existingByEmail) {
-              dbUser = existingByEmail;
-              console.log('✅ Found existing user by email:', dbUser.id);
-            }
+          // Get Supabase token from Clerk
+          let token = null;
+          try {
+            token = await session.getToken({ template: 'supabase' });
+          } catch (tokenError) {
+            console.warn('⚠️ Failed to retrieve Supabase token (template might be missing):', tokenError);
           }
 
-          // If not found by email, try by auth user id stored in clerk_user_id column
-          // (future-proofing: after migration we could store Supabase auth UUID there)
-          if (!dbUser) {
-            const { data: existingById } = await supabase
-              .from('users')
-              .select('*')
-              .eq('clerk_user_id', authUser.id)
-              .single();
+          if (token) {
+            console.log('✅ Retrieving Supabase token from Clerk success');
+            // Set session on Supabase client to enable RLS
+            // We use the same token for refresh_token as a workaround since Clerk handles auth
+            const { error } = await import('../lib/supabase').then(m =>
+              m.supabase?.auth.setSession({
+                access_token: token,
+                refresh_token: token
+              }) || { data: { user: null, session: null }, error: null }
+            );
 
-            if (existingById) {
-              dbUser = existingById;
-              console.log('✅ Found existing user by auth ID:', dbUser.id);
-            }
-          }
-
-          // Create new user if not found
-          if (!dbUser) {
-            console.log('🆕 Creating new user record for:', email);
-            const username = metadata.username || email?.split('@')[0] || 'user';
-            const displayName = metadata.display_name || username;
-
-            const { data: created, error: createError } = await supabase
-              .from('users')
-              .insert({
-                clerk_user_id: authUser.id, // Store Supabase auth UUID in this column
-                username,
-                display_name: displayName,
-                email,
-                avatar_emoji: displayName.charAt(0)?.toUpperCase() || '👤',
-                bio: 'Welcome to Lightning! Share your testimony to inspire others.',
-                updated_at: new Date().toISOString()
-              } as any)
-              .select()
-              .single();
-
-            if (createError) {
-              console.error('❌ Error creating user:', createError);
+            if (error) {
+              console.error('❌ Error setting Supabase session:', error);
             } else {
-              dbUser = created;
-              console.log('✅ Created new user:', dbUser.id);
+              console.log('✅ Supabase session set successfully');
             }
+          } else {
+            console.warn('⚠️ No Supabase token available - ensuring Supabase client is ready for public/anon access');
           }
 
+          // Sync Clerk user to Supabase
+          // @ts-ignore - Clerk user type compatibility
+          const dbUser = await syncUserToSupabase(user);
           setSupabaseUser(dbUser);
 
-          // Load testimony
-          if (dbUser?.id) {
+          // Load testimony if user has one
+          if (dbUser && dbUser.id) {
             const userTestimony = await getTestimonyByUserId(dbUser.id);
             if (userTestimony) {
               console.log('✅ Testimony loaded:', userTestimony.id);
               setTestimony(userTestimony);
             } else {
+              console.log('ℹ️ No testimony found for user:', dbUser.id);
               setTestimony(null);
             }
 
-            // Load church data
-            if (dbUser.church_id) {
-              const churchData = await getChurchById(dbUser.church_id);
+            // Load church data if user has a church_id
+            if ((dbUser as any).church_id) {
+              const churchData = await getChurchById((dbUser as any).church_id);
               if (churchData) {
                 console.log('✅ Church loaded:', churchData.name);
                 setChurch(churchData);
@@ -118,19 +85,22 @@ export const useUserProfile = (): UseUserProfileReturn => {
             } else {
               setChurch(null);
             }
+          } else {
+            console.error('❌ Sync failed: No Database User returned from syncUserToSupabase');
           }
         } catch (error: any) {
-          console.error('❌ Error syncing user profile:', error);
+          console.error('❌ Error syncing user profile:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
         } finally {
           setIsSyncing(false);
         }
       } else {
+        // Not signed in, so we are done "syncing"
         setIsSyncing(false);
       }
     };
 
     syncUser();
-  }, [authLoading, isAuthenticated, authUser?.id, refreshTrigger]);
+  }, [isLoaded, isSignedIn, user, session, refreshTrigger]);
 
   // Listen for profile updates via custom event
   useEffect(() => {
@@ -142,7 +112,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
   }, []);
 
-  if (authLoading || (isAuthenticated && isSyncing)) {
+  if (!isLoaded || (isSignedIn && isSyncing)) {
     return {
       isLoading: true,
       isAuthenticated: false,
@@ -152,7 +122,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
     };
   }
 
-  if (!isAuthenticated || !authUser) {
+  if (!isSignedIn || !user) {
     return {
       isLoading: false,
       isAuthenticated: false,
@@ -162,28 +132,29 @@ export const useUserProfile = (): UseUserProfileReturn => {
     };
   }
 
-  // Get first name initial for avatar
+  // Get first name initial for avatar if no custom avatar set
   const getDefaultAvatar = () => {
-    const metadata = authUser.user_metadata || {};
-    const name = metadata.display_name || metadata.username || authUser.email;
-    if (name) return name.charAt(0).toUpperCase();
+    const firstName = user.firstName || user.fullName?.split(' ')[0] || user.username;
+    if (firstName) {
+      return firstName.charAt(0).toUpperCase();
+    }
     return '👤';
   };
 
-  // Transform user data into Lightning profile format
+  // Transform Clerk user data into Lightning profile format
   const profile = {
-    supabaseId: supabaseUser?.id,
-    clerkUserId: authUser.id, // Now actually the Supabase Auth UUID
-    username: supabaseUser?.username || authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'user',
-    displayName: supabaseUser?.display_name || authUser.user_metadata?.display_name || authUser.email?.split('@')[0] || 'User',
-    avatar: supabaseUser?.avatar_emoji || getDefaultAvatar(),
-    avatarImage: supabaseUser?.avatar_url || null,
-    email: authUser.email,
-    bio: supabaseUser?.bio || 'Welcome to Lightning! Share your testimony to inspire others.',
+    supabaseId: supabaseUser?.id, // Supabase UUID for database operations
+    clerkUserId: user.id,
+    username: supabaseUser?.username || user.username || user.emailAddresses[0]?.emailAddress.split('@')[0] || 'user',
+    displayName: supabaseUser?.display_name || user.fullName || user.firstName || user.username || 'User',
+    avatar: supabaseUser?.avatar_emoji || user.publicMetadata?.customAvatar || getDefaultAvatar(),
+    avatarImage: supabaseUser?.avatar_url || user.imageUrl, // Cloudinary upload or Clerk's image
+    email: user.primaryEmailAddress?.emailAddress,
+    bio: supabaseUser?.bio || user.publicMetadata?.bio || 'Welcome to Lightning! Share your testimony to inspire others.',
     hasTestimony: testimony ? true : (supabaseUser?.has_testimony || false),
     testimony: testimony?.content || null,
     testimonyLesson: testimony?.lesson || null,
-    location: supabaseUser?.location_city || null,
+    location: supabaseUser?.location_city || user.publicMetadata?.location || null,
     locationLat: supabaseUser?.location_lat || null,
     locationLng: supabaseUser?.location_lng || null,
     profileCompleted: supabaseUser?.profile_completed || false,
@@ -262,6 +233,6 @@ export const useUserProfile = (): UseUserProfileReturn => {
     isAuthenticated: true,
     isSyncing: false,
     profile,
-    user: authUser
+    user // Original Clerk user object for advanced usage
   };
 };

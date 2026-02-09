@@ -1,17 +1,18 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { useSupabaseAuth } from './SupabaseAuthContext';
+import { useClerk, useSession } from '@clerk/clerk-react';
 import { useUserProfile } from '../components/useUserProfile';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from '../lib/toast';
 import { checkBeforeSend } from '../lib/contentFilter';
 import { geocodeCity } from '../hooks/useGeolocation';
 import {
   createTestimony, updateUserProfile, updateUserLocation, updateTestimony,
-  getTestimonyByUserId, getPendingFriendRequests,
+  getTestimonyByUserId, syncUserToSupabase, getUserByClerkId, getPendingFriendRequests,
   createChurch, resolveReferralCode, createPendingReferral, checkAndRunBpReset,
   recordDeviceFingerprint, updateOnlineStatus
 } from '../lib/database';
 import { isAdmin } from '../lib/database/users';
 import { generateDeviceFingerprint } from '../lib/deviceFingerprint';
+import { supabase } from '../lib/supabase';
 import {
   registerServiceWorker, setupPushNotifications, isPushSupported,
   getNotificationPermission, unsubscribeFromPush
@@ -192,7 +193,8 @@ const DEMO_PROFILE = {
 // ============================================
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { signOut } = useSupabaseAuth();
+  const { signOut } = useClerk();
+  const { session } = useSession();
   const { isLoading, isAuthenticated, isSyncing, profile: userProfile, user: clerkUser } = useUserProfile();
   const [localProfile, setLocalProfile] = useState<any>(null);
 
@@ -560,9 +562,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const ensureSupabaseSession = async (): Promise<boolean> => {
+    if (!session || !supabase) return false;
+    try {
+      const token = await session.getToken({ template: 'supabase' });
+      if (!token) {
+        console.warn('Supabase token missing');
+        return false;
+      }
+      const { error } = await supabase.auth.setSession({ access_token: token, refresh_token: token });
+      if (error) { console.error('Error setting Supabase session:', error); return false; }
+      return true;
+    } catch (error) {
+      console.error('Failed to set Supabase session:', error);
+      return false;
+    }
+  };
+
   const getExistingSupabaseUserId = async (): Promise<string | null> => {
     if (userProfile?.supabaseId) return userProfile.supabaseId;
-    return null;
+    if (!clerkUser?.id) return null;
+    const existing = await getUserByClerkId(clerkUser.id);
+    return existing?.id || null;
   };
 
   const handleProfileComplete = async (profileData: UserUpdate): Promise<void> => {
@@ -770,8 +791,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             targetUserId = await getExistingSupabaseUserId();
           }
         }
-        if (!targetUserId) {
-          console.error('Could not find user profile after waiting. Please refresh.');
+        if (!targetUserId && clerkUser) {
+          try {
+            await ensureSupabaseSession();
+            // @ts-ignore
+            const syncedUser = await syncUserToSupabase(clerkUser);
+            if (syncedUser?.id) { targetUserId = syncedUser.id; window.dispatchEvent(new CustomEvent('profileUpdated')); }
+          } catch (syncErr) { console.error('On-demand sync failed:', syncErr); }
         }
         if (!targetUserId) {
           updateToError(toastId, 'Failed to identify user profile. Please refresh and try again.');

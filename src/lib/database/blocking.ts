@@ -7,6 +7,7 @@ interface BlockedUserWithProfile {
   reason: string | null;
   user: {
     id: string;
+    clerk_user_id: string;
     username: string;
     display_name: string;
     avatar_url: string | null;
@@ -101,6 +102,7 @@ export const getBlockedUsers = async (blockerId: string): Promise<BlockedUserWit
         reason,
         users!blocked_users_blocked_id_fkey (
           id,
+          clerk_user_id,
           username,
           display_name,
           avatar_url,

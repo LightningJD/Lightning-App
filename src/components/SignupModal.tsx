@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { X } from 'lucide-react';
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
+import { SignIn } from '@clerk/clerk-react';
 
 interface SignupModalProps {
   version?: 1 | 2;
@@ -9,15 +9,6 @@ interface SignupModalProps {
 }
 
 const SignupModal: React.FC<SignupModalProps> = ({ version = 1, onDismiss, nightMode }) => {
-  const { signIn, signUp } = useSupabaseAuth();
-  const [mode, setMode] = useState<'signin' | 'signup'>('signup');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [signupSuccess, setSignupSuccess] = useState(false);
-
   // Modal content based on version
   const modalContent = {
     1: {
@@ -53,45 +44,6 @@ const SignupModal: React.FC<SignupModalProps> = ({ version = 1, onDismiss, night
   };
 
   const content = modalContent[version] || modalContent[1];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    if (mode === 'signup') {
-      if (password.length < 6) {
-        setError('Password must be at least 6 characters.');
-        setLoading(false);
-        return;
-      }
-      if (username.trim().length < 3) {
-        setError('Username must be at least 3 characters.');
-        setLoading(false);
-        return;
-      }
-      const { error: authError } = await signUp(email, password, {
-        username: username.trim().toLowerCase(),
-        display_name: username.trim()
-      });
-      if (authError) {
-        setError(authError.message?.includes('already registered')
-          ? 'This email is already registered. Try signing in.'
-          : authError.message || 'Something went wrong.');
-      } else {
-        setSignupSuccess(true);
-      }
-    } else {
-      const { error: authError } = await signIn(email, password);
-      if (authError) {
-        setError(authError.message?.includes('Invalid login credentials')
-          ? 'Incorrect email or password.'
-          : authError.message || 'Something went wrong.');
-      }
-      // On success, auth state change handles the rest
-    }
-    setLoading(false);
-  };
 
   return (
     <>
@@ -157,110 +109,19 @@ const SignupModal: React.FC<SignupModalProps> = ({ version = 1, onDismiss, night
             </ul>
           </div>
 
-          {/* Auth Form */}
+          {/* Sign Up Buttons */}
           <div className="space-y-3">
-            {signupSuccess ? (
-              <div className={`p-4 rounded-lg border text-sm text-left ${
-                nightMode
-                  ? 'bg-green-500/10 border-green-400/30 text-green-300'
-                  : 'bg-green-50 border-green-200 text-green-700'
-              }`}>
-                <p className="font-semibold mb-1">Account created!</p>
-                <p>Check your email for a confirmation link, then sign in.</p>
-                <button
-                  onClick={() => { setMode('signin'); setSignupSuccess(false); setError(''); }}
-                  className={`mt-2 font-semibold text-sm ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}
-                >
-                  Sign in now →
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="text-left">
-                {error && (
-                  <div className={`mb-3 p-3 rounded-lg text-sm ${
-                    nightMode
-                      ? 'bg-red-500/10 border border-red-400/30 text-red-300'
-                      : 'bg-red-50 border border-red-200 text-red-700'
-                  }`}>
-                    {error}
-                  </div>
-                )}
-
-                {mode === 'signup' && (
-                  <div className="mb-3">
-                    <input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Username"
-                      className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm ${
-                        nightMode
-                          ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-blue-400'
-                          : 'bg-white border-slate-300 focus:border-blue-500'
-                      }`}
-                      required
-                    />
-                  </div>
-                )}
-
-                <div className="mb-3">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
-                    className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm ${
-                      nightMode
-                        ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-blue-400'
-                        : 'bg-white border-slate-300 focus:border-blue-500'
-                    }`}
-                    required
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-all text-sm ${
-                      nightMode
-                        ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-blue-400'
-                        : 'bg-white border-slate-300 focus:border-blue-500'
-                    }`}
-                    required
-                    minLength={6}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-colors disabled:opacity-50 text-sm"
-                >
-                  {loading
-                    ? (mode === 'signup' ? 'Creating account...' : 'Signing in...')
-                    : (mode === 'signup' ? 'Create Free Account' : 'Sign In')}
-                </button>
-
-                <p className={`text-center text-xs mt-3 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {mode === 'signup' ? (
-                    <>Already have an account?{' '}
-                      <button type="button" onClick={() => { setMode('signin'); setError(''); }} className={`font-semibold ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                        Sign in
-                      </button>
-                    </>
-                  ) : (
-                    <>Need an account?{' '}
-                      <button type="button" onClick={() => { setMode('signup'); setError(''); }} className={`font-semibold ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                        Sign up
-                      </button>
-                    </>
-                  )}
-                </p>
-              </form>
-            )}
+            {/* Primary: Sign Up with Google */}
+            <SignIn
+              appearance={{
+                elements: {
+                  rootBox: 'w-full',
+                  card: 'shadow-none bg-transparent w-full',
+                  footer: 'hidden'
+                }
+              }}
+              routing="hash"
+            />
 
             {/* Secondary: Dismiss (only for version 1) */}
             {content.canDismiss && onDismiss && (

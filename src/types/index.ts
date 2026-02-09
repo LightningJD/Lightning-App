@@ -9,8 +9,8 @@
 
 export interface User {
   id: string;
-  clerk_id?: string; // Legacy — kept for backward compatibility
-  clerk_user_id?: string; // Legacy — kept for backward compatibility
+  clerk_id: string;
+  clerk_user_id?: string; // Alternative field name
   email: string;
   username: string;
   display_name: string;
@@ -315,7 +315,7 @@ export interface Report {
 
 export interface UserProfile {
   supabaseId: string;
-  clerkId?: string; // Legacy
+  clerkId: string;
   displayName: string;
   username: string;
   avatar: string;
@@ -357,7 +357,7 @@ export interface UserProfile {
 
 export interface NearbyUser {
   id: string;
-  clerk_id?: string; // Legacy
+  clerk_id: string;
   username: string;
   display_name: string;
   avatar_url?: string;
