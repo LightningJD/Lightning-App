@@ -251,21 +251,23 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         aria-modal="true"
         aria-labelledby="profile-title"
       >
-        {/* Back Button */}
-        <button
-          onClick={onClose}
-          className={`absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${nightMode ? 'bg-white/10 hover:bg-white/15 text-slate-100' : 'bg-black/5 hover:bg-black/10 text-black'
-            }`}
-          aria-label="Go back"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+        {/* Top Navigation Bar */}
+        <div className={`sticky top-0 z-10 flex items-center px-4 py-3 ${nightMode ? 'bg-[#0a0a0a]/95 border-b border-white/10' : 'bg-white/80 border-b border-black/5'} backdrop-blur-md`}>
+          <button
+            onClick={onClose}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-100' : 'hover:bg-black/5 text-black'}`}
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm font-medium">Back</span>
+          </button>
+        </div>
 
         {/* Scrollable Content */}
         <div className="h-full overflow-y-auto">
           <div className="p-6 space-y-4">
             {/* Profile Header — matches "You" page layout */}
-            <div className="flex flex-col items-center text-center pt-10 px-4">
+            <div className="flex flex-col items-center text-center pt-4 px-4">
               {(() => {
                 const avatarImg = fullProfile?.avatar_url || user.avatarImage;
                 const avatarEmoji = fullProfile?.avatar_emoji || user.avatar;
