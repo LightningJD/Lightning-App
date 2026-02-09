@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { showSuccess, showError } from '../lib/toast';
 import {
   createServer,
@@ -33,6 +33,7 @@ import {
   approveInviteRequest,
   rejectInviteRequest,
   joinByInviteCode,
+  getChannelRoleAccessBulk,
 } from '../lib/database';
 
 // ── Types ──────────────────────────────────────────────────────
@@ -76,6 +77,10 @@ export function useServerState({
   const [members, setMembers] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
   const [permissions, setPermissions] = useState<any>({ ...DEFAULT_PERMISSIONS });
+
+  // Channel role access (private channel permissions)
+  const [userRoleId, setUserRoleId] = useState<string | null>(null);
+  const [channelAccess, setChannelAccess] = useState<Record<string, string[]>>({});
 
   // Ban state
   const [bans, setBans] = useState<any[]>([]);
@@ -148,6 +153,17 @@ export function useServerState({
       setCategories(result.categories || []);
       setChannels(result.channels || []);
 
+      // Load channel role access for private channels
+      const privateChannelIds = (result.channels || [])
+        .filter((c: any) => c.is_private)
+        .map((c: any) => c.id);
+      if (privateChannelIds.length > 0) {
+        const access = await getChannelRoleAccessBulk(privateChannelIds);
+        setChannelAccess(access);
+      } else {
+        setChannelAccess({});
+      }
+
       // Auto-select first channel
       if (result.channels && result.channels.length > 0) {
         setActiveChannelId(result.channels[0].id);
@@ -177,6 +193,9 @@ export function useServerState({
       setPendingRequests(pendingResult || []);
       if (permsResult?.permissions) {
         setPermissions(permsResult.permissions);
+      }
+      if (permsResult?.role?.id) {
+        setUserRoleId(permsResult.role.id);
       }
     };
     loadServerData();
@@ -332,13 +351,28 @@ export function useServerState({
     setShowCreateChannel(true);
   }, []);
 
-  const handleCreateChannel = useCallback(async (name: string, topic: string, categoryId?: string, emojiIcon?: string) => {
+  const handleCreateChannel = useCallback(async (
+    name: string, topic: string, categoryId?: string, emojiIcon?: string,
+    isPrivate?: boolean, allowedRoleIds?: string[]
+  ) => {
     if (!activeServerId) return;
-    const result = await createChannel(activeServerId, { name, topic, categoryId, emojiIcon });
+    const result = await createChannel(activeServerId, {
+      name, topic, categoryId, emojiIcon, isPrivate, allowedRoleIds,
+    });
     if (result) {
       const refreshed = await getChannelsByServer(activeServerId);
       setCategories(refreshed.categories || []);
       setChannels(refreshed.channels || []);
+      // Refresh channel access if this is a private channel
+      if (isPrivate) {
+        const privateIds = (refreshed.channels || [])
+          .filter((c: any) => c.is_private)
+          .map((c: any) => c.id);
+        if (privateIds.length > 0) {
+          const access = await getChannelRoleAccessBulk(privateIds);
+          setChannelAccess(access);
+        }
+      }
       setActiveChannelId(result.id);
     }
   }, [activeServerId]);
@@ -355,6 +389,21 @@ export function useServerState({
   const handleUpdateChannel = useCallback(async (channelId: string, updates: any) => {
     await updateChannel(channelId, updates);
     await refreshChannels();
+    // Refresh channel access if privacy or roles changed
+    if (updates.is_private !== undefined || updates.allowed_role_ids !== undefined) {
+      // Re-fetch channel access for all private channels
+      if (!activeServerId) return;
+      const result = await getChannelsByServer(activeServerId);
+      const privateIds = (result.channels || [])
+        .filter((c: any) => c.is_private)
+        .map((c: any) => c.id);
+      if (privateIds.length > 0) {
+        const access = await getChannelRoleAccessBulk(privateIds);
+        setChannelAccess(access);
+      } else {
+        setChannelAccess({});
+      }
+    }
   }, [refreshChannels]);
 
   const handleDeleteChannel = useCallback(async (channelId: string) => {
@@ -471,6 +520,40 @@ export function useServerState({
     setBans(refreshedBans || []);
   }, [activeServerId]);
 
+  // ── Visible channels (filtered for private channel access) ───
+
+  const visibleChannels = useMemo(() => {
+    return channels.filter((channel: any) => {
+      // Public channels are always visible
+      if (!channel.is_private) return true;
+
+      // Users with manage_channels permission see all channels
+      if (permissions.manage_channels) return true;
+
+      // Check if user's role has access to this private channel
+      if (userRoleId) {
+        const allowedRoles = channelAccess[channel.id] || [];
+        return allowedRoles.includes(userRoleId);
+      }
+
+      return false;
+    });
+  }, [channels, permissions.manage_channels, userRoleId, channelAccess]);
+
+  // ── Refresh channel access helper ─────────────────────────────
+
+  const refreshChannelAccess = useCallback(async () => {
+    const privateChannelIds = channels
+      .filter((c: any) => c.is_private)
+      .map((c: any) => c.id);
+    if (privateChannelIds.length > 0) {
+      const access = await getChannelRoleAccessBulk(privateChannelIds);
+      setChannelAccess(access);
+    } else {
+      setChannelAccess({});
+    }
+  }, [channels]);
+
   return {
     // Core state
     servers, activeServerId, setActiveServerId,
@@ -480,7 +563,9 @@ export function useServerState({
     activeServer,
 
     // Server data
-    categories, channels, members, roles, permissions,
+    categories, channels: visibleChannels, allChannels: channels,
+    members, roles, permissions,
+    channelAccess,
     bans,
     unreadCounts, setUnreadCounts,
     pendingRequests,
