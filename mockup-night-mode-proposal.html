@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lightning Night Mode - Proposed Style Mockup</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0e1525;
+    color: #c8d0dc;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ========== LAYOUT ========== */
+  .app-layout {
+    display: flex;
+    height: 100vh;
+  }
+
+  /* ========== SERVER SIDEBAR (icon strip) ========== */
+  .server-sidebar {
+    width: 68px;
+    background: #0a0f1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    gap: 8px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+  }
+
+  .server-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 700;
+    font-size: 14px;
+    position: relative;
+  }
+
+  .server-icon.active {
+    background: linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 0 20px rgba(79, 150, 255, 0.35), 0 4px 12px rgba(59, 130, 246, 0.25);
+    border-radius: 16px;
+  }
+
+  .server-icon:not(.active) {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.5);
+    border: 2px solid rgba(255,255,255,0.04);
+  }
+
+  .server-icon:not(.active):hover {
+    background: rgba(255,255,255,0.1);
+    border-radius: 16px;
+  }
+
+  .server-icon .lightning {
+    font-size: 22px;
+  }
+
+  .server-separator {
+    width: 32px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    margin: 4px 0;
+  }
+
+  .server-icon.add-btn {
+    background: transparent;
+    border: 2px dashed rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.3);
+    font-size: 20px;
+  }
+
+  /* ========== CHANNEL SIDEBAR ========== */
+  .channel-sidebar {
+    width: 240px;
+    background: rgba(12, 17, 28, 0.95);
+    backdrop-filter: blur(30px);
+    border-right: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .channel-header {
+    padding: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .channel-header .server-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .channel-header .lightning-icon {
+    color: #facc15;
+    font-size: 18px;
+  }
+
+  .search-bar {
+    margin: 12px 12px 8px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.35);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .search-bar .shortcut {
+    margin-left: auto;
+    background: rgba(255,255,255,0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .channel-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  .category {
+    padding: 16px 12px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .channel-item {
+    display: flex;
+    align-items: center;
+    padding: 7px 12px 7px 24px;
+    margin: 1px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    gap: 6px;
+    position: relative;
+  }
+
+  .channel-item:hover {
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.75);
+  }
+
+  .channel-item.active {
+    background: linear-gradient(90deg, rgba(79, 150, 255, 0.12), rgba(59, 130, 246, 0.04));
+    color: #93bbff;
+    border-left: 3px solid rgba(79, 150, 255, 0.6);
+    padding-left: 21px;
+  }
+
+  .channel-item .prefix {
+    color: rgba(255,255,255,0.25);
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+  }
+
+  .channel-item.active .prefix {
+    color: rgba(79, 150, 255, 0.5);
+  }
+
+  .channel-item .badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, #4F96FF 0%, #2563eb 100%);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+  }
+
+  .channel-item .unread-dot {
+    margin-left: auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4F96FF;
+  }
+
+  /* User status bar at bottom of channel sidebar */
+  .user-status-bar {
+    padding: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .user-avatar-small {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4F96FF, #2563eb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    position: relative;
+  }
+
+  .user-avatar-small .online-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2.5px solid #0c111c;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+  }
+
+  .user-info {
+    flex: 1;
+  }
+
+  .user-info .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+
+  .user-info .status {
+    font-size: 11px;
+    color: #22c55e;
+  }
+
+  /* ========== MAIN CHAT AREA ========== */
+  .main-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: rgba(14, 21, 37, 0.5);
+  }
+
+  .chat-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0,0,0,0.12);
+    backdrop-filter: blur(30px);
+  }
+
+  .chat-header .channel-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .chat-header .channel-topic {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    margin-left: 8px;
+    padding-left: 12px;
+    border-left: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .chat-header .header-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+  }
+
+  .header-action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.4);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: none;
+    border: none;
+    font-size: 16px;
+  }
+
+  .header-action-btn:hover {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* Messages */
+  .messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .message {
+    display: flex;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    transition: background 0.15s;
+  }
+
+  .message:hover {
+    background: rgba(255,255,255,0.02);
+  }
+
+  .message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    position: relative;
+  }
+
+  .message-avatar.blue {
+    background: linear-gradient(135deg, #4F96FF 0%, #2563eb 100%);
+    color: white;
+  }
+
+  .message-avatar.teal {
+    background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+    color: white;
+  }
+
+  .message-avatar.purple {
+    background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+    color: white;
+  }
+
+  .message-avatar.amber {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+  }
+
+  .message-avatar .online-indicator {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 3px solid #0e1525;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+  }
+
+  .message-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .message-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .message-author {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+
+  .role-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .role-badge.pastor {
+    color: #60a5fa;
+    background: rgba(96, 165, 250, 0.12);
+    border: 1px solid rgba(96, 165, 250, 0.25);
+  }
+
+  .role-badge.leader {
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.12);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+  }
+
+  .message-time {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+  }
+
+  .message-text {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #c8d0dc;
+  }
+
+  /* Reactions */
+  .reactions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+
+  .reaction {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.6);
+  }
+
+  .reaction:hover {
+    background: rgba(255,255,255,0.08);
+  }
+
+  .reaction.active {
+    background: rgba(79, 150, 255, 0.12);
+    border-color: rgba(79, 150, 255, 0.3);
+    color: #93bbff;
+  }
+
+  .reaction .emoji {
+    font-size: 15px;
+  }
+
+  .reaction .count {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Testimony Card */
+  .testimony-card {
+    margin: 8px 0;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    overflow: hidden;
+    background: rgba(255,255,255,0.03);
+    max-width: 520px;
+  }
+
+  .testimony-card-header {
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(250, 204, 21, 0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 12px;
+    font-weight: 700;
+    color: #facc15;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .testimony-card-body {
+    padding: 16px;
+  }
+
+  .testimony-card-body .quote {
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .testimony-card-body .attribution {
+    margin-top: 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+  }
+
+  /* Message Input */
+  .message-input-area {
+    padding: 12px 20px 16px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .message-input-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 10px 14px;
+    transition: border-color 0.2s;
+  }
+
+  .message-input-container:focus-within {
+    border-color: rgba(79, 150, 255, 0.35);
+    box-shadow: 0 0 0 3px rgba(79, 150, 255, 0.08);
+  }
+
+  .input-icon {
+    color: rgba(255,255,255,0.25);
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .input-icon:hover {
+    color: rgba(255,255,255,0.5);
+  }
+
+  .message-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: #c8d0dc;
+    font-size: 14px;
+    font-family: inherit;
+  }
+
+  .message-input::placeholder {
+    color: rgba(255,255,255,0.25);
+  }
+
+  /* ========== THREAD PANEL ========== */
+  .thread-panel {
+    width: 340px;
+    background: rgba(10, 15, 26, 0.97);
+    backdrop-filter: blur(30px);
+    border-left: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .thread-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,0,0,0.1);
+  }
+
+  .thread-header .thread-icon {
+    font-size: 16px;
+  }
+
+  .thread-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e2e8f0;
+  }
+
+  .thread-header .reply-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4F96FF;
+    background: rgba(79, 150, 255, 0.12);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .thread-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .thread-message {
+    display: flex;
+    gap: 10px;
+  }
+
+  .thread-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .thread-msg-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .thread-msg-author {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 2px;
+  }
+
+  .thread-msg-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .thread-input-area {
+    padding: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .thread-input {
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    color: #c8d0dc;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .thread-input:focus {
+    border-color: rgba(79, 150, 255, 0.35);
+  }
+
+  .thread-input::placeholder {
+    color: rgba(255,255,255,0.25);
+  }
+
+  /* ========== COMPARISON LABELS ========== */
+  .comparison-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    height: 42px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .comparison-banner .current-label,
+  .comparison-banner .proposed-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .comparison-banner .current-label {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border-bottom: 2px solid rgba(239, 68, 68, 0.4);
+  }
+
+  .comparison-banner .proposed-label {
+    background: rgba(34, 197, 94, 0.15);
+    color: #4ade80;
+    border-bottom: 2px solid rgba(34, 197, 94, 0.4);
+  }
+
+  .comparison-container {
+    display: flex;
+    height: calc(100vh - 42px);
+    margin-top: 42px;
+  }
+
+  .comparison-half {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .comparison-half.current {
+    border-right: 2px solid rgba(255,255,255,0.08);
+  }
+
+  /* Current (before) dark theme mockup */
+  .current-theme .app-layout {
+    background: #0a0a0a;
+  }
+
+  .current-theme .server-sidebar {
+    background: rgba(0, 0, 0, 0.25);
+  }
+
+  .current-theme .channel-sidebar {
+    background: rgba(0, 0, 0, 0.18);
+  }
+
+  .current-theme .main-chat {
+    background: rgba(0, 0, 0, 0.12);
+  }
+
+  .current-theme .chat-header {
+    background: rgba(0, 0, 0, 0.15);
+  }
+
+  .current-theme .message-text,
+  .current-theme .thread-msg-text,
+  .current-theme .testimony-card-body .quote {
+    color: rgba(255,255,255,0.65);
+  }
+
+  .current-theme .thread-panel {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  /* Proposed (after) - deeper navy tones */
+  .proposed-theme .app-layout {
+    background: linear-gradient(180deg, #0e1525 0%, #111b2e 100%);
+  }
+
+  .proposed-theme .server-sidebar {
+    background: #0a0f1a;
+  }
+
+  .proposed-theme .channel-sidebar {
+    background: rgba(12, 17, 28, 0.97);
+  }
+
+  .proposed-theme .main-chat {
+    background: rgba(14, 21, 37, 0.6);
+  }
+
+  .proposed-theme .thread-panel {
+    background: rgba(10, 15, 26, 0.97);
+  }
+
+  /* Color swatch panel */
+  .color-swatches {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 200;
+    background: rgba(10, 15, 26, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 16px;
+    max-width: 320px;
+    font-size: 12px;
+    display: none;
+  }
+
+  .color-swatches.show {
+    display: block;
+  }
+
+  .swatch-title {
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .swatch-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .swatch-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.15);
+    flex-shrink: 0;
+  }
+
+  .swatch-label {
+    color: rgba(255,255,255,0.5);
+  }
+
+  .swatch-value {
+    margin-left: auto;
+    color: rgba(255,255,255,0.35);
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  /* Scale inner for comparison */
+  .comparison-half .app-layout {
+    transform-origin: top left;
+    transform: scale(0.82);
+    width: 122%;
+    height: 122%;
+  }
+
+  /* Notes overlay */
+  .notes-panel {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    background: rgba(10, 15, 26, 0.97);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 20px 24px;
+    max-width: 600px;
+    width: 90%;
+  }
+
+  .notes-panel h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 10px;
+  }
+
+  .notes-panel ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .notes-panel li {
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.55);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .notes-panel li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4F96FF;
+  }
+
+  .notes-panel li strong {
+    color: rgba(255,255,255,0.8);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== COMPARISON BANNER ===== -->
+<div class="comparison-banner">
+  <div class="current-label">CURRENT Night Mode (#0a0a0a pure black)</div>
+  <div class="proposed-label">PROPOSED Night Mode (deep navy #0e1525)</div>
+</div>
+
+<div class="comparison-container">
+
+  <!-- ===== LEFT: CURRENT THEME ===== -->
+  <div class="comparison-half current current-theme">
+    <div class="app-layout">
+      <!-- Server Sidebar -->
+      <div class="server-sidebar">
+        <div class="server-icon active"><span class="lightning">&#9889;</span></div>
+        <div class="server-separator"></div>
+        <div class="server-icon">FC</div>
+        <div class="server-icon">YG</div>
+        <div class="server-icon">&#128276;</div>
+        <div class="server-icon">SM</div>
+        <div class="server-separator"></div>
+        <div class="server-icon add-btn">+</div>
+      </div>
+
+      <!-- Channel Sidebar -->
+      <div class="channel-sidebar">
+        <div class="channel-header">
+          <div class="server-name"><span class="lightning-icon">&#9889;</span> Faith Community</div>
+        </div>
+        <div class="search-bar">
+          <span>&#128269;</span> Search <span class="shortcut">&#8984;K</span>
+        </div>
+        <div class="channel-list">
+          <div class="category">WELCOME</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> guidelines</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> introductions</div>
+          <div class="category">COMMUNITY</div>
+          <div class="channel-item active"><span class="prefix">&ndash;</span> testimonies</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> prayer-requests <span class="badge">4</span></div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> fellowship <span class="unread-dot"></span></div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> encouragement</div>
+          <div class="category">GROWTH</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> bible-study</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> devotionals</div>
+          <div class="category">UPPER ROOM</div>
+          <div class="channel-item"><span style="color:#22c55e;">&#9679;</span> Prayer Room</div>
+          <div class="channel-item"><span style="color:#22c55e;">&#9679;</span> Worship</div>
+        </div>
+        <div class="user-status-bar">
+          <div class="user-avatar-small">J<div class="online-dot"></div></div>
+          <div class="user-info">
+            <div class="name">Jordyn</div>
+            <div class="status">Online</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Chat -->
+      <div class="main-chat">
+        <div class="chat-header">
+          <div class="channel-name">&ndash; testimonies</div>
+          <div class="channel-topic">Share your story of what God has done</div>
+          <div class="header-actions">
+            <button class="header-action-btn">&#128276;</button>
+            <button class="header-action-btn">&#128204;</button>
+            <button class="header-action-btn">&#128465;</button>
+          </div>
+        </div>
+
+        <div class="messages-area">
+          <div class="message">
+            <div class="message-avatar blue">PJ<div class="online-indicator"></div></div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-author">Pastor James</span>
+                <span class="role-badge pastor">Pastor</span>
+                <span class="message-time">9:15 AM</span>
+              </div>
+              <div class="message-text">Good morning church family! &#128591; We had 12 new testimonies shared this week. God is moving! If you haven't shared yours yet &mdash; it only takes 3 minutes with Lightning.</div>
+              <div class="reactions">
+                <div class="reaction active"><span class="emoji">&#128588;</span><span class="count">18</span></div>
+                <div class="reaction"><span class="emoji">&#9889;</span><span class="count">9</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="message">
+            <div class="message-avatar teal">SM<div class="online-indicator"></div></div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-author">Sarah Mitchell</span>
+                <span class="role-badge leader">Leader</span>
+                <span class="message-time">9:32 AM</span>
+              </div>
+              <div class="message-text">Just used the AI testimony tool &mdash; it captured years of struggle in the most beautiful way:</div>
+              <div class="testimony-card">
+                <div class="testimony-card-header">
+                  <span>&#9889;</span> Lightning Testimony
+                </div>
+                <div class="testimony-card-body">
+                  <div class="quote">"I spent years running from God, thinking I had to have my life together before I could come to Him. But on a quiet night, broken and alone, I heard Him say 'You don't have to be perfect to be Mine.' That was the moment everything changed..."</div>
+                  <div class="attribution">&mdash; Sarah Mitchell &bull; Grace Community Church</div>
+                </div>
+              </div>
+              <div class="reactions">
+                <div class="reaction active"><span class="emoji">&#10084;&#65039;</span><span class="count">24</span></div>
+                <div class="reaction"><span class="emoji">&#128591;</span><span class="count">15</span></div>
+                <div class="reaction"><span class="emoji">&#9889;</span><span class="count">7</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="message">
+            <div class="message-avatar purple">MW</div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-author">Marcus Williams</span>
+                <span class="message-time">9:48 AM</span>
+              </div>
+              <div class="message-text">Sarah that's incredible &#129327; This is why Lightning exists &mdash; to give people the words when they can't find them.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="message-input-area">
+          <div class="message-input-container">
+            <span class="input-icon">+</span>
+            <input class="message-input" placeholder="Share in testimonies — your story matters" />
+            <span class="input-icon">&#9889;</span>
+            <span class="input-icon">&#128578;</span>
+            <span class="input-icon">&#128206;</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thread Panel -->
+      <div class="thread-panel">
+        <div class="thread-header">
+          <span class="thread-icon">&#128172;</span>
+          <h3>Thread</h3>
+          <span class="reply-count">4 replies</span>
+        </div>
+        <div class="thread-messages">
+          <div class="thread-message">
+            <div class="thread-avatar" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">SM</div>
+            <div class="thread-msg-content">
+              <div class="thread-msg-author">Sarah Mitchell</div>
+              <div class="thread-msg-text">I was so nervous to share but the AI made it feel like talking to a friend.</div>
+            </div>
+          </div>
+          <div class="thread-message">
+            <div class="thread-avatar" style="background: linear-gradient(135deg, #4F96FF, #2563eb);">PJ</div>
+            <div class="thread-msg-content">
+              <div class="thread-msg-author">Pastor James</div>
+              <div class="thread-msg-text">That's exactly the goal Sarah. No more writer's block between you and your testimony.</div>
+            </div>
+          </div>
+          <div class="thread-message">
+            <div class="thread-avatar" style="background: linear-gradient(135deg, #f472b6, #ec4899);">PN</div>
+            <div class="thread-msg-content">
+              <div class="thread-msg-author">Priya Nair</div>
+              <div class="thread-msg-text">Can we share these as cards on Instagram? That would be so powerful for outreach.</div>
+            </div>
+          </div>
+          <div class="thread-message">
+            <div class="thread-avatar" style="background: linear-gradient(135deg, #4F96FF, #2563eb);">PJ</div>
+            <div class="thread-msg-content">
+              <div class="thread-msg-author">Pastor James</div>
+              <div class="thread-msg-text">Yes! Shareable testimony cards are coming in the next update &#9889;</div>
+            </div>
+          </div>
+        </div>
+        <div class="thread-input-area">
+          <input class="thread-input" placeholder="Reply to thread..." />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RIGHT: PROPOSED THEME ===== -->
+  <div class="comparison-half proposed proposed-theme">
+    <div class="app-layout">
+      <!-- Server Sidebar -->
+      <div class="server-sidebar">
+        <div class="server-icon active"><span class="lightning">&#9889;</span></div>
+        <div class="server-separator"></div>
+        <div class="server-icon">FC</div>
+        <div class="server-icon">YG</div>
+        <div class="server-icon">&#128276;</div>
+        <div class="server-icon">SM</div>
+        <div class="server-separator"></div>
+        <div class="server-icon add-btn">+</div>
+      </div>
+
+      <!-- Channel Sidebar -->
+      <div class="channel-sidebar">
+        <div class="channel-header">
+          <div class="server-name"><span class="lightning-icon">&#9889;</span> Faith Community</div>
+        </div>
+        <div class="search-bar">
+          <span>&#128269;</span> Search <span class="shortcut">&#8984;K</span>
+        </div>
+        <div class="channel-list">
+          <div class="category">WELCOME</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> guidelines</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> introductions</div>
+          <div class="category">COMMUNITY</div>
+          <div class="channel-item active"><span class="prefix">&ndash;</span> testimonies</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> prayer-requests <span class="badge">4</span></div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> fellowship <span class="unread-dot"></span></div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> encouragement</div>
+          <div class="category">GROWTH</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> bible-study</div>
+          <div class="channel-item"><span class="prefix">&ndash;</span> devotionals</div>
+          <div class="category">UPPER ROOM</div>
+          <div class="channel-item"><span style="color:#22c55e;">&#9679;</span> Prayer Room</div>
+          <div class="channel-item"><span style="color:#22c55e;">&#9679;</span> Worship</div>
+        </div>
+        <div class="user-status-bar">
+          <div class="user-avatar-small">J<div class="online-dot"></div></div>
+          <div class="user-info">
+            <div class="name">Jordyn</div>
+            <div class="status">Online</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Chat -->
+      <div class="main-chat">
+        <div class="chat-header">
+          <div class="channel-name">&ndash; testimonies</div>
+          <div class="channel-topic">Share your story of what God has done</div>
+          <div class="header-actions">
+            <button class="header-action-btn">&#128276;</button>
+            <button class="header-action-btn">&#128204;</button>
+            <button class="header-action-btn">&#128465;</button>
+          </div>
+        </div>
+
+        <div class="messages-area">
+          <div class="message">
+            <div class="message-avatar blue">PJ<div class="online-indicator"></div></div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-author">Pastor James</span>
+                <span class="role-badge pastor">Pastor</span>
+                <span class="message-time">9:15 AM</span>
+              </div>
+              <div class="message-text">Good morning church family! &#128591; We had 12 new testimonies shared this week. God is moving! If you haven't shared yours yet &mdash; it only takes 3 minutes with Lightning.</div>
+              <div class="reactions">
+                <div class="reaction active"><span class="emoji">&#128588;</span><span class="count">18</span></div>
+                <div class="reaction"><span class="emoji">&#9889;</span><span class="count">9</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="message">
+            <div class="message-avatar teal">SM<div class="online-indicator"></div></div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-author">Sarah Mitchell</span>
+                <span class="role-badge leader">Leader</span>
+                <span class="message-time">9:32 AM</span>
+              </div>
+              <div class="message-text">Just used the AI testimony tool &mdash; it captured years of struggle in the most beautiful way:</div>
+              <div class="testimony-card">
+                <div class="testimony-card-header">
+                  <span>&#9889;</span> Lightning Testimony
+                </div>
+                <div class="testimony-card-body">
+                  <div class="quote">"I spent years running from God, thinking I had to have my life together before I could come to Him. But on a quiet night, broken and alone, I heard Him say 'You don't have to be perfect to be Mine.' That was the moment everything changed..."</div>
+                  <div class="attribution">&mdash; Sarah Mitchell &bull; Grace Community Church</div>
+                </div>
+              </div>
+              <div class="reactions">
+                <div class="reaction active"><span class="emoji">&#10084;&#65039;</span><span class="count">24</span></div>
+                <div class="reaction"><span class="emoji">&#128591;</span><span class="count">15</span></div>
+                <div class="reaction"><span class="emoji">&#9889;</span><span class="count">7</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="message">
+            <div class="message-avatar purple">MW</div>
+            <div class="message-content">
+              <div class="message-header">
+                <span class="message-author">Marcus Williams</span>
+                <span class="message-time">9:48 AM</span>
+              </div>
+              <div class="message-text">Sarah that's incredible &#129327; This is why Lightning exists &mdash; to give people the words when they can't find them.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="message-input-area">
+          <div class="message-input-container">
+            <span class="input-icon">+</span>
+            <input class="message-input" placeholder="Share in testimonies — your story matters" />
+            <span class="input-icon">&#9889;</span>
+            <span class="input-icon">&#128578;</span>
+            <span class="input-icon">&#128206;</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thread Panel -->
+      <div class="thread-panel">
+        <div class="thread-header">
+          <span class="thread-icon">&#128172;</span>
+          <h3>Thread</h3>
+          <span class="reply-count">4 replies</span>
+        </div>
+        <div class="thread-messages">
+          <div class="thread-message">
+            <div class="thread-avatar" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">SM</div>
+            <div class="thread-msg-content">
+              <div class="thread-msg-author">Sarah Mitchell</div>
+              <div class="thread-msg-text">I was so nervous to share but the AI made it feel like talking to a friend.</div>
+            </div>
+          </div>
+          <div class="thread-message">
+            <div class="thread-avatar" style="background: linear-gradient(135deg, #4F96FF, #2563eb);">PJ</div>
+            <div class="thread-msg-content">
+              <div class="thread-msg-author">Pastor James</div>
+              <div class="thread-msg-text">That's exactly the goal Sarah. No more writer's block between you and your testimony.</div>
+            </div>
+          </div>
+          <div class="thread-message">
+            <div class="thread-avatar" style="background: linear-gradient(135deg, #f472b6, #ec4899);">PN</div>
+            <div class="thread-msg-content">
+              <div class="thread-msg-author">Priya Nair</div>
+              <div class="thread-msg-text">Can we share these as cards on Instagram? That would be so powerful for outreach.</div>
+            </div>
+          </div>
+          <div class="thread-message">
+            <div class="thread-avatar" style="background: linear-gradient(135deg, #4F96FF, #2563eb);">PJ</div>
+            <div class="thread-msg-content">
+              <div class="thread-msg-author">Pastor James</div>
+              <div class="thread-msg-text">Yes! Shareable testimony cards are coming in the next update &#9889;</div>
+            </div>
+          </div>
+        </div>
+        <div class="thread-input-area">
+          <input class="thread-input" placeholder="Reply to thread..." />
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Notes overlay -->
+<div class="notes-panel">
+  <h4>Key Differences: Current vs Proposed</h4>
+  <ul>
+    <li><strong>Base background:</strong> #0a0a0a (pure black) &rarr; #0e1525 (deep navy) &mdash; warmer, less harsh</li>
+    <li><strong>Surface layers:</strong> black/opacity &rarr; navy/opacity &mdash; creates depth hierarchy</li>
+    <li><strong>Sidebar contrast:</strong> Slightly more separation between panels using navy gradations</li>
+    <li><strong>Text legibility:</strong> Same white/opacity system, but navy base gives better perceived contrast</li>
+    <li><strong>Accent colors:</strong> Blue (#4F96FF) stays primary; gold for testimonies; green for online status</li>
+    <li><strong>Overall feel:</strong> Less OLED-dark, more Discord/Slack sophisticated dark theme</li>
+  </ul>
+</div>
+
+</body>
+</html>
