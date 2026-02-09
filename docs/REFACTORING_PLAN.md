@@ -308,7 +308,7 @@ These changes are mechanical and cannot break functionality.
 - **Risk**: Medium — JWT misconfiguration can lock out all users. Test thoroughly.
 
 ### Step 5.3 — Enable RLS with Permissive Policies First
-- [ ] **Status**: Not started
+- [x] **Status**: DONE (Feb 9, 2026) — Created migration `20260209100000_enable_rls_permissive.sql` covering 46 tables (all except `spatial_ref_sys`). Each table gets `ENABLE ROW LEVEL SECURITY` + a `temp_permissive_all` policy with `USING (true) WITH CHECK (true)`. **⚠️ Must be run in Supabase SQL Editor before deploying.**
 - **What to do**:
   - Write a migration that:
     1. Enables RLS on ALL tables
