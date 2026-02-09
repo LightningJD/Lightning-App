@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import {
   initGuestSession,
   checkGuestLimit,
@@ -12,30 +12,30 @@ import {
  * Returns { showModal, modalVersion, handleDismiss }
  */
 export const useGuestModal = () => {
-  const { isSignedIn, isLoaded } = useUser();
+  const { isAuthenticated, isLoading } = useSupabaseAuth();
   const [showModal, setShowModal] = useState(false);
   const [modalVersion, setModalVersion] = useState(1);
 
   // Initialize guest session on mount
   useEffect(() => {
-    if (isLoaded && !isSignedIn) {
+    if (!isLoading && !isAuthenticated) {
       initGuestSession();
       console.log('👋 Guest session initialized');
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoading, isAuthenticated]);
 
   // Clear guest session when user signs in
   useEffect(() => {
-    if (isSignedIn) {
+    if (isAuthenticated) {
       console.log('🎉 User signed in - clearing guest session');
       clearGuestSession();
       setShowModal(false);
     }
-  }, [isSignedIn]);
+  }, [isAuthenticated]);
 
   // Check guest limits and show modal if needed
   const checkAndShowModal = () => {
-    if (isSignedIn) return false;
+    if (isAuthenticated) return false;
 
     const limit = checkGuestLimit();
 
@@ -61,6 +61,6 @@ export const useGuestModal = () => {
     modalVersion,
     handleDismiss,
     checkAndShowModal,
-    isGuest: !isSignedIn
+    isGuest: !isAuthenticated
   };
 };
