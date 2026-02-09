@@ -26,11 +26,19 @@ export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabase
       accessToken: async () => {
         if (_getClerkToken) {
           try {
-            return await _getClerkToken();
-          } catch {
+            const token = await _getClerkToken();
+            if (token) {
+              console.log('🔑 Supabase using Clerk JWT (length:', token.length, ')');
+            } else {
+              console.warn('⚠️ Clerk token getter returned null');
+            }
+            return token;
+          } catch (err) {
+            console.error('❌ Clerk token getter error:', err);
             return null;
           }
         }
+        console.warn('⚠️ No Clerk token getter registered yet');
         return null;
       },
     })
