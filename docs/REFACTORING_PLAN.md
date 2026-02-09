@@ -283,7 +283,7 @@ These changes are mechanical and cannot break functionality.
 - **Risk**: None — this was research only
 
 ### Step 5.1 — Design RLS Policy Matrix
-- [ ] **Status**: Not started
+- [x] **Status**: DONE (Feb 9, 2026) — Created `docs/RLS_POLICY_MATRIX.md` covering all 47 tables with SELECT/INSERT/UPDATE/DELETE permissions, 6 helper functions, rollout order, and pre-requisites.
 - **What to do**:
   - Create a matrix of every table × operation (SELECT, INSERT, UPDATE, DELETE)
   - For each cell, define: who can do this? (owner, server member, group member, anyone, admin)
