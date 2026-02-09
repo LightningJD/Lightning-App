@@ -297,13 +297,12 @@ These changes are mechanical and cannot break functionality.
 - **Risk**: None — planning document only
 
 ### Step 5.2 — Set Up Clerk-Supabase JWT Integration
-- [ ] **Status**: Not started
+- [x] **Status**: DONE (Feb 9, 2026) — Used native Clerk-Supabase Third-Party Auth integration (no signing key copy needed). Updated `supabase.ts` with `accessToken` callback, updated `useUserProfile.ts` with `setClerkTokenGetter`, removed old `ensureSupabaseSession`/`setSession` hack from `AppContext.tsx`. RLS policies should use `auth.jwt()->>'sub'` to get Clerk user ID.
 - **What to do**:
-  - In Clerk Dashboard: create a JWT template for Supabase
-  - The JWT should include `sub` (clerk user ID) as the claim
-  - In Supabase: set the JWT secret to Clerk's signing key
-  - Update `src/lib/supabase.ts` to pass the Clerk JWT to Supabase on each request
-  - This allows `auth.uid()` in RLS policies to return the Clerk user ID
+  - ~~In Clerk Dashboard: create a JWT template for Supabase~~
+  - Used native Clerk-Supabase integration (Clerk Dashboard → Integrations → Supabase + Supabase Dashboard → Third-Party Auth → Clerk)
+  - Update `src/lib/supabase.ts` to pass the Clerk JWT to Supabase on each request via `accessToken` callback
+  - This allows `auth.jwt()->>'sub'` in RLS policies to return the Clerk user ID
 - **Context Needed**: Clerk Dashboard access, Supabase Dashboard access
 - **Test**: After setup, call `supabase.auth.getUser()` and verify it returns the Clerk user ID
 - **Risk**: Medium — JWT misconfiguration can lock out all users. Test thoroughly.

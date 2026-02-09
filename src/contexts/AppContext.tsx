@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { useClerk, useSession } from '@clerk/clerk-react';
+import { useClerk } from '@clerk/clerk-react';
 import { useUserProfile } from '../components/useUserProfile';
 import { showError, showSuccess, showLoading, updateToSuccess, updateToError } from '../lib/toast';
 import { checkBeforeSend } from '../lib/contentFilter';
@@ -12,7 +12,7 @@ import {
 } from '../lib/database';
 import { isAdmin } from '../lib/database/users';
 import { generateDeviceFingerprint } from '../lib/deviceFingerprint';
-import { supabase } from '../lib/supabase';
+// supabase client now handles auth tokens automatically via native Clerk integration
 import {
   registerServiceWorker, setupPushNotifications, isPushSupported,
   getNotificationPermission, unsubscribeFromPush
@@ -194,7 +194,6 @@ const DEMO_PROFILE = {
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { signOut } = useClerk();
-  const { session } = useSession();
   const { isLoading, isAuthenticated, isSyncing, profile: userProfile, user: clerkUser } = useUserProfile();
   const [localProfile, setLocalProfile] = useState<any>(null);
 
@@ -562,22 +561,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const ensureSupabaseSession = async (): Promise<boolean> => {
-    if (!session || !supabase) return false;
-    try {
-      const token = await session.getToken({ template: 'supabase' });
-      if (!token) {
-        console.warn('Supabase token missing');
-        return false;
-      }
-      const { error } = await supabase.auth.setSession({ access_token: token, refresh_token: token });
-      if (error) { console.error('Error setting Supabase session:', error); return false; }
-      return true;
-    } catch (error) {
-      console.error('Failed to set Supabase session:', error);
-      return false;
-    }
-  };
+  // Native Clerk-Supabase integration handles auth tokens automatically
+  // via the accessToken callback in supabase.ts — no manual session setting needed
 
   const getExistingSupabaseUserId = async (): Promise<string | null> => {
     if (userProfile?.supabaseId) return userProfile.supabaseId;
@@ -793,7 +778,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
         if (!targetUserId && clerkUser) {
           try {
-            await ensureSupabaseSession();
             // @ts-ignore
             const syncedUser = await syncUserToSupabase(clerkUser);
             if (syncedUser?.id) { targetUserId = syncedUser.id; window.dispatchEvent(new CustomEvent('profileUpdated')); }

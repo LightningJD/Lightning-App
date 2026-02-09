@@ -1,6 +1,7 @@
 import { useUser, useSession } from '@clerk/clerk-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { syncUserToSupabase, getTestimonyByUserId, getChurchById } from '../lib/database';
+import { setClerkTokenGetter } from '../lib/supabase';
 
 
 /**
@@ -22,6 +23,18 @@ export const useUserProfile = (): UseUserProfileReturn => {
   const [church, setChurch] = useState<any>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSyncing, setIsSyncing] = useState(true);
+  const tokenGetterSet = useRef(false);
+
+  // Register Clerk token getter for native Supabase integration
+  // This lets the module-level Supabase client automatically include
+  // the Clerk JWT on every request (for RLS)
+  useEffect(() => {
+    if (session && !tokenGetterSet.current) {
+      setClerkTokenGetter(() => session.getToken());
+      tokenGetterSet.current = true;
+      console.log('✅ Clerk token getter registered for Supabase native integration');
+    }
+  }, [session]);
 
   // Sync user to Supabase when they sign in or when refresh is triggered
   useEffect(() => {
@@ -31,34 +44,6 @@ export const useUserProfile = (): UseUserProfileReturn => {
 
       if (isSignedIn && user && session) {
         try {
-          // Get Supabase token from Clerk
-          let token = null;
-          try {
-            token = await session.getToken({ template: 'supabase' });
-          } catch (tokenError) {
-            console.warn('⚠️ Failed to retrieve Supabase token (template might be missing):', tokenError);
-          }
-
-          if (token) {
-            console.log('✅ Retrieving Supabase token from Clerk success');
-            // Set session on Supabase client to enable RLS
-            // We use the same token for refresh_token as a workaround since Clerk handles auth
-            const { error } = await import('../lib/supabase').then(m =>
-              m.supabase?.auth.setSession({
-                access_token: token,
-                refresh_token: token
-              }) || { data: { user: null, session: null }, error: null }
-            );
-
-            if (error) {
-              console.error('❌ Error setting Supabase session:', error);
-            } else {
-              console.log('✅ Supabase session set successfully');
-            }
-          } else {
-            console.warn('⚠️ No Supabase token available - ensuring Supabase client is ready for public/anon access');
-          }
-
           // Sync Clerk user to Supabase
           // @ts-ignore - Clerk user type compatibility
           const dbUser = await syncUserToSupabase(user);
