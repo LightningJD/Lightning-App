@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, MapPin, MessageCircle, Flag, UserPlus, Heart, UserX, UserCheck, Users } from 'lucide-react';
 import ReportContent from './ReportContent';
 import { useUserProfile } from './useUserProfile';
 import { sanitizeUserContent } from '../lib/sanitization';
-import { sendFriendRequest, checkFriendshipStatus, blockUser, isUserBlocked, followUser, unfollowUser, isFollowing as checkIsFollowing, getFollowerCount, acceptFriendRequest, declineFriendRequest, getPendingFriendRequests } from '../lib/database';
+import { sendFriendRequest, checkFriendshipStatus, blockUser, isUserBlocked, followUser, unfollowUser, isFollowing as checkIsFollowing, getFollowerCount, acceptFriendRequest, declineFriendRequest, getPendingFriendRequests, getUserById, getTestimonyByUserId, getChurchById } from '../lib/database';
 import { showSuccess, showError } from '../lib/toast';
 import ProfileCard from './ProfileCard';
 
@@ -18,12 +18,17 @@ interface UserStory {
 interface User {
   id: string;
   displayName?: string;
+  display_name?: string;
   username?: string;
   avatar?: string;
   avatarImage?: string;
+  avatar_url?: string;
+  avatar_emoji?: string;
   location?: string;
+  location_city?: string;
   distance?: string;
   online?: boolean;
+  is_online?: boolean;
   bio?: string;
   story?: UserStory;
   mutualFriends?: number;
@@ -63,11 +68,24 @@ interface OtherUserProfileDialogProps {
 }
 
 const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
-  user,
+  user: rawUser,
   onClose,
   nightMode,
   onMessage
 }) => {
+  // Normalize user fields — database uses snake_case, components use camelCase
+  const user = React.useMemo(() => {
+    if (!rawUser) return null;
+    return {
+      ...rawUser,
+      displayName: rawUser.displayName || rawUser.display_name || rawUser.username || 'User',
+      avatarImage: rawUser.avatarImage || rawUser.avatar_url,
+      avatar: rawUser.avatar || rawUser.avatar_emoji || '👤',
+      online: rawUser.online ?? rawUser.is_online ?? false,
+      location: rawUser.location || rawUser.location_city,
+    };
+  }, [rawUser]);
+
   const { profile: currentUserProfile } = useUserProfile();
   const [showReport, setShowReport] = useState<boolean>(false);
   const [reportData, setReportData] = useState<ReportData | null>(null);
@@ -80,6 +98,34 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [isTogglingFollow, setIsTogglingFollow] = useState<boolean>(false);
   const [userProfileVisibility, setUserProfileVisibility] = useState<string>('private');
+  const [fullProfile, setFullProfile] = useState<any>(null);
+  const [testimony, setTestimony] = useState<any>(null);
+  const [church, setChurch] = useState<any>(null);
+
+  // Fetch full profile data from DB so we can show the complete profile
+  useEffect(() => {
+    const loadFullProfile = async () => {
+      if (!user?.id) return;
+      try {
+        const [dbUser, userTestimony] = await Promise.all([
+          getUserById(user.id),
+          getTestimonyByUserId(user.id),
+        ]);
+        if (dbUser) {
+          setFullProfile(dbUser);
+          // Load church if user has one
+          if ((dbUser as any).church_id) {
+            const churchData = await getChurchById((dbUser as any).church_id);
+            if (churchData) setChurch(churchData);
+          }
+        }
+        if (userTestimony) setTestimony(userTestimony);
+      } catch (err) {
+        console.error('Error loading full profile:', err);
+      }
+    };
+    loadFullProfile();
+  }, [user?.id]);
 
   // Check friendship status, block status, and follow status
   React.useEffect(() => {
@@ -273,32 +319,83 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
 
             </div>
 
-            {/* Profile Card (Pokédex V15+V11) */}
-            {(user.bio || user.churchName || user.favoriteVerse || (user.faithInterests && user.faithInterests.length > 0) || user.yearSaved || (user.music && user.music.spotifyUrl)) && (
-              <ProfileCard
-                nightMode={nightMode}
-                compact
-                hideStats
-                profile={{
-                  bio: user.bio,
-                  churchName: user.churchName,
-                  churchLocation: user.churchLocation,
-                  denomination: user.denomination,
-                  yearSaved: user.yearSaved,
-                  isBaptized: user.isBaptized,
-                  yearBaptized: user.yearBaptized,
-                  favoriteVerse: user.favoriteVerse,
-                  favoriteVerseRef: user.favoriteVerseRef,
-                  faithInterests: user.faithInterests,
-                  music: user.music,
-                  story: user.story ? {
-                    id: user.story.id,
-                    viewCount: 0,
-                    likeCount: user.story.likeCount,
-                  } : null,
-                }}
-              />
+            {/* Bio */}
+            {(fullProfile?.bio || user.bio) && (
+              <div className={`rounded-xl p-4 ${nightMode ? 'bg-white/5' : 'bg-white/40'}`}>
+                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
+                  {fullProfile?.bio || user.bio}
+                </p>
+              </div>
             )}
+
+            {/* Testimony */}
+            {testimony && (
+              <div className={`rounded-xl p-4 ${nightMode ? 'bg-white/5' : 'bg-white/40'}`}>
+                <h3 className={`text-sm font-bold mb-2 ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>⚡ Testimony</h3>
+                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
+                  {testimony.content?.length > 300 ? testimony.content.slice(0, 300) + '...' : testimony.content}
+                </p>
+                {testimony.lesson && (
+                  <p className={`text-xs mt-2 italic ${nightMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                    💡 {testimony.lesson}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Profile Card (Faith Profile) */}
+            {(() => {
+              const bio = fullProfile?.bio || user.bio;
+              const churchName = fullProfile?.church_name || user.churchName || church?.name;
+              const churchLocation = fullProfile?.church_location || user.churchLocation || church?.location;
+              const denomination = fullProfile?.denomination || user.denomination || church?.denomination;
+              const yearSaved = fullProfile?.year_saved || user.yearSaved;
+              const isBaptized = fullProfile?.is_baptized || user.isBaptized;
+              const yearBaptized = fullProfile?.year_baptized || user.yearBaptized;
+              const favoriteVerse = fullProfile?.favorite_verse || user.favoriteVerse;
+              const favoriteVerseRef = fullProfile?.favorite_verse_ref || user.favoriteVerseRef;
+              const faithInterests = fullProfile?.faith_interests || user.faithInterests;
+              const spotifyUrl = fullProfile?.spotify_url || user.music?.spotifyUrl;
+              const songName = (fullProfile as any)?.song_name || user.music?.trackName;
+              const songArtist = (fullProfile as any)?.song_artist || user.music?.artist;
+
+              const hasProfileCard = churchName || favoriteVerse || (faithInterests && faithInterests.length > 0) || yearSaved || spotifyUrl;
+              if (!hasProfileCard) return null;
+
+              return (
+                <ProfileCard
+                  nightMode={nightMode}
+                  compact
+                  hideStats
+                  profile={{
+                    churchName,
+                    churchLocation,
+                    denomination,
+                    yearSaved,
+                    isBaptized,
+                    yearBaptized,
+                    favoriteVerse,
+                    favoriteVerseRef,
+                    faithInterests,
+                    music: spotifyUrl ? {
+                      platform: 'youtube' as const,
+                      trackName: songName || 'My Song',
+                      artist: songArtist || '',
+                      spotifyUrl,
+                    } : user.music,
+                    story: testimony ? {
+                      id: testimony.id,
+                      viewCount: testimony.view_count || 0,
+                      likeCount: testimony.like_count || 0,
+                    } : user.story ? {
+                      id: user.story.id,
+                      viewCount: 0,
+                      likeCount: user.story.likeCount,
+                    } : null,
+                  }}
+                />
+              );
+            })()}
 
             {/* Action Buttons */}
             <div className="flex gap-3 max-w-md mx-auto pt-2">

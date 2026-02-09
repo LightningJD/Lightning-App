@@ -7,6 +7,7 @@
 // User Management
 export {
   syncUserToSupabase,
+  getUserById,
   getUserByClerkId,
   updateUserProfile,
   updateUserLocation,

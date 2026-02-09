@@ -133,6 +133,26 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
 };
 
 /**
+ * Get user profile by Supabase UUID
+ */
+export const getUserById = async (userId: string): Promise<User | null> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching user by ID:', error);
+    return null;
+  }
+
+  return data as unknown as User;
+};
+
+/**
  * Get user profile by Clerk ID
  */
 export const getUserByClerkId = async (clerkUserId: string): Promise<User | null> => {
