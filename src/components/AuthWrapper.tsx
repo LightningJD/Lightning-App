@@ -1,82 +1,60 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
+import { SupabaseAuthProvider, useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import SignInPage from './SignInPage';
 import SignUpPage from './SignUpPage';
-
-const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
 interface AuthWrapperProps {
   children: React.ReactNode;
 }
 
-const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
-  if (!CLERK_PUBLISHABLE_KEY) {
+/**
+ * Inner component that uses the auth context for route guarding.
+ * Must be inside SupabaseAuthProvider to access useSupabaseAuth().
+ */
+const AuthRoutes: React.FC<AuthWrapperProps> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useSupabaseAuth();
+
+  // Show loading spinner while Supabase checks session
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl p-8 max-w-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Configuration Error</h2>
-          <p className="text-slate-700 mb-4">
-            Missing Clerk Publishable Key. Please follow these steps:
-          </p>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-slate-600">
-            <li>Go to <a href="https://clerk.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">clerk.com</a></li>
-            <li>Sign up for a free account</li>
-            <li>Create a new application named "Lightning"</li>
-            <li>Copy your Publishable Key from the dashboard</li>
-            <li>Add it to your <code className="bg-slate-100 px-1 rounded">.env.local</code> file</li>
-            <li>Restart the development server</li>
-          </ol>
+      <div className="min-h-screen flex items-center justify-center"
+        style={{
+          background: 'linear-gradient(135deg, rgba(219, 234, 254, 0.63) 0%, transparent 100%), radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.175) 0%, transparent 60%), linear-gradient(45deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%)'
+        }}
+      >
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">⚡</div>
+          <p className="text-slate-500 text-sm">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+    <Routes>
+      <Route
+        path="/sign-in/*"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <SignInPage />}
+      />
+      <Route
+        path="/sign-up/*"
+        element={isAuthenticated ? <Navigate to="/" replace /> : <SignUpPage />}
+      />
+      <Route
+        path="/*"
+        element={isAuthenticated ? <>{children}</> : <Navigate to="/sign-in" replace />}
+      />
+    </Routes>
+  );
+};
+
+const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
+  return (
+    <SupabaseAuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route
-            path="/sign-in/*"
-            element={
-              <>
-                <SignedIn>
-                  <Navigate to="/" replace />
-                </SignedIn>
-                <SignedOut>
-                  <SignInPage />
-                </SignedOut>
-              </>
-            }
-          />
-          <Route
-            path="/sign-up/*"
-            element={
-              <>
-                <SignedIn>
-                  <Navigate to="/" replace />
-                </SignedIn>
-                <SignedOut>
-                  <SignUpPage />
-                </SignedOut>
-              </>
-            }
-          />
-          <Route
-            path="/*"
-            element={
-              <>
-                <SignedIn>
-                  {children}
-                </SignedIn>
-                <SignedOut>
-                  <Navigate to="/sign-in" replace />
-                </SignedOut>
-              </>
-            }
-          />
-        </Routes>
+        <AuthRoutes>{children}</AuthRoutes>
       </BrowserRouter>
-    </ClerkProvider>
+    </SupabaseAuthProvider>
   );
 };
 
