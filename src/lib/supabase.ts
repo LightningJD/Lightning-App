@@ -16,9 +16,24 @@ if (!supabaseUrl || !supabaseAnonKey) {
  * Once Clerk loads, it returns the Clerk JWT so auth.uid() works for RLS.
  */
 let _getClerkToken: (() => Promise<string | null>) | null = null;
+let _lastRealtimeAuthTime = 0;
 
-export const setClerkTokenGetter = (getter: () => Promise<string | null>) => {
+export const setClerkTokenGetter = async (getter: () => Promise<string | null>) => {
   _getClerkToken = getter;
+
+  // Also set the token for Realtime WebSocket connection
+  // The accessToken callback only handles REST — Realtime needs setAuth() separately
+  if (supabase) {
+    try {
+      const token = await getter();
+      if (token) {
+        supabase.realtime.setAuth(token);
+        console.log('🔑 Realtime auth set with Clerk JWT');
+      }
+    } catch (err) {
+      console.error('❌ Failed to set Realtime auth:', err);
+    }
+  }
 };
 
 export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabaseAnonKey
@@ -28,7 +43,12 @@ export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabase
           try {
             const token = await _getClerkToken();
             if (token) {
-              console.log('🔑 Supabase using Clerk JWT (length:', token.length, ')');
+              // Refresh Realtime auth every 30 seconds to keep WebSocket authenticated
+              const now = Date.now();
+              if (supabase && now - _lastRealtimeAuthTime > 30_000) {
+                supabase.realtime.setAuth(token);
+                _lastRealtimeAuthTime = now;
+              }
             } else {
               console.warn('⚠️ Clerk token getter returned null');
             }
