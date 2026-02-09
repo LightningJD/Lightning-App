@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash, BellOff, Lock, FolderInput, UserPlus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash, BellOff, Lock, FolderInput, UserPlus, Check } from 'lucide-react';
 import { useServerPremium } from '../../contexts/PremiumContext';
 import ServerBannerDisplay from '../premium/ServerBannerDisplay';
 import VerifiedBadge from '../premium/VerifiedBadge';
@@ -551,7 +551,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       )}
 
       {/* Channel list */}
-      <div className="flex-1 overflow-y-auto py-3 px-2.5 space-y-2">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2.5 space-y-2">
         {/* Uncategorized channels */}
         {uncategorizedChannels.length > 0 && (
           <div
@@ -715,7 +715,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         {/* Create new category inline form */}
         {showCreateCategory && (
           <div className="px-2 py-1.5">
-            <div className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 ${
+            <div className={`flex items-center gap-1 rounded-lg px-1.5 py-1.5 ${
               nightMode ? 'bg-white/5 border border-white/10' : 'bg-white/50 border border-black/5'
             }`}>
               <input
@@ -728,7 +728,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                   if (e.key === 'Escape') { setShowCreateCategory(false); setNewCategoryName(''); }
                 }}
                 placeholder="Category name..."
-                className={`flex-1 text-xs font-semibold bg-transparent outline-none placeholder:opacity-40 ${
+                className={`flex-1 min-w-0 text-xs font-semibold bg-transparent outline-none placeholder:opacity-40 ${
                   nightMode ? 'text-white' : 'text-black'
                 }`}
                 maxLength={30}
@@ -736,21 +736,23 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               <button
                 onClick={handleCreateCategory}
                 disabled={!newCategoryName.trim()}
-                className={`text-xs font-semibold px-2 py-0.5 rounded transition-all flex-shrink-0 whitespace-nowrap ${
+                className={`p-1 rounded transition-all flex-shrink-0 ${
                   newCategoryName.trim()
                     ? 'text-blue-500 hover:bg-blue-500/10'
                     : nightMode ? 'text-white/20' : 'text-black/20'
                 }`}
+                title="Add category"
               >
-                Add
+                <Check className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => { setShowCreateCategory(false); setNewCategoryName(''); }}
-                className={`p-0.5 rounded transition-all flex-shrink-0 ${
+                className={`p-1 rounded transition-all flex-shrink-0 ${
                   nightMode ? 'text-white/30 hover:text-white/60' : 'text-black/30 hover:text-black/60'
                 }`}
+                title="Cancel"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
