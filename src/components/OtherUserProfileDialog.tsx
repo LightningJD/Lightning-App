@@ -153,7 +153,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[35] flex flex-col animate-in slide-in-from-right duration-300"
+      className="fixed inset-0 z-[55] flex flex-col animate-in slide-in-from-right duration-300"
       style={{ background: nightMode ? darkGradient : lightGradient }}
       role="dialog"
       aria-modal="true"
