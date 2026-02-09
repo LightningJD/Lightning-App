@@ -266,14 +266,21 @@ These changes are mechanical and cannot break functionality.
 **THIS IS THE HIGHEST RISK PHASE. USE A STAGING ENVIRONMENT.**
 
 ### Step 5.0 — Pre-Work: Understand Current Auth Flow
-- [ ] **Status**: Not started
-- **What to do**:
-  - Read `src/components/AuthWrapper.tsx` to understand how Clerk auth maps to Supabase
-  - Read `supabase/rls-policies-clerk.sql` to understand what was attempted before
-  - Read `src/lib/database/users.ts` — specifically `syncUserToSupabase` — to understand the user identity model
-  - Document: How does `clerk_id` map to rows? Is it stored in every table or just `users`?
-  - Document: Which tables need user-scoped access vs. public read access?
-- **Risk**: None — this is research only
+- [x] **Status**: DONE (Feb 9, 2026)
+- **Findings**:
+  - **Auth architecture**: Clerk handles auth (ClerkProvider in AuthWrapper.tsx). Supabase is used as a pure database — NO Supabase Auth.
+  - **Supabase client**: Uses **anon key** (not service role) in `src/lib/supabase.ts`. No JWT token from Clerk is passed to Supabase. `auth.uid()` returns NULL for all client-side queries.
+  - **Server-side**: Cloudflare Workers (functions/api/) use `SUPABASE_SERVICE_ROLE_KEY` which bypasses RLS entirely.
+  - **Identity mapping**: `clerk_user_id` is stored ONLY on the `users` table. All other tables use Supabase UUID (`users.id`) as foreign keys. This means RLS policies must do a subquery: `user_id IN (SELECT id FROM users WHERE clerk_user_id = auth.uid()::text)`.
+  - **Previous RLS attempts**: 4 SQL files exist in `supabase/`:
+    - `rls-policies.sql` — assumes `auth.uid() = id` (broken, Supabase Auth model)
+    - `rls-policies-clerk.sql` — gave up and DISABLED RLS entirely
+    - `rls-fix.sql` — disables RLS as "safe" rollback
+    - `rls-security-fix.sql` — corrected version using `clerk_user_id = auth.uid()::text` subqueries (15 tables covered, never deployed)
+  - **Current state**: RLS is DISABLED on all tables. All security is app-level only.
+  - **Key blocker**: For RLS to work, Clerk JWT must be passed to Supabase so `auth.uid()` returns the Clerk user ID. This requires: (1) Clerk JWT template configured for Supabase, (2) `supabase.ts` updated to pass Clerk session token.
+  - **Table count**: ~59 tables exist. The `rls-security-fix.sql` covers 15 core tables. Server tables (18+), subscription/billing tables, and newer feature tables are not covered.
+- **Risk**: None — this was research only
 
 ### Step 5.1 — Design RLS Policy Matrix
 - [ ] **Status**: Not started
