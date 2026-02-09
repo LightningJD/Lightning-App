@@ -10,59 +10,94 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 /**
- * Mutable token getter — set by useUserProfile when Clerk session loads.
- * Before the Clerk session is available, accessToken returns null which
- * makes fetchWithAuth fall back to the anon key (unauthenticated).
- * Once Clerk loads, it returns the Clerk JWT so auth.uid() works for RLS.
+ * Mutable Clerk JWT token — updated when Clerk session loads and refreshed periodically.
+ * Used by the custom fetch wrapper to set the Authorization header on each request.
  */
+let _currentToken: string | null = null;
 let _getClerkToken: (() => Promise<string | null>) | null = null;
-let _lastRealtimeAuthTime = 0;
 
+/**
+ * Custom fetch that injects the Clerk JWT as the Authorization header.
+ * This replaces the `accessToken` callback approach which broke Realtime.
+ *
+ * How it works: wraps the native fetch to override the Authorization header
+ * with the Clerk JWT (when available). This way, every Supabase REST request
+ * (queries, inserts, updates) uses the JWT for RLS, while Realtime stays
+ * connected via the anon key and gets its auth via setAuth() separately.
+ */
+const customFetch: typeof fetch = (input, init) => {
+  if (_currentToken && init?.headers) {
+    // Clone headers and override Authorization with Clerk JWT
+    const headers = new Headers(init.headers);
+    headers.set('Authorization', `Bearer ${_currentToken}`);
+    return fetch(input, { ...init, headers });
+  }
+  return fetch(input, init);
+};
+
+/**
+ * Supabase client — uses custom fetch to inject Clerk JWT on REST calls.
+ * NO accessToken callback (that breaks Realtime).
+ */
+export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabaseAnonKey
+  ? createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      global: {
+        fetch: customFetch,
+      },
+    })
+  : null;
+
+/**
+ * Register the Clerk token getter and set up auth for both REST and Realtime.
+ * Called once by useUserProfile when the Clerk session becomes available.
+ */
 export const setClerkTokenGetter = async (getter: () => Promise<string | null>) => {
   _getClerkToken = getter;
 
-  // Also set the token for Realtime WebSocket connection
-  // The accessToken callback only handles REST — Realtime needs setAuth() separately
   if (supabase) {
     try {
       const token = await getter();
       if (token) {
+        // Store token for the custom fetch wrapper (REST calls)
+        _currentToken = token;
+
+        // Set auth for Realtime WebSocket connection
         supabase.realtime.setAuth(token);
-        console.log('🔑 Realtime auth set with Clerk JWT');
+
+        console.log('🔑 Supabase auth configured (REST + Realtime)');
+
+        // Refresh token periodically (Clerk tokens expire ~60s)
+        setInterval(async () => {
+          try {
+            const freshToken = await getter();
+            if (freshToken && supabase) {
+              _currentToken = freshToken;
+              supabase.realtime.setAuth(freshToken);
+            }
+          } catch {
+            // Silently ignore refresh errors — next interval will retry
+          }
+        }, 50_000); // Refresh every 50 seconds
       }
     } catch (err) {
-      console.error('❌ Failed to set Realtime auth:', err);
+      console.error('❌ Failed to set Supabase auth:', err);
     }
   }
 };
 
-export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabaseAnonKey
-  ? createClient<Database>(supabaseUrl, supabaseAnonKey, {
-      accessToken: async () => {
-        if (_getClerkToken) {
-          try {
-            const token = await _getClerkToken();
-            if (token) {
-              // Refresh Realtime auth every 30 seconds to keep WebSocket authenticated
-              const now = Date.now();
-              if (supabase && now - _lastRealtimeAuthTime > 30_000) {
-                supabase.realtime.setAuth(token);
-                _lastRealtimeAuthTime = now;
-              }
-            } else {
-              console.warn('⚠️ Clerk token getter returned null');
-            }
-            return token;
-          } catch (err) {
-            console.error('❌ Clerk token getter error:', err);
-            return null;
-          }
-        }
-        console.warn('⚠️ No Clerk token getter registered yet');
-        return null;
-      },
-    })
-  : null;
+/**
+ * Get a fresh Clerk token (for manual use if needed).
+ */
+export const getClerkToken = async (): Promise<string | null> => {
+  if (_getClerkToken) {
+    try {
+      return await _getClerkToken();
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
 
 // Helper function to check if Supabase is configured
 export const isSupabaseConfigured = (): boolean => {

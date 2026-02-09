@@ -24,7 +24,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     <>
       {/* Full-Screen Background */}
       <div
-        className="fixed inset-0"
+        className="fixed inset-0 -z-10"
         style={{
           background: nightMode ? themes[selectedTheme].darkGradient : themes[selectedTheme].lightGradient
         }}
@@ -114,8 +114,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="relative z-10">
+      {/* Main Content — no z-index to avoid trapping fixed-position children (dialogs) in a stacking context */}
+      <div className="relative">
         {children}
       </div>
 
