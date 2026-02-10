@@ -115,6 +115,7 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
   const reactionSubscriptionRef = useRef<any>(null);
   const userIsScrollingRef = useRef(false);
+  const isInitialChatLoadRef = useRef(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   // ── Load conversations ──────────────────────────────────
@@ -235,6 +236,9 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     const loadMessages = async () => {
       if (!activeChat || !userId) return;
       setLoading(true);
+      // Reset scroll state when switching chats so we always start at the bottom
+      userIsScrollingRef.current = false;
+      isInitialChatLoadRef.current = true;
       const conversation = conversations.find(c => c.id === activeChat);
       const chatUserId = conversation?.userId || String(activeChat);
 
@@ -329,7 +333,14 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
 
   useEffect(() => {
     if (!userIsScrollingRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      // On initial chat load, jump instantly to the bottom so the user
+      // doesn't see the top of the chat first. For new messages arriving
+      // while already in the chat, use smooth scrolling.
+      const behavior = isInitialChatLoadRef.current ? 'instant' : 'smooth';
+      messagesEndRef.current?.scrollIntoView({ behavior: behavior as ScrollBehavior });
+      if (isInitialChatLoadRef.current) {
+        isInitialChatLoadRef.current = false;
+      }
     }
   }, [messages]);
 
