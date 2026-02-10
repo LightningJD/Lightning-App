@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useUserProfile } from './useUserProfile';
 import { getUserById, getTestimonyByUserId, getChurchById } from '../lib/database';
@@ -151,9 +152,11 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
                          radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.175) 0%, transparent 60%),
                          linear-gradient(45deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%)`;
 
-  return (
+  // Use a React Portal to render at document body level,
+  // escaping any parent stacking contexts (z-index traps from AppLayout)
+  return createPortal(
     <div
-      className="fixed inset-0 z-[55] flex flex-col animate-in slide-in-from-right duration-300"
+      className="fixed inset-0 z-[9999] flex flex-col animate-in slide-in-from-right duration-300"
       style={{ background: nightMode ? darkGradient : lightGradient }}
       role="dialog"
       aria-modal="true"
@@ -184,7 +187,8 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
           onBlocked={onClose}
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
