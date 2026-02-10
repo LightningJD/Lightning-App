@@ -429,13 +429,14 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     const chatUserId = conversation?.userId || String(activeChat);
     if (!conversation && !activeChat) return;
 
-    // Block checks
-    const blocked = await isUserBlocked(profile.supabaseId, chatUserId);
-    const blockedBy = await isBlockedBy(profile.supabaseId, chatUserId);
+    // Block + privacy checks in parallel (was 3-5 sequential queries)
+    const [blocked, blockedBy, privacyCheck] = await Promise.all([
+      isUserBlocked(profile.supabaseId, chatUserId),
+      isBlockedBy(profile.supabaseId, chatUserId),
+      canSendMessage(chatUserId, profile.supabaseId),
+    ]);
     if (blocked || blockedBy) { showError('Unable to send message to this user'); return; }
-
-    const { allowed, reason } = await canSendMessage(chatUserId, profile.supabaseId);
-    if (!allowed) { showError(reason || 'Unable to send message'); return; }
+    if (!privacyCheck.allowed) { showError(privacyCheck.reason || 'Unable to send message'); return; }
 
     // Prepare
     const messageContent = newMessage.trim() ? sanitizeInput(newMessage) : '';
@@ -508,59 +509,26 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
 
       recordAttempt('send_message');
 
-      // Check secrets & achievements
-      const allConvos = await getUserConversations(profile.supabaseId);
-      let totalMessages = 0;
-      if (allConvos) {
-        for (const convo of allConvos) {
-          try {
-            const convoMessages = await getConversation(profile.supabaseId, convo.userId) as Message[];
-            totalMessages += convoMessages?.filter(m => m.sender_id === profile.supabaseId).length || 0;
-          } catch { /* continue */ }
-        }
-      }
-      if (totalMessages === 1) checkMilestoneSecret('messages', 1);
-      else if (totalMessages === 100) checkMilestoneSecret('messages', 100);
-      checkMessageSecrets(messageContent);
-      trackMessageByHour();
-      if (getEarlyBirdMessages() >= 10) unlockSecret('early_bird_messenger');
-      if (getNightOwlMessages() >= 10) unlockSecret('night_owl_messenger');
-      if (trackMessageStreak() >= 7) unlockSecret('messages_streak_7');
-
       // Replace optimistic message with real one
       setMessages(prev => {
         const filtered = prev.filter(m => m.id !== tempMessage.id);
         return [...filtered, savedMessage].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       });
 
-      // Background reload
-      getConversation(profile.supabaseId, chatUserId)
-        .then(async (updatedMessages) => {
-          if (updatedMessages && updatedMessages.length > 0 && activeChat) {
-            setMessages(updatedMessages);
-            const msgIds = updatedMessages.map((m: any) => String(m.id));
-            const batchR = await getReactionsForMessages(msgIds);
-            const reactionsMap: Record<string | number, any[]> = {};
-            for (const msgId of msgIds) {
-              reactionsMap[msgId] = (batchR[msgId] || []).map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
-            }
-            setMessageReactions(prev => {
-              const merged = { ...prev };
-              Object.keys(reactionsMap).forEach(id => { merged[id] = reactionsMap[id]; });
-              return merged;
-            });
-          }
-        })
-        .catch(error => console.error('Error reloading messages (non-critical):', error));
+      // ── All remaining work is non-blocking background tasks ──
+      // Secrets, achievements, and conversation reload happen asynchronously
+      // so they never slow down the send or cause the message to fail.
 
-      // Reactions for new message
-      if (savedMessage?.id) {
-        const reactions = await getMessageReactions(String(savedMessage.id));
-        setMessageReactions(prev => ({
-          ...prev,
-          [savedMessage.id]: reactions.map((r: any) => ({ emoji: r.emoji, userId: r.user_id })),
-        }));
-      }
+      // Background: check secrets & achievements (fire-and-forget)
+      (async () => {
+        try {
+          checkMessageSecrets(messageContent);
+          trackMessageByHour();
+          if (getEarlyBirdMessages() >= 10) unlockSecret('early_bird_messenger');
+          if (getNightOwlMessages() >= 10) unlockSecret('night_owl_messenger');
+          if (trackMessageStreak() >= 7) unlockSecret('messages_streak_7');
+        } catch { /* non-critical */ }
+      })();
     } catch (error: any) {
       console.error('❌ Failed to send message:', error);
       showError(error?.message || 'Failed to send message. Please try again.');
