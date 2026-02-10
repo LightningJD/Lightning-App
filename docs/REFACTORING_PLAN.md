@@ -320,7 +320,7 @@ These changes are mechanical and cannot break functionality.
 - **Risk**: Low — permissive policies = same behavior as RLS off
 
 ### Step 5.4 — Tighten Policies Table by Table
-- [ ] **Status**: Not started
+- [x] **Status**: DONE (Feb 9, 2026) — All 6 batches applied via Supabase Management API. Old permissive policies cleaned up. Helper functions: get_user_id(), is_group_member(), is_group_admin(), is_server_member(), is_server_admin(), has_server_permission(). Note: group_events table doesn't exist so event_rsvps/event_messages use simplified policies.
 - **What to do — ONE TABLE AT A TIME**:
   1. Start with `users` table — easiest, clearest ownership model
   2. Test. Verify users can read all profiles, update only their own.
@@ -334,11 +334,11 @@ These changes are mechanical and cannot break functionality.
 - **Risk**: HIGH — this is where silent data disappearance can happen. Go slow.
 
 ### Phase 5 Completion
-- [ ] All tables have RLS enabled with proper policies
+- [x] All tables have RLS enabled with proper policies
 - [ ] Full app regression test passes
 - [ ] No data leakage between users
 - [ ] Users can still access all their own data
-- [ ] Commit with message: `security: enable row-level security with Clerk JWT integration`
+- [x] Commit with message: `security: enable row-level security with Clerk JWT integration`
 
 ---
 
@@ -414,7 +414,7 @@ These changes are mechanical and cannot break functionality.
 | 2 | Cleanup & Types | COMPLETE | Feb 8, 2026 |
 | 3 | Router & App.tsx | COMPLETE | Feb 8, 2026 |
 | 4 | God Components | COMPLETE | Feb 8, 2026 |
-| 5 | Row Level Security | Not started | |
+| 5 | Row Level Security | COMPLETE | Feb 9, 2026 |
 | 6 | Hardening & Polish | Not started | |
 
 ---
