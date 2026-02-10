@@ -14,6 +14,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
  */
 let _getClerkToken: (() => Promise<string | null>) | null = null;
 let _tokenGetterRegistered = false;
+let _realtimeRefreshInterval: ReturnType<typeof setInterval> | null = null;
 
 /**
  * Custom fetch that gets a FRESH Clerk JWT on every REST request.
@@ -29,7 +30,7 @@ const customFetch: typeof fetch = async (input, init) => {
         return fetch(input, { ...init, headers });
       }
     } catch {
-      // Fall through to anon-key request
+      // Fall through to anon-key request — RLS write operations will fail
     }
   }
   return fetch(input, init);
@@ -45,25 +46,42 @@ export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabase
   : null;
 
 /**
- * Register the Clerk token getter for REST requests.
+ * Register the Clerk token getter for REST and Realtime requests.
  * Called once by useUserProfile when the Clerk session becomes available.
  *
- * NOTE: We intentionally do NOT call supabase.realtime.setAuth() here.
- * The Clerk JWT causes CHANNEL_ERROR on the Realtime WebSocket because
- * the Supabase Realtime server can't validate it (missing `role` claim
- * or JWKS mismatch). Instead, Realtime uses the anon key, which works
- * fine because our RLS policies (temp_permissive_all) allow all roles.
+ * REST: customFetch injects the Clerk JWT on every request.
+ * Realtime: setAuth() passes the Clerk JWT to the WebSocket connection
+ * so that RLS policies (which use get_user_id() → auth.jwt()->>'sub')
+ * work for real-time subscriptions too.
+ *
+ * This works because Supabase is configured with Clerk's third-party auth
+ * integration (JWKS endpoint), so both PostgREST and Realtime can validate
+ * the Clerk JWT.
  */
 export const setClerkTokenGetter = async (getter: () => Promise<string | null>) => {
   if (_tokenGetterRegistered) return;
   _tokenGetterRegistered = true;
   _getClerkToken = getter;
 
-  // Verify the token works for REST
+  // Verify the token works and set it on both REST and Realtime
   try {
     const token = await getter();
-    if (token) {
-      console.log('🔑 Clerk token registered for REST requests (Realtime uses anon key)');
+    if (token && supabase) {
+      supabase.realtime.setAuth(token);
+      console.log('🔑 Clerk token registered for REST + Realtime');
+
+      // Refresh the Realtime token every 50s (Clerk tokens expire at ~60s).
+      // REST doesn't need this because customFetch gets a fresh token per request.
+      _realtimeRefreshInterval = setInterval(async () => {
+        try {
+          const freshToken = await getter();
+          if (freshToken && supabase) {
+            supabase.realtime.setAuth(freshToken);
+          }
+        } catch {
+          // Non-critical — next interval will retry
+        }
+      }, 50_000);
     }
   } catch (err) {
     console.error('❌ Failed to get initial Clerk token:', err);
