@@ -163,11 +163,8 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     if (!userId) return;
     let isMounted = true;
 
-    console.log('🔔 Setting up message subscription for user:', userId);
-
     const subscription = subscribeToMessages(userId, async (payload: any) => {
       if (!isMounted) return;
-      console.log('📨 Realtime message received:', payload.new?.id, 'from:', payload.new?.sender_id);
 
       // Reload conversations for unread counts
       const updated = await getUserConversations(userId);
@@ -182,7 +179,6 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
       const currentChat = activeChatRef.current;
       // @ts-ignore
       if (currentChat && payload.new.sender_id === currentChat) {
-        console.log('📨 Message is for active chat, reloading messages');
         await markConversationAsRead(userId, payload.new.sender_id);
         try {
           // @ts-ignore
@@ -209,13 +205,10 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
         } catch (error) {
           console.error('Failed to load messages from real-time subscription:', error);
         }
-      } else {
-        console.log('📨 Message not for active chat. activeChat:', currentChat, 'sender:', payload.new?.sender_id);
       }
     });
 
     return () => {
-      console.log('🔕 Cleaning up message subscription');
       isMounted = false;
       if (subscription) unsubscribe(subscription);
     };
@@ -227,11 +220,8 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     if (!userId) return;
     let isMounted = true;
 
-    console.log('🔔 Setting up reaction subscription');
-
     const reactionSub = subscribeToMessageReactions((payload: any) => {
       if (!isMounted) return;
-      console.log('💬 Realtime reaction received:', payload.eventType, payload.new || payload.old);
       const messageId = payload.new?.message_id || payload.old?.message_id;
       if (messageId) {
         getMessageReactions(String(messageId))
@@ -249,7 +239,6 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
 
     reactionSubscriptionRef.current = reactionSub;
     return () => {
-      console.log('🔕 Cleaning up reaction subscription');
       isMounted = false;
       if (reactionSub) unsubscribe(reactionSub);
     };

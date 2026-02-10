@@ -39,9 +39,7 @@ export const subscribeToMessages = (userId: string, callback: RealtimeCallback):
       },
       callback
     )
-    .subscribe((status, err) => {
-      console.log('📡 Messages subscription:', status, err || '');
-    });
+    .subscribe();
 
   return subscription;
 };
@@ -113,9 +111,7 @@ export const subscribeToMessageReactions = (callback: RealtimeCallback): Realtim
       },
       callback
     )
-    .subscribe((status, err) => {
-      console.log('📡 Reactions subscription:', status, err || '');
-    });
+    .subscribe();
 
   return subscription;
 };
