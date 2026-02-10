@@ -22,9 +22,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <>
-      {/* Full-Screen Background */}
+      {/* Full-Screen Background — pointer-events-none so it doesn't block
+          clicks, no z-index needed because it paints first in DOM order */}
       <div
-        className="fixed inset-0 -z-10"
+        className="fixed inset-0 pointer-events-none"
         style={{
           background: nightMode ? themes[selectedTheme].darkGradient : themes[selectedTheme].lightGradient
         }}
@@ -114,7 +115,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </div>
       )}
 
-      {/* Main Content — no z-index to avoid trapping fixed-position children (dialogs) in a stacking context */}
+      {/* Main Content — no z-index to avoid trapping fixed-position
+          dialogs in a stacking context */}
       <div className="relative">
         {children}
       </div>
