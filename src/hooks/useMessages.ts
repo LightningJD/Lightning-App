@@ -152,12 +152,22 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
 
   // ── Subscribe to new messages (real-time) ───────────────
 
+  // Use a ref to track activeChat so the subscription callback always
+  // sees the latest value without needing activeChat in the deps array.
+  // This prevents re-creating the subscription every time the user
+  // switches chats, which was causing channel churn.
+  const activeChatRef = useRef(activeChat);
+  activeChatRef.current = activeChat;
+
   useEffect(() => {
     if (!userId) return;
     let isMounted = true;
 
+    console.log('🔔 Setting up message subscription for user:', userId);
+
     const subscription = subscribeToMessages(userId, async (payload: any) => {
       if (!isMounted) return;
+      console.log('📨 Realtime message received:', payload.new?.id, 'from:', payload.new?.sender_id);
 
       // Reload conversations for unread counts
       const updated = await getUserConversations(userId);
@@ -169,12 +179,14 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
       }
 
       // If message is for active chat, reload messages
+      const currentChat = activeChatRef.current;
       // @ts-ignore
-      if (activeChat && payload.new.sender_id === activeChat) {
+      if (currentChat && payload.new.sender_id === currentChat) {
+        console.log('📨 Message is for active chat, reloading messages');
         await markConversationAsRead(userId, payload.new.sender_id);
         try {
           // @ts-ignore
-          const data = await getConversation(userId, activeChat);
+          const data = await getConversation(userId, currentChat);
           if (isMounted && data && data.length >= 0) {
             setMessages(data);
             // Reload reactions
@@ -197,23 +209,29 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
         } catch (error) {
           console.error('Failed to load messages from real-time subscription:', error);
         }
+      } else {
+        console.log('📨 Message not for active chat. activeChat:', currentChat, 'sender:', payload.new?.sender_id);
       }
     });
 
     return () => {
+      console.log('🔕 Cleaning up message subscription');
       isMounted = false;
       if (subscription) unsubscribe(subscription);
     };
-  }, [userId, activeChat, onConversationsCountChange]);
+  }, [userId, onConversationsCountChange]);
 
   // ── Subscribe to reaction updates (real-time) ───────────
 
   useEffect(() => {
-    if (!activeChat) return;
+    if (!userId) return;
     let isMounted = true;
+
+    console.log('🔔 Setting up reaction subscription');
 
     const reactionSub = subscribeToMessageReactions((payload: any) => {
       if (!isMounted) return;
+      console.log('💬 Realtime reaction received:', payload.eventType, payload.new || payload.old);
       const messageId = payload.new?.message_id || payload.old?.message_id;
       if (messageId) {
         getMessageReactions(String(messageId))
@@ -231,10 +249,11 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
 
     reactionSubscriptionRef.current = reactionSub;
     return () => {
+      console.log('🔕 Cleaning up reaction subscription');
       isMounted = false;
       if (reactionSub) unsubscribe(reactionSub);
     };
-  }, [activeChat]);
+  }, [userId]);
 
   // ── Load messages when opening a chat ───────────────────
 
