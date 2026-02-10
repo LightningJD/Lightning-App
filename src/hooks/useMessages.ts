@@ -162,27 +162,6 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     const subscription = subscribeToMessages(userId, async (payload: any) => {
       if (!isMounted) return;
 
-      const eventType = payload.eventType;
-
-      // ── Handle DELETE events ──────────────────────────
-      if (eventType === 'DELETE') {
-        const deletedId = payload.old?.id;
-        if (deletedId) {
-          setMessages(prev => prev.filter(m => String(m.id) !== String(deletedId)));
-        }
-        // Refresh conversation list in background (last message may have changed)
-        getUserConversations(userId)
-          .then(updated => filterBlockedConversations(userId, updated))
-          .then(unblocked => {
-            if (!isMounted) return;
-            setConversations(unblocked);
-            const totalUnread = unblocked.reduce((sum: number, c: any) => sum + (c.unreadCount || 0), 0);
-            onConversationsCountChange?.(totalUnread);
-          })
-          .catch(() => {});
-        return;
-      }
-
       // ── Handle INSERT events ──────────────────────────
       const newMsg = payload.new;
       const currentChat = activeChatRef.current;

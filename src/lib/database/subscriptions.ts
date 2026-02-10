@@ -22,12 +22,17 @@ let _channelCounter = 0;
 const uniqueChannel = (base: string): string => `${base}:${++_channelCounter}:${Date.now()}`;
 
 /**
- * Subscribe to messages for a user (INSERT + DELETE).
+ * Subscribe to messages for a user (INSERT only).
  *
  * INSERT: filtered to `recipient_id=eq.{userId}` so only incoming messages trigger.
- * DELETE: unfiltered on the messages table. The callback receives `payload.old`
- *   with the deleted row (Supabase sends old data for DELETE when replica identity
- *   is FULL, otherwise only `id`). Callers should inspect `payload.eventType`.
+ *
+ * NOTE: We intentionally do NOT subscribe to DELETE events here. An earlier
+ * version used an unfiltered DELETE subscription (no filter = receives ALL
+ * deletes on the entire messages table from all users). This caused messages
+ * to disappear on the sender side because unrelated delete events would
+ * fire and remove messages from state. Deleted messages are instead handled
+ * by: (1) explicit local removal in handleDeleteMessage, and (2) the
+ * visibilitychange refresh that re-fetches messages when the tab regains focus.
  */
 export const subscribeToMessages = (userId: string, callback: RealtimeCallback): RealtimeChannel | null => {
   if (!supabase) return null;
@@ -44,20 +49,9 @@ export const subscribeToMessages = (userId: string, callback: RealtimeCallback):
       },
       callback
     )
-    .on(
-      'postgres_changes',
-      {
-        event: 'DELETE',
-        schema: 'public',
-        table: 'messages',
-      },
-      callback
-    )
     .subscribe((status, err) => {
       if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR') {
         console.warn(`📡 Messages subscription ${status}, attempting re-subscribe...`);
-        // Supabase client auto-retries on TIMED_OUT/CHANNEL_ERROR, but
-        // if it reaches a terminal state we log it.
       }
       if (err) {
         console.error('📡 Messages subscription error:', err);
