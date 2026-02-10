@@ -3,7 +3,8 @@
 -- This gives ~2 weeks from the start date
 
 -- Delete old cycles and start fresh
-DELETE FROM bp_cycles;
+DELETE FROM bp_cycles
+WHERE 1 = 1;
 
 -- Create first biweekly cycle
 INSERT INTO bp_cycles (cycle_start, cycle_end, is_current)
