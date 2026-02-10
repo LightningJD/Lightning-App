@@ -514,13 +514,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                               <button
                                 onClick={async () => {
                                   if (!window.confirm('Delete this message?')) return;
-                                  const result = await deleteMessage(String(msg.id), profile!.supabaseId);
-                                  if (result.success) {
-                                    setMessages(prev => prev.filter(m => m.id !== msg.id));
-                                    showSuccess('Message deleted');
-                                  } else {
-                                    showError(result.error || 'Failed to delete message');
-                                  }
+                                  await handleDeleteMessage(msg.id);
                                 }}
                                 className={nightMode ? 'p-1 bg-white/5 border border-red-500/30 rounded text-red-400 hover:text-red-300' : 'p-1 border border-red-300 rounded text-red-600 hover:text-red-700 shadow-sm'}
                                 style={nightMode ? {} : {
@@ -803,13 +797,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                     onClick={async () => {
                       setMobileActionMenu(null);
                       if (!window.confirm('Delete this message?')) return;
-                      const result = await deleteMessage(String(msg.id), profile!.supabaseId);
-                      if (result.success) {
-                        setMessages(prev => prev.filter(m => m.id !== msg.id));
-                        showSuccess('Message deleted');
-                      } else {
-                        showError(result.error || 'Failed to delete message');
-                      }
+                      await handleDeleteMessage(msg.id);
                     }}
                     className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
                       nightMode ? 'text-red-400 active:bg-red-500/10' : 'text-red-600 active:bg-red-50'
