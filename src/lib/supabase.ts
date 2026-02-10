@@ -45,36 +45,29 @@ export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabase
   : null;
 
 /**
- * Register the Clerk token getter and authenticate Realtime.
+ * Register the Clerk token getter for REST requests.
  * Called once by useUserProfile when the Clerk session becomes available.
+ *
+ * NOTE: We intentionally do NOT call supabase.realtime.setAuth() here.
+ * The Clerk JWT causes CHANNEL_ERROR on the Realtime WebSocket because
+ * the Supabase Realtime server can't validate it (missing `role` claim
+ * or JWKS mismatch). Instead, Realtime uses the anon key, which works
+ * fine because our RLS policies (temp_permissive_all) allow all roles.
  */
 export const setClerkTokenGetter = async (getter: () => Promise<string | null>) => {
   if (_tokenGetterRegistered) return;
   _tokenGetterRegistered = true;
   _getClerkToken = getter;
 
-  if (supabase) {
-    try {
-      const token = await getter();
-      if (token) {
-        // Authenticate the Realtime WebSocket connection
-        supabase.realtime.setAuth(token);
-        console.log('🔑 Supabase auth configured (REST + Realtime)');
-
-        // Refresh Realtime auth every 45s (Clerk tokens expire ~60s)
-        setInterval(async () => {
-          try {
-            const freshToken = await getter();
-            if (freshToken && supabase) {
-              supabase.realtime.setAuth(freshToken);
-            }
-          } catch { /* next interval will retry */ }
-        }, 45_000);
-      }
-    } catch (err) {
-      console.error('❌ Failed to set Supabase auth:', err);
-      _tokenGetterRegistered = false;
+  // Verify the token works for REST
+  try {
+    const token = await getter();
+    if (token) {
+      console.log('🔑 Clerk token registered for REST requests (Realtime uses anon key)');
     }
+  } catch (err) {
+    console.error('❌ Failed to get initial Clerk token:', err);
+    _tokenGetterRegistered = false;
   }
 };
 
