@@ -8,13 +8,27 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 type RealtimeCallback = (payload: any) => void;
 
 /**
+ * Generate a unique channel name to avoid collisions.
+ *
+ * Why: Supabase Realtime requires unique channel names. When React
+ * StrictMode double-fires effects (or when deps change), the cleanup
+ * removes the old channel. If the new subscription uses the SAME name
+ * before cleanup finishes, Supabase sees a duplicate and immediately
+ * closes the channel (SUBSCRIBED → CLOSED in logs).
+ *
+ * Fix: append a random suffix so each subscription gets a unique name.
+ */
+let _channelCounter = 0;
+const uniqueChannel = (base: string): string => `${base}:${++_channelCounter}:${Date.now()}`;
+
+/**
  * Subscribe to new messages for a user
  */
 export const subscribeToMessages = (userId: string, callback: RealtimeCallback): RealtimeChannel | null => {
   if (!supabase) return null;
 
   const subscription = supabase
-    .channel('messages')
+    .channel(uniqueChannel(`messages:${userId}`))
     .on(
       'postgres_changes',
       {
@@ -26,7 +40,7 @@ export const subscribeToMessages = (userId: string, callback: RealtimeCallback):
       callback
     )
     .subscribe((status, err) => {
-      console.log('📡 Messages subscription status:', status, err || '');
+      if (err) console.error('📡 Messages subscription error:', err);
     });
 
   return subscription;
@@ -39,7 +53,7 @@ export const subscribeToGroupMessages = (groupId: string, callback: RealtimeCall
   if (!supabase) return null;
 
   const subscription = supabase
-    .channel(`group_messages:${groupId}`)
+    .channel(uniqueChannel(`group_messages:${groupId}`))
     .on(
       'postgres_changes',
       {
@@ -50,7 +64,9 @@ export const subscribeToGroupMessages = (groupId: string, callback: RealtimeCall
       },
       callback
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (err) console.error('📡 Group messages subscription error:', err);
+    });
 
   return subscription;
 };
@@ -62,7 +78,7 @@ export const subscribeToChannelMessages = (channelId: string, callback: Realtime
   if (!supabase) return null;
 
   const subscription = supabase
-    .channel(`channel_messages:${channelId}`)
+    .channel(uniqueChannel(`channel_messages:${channelId}`))
     .on(
       'postgres_changes',
       {
@@ -73,7 +89,9 @@ export const subscribeToChannelMessages = (channelId: string, callback: Realtime
       },
       callback
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (err) console.error('📡 Channel messages subscription error:', err);
+    });
 
   return subscription;
 };
@@ -85,7 +103,7 @@ export const subscribeToMessageReactions = (callback: RealtimeCallback): Realtim
   if (!supabase) return null;
 
   const subscription = supabase
-    .channel('message_reactions')
+    .channel(uniqueChannel('message_reactions'))
     .on(
       'postgres_changes',
       {
@@ -96,7 +114,7 @@ export const subscribeToMessageReactions = (callback: RealtimeCallback): Realtim
       callback
     )
     .subscribe((status, err) => {
-      console.log('📡 Reactions subscription status:', status, err || '');
+      if (err) console.error('📡 Reactions subscription error:', err);
     });
 
   return subscription;
