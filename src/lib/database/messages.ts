@@ -386,3 +386,31 @@ export const getMessageReactions = async (messageId: string): Promise<any[]> => 
 
   return data;
 };
+
+/**
+ * Get reactions for multiple messages in a single query.
+ * Returns a map of messageId → reactions array.
+ */
+export const getReactionsForMessages = async (messageIds: string[]): Promise<Record<string, any[]>> => {
+  if (!supabase || messageIds.length === 0) return {};
+
+  const { data, error } = await supabase
+    .from('message_reactions')
+    // @ts-ignore
+    .select('*, user:users!user_id(id, display_name, avatar_emoji)')
+    .in('message_id', messageIds);
+
+  if (error) {
+    console.error('Error fetching batch reactions:', error);
+    return {};
+  }
+
+  // Group by message_id
+  const map: Record<string, any[]> = {};
+  for (const reaction of data || []) {
+    const id = reaction.message_id;
+    if (!map[id]) map[id] = [];
+    map[id].push(reaction);
+  }
+  return map;
+};

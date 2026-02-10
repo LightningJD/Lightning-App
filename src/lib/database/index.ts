@@ -48,6 +48,7 @@ export {
   addReaction,
   removeReaction,
   getMessageReactions,
+  getReactionsForMessages,
   deleteMessage
 } from './messages.js';
 

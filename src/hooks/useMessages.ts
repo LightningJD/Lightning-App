@@ -3,7 +3,7 @@ import {
   sendMessage, getConversation, getUserConversations,
   subscribeToMessages, subscribeToMessageReactions, unsubscribe,
   canSendMessage, isUserBlocked, isBlockedBy,
-  addReaction, removeReaction, getMessageReactions,
+  addReaction, removeReaction, getMessageReactions, getReactionsForMessages,
   deleteMessage, markConversationAsRead,
 } from '../lib/database';
 import { showError } from '../lib/toast';
@@ -166,6 +166,29 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     const subscription = subscribeToMessages(userId, async (payload: any) => {
       if (!isMounted) return;
 
+      const eventType = payload.eventType;
+
+      // ── Handle DELETE events ──────────────────────────
+      if (eventType === 'DELETE') {
+        const deletedId = payload.old?.id;
+        if (deletedId) {
+          // Optimistically remove the message from the current view
+          setMessages(prev => prev.filter(m => String(m.id) !== String(deletedId)));
+        }
+        // Refresh conversation list (last message may have changed)
+        try {
+          const updated = await getUserConversations(userId);
+          const unblocked = await filterBlockedConversations(userId, updated);
+          if (isMounted) {
+            setConversations(unblocked);
+            const totalUnread = unblocked.reduce((sum: number, c: any) => sum + (c.unreadCount || 0), 0);
+            onConversationsCountChange?.(totalUnread);
+          }
+        } catch { /* non-critical */ }
+        return;
+      }
+
+      // ── Handle INSERT events ──────────────────────────
       // Reload conversations for unread counts
       const updated = await getUserConversations(userId);
       const unblocked = await filterBlockedConversations(userId, updated);
@@ -185,11 +208,12 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
           const data = await getConversation(userId, currentChat);
           if (isMounted && data && data.length >= 0) {
             setMessages(data);
-            // Reload reactions
+            // Reload reactions (batch)
+            const messageIds = (data || []).map((m: any) => String(m.id));
+            const batchReactions = await getReactionsForMessages(messageIds);
             const reactionsMap: Record<string | number, any[]> = {};
-            for (const msg of data || []) {
-              const reactions = await getMessageReactions(String(msg.id));
-              reactionsMap[msg.id] = reactions.map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
+            for (const msgId of messageIds) {
+              reactionsMap[msgId] = (batchReactions[msgId] || []).map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
             }
             setMessageReactions(reactionsMap);
 
@@ -259,11 +283,12 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
       const conversationMessages = await getConversation(userId, chatUserId);
       setMessages(conversationMessages || []);
 
-      // Load reactions
+      // Load all reactions in a single batch query (instead of N sequential calls)
+      const messageIds = (conversationMessages || []).map((m: any) => String(m.id));
+      const batchReactions = await getReactionsForMessages(messageIds);
       const reactionsMap: Record<string | number, any[]> = {};
-      for (const msg of conversationMessages || []) {
-        const reactions = await getMessageReactions(String(msg.id));
-        reactionsMap[msg.id] = reactions.map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
+      for (const msgId of messageIds) {
+        reactionsMap[msgId] = (batchReactions[msgId] || []).map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
       }
       setMessageReactions(reactionsMap);
 
@@ -276,6 +301,51 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     };
     loadMessages();
   }, [activeChat, userId]);
+
+  // ── Refresh when tab/app regains focus ──────────────────
+  // After the device sleeps or the tab is backgrounded for a while,
+  // the Realtime WebSocket may silently disconnect. When the user
+  // returns we re-fetch the conversation so they see any messages
+  // they missed while away.
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState !== 'visible') return;
+
+      // Refresh conversation list
+      try {
+        const updated = await getUserConversations(userId);
+        const unblocked = await filterBlockedConversations(userId, updated);
+        setConversations(unblocked);
+        const totalUnread = unblocked.reduce((sum: number, c: any) => sum + (c.unreadCount || 0), 0);
+        onConversationsCountChange?.(totalUnread);
+      } catch { /* non-critical */ }
+
+      // Refresh active chat messages
+      const currentChat = activeChatRef.current;
+      if (currentChat) {
+        const conversation = conversations.find(c => c.id === currentChat);
+        const chatUserId = conversation?.userId || String(currentChat);
+        try {
+          const freshMessages = await getConversation(userId, chatUserId);
+          setMessages(freshMessages || []);
+          // Batch-load reactions
+          const msgIds = (freshMessages || []).map((m: any) => String(m.id));
+          const batchR = await getReactionsForMessages(msgIds);
+          const reactionsMap: Record<string | number, any[]> = {};
+          for (const id of msgIds) {
+            reactionsMap[id] = (batchR[id] || []).map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
+          }
+          setMessageReactions(reactionsMap);
+        } catch { /* non-critical */ }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [userId, onConversationsCountChange]);
 
   // ── Scroll tracking ─────────────────────────────────────
 
@@ -480,16 +550,15 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
         .then(async (updatedMessages) => {
           if (updatedMessages && updatedMessages.length > 0 && activeChat) {
             setMessages(updatedMessages);
+            const msgIds = updatedMessages.map((m: any) => String(m.id));
+            const batchR = await getReactionsForMessages(msgIds);
             const reactionsMap: Record<string | number, any[]> = {};
-            for (const msg of updatedMessages || []) {
-              try {
-                const reactions = await getMessageReactions(String(msg.id));
-                reactionsMap[msg.id] = reactions.map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
-              } catch { /* keep existing */ }
+            for (const msgId of msgIds) {
+              reactionsMap[msgId] = (batchR[msgId] || []).map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
             }
             setMessageReactions(prev => {
               const merged = { ...prev };
-              Object.keys(reactionsMap).forEach(msgId => { merged[msgId] = reactionsMap[msgId]; });
+              Object.keys(reactionsMap).forEach(id => { merged[id] = reactionsMap[id]; });
               return merged;
             });
           }

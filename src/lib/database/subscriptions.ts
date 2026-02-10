@@ -22,7 +22,12 @@ let _channelCounter = 0;
 const uniqueChannel = (base: string): string => `${base}:${++_channelCounter}:${Date.now()}`;
 
 /**
- * Subscribe to new messages for a user
+ * Subscribe to messages for a user (INSERT + DELETE).
+ *
+ * INSERT: filtered to `recipient_id=eq.{userId}` so only incoming messages trigger.
+ * DELETE: unfiltered on the messages table. The callback receives `payload.old`
+ *   with the deleted row (Supabase sends old data for DELETE when replica identity
+ *   is FULL, otherwise only `id`). Callers should inspect `payload.eventType`.
  */
 export const subscribeToMessages = (userId: string, callback: RealtimeCallback): RealtimeChannel | null => {
   if (!supabase) return null;
@@ -39,7 +44,25 @@ export const subscribeToMessages = (userId: string, callback: RealtimeCallback):
       },
       callback
     )
-    .subscribe();
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'messages',
+      },
+      callback
+    )
+    .subscribe((status, err) => {
+      if (status === 'TIMED_OUT' || status === 'CHANNEL_ERROR') {
+        console.warn(`📡 Messages subscription ${status}, attempting re-subscribe...`);
+        // Supabase client auto-retries on TIMED_OUT/CHANNEL_ERROR, but
+        // if it reaches a terminal state we log it.
+      }
+      if (err) {
+        console.error('📡 Messages subscription error:', err);
+      }
+    });
 
   return subscription;
 };

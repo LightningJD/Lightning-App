@@ -611,7 +611,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
               );
             })
           )}
-          <div ref={messagesEndRef} className="pb-4" />
+          <div ref={messagesEndRef} className="h-8 shrink-0" />
         </div>
 
         {/* Reply preview */}
