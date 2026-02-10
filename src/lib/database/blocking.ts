@@ -193,3 +193,38 @@ export const isBlockedBy = async (userId: string, potentialBlockerId: string): P
     return false;
   }
 };
+
+/**
+ * Get all user IDs that are in a blocking relationship with the current user.
+ * Returns a Set of user IDs that should be hidden (either blocked by us or blocking us).
+ * Uses only 2 queries total regardless of how many conversations exist.
+ */
+export const getBlockedUserIds = async (userId: string): Promise<Set<string>> => {
+  if (!supabase) return new Set();
+
+  try {
+    // Fetch both directions in parallel (2 queries total)
+    const [blockedByMe, blockingMe] = await Promise.all([
+      supabase
+        .from('blocked_users')
+        .select('blocked_id')
+        .eq('blocker_id', userId),
+      supabase
+        .from('blocked_users')
+        .select('blocker_id')
+        .eq('blocked_id', userId),
+    ]);
+
+    const ids = new Set<string>();
+    if (blockedByMe.data) {
+      for (const row of blockedByMe.data) ids.add((row as any).blocked_id);
+    }
+    if (blockingMe.data) {
+      for (const row of blockingMe.data) ids.add((row as any).blocker_id);
+    }
+    return ids;
+  } catch (error) {
+    console.error('Error in getBlockedUserIds:', error);
+    return new Set();
+  }
+};

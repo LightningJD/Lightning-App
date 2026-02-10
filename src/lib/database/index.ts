@@ -182,7 +182,8 @@ export {
   unblockUser,
   getBlockedUsers,
   isUserBlocked,
-  isBlockedBy
+  isBlockedBy,
+  getBlockedUserIds
 } from './blocking.js';
 
 // Reporting / Content Moderation

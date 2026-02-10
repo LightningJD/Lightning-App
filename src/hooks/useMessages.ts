@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   sendMessage, getConversation, getUserConversations,
   subscribeToMessages, subscribeToMessageReactions, unsubscribe,
-  canSendMessage, isUserBlocked, isBlockedBy,
+  canSendMessage, isUserBlocked, isBlockedBy, getBlockedUserIds,
   addReaction, removeReaction, getMessageReactions, getReactionsForMessages,
   deleteMessage, markConversationAsRead,
 } from '../lib/database';
@@ -70,24 +70,20 @@ interface UseMessagesOptions {
 }
 
 // ── Helper: filter blocked users from conversations ─────
+// Uses a single batch query (2 DB calls total) instead of 2 per conversation.
 
 async function filterBlockedConversations(
   userId: string,
   conversations: any[]
 ): Promise<any[]> {
-  const result: any[] = [];
-  for (const convo of conversations) {
-    try {
-      const blocked = await isUserBlocked(userId, convo.userId);
-      const blockedBy = await isBlockedBy(userId, convo.userId);
-      if (!blocked && !blockedBy) {
-        result.push(convo);
-      }
-    } catch {
-      result.push(convo);
-    }
+  if (conversations.length === 0) return [];
+  try {
+    const blockedIds = await getBlockedUserIds(userId);
+    if (blockedIds.size === 0) return conversations;
+    return conversations.filter(convo => !blockedIds.has(convo.userId));
+  } catch {
+    return conversations;
   }
-  return result;
 }
 
 // ── Hook ─────────────────────────────────────────────────
@@ -172,64 +168,50 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
       if (eventType === 'DELETE') {
         const deletedId = payload.old?.id;
         if (deletedId) {
-          // Optimistically remove the message from the current view
           setMessages(prev => prev.filter(m => String(m.id) !== String(deletedId)));
         }
-        // Refresh conversation list (last message may have changed)
-        try {
-          const updated = await getUserConversations(userId);
-          const unblocked = await filterBlockedConversations(userId, updated);
-          if (isMounted) {
+        // Refresh conversation list in background (last message may have changed)
+        getUserConversations(userId)
+          .then(updated => filterBlockedConversations(userId, updated))
+          .then(unblocked => {
+            if (!isMounted) return;
             setConversations(unblocked);
             const totalUnread = unblocked.reduce((sum: number, c: any) => sum + (c.unreadCount || 0), 0);
             onConversationsCountChange?.(totalUnread);
-          }
-        } catch { /* non-critical */ }
+          })
+          .catch(() => {});
         return;
       }
 
       // ── Handle INSERT events ──────────────────────────
-      // Reload conversations for unread counts
-      const updated = await getUserConversations(userId);
-      const unblocked = await filterBlockedConversations(userId, updated);
-      if (isMounted) {
-        setConversations(unblocked);
-        const totalUnread = unblocked.reduce((sum: number, c: any) => sum + (c.unreadCount || 0), 0);
-        onConversationsCountChange?.(totalUnread);
-      }
-
-      // If message is for active chat, reload messages
+      const newMsg = payload.new;
       const currentChat = activeChatRef.current;
-      // @ts-ignore
-      if (currentChat && payload.new.sender_id === currentChat) {
-        await markConversationAsRead(userId, payload.new.sender_id);
-        try {
-          // @ts-ignore
-          const data = await getConversation(userId, currentChat);
-          if (isMounted && data && data.length >= 0) {
-            setMessages(data);
-            // Reload reactions (batch)
-            const messageIds = (data || []).map((m: any) => String(m.id));
-            const batchReactions = await getReactionsForMessages(messageIds);
-            const reactionsMap: Record<string | number, any[]> = {};
-            for (const msgId of messageIds) {
-              reactionsMap[msgId] = (batchReactions[msgId] || []).map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
-            }
-            setMessageReactions(reactionsMap);
 
-            // Refresh conversations again after marking read
-            const refreshed = await getUserConversations(userId);
-            const refreshedUnblocked = await filterBlockedConversations(userId, refreshed);
-            if (isMounted) {
-              setConversations(refreshedUnblocked);
-              const totalUnread = refreshedUnblocked.reduce((sum: number, c: any) => sum + (c.unreadCount || 0), 0);
-              onConversationsCountChange?.(totalUnread);
-            }
-          }
-        } catch (error) {
-          console.error('Failed to load messages from real-time subscription:', error);
-        }
+      // If this message is for the active chat, append it immediately
+      if (currentChat && newMsg?.sender_id === String(currentChat)) {
+        // Immediately append the new message so the user sees it right away
+        setMessages(prev => {
+          // Avoid duplicates (message may already be there from optimistic send)
+          if (prev.some(m => String(m.id) === String(newMsg.id))) return prev;
+          return [...prev, newMsg].sort(
+            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+        });
+
+        // Mark as read in background (non-blocking)
+        markConversationAsRead(userId, newMsg.sender_id).catch(() => {});
       }
+
+      // Refresh conversation list in background for unread badge counts
+      getUserConversations(userId)
+        .then(updated => filterBlockedConversations(userId, updated))
+        .then(unblocked => {
+          if (!isMounted) return;
+          setConversations(unblocked);
+          const totalUnread = unblocked.reduce((sum: number, c: any) => sum + (c.unreadCount || 0), 0);
+          onConversationsCountChange?.(totalUnread);
+        })
+        .catch(() => {});
     });
 
     return () => {
@@ -275,29 +257,35 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
       if (!activeChat || !userId) return;
       setLoading(true);
       const conversation = conversations.find(c => c.id === activeChat);
-      // Use conversation.userId if found, otherwise treat activeChat as a userId
-      // (supports virtual conversations created for friends without prior messages)
       const chatUserId = conversation?.userId || String(activeChat);
 
-      await markConversationAsRead(userId, chatUserId);
-      const conversationMessages = await getConversation(userId, chatUserId);
+      // Fetch messages + mark read in parallel (mark-read doesn't block rendering)
+      const [conversationMessages] = await Promise.all([
+        getConversation(userId, chatUserId),
+        markConversationAsRead(userId, chatUserId).catch(() => {}),
+      ]);
       setMessages(conversationMessages || []);
+      setLoading(false); // Show messages immediately, load reactions in background
 
-      // Load all reactions in a single batch query (instead of N sequential calls)
+      // Load reactions in background (non-blocking)
       const messageIds = (conversationMessages || []).map((m: any) => String(m.id));
-      const batchReactions = await getReactionsForMessages(messageIds);
-      const reactionsMap: Record<string | number, any[]> = {};
-      for (const msgId of messageIds) {
-        reactionsMap[msgId] = (batchReactions[msgId] || []).map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
+      if (messageIds.length > 0) {
+        getReactionsForMessages(messageIds)
+          .then(batchReactions => {
+            const reactionsMap: Record<string | number, any[]> = {};
+            for (const msgId of messageIds) {
+              reactionsMap[msgId] = (batchReactions[msgId] || []).map((r: any) => ({ emoji: r.emoji, userId: r.user_id }));
+            }
+            setMessageReactions(reactionsMap);
+          })
+          .catch(() => {});
       }
-      setMessageReactions(reactionsMap);
 
-      // Refresh conversations for unread counts
-      const updated = await getUserConversations(userId);
-      const unblocked = await filterBlockedConversations(userId, updated);
-      setConversations(unblocked);
-
-      setLoading(false);
+      // Refresh unread counts in background (non-blocking)
+      getUserConversations(userId)
+        .then(updated => filterBlockedConversations(userId, updated))
+        .then(unblocked => setConversations(unblocked))
+        .catch(() => {});
     };
     loadMessages();
   }, [activeChat, userId]);
