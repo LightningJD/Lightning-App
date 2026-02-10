@@ -10,93 +10,62 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 /**
- * Token getter function — calls Clerk's session.getToken() to get a FRESH
- * JWT on every call. Clerk caches tokens internally and only hits the
- * network when the token is about to expire, so this is safe to call often.
+ * Token getter — registered by useUserProfile once Clerk session is available.
+ * Returns a FRESH Clerk JWT on every call. Clerk caches tokens internally,
+ * so this is safe to call frequently.
+ *
+ * Before registration, returns null → Supabase falls back to anon key.
  */
 let _getClerkToken: (() => Promise<string | null>) | null = null;
-let _tokenGetterRegistered = false;
-let _realtimeRefreshInterval: ReturnType<typeof setInterval> | null = null;
 
 /**
- * Custom fetch that gets a FRESH Clerk JWT on every request.
+ * Supabase client — uses the official `accessToken` callback.
  *
- * Why async per-request instead of caching?
- * - Clerk tokens expire in ~60s
- * - Caching + setInterval caused "JWT expired" errors between refreshes
- * - Clerk's getToken() is cheap (returns cached token if still valid)
+ * How it works:
+ * - The `accessToken` callback is called on EVERY REST request AND by the
+ *   Realtime heartbeat. Supabase internally calls `realtime.setAuth(token)`
+ *   when it gets a new token from this callback.
+ * - Before Clerk session is ready, it returns null → Supabase uses anon key.
+ * - After registration, it returns a fresh Clerk JWT every time.
  *
- * This only affects REST/PostgREST calls. Realtime WebSocket auth is
- * handled separately via supabase.realtime.setAuth().
- */
-const customFetch: typeof fetch = async (input, init) => {
-  if (_getClerkToken && init?.headers) {
-    try {
-      const token = await _getClerkToken();
-      if (token) {
-        const headers = new Headers(init.headers);
-        headers.set('Authorization', `Bearer ${token}`);
-        return fetch(input, { ...init, headers });
-      }
-    } catch {
-      // Fall through to anon-key request if token fetch fails
-    }
-  }
-  return fetch(input, init);
-};
-
-/**
- * Supabase client — uses custom fetch to inject Clerk JWT on REST calls.
- * NO accessToken callback (that breaks Realtime).
+ * This replaces the previous custom-fetch + setAuth approach which had
+ * JWT expiration issues and didn't properly authenticate Realtime.
  */
 export const supabase: SupabaseClient<Database> | null = supabaseUrl && supabaseAnonKey
   ? createClient<Database>(supabaseUrl, supabaseAnonKey, {
-      global: {
-        fetch: customFetch,
+      accessToken: async () => {
+        if (_getClerkToken) {
+          try {
+            return await _getClerkToken();
+          } catch {
+            return null;
+          }
+        }
+        return null;
       },
     })
   : null;
 
 /**
- * Register the Clerk token getter and set up auth for both REST and Realtime.
+ * Register the Clerk token getter.
  * Called once by useUserProfile when the Clerk session becomes available.
  *
- * Guarded to only run once — React StrictMode and multiple renders can
- * cause this to be called multiple times.
+ * With the `accessToken` approach, this is all that's needed — Supabase
+ * automatically uses the callback for both REST and Realtime auth.
  */
 export const setClerkTokenGetter = async (getter: () => Promise<string | null>) => {
-  // Guard: only register once
-  if (_tokenGetterRegistered) return;
-  _tokenGetterRegistered = true;
-
   _getClerkToken = getter;
 
-  if (supabase) {
-    try {
-      const token = await getter();
-      if (token) {
-        // Set auth for Realtime WebSocket connection
-        supabase.realtime.setAuth(token);
-        console.log('🔑 Supabase auth configured (REST via per-request token, Realtime via setAuth)');
-
-        // Refresh Realtime auth periodically (Clerk tokens expire ~60s)
-        // REST calls get fresh tokens automatically via customFetch
-        _realtimeRefreshInterval = setInterval(async () => {
-          try {
-            const freshToken = await getter();
-            if (freshToken && supabase) {
-              supabase.realtime.setAuth(freshToken);
-            }
-          } catch {
-            // Silently ignore — next interval will retry
-          }
-        }, 45_000); // Refresh every 45 seconds (well within 60s expiry)
-      }
-    } catch (err) {
-      console.error('❌ Failed to set Supabase auth:', err);
-      // Reset guard so it can be retried
-      _tokenGetterRegistered = false;
+  // Verify the token works
+  try {
+    const token = await getter();
+    if (token) {
+      console.log('🔑 Clerk token getter registered — Supabase will use it for REST + Realtime');
+    } else {
+      console.warn('⚠️ Clerk token getter registered but returned null');
     }
+  } catch (err) {
+    console.error('❌ Failed to get initial Clerk token:', err);
   }
 };
 
