@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useUserProfile } from './useUserProfile';
+import { useAppContext } from '../contexts/AppContext';
 import { getUserById, getTestimonyByUserId, getChurchById } from '../lib/database';
 import ProfileTab from './ProfileTab';
 
@@ -67,6 +68,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
   }, [rawUser]);
 
   const { profile: currentUserProfile } = useUserProfile();
+  const { themes, selectedTheme } = useAppContext();
   const [fullProfile, setFullProfile] = useState<any>(null);
   const [testimony, setTestimony] = useState<any>(null);
   const [church, setChurch] = useState<any>(null);
@@ -144,13 +146,10 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
     church: church || undefined,
   };
 
-  // App theme gradients (match AppLayout)
-  const darkGradient = `linear-gradient(135deg, rgba(17, 24, 39, 0.42) 0%, transparent 100%),
-                        radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.035) 0%, transparent 60%),
-                        linear-gradient(45deg, #0a0a0a 0%, #15121c 50%, #191e27 100%)`;
-  const lightGradient = `linear-gradient(135deg, rgba(219, 234, 254, 0.63) 0%, transparent 100%),
-                         radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.175) 0%, transparent 60%),
-                         linear-gradient(45deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%)`;
+  // Use the user's actual selected theme (not hardcoded)
+  const currentTheme = themes[selectedTheme];
+  const darkGradient = currentTheme?.darkGradient || '';
+  const lightGradient = currentTheme?.lightGradient || '';
 
   // Use a React Portal to render at document body level,
   // escaping any parent stacking contexts (z-index traps from AppLayout)
