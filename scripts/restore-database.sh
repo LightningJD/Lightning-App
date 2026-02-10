@@ -16,7 +16,7 @@ echo -e "${BLUE}🔄 Lightning Database Restoration Script${NC}"
 echo "========================================="
 
 # Check if backup file provided
-if [ $# -eq 0 ]; then
+if [[ $# -eq 0 ]]; then
     echo -e "${YELLOW}Usage: $0 <backup-file>${NC}"
     echo ""
     echo "Available backups:"
@@ -27,7 +27,7 @@ fi
 BACKUP_FILE=$1
 
 # Check if backup file exists
-if [ ! -f "$BACKUP_FILE" ]; then
+if [[ ! -f "$BACKUP_FILE" ]]; then
     echo -e "${RED}❌ Error: Backup file not found: $BACKUP_FILE${NC}"
     exit 1
 fi
@@ -41,13 +41,13 @@ echo -e "Restoring from: ${GREEN}$BACKUP_FILE${NC}"
 echo ""
 read -p "Are you SURE you want to restore? Type 'yes' to continue: " -r CONFIRM
 
-if [ "$CONFIRM" != "yes" ]; then
+if [[ "$CONFIRM" != "yes" ]]; then
     echo -e "${YELLOW}Restoration cancelled.${NC}"
     exit 0
 fi
 
 # Check if .env.local exists
-if [ ! -f ".env.local" ]; then
+if [[ ! -f ".env.local" ]]; then
     echo -e "${RED}❌ Error: .env.local not found${NC}"
     echo "Please run this script from the project root directory"
     exit 1
