@@ -22,9 +22,9 @@ interface Env {
 }
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://lightning-dni.pages.dev',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, stripe-signature',
+  "Access-Control-Allow-Origin": "https://lightning-dni.pages.dev",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, stripe-signature",
 };
 
 const GRACE_PERIOD_DAYS = 7;
@@ -38,43 +38,49 @@ const SOFT_DELETE_GRACE_DAYS = 7;
 async function verifyStripeSignature(
   payload: string,
   sigHeader: string,
-  secret: string
+  secret: string,
 ): Promise<boolean> {
   try {
-    const parts = sigHeader.split(',').reduce((acc: Record<string, string>, part) => {
-      const [key, value] = part.split('=');
-      acc[key.trim()] = value;
-      return acc;
-    }, {});
+    const parts = sigHeader
+      .split(",")
+      .reduce((acc: Record<string, string>, part) => {
+        const [key, value] = part.split("=");
+        acc[key.trim()] = value;
+        return acc;
+      }, {});
 
-    const timestamp = parts['t'];
-    const signature = parts['v1'];
+    const timestamp = parts["t"];
+    const signature = parts["v1"];
 
     if (!timestamp || !signature) return false;
 
     // Check timestamp tolerance (5 minutes)
     const now = Math.floor(Date.now() / 1000);
-    if (Math.abs(now - parseInt(timestamp)) > 300) return false;
+    if (Math.abs(now - Number.parseInt(timestamp)) > 300) return false;
 
     // Compute expected signature
     const signedPayload = `${timestamp}.${payload}`;
     const encoder = new TextEncoder();
     const key = await crypto.subtle.importKey(
-      'raw',
+      "raw",
       encoder.encode(secret),
-      { name: 'HMAC', hash: 'SHA-256' },
+      { name: "HMAC", hash: "SHA-256" },
       false,
-      ['sign']
+      ["sign"],
     );
 
-    const signatureBytes = await crypto.subtle.sign('HMAC', key, encoder.encode(signedPayload));
+    const signatureBytes = await crypto.subtle.sign(
+      "HMAC",
+      key,
+      encoder.encode(signedPayload),
+    );
     const expectedSignature = Array.from(new Uint8Array(signatureBytes))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
 
     return expectedSignature === signature;
   } catch (error) {
-    console.error('Signature verification error:', error);
+    console.error("Signature verification error:", error);
     return false;
   }
 }
@@ -83,13 +89,24 @@ async function verifyStripeSignature(
 // SUPABASE HELPERS
 // ============================================
 
-async function supabaseQuery(env: Env, table: string, method: string, query: string, body?: any) {
+async function supabaseQuery(
+  env: Env,
+  table: string,
+  method: string,
+  query: string,
+  body?: any,
+) {
   const url = `${env.SUPABASE_URL}/rest/v1/${table}${query}`;
   const headers: Record<string, string> = {
-    'apikey': env.SUPABASE_SERVICE_ROLE_KEY,
-    'Authorization': `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-    'Content-Type': 'application/json',
-    'Prefer': method === 'POST' ? 'return=representation' : (method === 'PATCH' ? 'return=representation' : 'return=minimal'),
+    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    "Content-Type": "application/json",
+    Prefer:
+      method === "POST"
+        ? "return=representation"
+        : method === "PATCH"
+          ? "return=representation"
+          : "return=minimal",
   };
 
   const response = await fetch(url, {
@@ -100,27 +117,38 @@ async function supabaseQuery(env: Env, table: string, method: string, query: str
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`Supabase ${method} ${table} error: ${response.status} ${text}`);
+    throw new Error(
+      `Supabase ${method} ${table} error: ${response.status} ${text}`,
+    );
   }
 
   const text = await response.text();
   return text ? JSON.parse(text) : null;
 }
 
-async function logSubscriptionEvent(env: Env, event: {
-  subscription_id: string;
-  event_type: string;
-  stripe_event_id?: string;
-  previous_status?: string;
-  new_status?: string;
-  previous_tier?: string;
-  new_tier?: string;
-  metadata?: Record<string, any>;
-}) {
+async function logSubscriptionEvent(
+  env: Env,
+  event: {
+    subscription_id: string;
+    event_type: string;
+    stripe_event_id?: string;
+    previous_status?: string;
+    new_status?: string;
+    previous_tier?: string;
+    new_tier?: string;
+    metadata?: Record<string, any>;
+  },
+) {
   try {
-    await supabaseQuery(env, 'subscription_events', 'POST', '?select=id', event);
+    await supabaseQuery(
+      env,
+      "subscription_events",
+      "POST",
+      "?select=id",
+      event,
+    );
   } catch (error) {
-    console.error('Error logging subscription event:', error);
+    console.error("Error logging subscription event:", error);
   }
 }
 
@@ -129,23 +157,30 @@ async function logSubscriptionEvent(env: Env, event: {
 // ============================================
 
 async function handleCheckoutCompleted(env: Env, session: any) {
-  const metadata = session.subscription_details?.metadata || session.metadata || {};
+  const metadata =
+    session.subscription_details?.metadata || session.metadata || {};
   const subscriptionId = session.subscription;
   const customerId = session.customer;
-  const type = metadata.type || 'church_premium';
+  const type = metadata.type || "church_premium";
   const serverId = metadata.lightning_server_id || null;
   const userId = metadata.lightning_user_id || null;
   const tier = metadata.tier || null;
-  const timezone = metadata.timezone || 'America/New_York';
+  const timezone = metadata.timezone || "America/New_York";
 
   // Fetch the Stripe subscription to get trial/period info
-  const subResponse = await fetch(`https://api.stripe.com/v1/subscriptions/${subscriptionId}`, {
-    headers: { 'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}` },
-  });
-  const stripeSub = await subResponse.json() as any;
+  const subResponse = await fetch(
+    `https://api.stripe.com/v1/subscriptions/${subscriptionId}`,
+    {
+      headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+    },
+  );
+  const stripeSub = (await subResponse.json()) as any;
 
-  const status = stripeSub.status === 'trialing' ? 'trialing' : 'active';
-  const billingInterval = stripeSub.items?.data?.[0]?.price?.recurring?.interval === 'year' ? 'annual' : 'monthly';
+  const status = stripeSub.status === "trialing" ? "trialing" : "active";
+  const billingInterval =
+    stripeSub.items?.data?.[0]?.price?.recurring?.interval === "year"
+      ? "annual"
+      : "monthly";
   const priceCents = stripeSub.items?.data?.[0]?.price?.unit_amount || 0;
 
   const subscriptionRecord: Record<string, any> = {
@@ -155,8 +190,12 @@ async function handleCheckoutCompleted(env: Env, session: any) {
     stripe_price_id: stripeSub.items?.data?.[0]?.price?.id || null,
     status,
     billing_interval: billingInterval,
-    current_period_start: new Date(stripeSub.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(stripeSub.current_period_end * 1000).toISOString(),
+    current_period_start: new Date(
+      stripeSub.current_period_start * 1000,
+    ).toISOString(),
+    current_period_end: new Date(
+      stripeSub.current_period_end * 1000,
+    ).toISOString(),
     current_price_cents: priceCents,
     tier,
     trial_timezone: timezone,
@@ -168,28 +207,38 @@ async function handleCheckoutCompleted(env: Env, session: any) {
   if (userId) subscriptionRecord.user_id = userId;
 
   if (stripeSub.trial_start) {
-    subscriptionRecord.trial_start = new Date(stripeSub.trial_start * 1000).toISOString();
+    subscriptionRecord.trial_start = new Date(
+      stripeSub.trial_start * 1000,
+    ).toISOString();
   }
   if (stripeSub.trial_end) {
-    subscriptionRecord.trial_end = new Date(stripeSub.trial_end * 1000).toISOString();
+    subscriptionRecord.trial_end = new Date(
+      stripeSub.trial_end * 1000,
+    ).toISOString();
   }
 
   // Insert subscription record
-  const inserted = await supabaseQuery(env, 'subscriptions', 'POST', '?select=id', subscriptionRecord);
+  const inserted = await supabaseQuery(
+    env,
+    "subscriptions",
+    "POST",
+    "?select=id",
+    subscriptionRecord,
+  );
 
   if (inserted && inserted[0]) {
     await logSubscriptionEvent(env, {
       subscription_id: inserted[0].id,
-      event_type: 'created',
+      event_type: "created",
       new_status: status,
       new_tier: tier,
       metadata: { checkout_session_id: session.id },
     });
 
     // If church premium, create default cosmetics record
-    if (type === 'church_premium' && serverId) {
+    if (type === "church_premium" && serverId) {
       try {
-        await supabaseQuery(env, 'premium_cosmetics', 'POST', '?select=id', {
+        await supabaseQuery(env, "premium_cosmetics", "POST", "?select=id", {
           server_id: serverId,
           is_verified: true,
           verified_at: new Date().toISOString(),
@@ -201,29 +250,48 @@ async function handleCheckoutCompleted(env: Env, session: any) {
   }
 }
 
-async function handleSubscriptionUpdated(env: Env, subscription: any, stripeEventId: string) {
+async function handleSubscriptionUpdated(
+  env: Env,
+  subscription: any,
+  stripeEventId: string,
+) {
   const stripeSubId = subscription.id;
   const newStripeStatus = subscription.status;
 
   // Map Stripe status to our status
   let newStatus: string;
   switch (newStripeStatus) {
-    case 'trialing': newStatus = 'trialing'; break;
-    case 'active': newStatus = 'active'; break;
-    case 'past_due': newStatus = 'past_due'; break;
-    case 'canceled': newStatus = 'canceled'; break;
-    case 'incomplete': newStatus = 'incomplete'; break;
-    case 'incomplete_expired': newStatus = 'expired'; break;
-    case 'unpaid': newStatus = 'expired'; break;
-    default: newStatus = 'expired';
+    case "trialing":
+      newStatus = "trialing";
+      break;
+    case "active":
+      newStatus = "active";
+      break;
+    case "past_due":
+      newStatus = "past_due";
+      break;
+    case "canceled":
+      newStatus = "canceled";
+      break;
+    case "incomplete":
+      newStatus = "incomplete";
+      break;
+    case "incomplete_expired":
+      newStatus = "expired";
+      break;
+    case "unpaid":
+      newStatus = "expired";
+      break;
+    default:
+      newStatus = "expired";
   }
 
   // Fetch existing subscription
   const existing = await supabaseQuery(
     env,
-    'subscriptions',
-    'GET',
-    `?stripe_subscription_id=eq.${stripeSubId}&select=*`
+    "subscriptions",
+    "GET",
+    `?stripe_subscription_id=eq.${stripeSubId}&select=*`,
   );
 
   if (!existing || existing.length === 0) {
@@ -236,8 +304,12 @@ async function handleSubscriptionUpdated(env: Env, subscription: any, stripeEven
 
   const updates: Record<string, any> = {
     status: newStatus,
-    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    current_period_start: new Date(
+      subscription.current_period_start * 1000,
+    ).toISOString(),
+    current_period_end: new Date(
+      subscription.current_period_end * 1000,
+    ).toISOString(),
     updated_at: new Date().toISOString(),
   };
 
@@ -247,14 +319,14 @@ async function handleSubscriptionUpdated(env: Env, subscription: any, stripeEven
   }
 
   // Handle past_due → set grace period
-  if (newStatus === 'past_due' && previousStatus !== 'past_due') {
+  if (newStatus === "past_due" && previousStatus !== "past_due") {
     const graceEnd = new Date();
     graceEnd.setDate(graceEnd.getDate() + GRACE_PERIOD_DAYS);
     updates.grace_period_end = graceEnd.toISOString();
   }
 
   // Handle canceled/expired → set data retention
-  if (['canceled', 'expired'].includes(newStatus) && !sub.data_retention_end) {
+  if (["canceled", "expired"].includes(newStatus) && !sub.data_retention_end) {
     const retentionEnd = new Date();
     retentionEnd.setDate(retentionEnd.getDate() + DATA_RETENTION_DAYS);
     updates.data_retention_end = retentionEnd.toISOString();
@@ -266,15 +338,15 @@ async function handleSubscriptionUpdated(env: Env, subscription: any, stripeEven
 
   await supabaseQuery(
     env,
-    'subscriptions',
-    'PATCH',
+    "subscriptions",
+    "PATCH",
     `?stripe_subscription_id=eq.${stripeSubId}`,
-    updates
+    updates,
   );
 
   await logSubscriptionEvent(env, {
     subscription_id: sub.id,
-    event_type: 'status_changed',
+    event_type: "status_changed",
     stripe_event_id: stripeEventId,
     previous_status: previousStatus,
     new_status: newStatus,
@@ -282,14 +354,18 @@ async function handleSubscriptionUpdated(env: Env, subscription: any, stripeEven
   });
 }
 
-async function handleSubscriptionDeleted(env: Env, subscription: any, stripeEventId: string) {
+async function handleSubscriptionDeleted(
+  env: Env,
+  subscription: any,
+  stripeEventId: string,
+) {
   const stripeSubId = subscription.id;
 
   const existing = await supabaseQuery(
     env,
-    'subscriptions',
-    'GET',
-    `?stripe_subscription_id=eq.${stripeSubId}&select=*`
+    "subscriptions",
+    "GET",
+    `?stripe_subscription_id=eq.${stripeSubId}&select=*`,
   );
 
   if (!existing || existing.length === 0) return;
@@ -304,36 +380,40 @@ async function handleSubscriptionDeleted(env: Env, subscription: any, stripeEven
 
   await supabaseQuery(
     env,
-    'subscriptions',
-    'PATCH',
+    "subscriptions",
+    "PATCH",
     `?stripe_subscription_id=eq.${stripeSubId}`,
     {
-      status: 'expired',
+      status: "expired",
       canceled_at: sub.canceled_at || new Date().toISOString(),
       data_retention_end: retentionEnd.toISOString(),
       soft_delete_at: softDelete.toISOString(),
       updated_at: new Date().toISOString(),
-    }
+    },
   );
 
   await logSubscriptionEvent(env, {
     subscription_id: sub.id,
-    event_type: 'expired',
+    event_type: "expired",
     stripe_event_id: stripeEventId,
     previous_status: sub.status,
-    new_status: 'expired',
+    new_status: "expired",
   });
 }
 
-async function handleInvoicePaymentSucceeded(env: Env, invoice: any, stripeEventId: string) {
+async function handleInvoicePaymentSucceeded(
+  env: Env,
+  invoice: any,
+  stripeEventId: string,
+) {
   const stripeSubId = invoice.subscription;
   if (!stripeSubId) return;
 
   const existing = await supabaseQuery(
     env,
-    'subscriptions',
-    'GET',
-    `?stripe_subscription_id=eq.${stripeSubId}&select=*`
+    "subscriptions",
+    "GET",
+    `?stripe_subscription_id=eq.${stripeSubId}&select=*`,
   );
 
   if (!existing || existing.length === 0) return;
@@ -342,35 +422,39 @@ async function handleInvoicePaymentSucceeded(env: Env, invoice: any, stripeEvent
 
   await supabaseQuery(
     env,
-    'subscriptions',
-    'PATCH',
+    "subscriptions",
+    "PATCH",
     `?stripe_subscription_id=eq.${stripeSubId}`,
     {
-      status: 'active',
+      status: "active",
       grace_period_end: null,
       updated_at: new Date().toISOString(),
-    }
+    },
   );
 
   await logSubscriptionEvent(env, {
     subscription_id: sub.id,
-    event_type: 'renewed',
+    event_type: "renewed",
     stripe_event_id: stripeEventId,
     previous_status: sub.status,
-    new_status: 'active',
+    new_status: "active",
     metadata: { invoice_id: invoice.id, amount: invoice.amount_paid },
   });
 }
 
-async function handleInvoicePaymentFailed(env: Env, invoice: any, stripeEventId: string) {
+async function handleInvoicePaymentFailed(
+  env: Env,
+  invoice: any,
+  stripeEventId: string,
+) {
   const stripeSubId = invoice.subscription;
   if (!stripeSubId) return;
 
   const existing = await supabaseQuery(
     env,
-    'subscriptions',
-    'GET',
-    `?stripe_subscription_id=eq.${stripeSubId}&select=*`
+    "subscriptions",
+    "GET",
+    `?stripe_subscription_id=eq.${stripeSubId}&select=*`,
   );
 
   if (!existing || existing.length === 0) return;
@@ -378,29 +462,29 @@ async function handleInvoicePaymentFailed(env: Env, invoice: any, stripeEventId:
   const sub = existing[0];
 
   // Only set past_due if not already
-  if (sub.status !== 'past_due') {
+  if (sub.status !== "past_due") {
     const graceEnd = new Date();
     graceEnd.setDate(graceEnd.getDate() + GRACE_PERIOD_DAYS);
 
     await supabaseQuery(
       env,
-      'subscriptions',
-      'PATCH',
+      "subscriptions",
+      "PATCH",
       `?stripe_subscription_id=eq.${stripeSubId}`,
       {
-        status: 'past_due',
+        status: "past_due",
         grace_period_end: graceEnd.toISOString(),
         updated_at: new Date().toISOString(),
-      }
+      },
     );
   }
 
   await logSubscriptionEvent(env, {
     subscription_id: sub.id,
-    event_type: 'payment_failed',
+    event_type: "payment_failed",
     stripe_event_id: stripeEventId,
     previous_status: sub.status,
-    new_status: 'past_due',
+    new_status: "past_due",
     metadata: { invoice_id: invoice.id, attempt_count: invoice.attempt_count },
   });
 }
@@ -416,21 +500,28 @@ export const onRequestOptions: PagesFunction<Env> = async () => {
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const body = await context.request.text();
-    const sigHeader = context.request.headers.get('stripe-signature');
+    const sigHeader = context.request.headers.get("stripe-signature");
 
     if (!sigHeader) {
-      return new Response(JSON.stringify({ error: 'Missing stripe-signature header' }), {
-        status: 400,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: "Missing stripe-signature header" }),
+        {
+          status: 400,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Verify signature
-    const isValid = await verifyStripeSignature(body, sigHeader, context.env.STRIPE_WEBHOOK_SECRET);
+    const isValid = await verifyStripeSignature(
+      body,
+      sigHeader,
+      context.env.STRIPE_WEBHOOK_SECRET,
+    );
     if (!isValid) {
-      return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+      return new Response(JSON.stringify({ error: "Invalid signature" }), {
         status: 401,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
 
@@ -440,16 +531,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     try {
       const existing = await supabaseQuery(
         context.env,
-        'subscription_events',
-        'GET',
-        `?stripe_event_id=eq.${event.id}&select=id`
+        "subscription_events",
+        "GET",
+        `?stripe_event_id=eq.${event.id}&select=id`,
       );
       if (existing && existing.length > 0) {
         // Already processed
-        return new Response(JSON.stringify({ received: true, deduplicated: true }), {
-          status: 200,
-          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-        });
+        return new Response(
+          JSON.stringify({ received: true, deduplicated: true }),
+          {
+            status: 200,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          },
+        );
       }
     } catch {
       // If dedup check fails, continue processing
@@ -457,24 +551,40 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // Route event to handler
     switch (event.type) {
-      case 'checkout.session.completed':
+      case "checkout.session.completed":
         await handleCheckoutCompleted(context.env, event.data.object);
         break;
 
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(context.env, event.data.object, event.id);
+      case "customer.subscription.updated":
+        await handleSubscriptionUpdated(
+          context.env,
+          event.data.object,
+          event.id,
+        );
         break;
 
-      case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(context.env, event.data.object, event.id);
+      case "customer.subscription.deleted":
+        await handleSubscriptionDeleted(
+          context.env,
+          event.data.object,
+          event.id,
+        );
         break;
 
-      case 'invoice.payment_succeeded':
-        await handleInvoicePaymentSucceeded(context.env, event.data.object, event.id);
+      case "invoice.payment_succeeded":
+        await handleInvoicePaymentSucceeded(
+          context.env,
+          event.data.object,
+          event.id,
+        );
         break;
 
-      case 'invoice.payment_failed':
-        await handleInvoicePaymentFailed(context.env, event.data.object, event.id);
+      case "invoice.payment_failed":
+        await handleInvoicePaymentFailed(
+          context.env,
+          event.data.object,
+          event.id,
+        );
         break;
 
       default:
@@ -484,14 +594,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
     });
-
   } catch (error: any) {
-    console.error('Stripe webhook error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Webhook processing error' }), {
-      status: 500,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-    });
+    console.error("Stripe webhook error:", error);
+    return new Response(
+      JSON.stringify({ error: error.message || "Webhook processing error" }),
+      {
+        status: 500,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      },
+    );
   }
 };
