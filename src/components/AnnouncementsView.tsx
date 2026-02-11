@@ -4,10 +4,20 @@
  * Matches Lightning's glassmorphism UI style
  */
 
-import React, { useState, useEffect } from 'react';
-import { Plus, X, ChevronLeft, CheckCheck, Clock, Pin, Megaphone, Eye, Send } from 'lucide-react';
-import { showError, showSuccess } from '../lib/toast';
-import { sanitizeInput } from '../lib/inputValidation';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  X,
+  ChevronLeft,
+  CheckCheck,
+  Clock,
+  Pin,
+  Megaphone,
+  Eye,
+  Send,
+} from "lucide-react";
+import { showError, showSuccess } from "../lib/toast";
+import { sanitizeInput } from "../lib/inputValidation";
 import {
   createAnnouncement,
   getGroupAnnouncements,
@@ -19,9 +29,13 @@ import {
   publishAnnouncement,
   deleteAnnouncement,
   ANNOUNCEMENT_CATEGORIES,
-} from '../lib/database';
-import type { GroupRole, AnnouncementCategory, AnnouncementWithDetails } from '../types';
-import { hasPermission } from '../lib/permissions';
+} from "../lib/database";
+import type {
+  GroupRole,
+  AnnouncementCategory,
+  AnnouncementWithDetails,
+} from "../types";
+import { hasPermission } from "../lib/permissions";
 
 interface AnnouncementsViewProps {
   nightMode: boolean;
@@ -31,26 +45,37 @@ interface AnnouncementsViewProps {
   onBack: () => void;
 }
 
-const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupId, userId, userRole, onBack }) => {
-  const [announcements, setAnnouncements] = useState<AnnouncementWithDetails[]>([]);
-  const [scheduledAnnouncements, setScheduledAnnouncements] = useState<AnnouncementWithDetails[]>([]);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementWithDetails | null>(null);
+const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({
+  nightMode,
+  groupId,
+  userId,
+  userRole,
+  onBack,
+}) => {
+  const [announcements, setAnnouncements] = useState<AnnouncementWithDetails[]>(
+    [],
+  );
+  const [scheduledAnnouncements, setScheduledAnnouncements] = useState<
+    AnnouncementWithDetails[]
+  >([]);
+  const [selectedAnnouncement, setSelectedAnnouncement] =
+    useState<AnnouncementWithDetails | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showReceipts, setShowReceipts] = useState(false);
   const [receipts, setReceipts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<'published' | 'scheduled'>('published');
+  const [tab, setTab] = useState<"published" | "scheduled">("published");
 
   // Create form state
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState<AnnouncementCategory>('info');
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [category, setCategory] = useState<AnnouncementCategory>("info");
   const [isPinned, setIsPinned] = useState(false);
   const [bypassMute, setBypassMute] = useState(false);
-  const [scheduleDate, setScheduleDate] = useState('');
-  const [scheduleTime, setScheduleTime] = useState('');
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduleTime, setScheduleTime] = useState("");
 
-  const canPost = hasPermission(userRole, 'canPostAnnouncements');
+  const canPost = hasPermission(userRole, "canPostAnnouncements");
 
   useEffect(() => {
     loadAnnouncements();
@@ -62,12 +87,16 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
     setAnnouncements(data);
     if (canPost) {
       const scheduled = await getScheduledAnnouncements(groupId);
-      setScheduledAnnouncements(scheduled as unknown as AnnouncementWithDetails[]);
+      setScheduledAnnouncements(
+        scheduled as unknown as AnnouncementWithDetails[],
+      );
     }
     setLoading(false);
   };
 
-  const handleSelectAnnouncement = async (announcement: AnnouncementWithDetails) => {
+  const handleSelectAnnouncement = async (
+    announcement: AnnouncementWithDetails,
+  ) => {
     const detailed = await getAnnouncementById(announcement.id, userId);
     if (detailed) {
       setSelectedAnnouncement(detailed);
@@ -80,14 +109,17 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
 
   const handleAcknowledge = async () => {
     if (!selectedAnnouncement) return;
-    const success = await acknowledgeAnnouncement(selectedAnnouncement.id, userId);
+    const success = await acknowledgeAnnouncement(
+      selectedAnnouncement.id,
+      userId,
+    );
     if (success) {
       setSelectedAnnouncement({
         ...selectedAnnouncement,
         user_acknowledged: true,
         acknowledged_count: (selectedAnnouncement.acknowledged_count || 0) + 1,
       });
-      showSuccess('Acknowledged');
+      showSuccess("Acknowledged");
     }
   };
 
@@ -101,7 +133,7 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
   const handlePublishScheduled = async (announcementId: string) => {
     const success = await publishAnnouncement(announcementId);
     if (success) {
-      showSuccess('Published');
+      showSuccess("Published");
       loadAnnouncements();
     }
   };
@@ -109,7 +141,7 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
   const handleDelete = async (announcementId: string) => {
     const success = await deleteAnnouncement(announcementId);
     if (success) {
-      showSuccess('Deleted');
+      showSuccess("Deleted");
       setSelectedAnnouncement(null);
       loadAnnouncements();
     }
@@ -117,13 +149,14 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
 
   const handleCreate = async () => {
     if (!title.trim() || !content.trim()) {
-      showError('Title and content are required');
+      showError("Title and content are required");
       return;
     }
 
-    const scheduledFor = scheduleDate && scheduleTime
-      ? new Date(`${scheduleDate}T${scheduleTime}`).toISOString()
-      : undefined;
+    const scheduledFor =
+      scheduleDate && scheduleTime
+        ? new Date(`${scheduleDate}T${scheduleTime}`).toISOString()
+        : undefined;
 
     const result = await createAnnouncement({
       groupId,
@@ -137,18 +170,20 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
     });
 
     if (result) {
-      showSuccess(scheduledFor ? 'Announcement scheduled' : 'Announcement posted');
-      setTitle('');
-      setContent('');
-      setCategory('info');
+      showSuccess(
+        scheduledFor ? "Announcement scheduled" : "Announcement posted",
+      );
+      setTitle("");
+      setContent("");
+      setCategory("info");
       setIsPinned(false);
       setBypassMute(false);
-      setScheduleDate('');
-      setScheduleTime('');
+      setScheduleDate("");
+      setScheduleTime("");
       setShowCreateForm(false);
       loadAnnouncements();
     } else {
-      showError('Failed to create announcement');
+      showError("Failed to create announcement");
     }
   };
 
@@ -160,14 +195,15 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
   };
 
-  const getCategoryStyle = (cat: AnnouncementCategory) => ANNOUNCEMENT_CATEGORIES[cat];
+  const getCategoryStyle = (cat: AnnouncementCategory) =>
+    ANNOUNCEMENT_CATEGORIES[cat];
 
   // ============================
   // RECEIPTS MODAL
@@ -177,20 +213,38 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
       <div className="flex flex-col h-full">
         {/* Header */}
         <div
-          className={`flex items-center gap-3 px-4 py-3 border-b ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
-          style={nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.25)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-          }}
+          className={`flex items-center gap-3 px-4 py-3 border-b ${nightMode ? "bg-white/5 border-white/10" : "border-white/25"}`}
+          style={
+            nightMode
+              ? {}
+              : {
+                  background: "rgba(255, 255, 255, 0.25)",
+                  backdropFilter: "blur(30px)",
+                  WebkitBackdropFilter: "blur(30px)",
+                }
+          }
         >
           <button
             onClick={() => setShowReceipts(false)}
-            className={nightMode ? 'p-1 hover:bg-white/10 rounded-lg' : 'p-1 hover:bg-white/20 rounded-lg'}
+            className={
+              nightMode
+                ? "p-1 hover:bg-white/10 rounded-lg"
+                : "p-1 hover:bg-white/20 rounded-lg"
+            }
           >
-            <ChevronLeft className={nightMode ? 'w-5 h-5 text-slate-100' : 'w-5 h-5 text-black'} />
+            <ChevronLeft
+              className={
+                nightMode ? "w-5 h-5 text-slate-100" : "w-5 h-5 text-black"
+              }
+            />
           </button>
-          <h3 className={nightMode ? 'font-semibold text-slate-100 text-sm' : 'font-semibold text-black text-sm'}>
+          <h3
+            className={
+              nightMode
+                ? "font-semibold text-slate-100 text-sm"
+                : "font-semibold text-black text-sm"
+            }
+          >
             Read Receipts
           </h3>
         </div>
@@ -198,28 +252,44 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
         {/* Receipt List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {receipts.length === 0 ? (
-            <p className={`text-center text-sm mt-8 ${nightMode ? 'text-slate-400' : 'text-black/50'}`}>
+            <p
+              className={`text-center text-sm mt-8 ${nightMode ? "text-slate-400" : "text-black/50"}`}
+            >
               No one has read this yet
             </p>
           ) : (
             receipts.map((receipt: any) => (
               <div
                 key={receipt.id || receipt.user_id}
-                className={`flex items-center justify-between p-3 rounded-xl ${nightMode ? 'bg-white/5' : ''}`}
-                style={nightMode ? {} : {
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                }}
+                className={`flex items-center justify-between p-3 rounded-xl ${nightMode ? "bg-white/5" : ""}`}
+                style={
+                  nightMode
+                    ? {}
+                    : {
+                        background: "rgba(255, 255, 255, 0.15)",
+                        backdropFilter: "blur(20px)",
+                        WebkitBackdropFilter: "blur(20px)",
+                      }
+                }
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{receipt.user?.avatar_emoji || '👤'}</span>
+                  <span className="text-2xl">
+                    {receipt.user?.avatar_emoji || "👤"}
+                  </span>
                   <div>
-                    <p className={nightMode ? 'text-sm font-medium text-slate-100' : 'text-sm font-medium text-black'}>
-                      {receipt.user?.display_name || 'Unknown'}
+                    <p
+                      className={
+                        nightMode
+                          ? "text-sm font-medium text-slate-100"
+                          : "text-sm font-medium text-black"
+                      }
+                    >
+                      {receipt.user?.display_name || "Unknown"}
                     </p>
-                    <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-black/50'}`}>
-                      Read {receipt.read_at ? formatDate(receipt.read_at) : ''}
+                    <p
+                      className={`text-xs ${nightMode ? "text-slate-400" : "text-black/50"}`}
+                    >
+                      Read {receipt.read_at ? formatDate(receipt.read_at) : ""}
                     </p>
                   </div>
                 </div>
@@ -247,24 +317,39 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
       <div className="flex flex-col h-full">
         {/* Header */}
         <div
-          className={`flex items-center gap-3 px-4 py-3 border-b ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
-          style={nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.25)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-          }}
+          className={`flex items-center gap-3 px-4 py-3 border-b ${nightMode ? "bg-white/5 border-white/10" : "border-white/25"}`}
+          style={
+            nightMode
+              ? {}
+              : {
+                  background: "rgba(255, 255, 255, 0.25)",
+                  backdropFilter: "blur(30px)",
+                  WebkitBackdropFilter: "blur(30px)",
+                }
+          }
         >
           <button
             onClick={() => setSelectedAnnouncement(null)}
-            className={nightMode ? 'p-1 hover:bg-white/10 rounded-lg' : 'p-1 hover:bg-white/20 rounded-lg'}
+            className={
+              nightMode
+                ? "p-1 hover:bg-white/10 rounded-lg"
+                : "p-1 hover:bg-white/20 rounded-lg"
+            }
           >
-            <ChevronLeft className={nightMode ? 'w-5 h-5 text-slate-100' : 'w-5 h-5 text-black'} />
+            <ChevronLeft
+              className={
+                nightMode ? "w-5 h-5 text-slate-100" : "w-5 h-5 text-black"
+              }
+            />
           </button>
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span
                 className="px-2 py-0.5 rounded-full text-xs font-medium"
-                style={{ color: catStyle.color, backgroundColor: catStyle.bgColor }}
+                style={{
+                  color: catStyle.color,
+                  backgroundColor: catStyle.bgColor,
+                }}
               >
                 {catStyle.emoji} {catStyle.label}
               </span>
@@ -287,25 +372,42 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
         {/* Announcement Content */}
         <div className="flex-1 overflow-y-auto p-4">
           <div
-            className={`rounded-2xl p-5 ${nightMode ? 'bg-white/5' : ''}`}
-            style={nightMode ? {} : {
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-            }}
+            className={`rounded-2xl p-5 ${nightMode ? "bg-white/5" : ""}`}
+            style={
+              nightMode
+                ? {}
+                : {
+                    background: "rgba(255, 255, 255, 0.2)",
+                    backdropFilter: "blur(30px)",
+                    WebkitBackdropFilter: "blur(30px)",
+                  }
+            }
           >
-            <h2 className={nightMode ? 'text-lg font-bold text-slate-100 mb-2' : 'text-lg font-bold text-black mb-2'}>
+            <h2
+              className={
+                nightMode
+                  ? "text-lg font-bold text-slate-100 mb-2"
+                  : "text-lg font-bold text-black mb-2"
+              }
+            >
               {selectedAnnouncement.title}
             </h2>
 
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg">{selectedAnnouncement.author?.avatar_emoji || '👤'}</span>
-              <span className={`text-xs ${nightMode ? 'text-slate-400' : 'text-black/60'}`}>
-                {selectedAnnouncement.author?.display_name || 'Unknown'} &middot; {formatDate(selectedAnnouncement.created_at)}
+              <span className="text-lg">
+                {selectedAnnouncement.author?.avatar_emoji || "👤"}
+              </span>
+              <span
+                className={`text-xs ${nightMode ? "text-slate-400" : "text-black/60"}`}
+              >
+                {selectedAnnouncement.author?.display_name || "Unknown"}{" "}
+                &middot; {formatDate(selectedAnnouncement.created_at)}
               </span>
             </div>
 
-            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? 'text-slate-200' : 'text-black/80'}`}>
+            <p
+              className={`text-sm leading-relaxed whitespace-pre-wrap ${nightMode ? "text-slate-200" : "text-black/80"}`}
+            >
               {selectedAnnouncement.content}
             </p>
 
@@ -314,18 +416,23 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
               <div className="mt-5 pt-4 border-t border-white/10">
                 <button
                   onClick={handleViewReceipts}
-                  className={`flex items-center gap-3 w-full text-left p-3 rounded-xl ${nightMode ? 'hover:bg-white/5' : 'hover:bg-white/10'}`}
+                  className={`flex items-center gap-3 w-full text-left p-3 rounded-xl ${nightMode ? "hover:bg-white/5" : "hover:bg-white/10"}`}
                 >
                   <div className="flex items-center gap-2">
                     <Eye className="w-4 h-4 text-blue-400" />
-                    <span className={`text-sm ${nightMode ? 'text-slate-300' : 'text-black/70'}`}>
+                    <span
+                      className={`text-sm ${nightMode ? "text-slate-300" : "text-black/70"}`}
+                    >
                       {selectedAnnouncement.read_count || 0} read
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCheck className="w-4 h-4 text-green-400" />
-                    <span className={`text-sm ${nightMode ? 'text-slate-300' : 'text-black/70'}`}>
-                      {selectedAnnouncement.acknowledged_count || 0} acknowledged
+                    <span
+                      className={`text-sm ${nightMode ? "text-slate-300" : "text-black/70"}`}
+                    >
+                      {selectedAnnouncement.acknowledged_count || 0}{" "}
+                      acknowledged
                     </span>
                   </div>
                 </button>
@@ -339,11 +446,11 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
               onClick={handleAcknowledge}
               className="w-full mt-4 py-3 rounded-2xl font-medium text-sm flex items-center justify-center gap-2"
               style={{
-                background: 'rgba(16, 185, 129, 0.2)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                color: '#10b981',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
+                background: "rgba(16, 185, 129, 0.2)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                color: "#10b981",
+                border: "1px solid rgba(16, 185, 129, 0.3)",
               }}
             >
               <CheckCheck className="w-4 h-4" />
@@ -369,21 +476,39 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
       <div className="flex flex-col h-full">
         {/* Header */}
         <div
-          className={`flex items-center justify-between px-4 py-3 border-b ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
-          style={nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.25)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-          }}
+          className={`flex items-center justify-between px-4 py-3 border-b ${nightMode ? "bg-white/5 border-white/10" : "border-white/25"}`}
+          style={
+            nightMode
+              ? {}
+              : {
+                  background: "rgba(255, 255, 255, 0.25)",
+                  backdropFilter: "blur(30px)",
+                  WebkitBackdropFilter: "blur(30px)",
+                }
+          }
         >
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowCreateForm(false)}
-              className={nightMode ? 'p-1 hover:bg-white/10 rounded-lg' : 'p-1 hover:bg-white/20 rounded-lg'}
+              className={
+                nightMode
+                  ? "p-1 hover:bg-white/10 rounded-lg"
+                  : "p-1 hover:bg-white/20 rounded-lg"
+              }
             >
-              <ChevronLeft className={nightMode ? 'w-5 h-5 text-slate-100' : 'w-5 h-5 text-black'} />
+              <ChevronLeft
+                className={
+                  nightMode ? "w-5 h-5 text-slate-100" : "w-5 h-5 text-black"
+                }
+              />
             </button>
-            <h3 className={nightMode ? 'font-semibold text-slate-100 text-sm' : 'font-semibold text-black text-sm'}>
+            <h3
+              className={
+                nightMode
+                  ? "font-semibold text-slate-100 text-sm"
+                  : "font-semibold text-black text-sm"
+              }
+            >
               New Announcement
             </h3>
           </div>
@@ -391,11 +516,11 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
             onClick={handleCreate}
             className="px-4 py-1.5 rounded-xl text-xs font-medium"
             style={{
-              background: 'rgba(59, 130, 246, 0.3)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              color: '#60a5fa',
-              border: '1px solid rgba(59, 130, 246, 0.3)',
+              background: "rgba(59, 130, 246, 0.3)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              color: "#60a5fa",
+              border: "1px solid rgba(59, 130, 246, 0.3)",
             }}
           >
             Post
@@ -406,57 +531,88 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* Title */}
           <div>
-            <label className={`block text-xs font-medium mb-1 ${nightMode ? 'text-slate-400' : 'text-black/60'}`}>
+            <label
+              htmlFor="title"
+              className={`block text-xs font-medium mb-1 ${nightMode ? "text-slate-400" : "text-black/60"}`}
+            >
               Title
             </label>
             <input
+              id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Announcement title..."
-              className={`w-full px-3 py-2.5 rounded-xl text-sm ${nightMode ? 'bg-white/10 text-slate-100 placeholder-slate-500' : 'text-black placeholder-black/40'}`}
-              style={nightMode ? {} : {
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-              }}
+              className={`w-full px-3 py-2.5 rounded-xl text-sm ${nightMode ? "bg-white/10 text-slate-100 placeholder-slate-500" : "text-black placeholder-black/40"}`}
+              style={
+                nightMode
+                  ? {}
+                  : {
+                      background: "rgba(255, 255, 255, 0.2)",
+                      backdropFilter: "blur(20px)",
+                      WebkitBackdropFilter: "blur(20px)",
+                    }
+              }
             />
           </div>
 
           {/* Content */}
           <div>
-            <label className={`block text-xs font-medium mb-1 ${nightMode ? 'text-slate-400' : 'text-black/60'}`}>
+            <label
+              htmlFor="content"
+              className={`block text-xs font-medium mb-1 ${nightMode ? "text-slate-400" : "text-black/60"}`}
+            >
               Content
             </label>
             <textarea
+              id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your announcement..."
               rows={5}
-              className={`w-full px-3 py-2.5 rounded-xl text-sm resize-none ${nightMode ? 'bg-white/10 text-slate-100 placeholder-slate-500' : 'text-black placeholder-black/40'}`}
-              style={nightMode ? {} : {
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-              }}
+              className={`w-full px-3 py-2.5 rounded-xl text-sm resize-none ${nightMode ? "bg-white/10 text-slate-100 placeholder-slate-500" : "text-black placeholder-black/40"}`}
+              style={
+                nightMode
+                  ? {}
+                  : {
+                      background: "rgba(255, 255, 255, 0.2)",
+                      backdropFilter: "blur(20px)",
+                      WebkitBackdropFilter: "blur(20px)",
+                    }
+              }
             />
           </div>
 
           {/* Category Selector */}
           <div>
-            <label className={`block text-xs font-medium mb-2 ${nightMode ? 'text-slate-400' : 'text-black/60'}`}>
-              Category
-            </label>
+            <label htmlFor="category">Category</label>
             <div className="grid grid-cols-2 gap-2">
-              {(Object.entries(ANNOUNCEMENT_CATEGORIES) as [AnnouncementCategory, typeof ANNOUNCEMENT_CATEGORIES[AnnouncementCategory]][]).map(([key, cat]) => (
+              {(
+                Object.entries(ANNOUNCEMENT_CATEGORIES) as [
+                  AnnouncementCategory,
+                  (typeof ANNOUNCEMENT_CATEGORIES)[AnnouncementCategory],
+                ][]
+              ).map(([key, cat]) => (
                 <button
                   key={key}
+                  id={`category-${key}`}
+                  type="button"
                   onClick={() => setCategory(key)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${category === key ? 'ring-2 ring-offset-1' : ''}`}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all ${category === key ? "ring-2 ring-offset-1" : ""}`}
                   style={{
-                    background: category === key ? cat.bgColor : (nightMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.15)'),
-                    color: category === key ? cat.color : (nightMode ? '#94a3b8' : 'rgba(0,0,0,0.6)'),
-                    ['--tw-ring-color' as string]: cat.color,
+                    background:
+                      category === key
+                        ? cat.bgColor
+                        : nightMode
+                          ? "rgba(255,255,255,0.05)"
+                          : "rgba(255,255,255,0.15)",
+                    color:
+                      category === key
+                        ? cat.color
+                        : nightMode
+                          ? "#94a3b8"
+                          : "rgba(0,0,0,0.6)",
+                    ["--tw-ring-color" as string]: cat.color,
                   }}
                 >
                   <span>{cat.emoji}</span>
@@ -469,10 +625,15 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
           {/* Options */}
           <div className="space-y-3">
             <label
-              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer ${nightMode ? 'bg-white/5' : ''}`}
-              style={nightMode ? {} : {
-                background: 'rgba(255, 255, 255, 0.15)',
-              }}
+              aria-label="Pin to top"
+              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer ${nightMode ? "bg-white/5" : ""}`}
+              style={
+                nightMode
+                  ? {}
+                  : {
+                      background: "rgba(255, 255, 255, 0.15)",
+                    }
+              }
             >
               <input
                 type="checkbox"
@@ -481,53 +642,86 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
                 className="rounded"
               />
               <div>
-                <p className={`text-sm font-medium ${nightMode ? 'text-slate-200' : 'text-black/80'}`}>Pin to top</p>
-                <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-black/50'}`}>Keep this announcement visible at the top</p>
+                <p
+                  className={`text-sm font-medium ${nightMode ? "text-slate-200" : "text-black/80"}`}
+                >
+                  Pin to top
+                </p>
+                <p
+                  className={`text-xs ${nightMode ? "text-slate-400" : "text-black/50"}`}
+                >
+                  Keep this announcement visible at the top
+                </p>
               </div>
             </label>
 
             <label
-              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer ${nightMode ? 'bg-white/5' : ''}`}
-              style={nightMode ? {} : {
-                background: 'rgba(255, 255, 255, 0.15)',
-              }}
+              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer ${nightMode ? "bg-white/5" : ""}`}
+              style={
+                nightMode
+                  ? {}
+                  : {
+                      background: "rgba(255, 255, 255, 0.15)",
+                    }
+              }
             >
               <input
+                aria-label="Enable feature"
                 type="checkbox"
                 checked={bypassMute}
                 onChange={(e) => setBypassMute(e.target.checked)}
                 className="rounded"
               />
               <div>
-                <p className={`text-sm font-medium ${nightMode ? 'text-slate-200' : 'text-black/80'}`}>Bypass mute</p>
-                <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-black/50'}`}>Notify even muted members</p>
+                <p
+                  className={`text-sm font-medium ${nightMode ? "text-slate-200" : "text-black/80"}`}
+                >
+                  Bypass mute
+                </p>
+                <p
+                  className={`text-xs ${nightMode ? "text-slate-400" : "text-black/50"}`}
+                >
+                  Notify even muted members
+                </p>
               </div>
             </label>
           </div>
 
           {/* Schedule */}
           <div>
-            <label className={`block text-xs font-medium mb-2 ${nightMode ? 'text-slate-400' : 'text-black/60'}`}>
+            <label
+              htmlFor="schedule-date"
+              className={`block text-xs font-medium mb-2 ${nightMode ? "text-slate-400" : "text-black/60"}`}
+            >
               Schedule (optional)
             </label>
             <div className="flex gap-2">
               <input
+                id="schedule-date"
                 type="date"
                 value={scheduleDate}
                 onChange={(e) => setScheduleDate(e.target.value)}
-                className={`flex-1 px-3 py-2 rounded-xl text-sm ${nightMode ? 'bg-white/10 text-slate-100' : 'text-black'}`}
-                style={nightMode ? {} : {
-                  background: 'rgba(255, 255, 255, 0.2)',
-                }}
+                className={`flex-1 px-3 py-2 rounded-xl text-sm ${nightMode ? "bg-white/10 text-slate-100" : "text-black"}`}
+                style={
+                  nightMode
+                    ? {}
+                    : {
+                        background: "rgba(255, 255, 255, 0.2)",
+                      }
+                }
               />
               <input
                 type="time"
                 value={scheduleTime}
                 onChange={(e) => setScheduleTime(e.target.value)}
-                className={`w-28 px-3 py-2 rounded-xl text-sm ${nightMode ? 'bg-white/10 text-slate-100' : 'text-black'}`}
-                style={nightMode ? {} : {
-                  background: 'rgba(255, 255, 255, 0.2)',
-                }}
+                className={`w-28 px-3 py-2 rounded-xl text-sm ${nightMode ? "bg-white/10 text-slate-100" : "text-black"}`}
+                style={
+                  nightMode
+                    ? {}
+                    : {
+                        background: "rgba(255, 255, 255, 0.2)",
+                      }
+                }
               />
             </div>
           </div>
@@ -543,23 +737,45 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
     <div className="flex flex-col h-full">
       {/* Header */}
       <div
-        className={`flex items-center justify-between px-4 py-3 border-b ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
-        style={nightMode ? {} : {
-          background: 'rgba(255, 255, 255, 0.25)',
-          backdropFilter: 'blur(30px)',
-          WebkitBackdropFilter: 'blur(30px)',
-        }}
+        className={`flex items-center justify-between px-4 py-3 border-b ${nightMode ? "bg-white/5 border-white/10" : "border-white/25"}`}
+        style={
+          nightMode
+            ? {}
+            : {
+                background: "rgba(255, 255, 255, 0.25)",
+                backdropFilter: "blur(30px)",
+                WebkitBackdropFilter: "blur(30px)",
+              }
+        }
       >
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className={nightMode ? 'p-1 hover:bg-white/10 rounded-lg' : 'p-1 hover:bg-white/20 rounded-lg'}
+            className={
+              nightMode
+                ? "p-1 hover:bg-white/10 rounded-lg"
+                : "p-1 hover:bg-white/20 rounded-lg"
+            }
           >
-            <ChevronLeft className={nightMode ? 'w-5 h-5 text-slate-100' : 'w-5 h-5 text-black'} />
+            <ChevronLeft
+              className={
+                nightMode ? "w-5 h-5 text-slate-100" : "w-5 h-5 text-black"
+              }
+            />
           </button>
           <div className="flex items-center gap-2">
-            <Megaphone className={nightMode ? 'w-4 h-4 text-slate-100' : 'w-4 h-4 text-black'} />
-            <h3 className={nightMode ? 'font-semibold text-slate-100 text-sm' : 'font-semibold text-black text-sm'}>
+            <Megaphone
+              className={
+                nightMode ? "w-4 h-4 text-slate-100" : "w-4 h-4 text-black"
+              }
+            />
+            <h3
+              className={
+                nightMode
+                  ? "font-semibold text-slate-100 text-sm"
+                  : "font-semibold text-black text-sm"
+              }
+            >
               Announcements
             </h3>
           </div>
@@ -569,9 +785,9 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
             onClick={() => setShowCreateForm(true)}
             className="p-2 rounded-xl"
             style={{
-              background: 'rgba(59, 130, 246, 0.2)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
+              background: "rgba(59, 130, 246, 0.2)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
             }}
             title="New Announcement"
           >
@@ -583,24 +799,32 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
       {/* Tabs (Published / Scheduled) */}
       {canPost && (
         <div
-          className={`flex border-b ${nightMode ? 'border-white/10' : 'border-white/25'}`}
+          className={`flex border-b ${nightMode ? "border-white/10" : "border-white/25"}`}
         >
           <button
-            onClick={() => setTab('published')}
+            onClick={() => setTab("published")}
             className={`flex-1 py-2 text-xs font-medium transition-all ${
-              tab === 'published'
-                ? (nightMode ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600')
-                : (nightMode ? 'text-slate-400' : 'text-black/50')
+              tab === "published"
+                ? nightMode
+                  ? "text-blue-400 border-b-2 border-blue-400"
+                  : "text-blue-600 border-b-2 border-blue-600"
+                : nightMode
+                  ? "text-slate-400"
+                  : "text-black/50"
             }`}
           >
             Published ({announcements.length})
           </button>
           <button
-            onClick={() => setTab('scheduled')}
+            onClick={() => setTab("scheduled")}
             className={`flex-1 py-2 text-xs font-medium transition-all ${
-              tab === 'scheduled'
-                ? (nightMode ? 'text-amber-400 border-b-2 border-amber-400' : 'text-amber-600 border-b-2 border-amber-600')
-                : (nightMode ? 'text-slate-400' : 'text-black/50')
+              tab === "scheduled"
+                ? nightMode
+                  ? "text-amber-400 border-b-2 border-amber-400"
+                  : "text-amber-600 border-b-2 border-amber-600"
+                : nightMode
+                  ? "text-slate-400"
+                  : "text-black/50"
             }`}
           >
             <Clock className="w-3 h-3 inline mr-1" />
@@ -612,129 +836,165 @@ const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ nightMode, groupI
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {loading && (
-          <div className={`text-center py-8 ${nightMode ? 'text-slate-400' : 'text-black/50'}`}>
+          <div
+            className={`text-center py-8 ${nightMode ? "text-slate-400" : "text-black/50"}`}
+          >
             <p className="text-sm">Loading...</p>
           </div>
         )}
 
-        {!loading && tab === 'published' && announcements.length === 0 && (
-          <div className={`text-center py-12 ${nightMode ? 'text-slate-400' : 'text-black/50'}`}>
+        {!loading && tab === "published" && announcements.length === 0 && (
+          <div
+            className={`text-center py-12 ${nightMode ? "text-slate-400" : "text-black/50"}`}
+          >
             <Megaphone className="w-10 h-10 mx-auto mb-3 opacity-30" />
             <p className="text-sm font-medium">No announcements yet</p>
             {canPost && (
-              <p className="text-xs mt-1">Create one to share important updates</p>
+              <p className="text-xs mt-1">
+                Create one to share important updates
+              </p>
             )}
           </div>
         )}
 
-        {!loading && tab === 'scheduled' && scheduledAnnouncements.length === 0 && (
-          <div className={`text-center py-12 ${nightMode ? 'text-slate-400' : 'text-black/50'}`}>
-            <Clock className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm font-medium">No scheduled announcements</p>
-          </div>
-        )}
+        {!loading &&
+          tab === "scheduled" &&
+          scheduledAnnouncements.length === 0 && (
+            <div
+              className={`text-center py-12 ${nightMode ? "text-slate-400" : "text-black/50"}`}
+            >
+              <Clock className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p className="text-sm font-medium">No scheduled announcements</p>
+            </div>
+          )}
 
         {/* Published Announcements */}
-        {tab === 'published' && announcements.map((announcement) => {
-          const catStyle = getCategoryStyle(announcement.category);
-          return (
-            <button
-              key={announcement.id}
-              onClick={() => handleSelectAnnouncement(announcement)}
-              className={`w-full text-left p-4 rounded-2xl transition-all ${nightMode ? 'hover:bg-white/10' : 'hover:bg-white/30'}`}
-              style={{
-                background: nightMode ? 'rgba(255,255,255,0.05)' : 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderLeft: `3px solid ${catStyle.color}`,
-              }}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className="px-1.5 py-0.5 rounded-full text-[10px] font-medium"
-                      style={{ color: catStyle.color, backgroundColor: catStyle.bgColor }}
+        {tab === "published" &&
+          announcements.map((announcement) => {
+            const catStyle = getCategoryStyle(announcement.category);
+            return (
+              <button
+                key={announcement.id}
+                onClick={() => handleSelectAnnouncement(announcement)}
+                className={`w-full text-left p-4 rounded-2xl transition-all ${nightMode ? "hover:bg-white/10" : "hover:bg-white/30"}`}
+                style={{
+                  background: nightMode
+                    ? "rgba(255,255,255,0.05)"
+                    : "rgba(255, 255, 255, 0.2)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                  borderLeft: `3px solid ${catStyle.color}`,
+                }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className="px-1.5 py-0.5 rounded-full text-[10px] font-medium"
+                        style={{
+                          color: catStyle.color,
+                          backgroundColor: catStyle.bgColor,
+                        }}
+                      >
+                        {catStyle.emoji} {catStyle.label}
+                      </span>
+                      {announcement.is_pinned && (
+                        <Pin className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                      )}
+                    </div>
+                    <h4
+                      className={`text-sm font-semibold truncate ${nightMode ? "text-slate-100" : "text-black"}`}
                     >
-                      {catStyle.emoji} {catStyle.label}
+                      {announcement.title}
+                    </h4>
+                    <p
+                      className={`text-xs mt-0.5 line-clamp-2 ${nightMode ? "text-slate-400" : "text-black/60"}`}
+                    >
+                      {announcement.content}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span
+                      className={`text-[10px] ${nightMode ? "text-slate-500" : "text-black/40"}`}
+                    >
+                      {formatDate(announcement.created_at)}
                     </span>
-                    {announcement.is_pinned && (
-                      <Pin className="w-3 h-3 text-amber-400 flex-shrink-0" />
-                    )}
-                  </div>
-                  <h4 className={`text-sm font-semibold truncate ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                    {announcement.title}
-                  </h4>
-                  <p className={`text-xs mt-0.5 line-clamp-2 ${nightMode ? 'text-slate-400' : 'text-black/60'}`}>
-                    {announcement.content}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <span className={`text-[10px] ${nightMode ? 'text-slate-500' : 'text-black/40'}`}>
-                    {formatDate(announcement.created_at)}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm">{announcement.author?.avatar_emoji || '👤'}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">
+                        {announcement.author?.avatar_emoji || "👤"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </button>
-          );
-        })}
+              </button>
+            );
+          })}
 
         {/* Scheduled Announcements */}
-        {tab === 'scheduled' && scheduledAnnouncements.map((announcement) => {
-          const catStyle = getCategoryStyle(announcement.category || 'info');
-          return (
-            <div
-              key={announcement.id}
-              className={`p-4 rounded-2xl ${nightMode ? 'bg-white/5' : ''}`}
-              style={nightMode ? {} : {
-                background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                borderLeft: `3px solid ${catStyle.color}`,
-              }}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span
-                      className="px-1.5 py-0.5 rounded-full text-[10px] font-medium"
-                      style={{ color: catStyle.color, backgroundColor: catStyle.bgColor }}
+        {tab === "scheduled" &&
+          scheduledAnnouncements.map((announcement) => {
+            const catStyle = getCategoryStyle(announcement.category || "info");
+            return (
+              <div
+                key={announcement.id}
+                className={`p-4 rounded-2xl ${nightMode ? "bg-white/5" : ""}`}
+                style={
+                  nightMode
+                    ? {}
+                    : {
+                        background: "rgba(255, 255, 255, 0.15)",
+                        backdropFilter: "blur(20px)",
+                        WebkitBackdropFilter: "blur(20px)",
+                        borderLeft: `3px solid ${catStyle.color}`,
+                      }
+                }
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className="px-1.5 py-0.5 rounded-full text-[10px] font-medium"
+                        style={{
+                          color: catStyle.color,
+                          backgroundColor: catStyle.bgColor,
+                        }}
+                      >
+                        {catStyle.emoji} {catStyle.label}
+                      </span>
+                      <span className="flex items-center gap-1 text-[10px] text-amber-400">
+                        <Clock className="w-3 h-3" />
+                        Scheduled
+                      </span>
+                    </div>
+                    <h4
+                      className={`text-sm font-semibold truncate ${nightMode ? "text-slate-100" : "text-black"}`}
                     >
-                      {catStyle.emoji} {catStyle.label}
-                    </span>
-                    <span className="flex items-center gap-1 text-[10px] text-amber-400">
-                      <Clock className="w-3 h-3" />
-                      Scheduled
-                    </span>
+                      {announcement.title}
+                    </h4>
+                    <p
+                      className={`text-xs mt-0.5 ${nightMode ? "text-slate-400" : "text-black/60"}`}
+                    >
+                      {announcement.scheduled_for
+                        ? `Scheduled for ${new Date(announcement.scheduled_for).toLocaleString()}`
+                        : "Draft"}
+                    </p>
                   </div>
-                  <h4 className={`text-sm font-semibold truncate ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                    {announcement.title}
-                  </h4>
-                  <p className={`text-xs mt-0.5 ${nightMode ? 'text-slate-400' : 'text-black/60'}`}>
-                    {announcement.scheduled_for
-                      ? `Scheduled for ${new Date(announcement.scheduled_for).toLocaleString()}`
-                      : 'Draft'}
-                  </p>
+                  <button
+                    onClick={() => handlePublishScheduled(announcement.id)}
+                    className="px-3 py-1.5 rounded-xl text-xs font-medium"
+                    style={{
+                      background: "rgba(16, 185, 129, 0.2)",
+                      color: "#10b981",
+                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                    }}
+                  >
+                    <Send className="w-3 h-3 inline mr-1" />
+                    Publish
+                  </button>
                 </div>
-                <button
-                  onClick={() => handlePublishScheduled(announcement.id)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-medium"
-                  style={{
-                    background: 'rgba(16, 185, 129, 0.2)',
-                    color: '#10b981',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
-                  }}
-                >
-                  <Send className="w-3 h-3 inline mr-1" />
-                  Publish
-                </button>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
     </div>
   );

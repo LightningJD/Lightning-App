@@ -1,6 +1,6 @@
-import React from 'react';
-import { Home, Search, User, Zap } from 'lucide-react';
-import { useAppContext } from '../contexts/AppContext';
+import React from "react";
+import { Home, Search, User, Zap } from "lucide-react";
+import { useAppContext } from "../contexts/AppContext";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -27,7 +27,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <div
         className="fixed inset-0 pointer-events-none"
         style={{
-          background: nightMode ? themes[selectedTheme].darkGradient : themes[selectedTheme].lightGradient
+          background: nightMode
+            ? themes[selectedTheme].darkGradient
+            : themes[selectedTheme].lightGradient,
         }}
       />
 
@@ -36,27 +38,41 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20">
           <div className="px-5 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
-              {currentTab === 'you' && (
+              {currentTab === "you" && (
                 <div
+                  role="button"
+                  tabIndex={0}
                   className="flex items-center gap-2 cursor-pointer select-none"
                   onClick={handleLogoClick}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") handleLogoClick();
+                  }}
                   title="Click me 10 times quickly..."
                 >
-                  <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" style={{ filter: 'brightness(0)' }} />
+                  <Zap
+                    className="w-5 h-5 text-yellow-400 fill-yellow-400"
+                    style={{ filter: "brightness(0)" }}
+                  />
                   <span className="font-semibold text-black">Lightning</span>
                 </div>
               )}
-              {currentTab === 'home' && (
+              {currentTab === "home" && (
                 <div className="font-semibold text-black text-xl flex items-center gap-2 min-w-0 flex-1">
                   {activeServerName ? (
                     <>
-                      {activeServerEmoji && <span className="text-lg flex-shrink-0">{activeServerEmoji}</span>}
+                      {activeServerEmoji && (
+                        <span className="text-lg flex-shrink-0">
+                          {activeServerEmoji}
+                        </span>
+                      )}
                       <span className="truncate">{activeServerName}</span>
                     </>
-                  ) : 'Home'}
+                  ) : (
+                    "Home"
+                  )}
                 </div>
               )}
-              {currentTab === 'find' && (
+              {currentTab === "find" && (
                 <div className="font-semibold text-black text-xl">Find</div>
               )}
               <button
@@ -64,8 +80,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
                 aria-label="Open settings menu"
               >
-                <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <svg
+                  className="w-4 h-4 text-black"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
               </button>
             </div>
@@ -78,27 +104,41 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/10 border-b border-white/10">
           <div className="px-5 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
-              {currentTab === 'you' && (
+              {currentTab === "you" && (
                 <div
+                  role="button"
+                  tabIndex={0}
                   className="flex items-center gap-2 cursor-pointer select-none"
                   onClick={handleLogoClick}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleLogoClick();
+                    }
+                  }}
                   title="Click me 10 times quickly..."
                 >
                   <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
                   <span className="font-semibold text-white">Lightning</span>
                 </div>
               )}
-              {currentTab === 'home' && (
+              {currentTab === "home" && (
                 <div className="font-semibold text-slate-100 text-xl flex items-center gap-2 min-w-0 flex-1">
                   {activeServerName ? (
                     <>
-                      {activeServerEmoji && <span className="text-lg flex-shrink-0">{activeServerEmoji}</span>}
+                      {activeServerEmoji && (
+                        <span className="text-lg flex-shrink-0">
+                          {activeServerEmoji}
+                        </span>
+                      )}
                       <span className="truncate">{activeServerName}</span>
                     </>
-                  ) : 'Home'}
+                  ) : (
+                    "Home"
+                  )}
                 </div>
               )}
-              {currentTab === 'find' && (
+              {currentTab === "find" && (
                 <div className="font-semibold text-slate-100 text-xl">Find</div>
               )}
               <button
@@ -106,8 +146,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
                 aria-label="Open settings menu"
               >
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
               </button>
             </div>
@@ -117,24 +167,27 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
       {/* Main Content — no z-index to avoid trapping fixed-position
           dialogs in a stacking context */}
-      <div className="relative">
-        {children}
-      </div>
+      <div className="relative">{children}</div>
 
       {/* Bottom Navigation */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-40 border-t ${nightMode ? 'border-white/10' : 'border-white/15'}`}
-        style={nightMode ? {
-          background: 'rgba(10, 10, 10, 0.9)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.3)'
-        } : {
-          background: 'rgba(255, 255, 255, 0.15)',
-          backdropFilter: 'blur(40px)',
-          WebkitBackdropFilter: 'blur(40px)',
-          boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.3)'
-        }}
+        className={`fixed bottom-0 left-0 right-0 z-40 border-t ${nightMode ? "border-white/10" : "border-white/15"}`}
+        style={
+          nightMode
+            ? {
+                background: "rgba(10, 10, 10, 0.9)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.3)",
+              }
+            : {
+                background: "rgba(255, 255, 255, 0.15)",
+                backdropFilter: "blur(40px)",
+                WebkitBackdropFilter: "blur(40px)",
+                boxShadow:
+                  "0 -2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.3)",
+              }
+        }
       >
         <div className="px-2 sm:px-6 lg:px-8 flex justify-around items-center h-14">
           <NavButton
@@ -144,7 +197,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             currentTab={currentTab}
             nightMode={nightMode}
             badge={notificationCounts.messages}
-            onClick={() => setCurrentTab('home')}
+            onClick={() => setCurrentTab("home")}
           />
           <NavButton
             tab="find"
@@ -153,7 +206,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             currentTab={currentTab}
             nightMode={nightMode}
             badge={notificationCounts.find}
-            onClick={() => setCurrentTab('find')}
+            onClick={() => setCurrentTab("find")}
           />
           <NavButton
             tab="you"
@@ -161,7 +214,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             label="You"
             currentTab={currentTab}
             nightMode={nightMode}
-            onClick={() => setCurrentTab('you')}
+            onClick={() => setCurrentTab("you")}
           />
         </div>
       </div>
@@ -197,22 +250,38 @@ interface NavButtonProps {
   onClick: () => void;
 }
 
-const NavButton: React.FC<NavButtonProps> = ({ tab, icon: Icon, label, currentTab, nightMode, badge, onClick }) => {
+const NavButton: React.FC<NavButtonProps> = ({
+  tab,
+  icon: Icon,
+  label,
+  currentTab,
+  nightMode,
+  badge,
+  onClick,
+}) => {
   const isActive = currentTab === tab;
   return (
     <button
       onClick={onClick}
       className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${
         isActive
-          ? nightMode ? 'text-slate-100 border-white/20' : 'text-slate-100 border-white/30'
-          : nightMode ? 'text-white/40 border-transparent hover:bg-white/5' : 'text-black/40 border-transparent hover:bg-white/10'
+          ? nightMode
+            ? "text-slate-100 border-white/20"
+            : "text-slate-100 border-white/30"
+          : nightMode
+            ? "text-white/40 border-transparent hover:bg-white/5"
+            : "text-black/40 border-transparent hover:bg-white/10"
       }`}
-      style={isActive ? {
-        background: 'rgba(79, 150, 255, 0.85)',
-        backdropFilter: 'blur(30px)',
-        WebkitBackdropFilter: 'blur(30px)'
-      } : {}}
-      aria-label={`${label}${badge && badge > 0 ? ` (${badge} ${tab === 'home' ? 'unread' : 'new'})` : ''}`}
+      style={
+        isActive
+          ? {
+              background: "rgba(79, 150, 255, 0.85)",
+              backdropFilter: "blur(30px)",
+              WebkitBackdropFilter: "blur(30px)",
+            }
+          : {}
+      }
+      aria-label={`${label}${badge && badge > 0 ? ` (${badge} ${tab === "home" ? "unread" : "new"})` : ""}`}
     >
       <div className="relative">
         <Icon className="w-5 h-5" />
