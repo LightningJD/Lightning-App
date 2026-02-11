@@ -2,7 +2,8 @@
 -- First cycle ends Sunday Feb 23, 2026 at 7:30 PM PST
 
 -- Delete the old auto-generated cycle
-DELETE FROM bp_cycles;
+DELETE FROM bp_cycles
+WHERE 1 = 1;
 
 -- Create the first proper cycle: now → Sunday Feb 23 7:30 PM PST
 INSERT INTO bp_cycles (cycle_start, cycle_end, is_current)

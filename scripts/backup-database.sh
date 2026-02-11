@@ -15,7 +15,7 @@ echo -e "${GREEN}🗄️  Lightning Database Backup Script${NC}"
 echo "======================================"
 
 # Check if .env.local exists
-if [ ! -f ".env.local" ]; then
+if [[ ! -f ".env.local" ]]; then
     echo -e "${RED}❌ Error: .env.local not found${NC}"
     echo "Please run this script from the project root directory"
     exit 1
@@ -25,7 +25,7 @@ fi
 export $(cat .env.local | grep -v '^#' | xargs)
 
 # Check for required variables
-if [ -z "$VITE_SUPABASE_URL" ]; then
+if [[ -z "$VITE_SUPABASE_URL" ]]; then
     echo -e "${RED}❌ Error: VITE_SUPABASE_URL not found in .env.local${NC}"
     exit 1
 fi
@@ -54,7 +54,7 @@ if command -v supabase &> /dev/null; then
 fi
 
 # Method 2: Direct SQL export command (requires connection string)
-if [ ! -f "$BACKUP_FILE" ] || [ "$METHOD_FAILED" = true ]; then
+if [[ ! -f "$BACKUP_FILE" || "$METHOD_FAILED" == true ]]; then
     echo -e "${YELLOW}📋 Manual Backup Instructions:${NC}"
     echo ""
     echo "Since automated backup requires database credentials, please:"
@@ -84,7 +84,7 @@ if [ ! -f "$BACKUP_FILE" ] || [ "$METHOD_FAILED" = true ]; then
 fi
 
 # Check if backup was created
-if [ -f "$BACKUP_FILE" ]; then
+if [[ -f "$BACKUP_FILE" ]]; then
     # Get file size
     SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
 
