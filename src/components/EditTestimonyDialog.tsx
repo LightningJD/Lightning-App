@@ -1,6 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
-import { X, Save, Sparkles, ArrowRight, ArrowLeft, Edit3, Eye, RefreshCw, BookOpen } from 'lucide-react';
-import { generateTestimony } from '../lib/api/claude';
+import { useState, useRef, useEffect } from "react";
+import {
+  X,
+  Save,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  Edit3,
+  Eye,
+  RefreshCw,
+  BookOpen,
+} from "lucide-react";
+import { generateTestimony } from "../lib/api/claude";
 
 interface EditTestimonyDialogProps {
   testimony: any;
@@ -19,21 +29,28 @@ interface FormData {
   lesson: string;
 }
 
-const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, nightMode, userName, userId, onSave, onClose }) => {
+const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
+  testimony,
+  nightMode,
+  userName,
+  userId,
+  onSave,
+  onClose,
+}) => {
   const [showIntro, setShowIntro] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
-    question1: testimony?.question1_answer || '',
-    question2: testimony?.question2_answer || '',
-    question3: testimony?.question3_answer || '',
-    question4: testimony?.question4_answer || '',
-    lesson: testimony?.lesson || ''
+    question1: testimony?.question1_answer || "",
+    question2: testimony?.question2_answer || "",
+    question3: testimony?.question3_answer || "",
+    question4: testimony?.question4_answer || "",
+    lesson: testimony?.lesson || "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedDraft, setGeneratedDraft] = useState<string>('');
-  const [editableDraft, setEditableDraft] = useState<string>('');
+  const [generatedDraft, setGeneratedDraft] = useState<string>("");
+  const [editableDraft, setEditableDraft] = useState<string>("");
   const [isEditingDraft, setIsEditingDraft] = useState(false);
 
   const totalSteps = 6; // 4 questions + lesson + preview
@@ -41,32 +58,40 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
   const testimonyQuestions = [
     {
       id: 1,
-      question: "What was your life like before God stepped in? What were you chasing, how were you living, and what did a normal day look like?",
-      placeholder: "Paint a picture of who you were. What defined you? What were you living for? What did your day-to-day look like? The more specific you are, the stronger your story will be.",
+      question:
+        "What was your life like before God stepped in? What were you chasing, how were you living, and what did a normal day look like?",
+      placeholder:
+        "Paint a picture of who you were. What defined you? What were you living for? What did your day-to-day look like? The more specific you are, the stronger your story will be.",
       hint: "Think about what someone would have seen if they watched your life back then.",
-      field: 'question1'
+      field: "question1",
     },
     {
       id: 2,
-      question: "What was the lowest point? What moment or season made you realize you couldn't keep going the way you were?",
-      placeholder: "Describe the struggle that brought you to the end of yourself. Was there a specific moment you hit rock bottom \u2014 a night, a conversation, a realization? What were you feeling?",
+      question:
+        "What was the lowest point? What moment or season made you realize you couldn't keep going the way you were?",
+      placeholder:
+        "Describe the struggle that brought you to the end of yourself. Was there a specific moment you hit rock bottom \u2014 a night, a conversation, a realization? What were you feeling?",
       hint: "Don't just list struggles \u2014 take us to the moment. What were you doing? What were you feeling?",
-      field: 'question2'
+      field: "question2",
     },
     {
       id: 3,
-      question: "How did God show up? What did He do \u2014 did He speak to you, show you something, heal something, send someone? Describe that moment.",
-      placeholder: "This is the most important part of your story. What did God do? Did you hear Him, feel Him, see something change? Was there a specific moment, a prayer, a word, a dream? Describe exactly what happened \u2014 don't hold back.",
+      question:
+        "How did God show up? What did He do \u2014 did He speak to you, show you something, heal something, send someone? Describe that moment.",
+      placeholder:
+        "This is the most important part of your story. What did God do? Did you hear Him, feel Him, see something change? Was there a specific moment, a prayer, a word, a dream? Describe exactly what happened \u2014 don't hold back.",
       hint: "Be specific about what GOD did. If He spoke, what did He say? If He sent someone, who? This is the heart of your testimony.",
-      field: 'question3'
+      field: "question3",
     },
     {
       id: 4,
-      question: "What's different now? How do you see God in your everyday life, and what does He have you doing?",
-      placeholder: "How has your life changed since that moment? What's different about how you think, live, or see the world? You don't have to be in ministry \u2014 just tell us what God is doing in your life right now.",
+      question:
+        "What's different now? How do you see God in your everyday life, and what does He have you doing?",
+      placeholder:
+        "How has your life changed since that moment? What's different about how you think, live, or see the world? You don't have to be in ministry \u2014 just tell us what God is doing in your life right now.",
       hint: "Think about the contrast \u2014 who you were in Q1 vs. who you are now.",
-      field: 'question4'
-    }
+      field: "question4",
+    },
   ];
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -74,7 +99,10 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
 
   // Auto-focus on textarea when step changes
   useEffect(() => {
-    if (currentStep < testimonyQuestions.length || currentStep === testimonyQuestions.length) {
+    if (
+      currentStep < testimonyQuestions.length ||
+      currentStep === testimonyQuestions.length
+    ) {
       if (textareaRef.current) {
         textareaRef.current.focus();
       }
@@ -94,7 +122,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
     const fieldName = question.field as keyof FormData;
 
     if (!formData[fieldName]?.trim()) {
-      newErrors[fieldName] = 'This answer is required';
+      newErrors[fieldName] = "This answer is required";
     }
 
     setErrors(newErrors);
@@ -112,8 +140,8 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
           question3: formData.question3,
           question4: formData.question4,
         },
-        userName: userName || '',
-        userId: userId || '',
+        userName: userName || "",
+        userId: userId || "",
       });
 
       if (result.success && result.testimony) {
@@ -121,11 +149,17 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
         setEditableDraft(result.testimony);
         setCurrentStep(testimonyQuestions.length + 1); // Move to preview step
       } else {
-        setErrors({ submit: result.error || 'Failed to generate testimony draft. Please try again.' });
+        setErrors({
+          submit:
+            result.error ||
+            "Failed to generate testimony draft. Please try again.",
+        });
       }
     } catch (error) {
-      console.error('Error generating draft:', error);
-      setErrors({ submit: 'Failed to generate testimony draft. Please try again.' });
+      console.error("Error generating draft:", error);
+      setErrors({
+        submit: "Failed to generate testimony draft. Please try again.",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -140,7 +174,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
     } else if (currentStep === testimonyQuestions.length) {
       // Lesson step — validate and generate draft
       if (!formData.lesson?.trim()) {
-        setErrors({ lesson: 'Lesson is required' });
+        setErrors({ lesson: "Lesson is required" });
         return;
       }
       handleGenerateDraft();
@@ -166,8 +200,8 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
         finalContent: editableDraft,
       });
     } catch (error) {
-      console.error('Error saving testimony:', error);
-      setErrors({ submit: 'Failed to save testimony. Please try again.' });
+      console.error("Error saving testimony:", error);
+      setErrors({ submit: "Failed to save testimony. Please try again." });
     } finally {
       setIsSaving(false);
     }
@@ -196,13 +230,19 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
       return (
         <div className="space-y-4">
           <div>
-            <h3 className={`text-lg font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+            <h3
+              className={`text-lg font-semibold mb-2 ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+            >
               Question {currentStep + 1} of {testimonyQuestions.length}
             </h3>
-            <p className={`font-medium mb-1 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+            <p
+              className={`font-medium mb-1 ${nightMode ? "text-slate-100" : "text-slate-700"}`}
+            >
               {question.question}
             </p>
-            <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
+            <p
+              className={`text-xs italic ${nightMode ? "text-slate-100" : "text-slate-500"}`}
+            >
               {question.hint}
             </p>
           </div>
@@ -210,16 +250,23 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
           <textarea
             ref={textareaRef}
             value={formData[question.field as keyof FormData]}
-            onChange={(e) => handleInputChange(question.field as keyof FormData, e.target.value)}
+            onChange={(e) =>
+              handleInputChange(
+                question.field as keyof FormData,
+                e.target.value,
+              )
+            }
             placeholder={question.placeholder}
             className={`w-full h-40 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm ${
               nightMode
-                ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                : 'bg-white border-slate-200 text-slate-900'
-            } ${errors[question.field] ? 'border-red-500' : ''}`}
+                ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
+                : "bg-white border-slate-200 text-slate-900"
+            } ${errors[question.field] ? "border-red-500" : ""}`}
           />
           {errors[question.field] && (
-            <p className="text-red-500 text-xs mt-1">{errors[question.field]}</p>
+            <p className="text-red-500 text-xs mt-1">
+              {errors[question.field]}
+            </p>
           )}
         </div>
       );
@@ -230,28 +277,35 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
       return (
         <div className="space-y-4">
           <div>
-            <h3 className={`text-lg font-semibold mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+            <h3
+              className={`text-lg font-semibold mb-2 ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+            >
               A Lesson Learned
             </h3>
-            <p className={`text-sm mb-1 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+            <p
+              className={`text-sm mb-1 ${nightMode ? "text-slate-100" : "text-slate-700"}`}
+            >
               What's the key lesson or takeaway from your testimony?
             </p>
-            <p className={`text-xs italic ${nightMode ? 'text-slate-100' : 'text-slate-500'}`}>
-              This helps others understand the spiritual growth and wisdom you gained
+            <p
+              className={`text-xs italic ${nightMode ? "text-slate-100" : "text-slate-500"}`}
+            >
+              This helps others understand the spiritual growth and wisdom you
+              gained
             </p>
           </div>
 
           <textarea
             ref={textareaRef}
             value={formData.lesson}
-            onChange={(e) => handleInputChange('lesson', e.target.value)}
+            onChange={(e) => handleInputChange("lesson", e.target.value)}
             placeholder="Share the most important lesson God taught you through this journey..."
             rows={6}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm ${
               nightMode
-                ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                : 'bg-white border-slate-200 text-slate-900'
-            } ${errors.lesson ? 'border-red-500' : ''}`}
+                ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
+                : "bg-white border-slate-200 text-slate-900"
+            } ${errors.lesson ? "border-red-500" : ""}`}
           />
           {errors.lesson && (
             <p className="text-red-500 text-xs mt-1">{errors.lesson}</p>
@@ -265,10 +319,14 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-              {isEditingDraft ? 'Edit Your Draft' : 'Preview Your Testimony'}
+            <h3
+              className={`text-lg font-semibold ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+            >
+              {isEditingDraft ? "Edit Your Draft" : "Preview Your Testimony"}
             </h3>
-            <p className={`text-xs mt-1 ${nightMode ? 'text-white/50' : 'text-slate-500'}`}>
+            <p
+              className={`text-xs mt-1 ${nightMode ? "text-white/50" : "text-slate-500"}`}
+            >
               {wordCount} words
             </p>
           </div>
@@ -277,21 +335,38 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
               onClick={() => setIsEditingDraft(!isEditingDraft)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 isEditingDraft
-                  ? nightMode ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-blue-50 text-blue-600 border border-blue-200'
-                  : nightMode ? 'bg-white/5 text-white/60 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? nightMode
+                    ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                    : "bg-blue-50 text-blue-600 border border-blue-200"
+                  : nightMode
+                    ? "bg-white/5 text-white/60 hover:bg-white/10"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
-              {isEditingDraft ? <><Eye className="w-3.5 h-3.5" /> Preview</> : <><Edit3 className="w-3.5 h-3.5" /> Edit</>}
+              {isEditingDraft ? (
+                <>
+                  <Eye className="w-3.5 h-3.5" /> Preview
+                </>
+              ) : (
+                <>
+                  <Edit3 className="w-3.5 h-3.5" /> Edit
+                </>
+              )}
             </button>
             <button
               onClick={handleRegenerate}
               disabled={isGenerating}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                nightMode ? 'bg-white/5 text-white/60 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                nightMode
+                  ? "bg-white/5 text-white/60 hover:bg-white/10"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               } disabled:opacity-50`}
               title="Regenerate with AI"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} /> Regenerate
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${isGenerating ? "animate-spin" : ""}`}
+              />{" "}
+              Regenerate
             </button>
           </div>
         </div>
@@ -303,19 +378,23 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
             onChange={(e) => setEditableDraft(e.target.value)}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm leading-relaxed ${
               nightMode
-                ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                : 'bg-white border-slate-200 text-slate-900'
+                ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
+                : "bg-white border-slate-200 text-slate-900"
             }`}
-            style={{ minHeight: '300px' }}
+            style={{ minHeight: "300px" }}
           />
         ) : (
           <div
             className={`p-5 rounded-xl border text-sm leading-relaxed whitespace-pre-wrap ${
               nightMode
-                ? 'bg-white/[0.03] border-white/10 text-slate-200'
-                : 'bg-slate-50 border-slate-200 text-slate-800'
+                ? "bg-white/[0.03] border-white/10 text-slate-200"
+                : "bg-slate-50 border-slate-200 text-slate-800"
             }`}
-            style={{ minHeight: '200px', maxHeight: '400px', overflowY: 'auto' }}
+            style={{
+              minHeight: "200px",
+              maxHeight: "400px",
+              overflowY: "auto",
+            }}
           >
             {editableDraft}
           </div>
@@ -323,15 +402,23 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
 
         {/* Lesson preview */}
         {formData.lesson && (
-          <div className={`p-4 rounded-xl border ${
-            nightMode ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-50 border-amber-200'
-          }`}>
-            <p className={`text-xs font-semibold uppercase tracking-wide mb-1.5 ${
-              nightMode ? 'text-amber-400' : 'text-amber-600'
-            }`}>
+          <div
+            className={`p-4 rounded-xl border ${
+              nightMode
+                ? "bg-amber-500/5 border-amber-500/20"
+                : "bg-amber-50 border-amber-200"
+            }`}
+          >
+            <p
+              className={`text-xs font-semibold uppercase tracking-wide mb-1.5 ${
+                nightMode ? "text-amber-400" : "text-amber-600"
+              }`}
+            >
               Lesson Learned
             </p>
-            <p className={`text-sm ${nightMode ? 'text-slate-200' : 'text-slate-700'}`}>
+            <p
+              className={`text-sm ${nightMode ? "text-slate-200" : "text-slate-700"}`}
+            >
               {formData.lesson}
             </p>
           </div>
@@ -346,13 +433,29 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
     return (
       <>
         {/* Backdrop */}
-        <div className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200" onClick={onClose} />
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Close dialog"
+          onClick={onClose}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") onClose();
+          }}
+          className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
+        />
 
         {/* Intro Modal */}
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${nightMode ? 'bg-[#0a0a0a]' : 'bg-white'}`}
-            style={{ animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${
+              nightMode ? "bg-[#0a0a0a]" : "bg-white"
+            }`}
+            style={{
+              animation: "popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -360,20 +463,25 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
               className="p-6"
               style={{
                 background: nightMode
-                  ? 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)'
-                  : 'linear-gradient(135deg, rgba(219, 234, 254, 0.8) 0%, rgba(191, 219, 254, 0.8) 100%)'
+                  ? "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)"
+                  : "linear-gradient(135deg, rgba(219, 234, 254, 0.8) 0%, rgba(191, 219, 254, 0.8) 100%)",
               }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <BookOpen className={`w-6 h-6 ${nightMode ? 'text-white' : 'text-blue-600'}`} />
-                  <h2 className={`text-xl font-bold ${nightMode ? 'text-white' : 'text-slate-900'}`}>
+                  <BookOpen
+                    className={`w-6 h-6 ${nightMode ? "text-white" : "text-blue-600"}`}
+                  />
+                  <h2
+                    title="modal-title"
+                    className={`text-xl font-bold ${nightMode ? "text-white" : "text-slate-900"}`}
+                  >
                     Your Story Matters
                   </h2>
                 </div>
                 <button
                   onClick={onClose}
-                  className={`text-sm font-medium ${nightMode ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                  className={`text-sm font-medium ${nightMode ? "text-white/80 hover:text-white" : "text-slate-600 hover:text-slate-900"}`}
                 >
                   Cancel
                 </button>
@@ -383,20 +491,32 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6">
               <div className="space-y-5">
-                <div className={`rounded-xl p-4 text-center ${nightMode ? 'bg-white/5' : 'bg-blue-50/70'}`}>
-                  <p className={`text-sm italic leading-relaxed ${nightMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                    "They triumphed over him by the blood of the Lamb and by the word of their testimony."
+                <div
+                  className={`rounded-xl p-4 text-center ${nightMode ? "bg-white/5" : "bg-blue-50/70"}`}
+                >
+                  <p
+                    className={`text-sm italic leading-relaxed ${nightMode ? "text-slate-300" : "text-slate-700"}`}
+                  >
+                    "They triumphed over him by the blood of the Lamb and by the
+                    word of their testimony."
                   </p>
-                  <p className={`text-xs mt-2 font-semibold ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                  <p
+                    className={`text-xs mt-2 font-semibold ${nightMode ? "text-slate-400" : "text-slate-500"}`}
+                  >
                     — Revelation 12:11
                   </p>
                 </div>
 
                 <div className="text-center space-y-4">
-                  <p className={`text-base font-bold leading-relaxed ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                    Every generation has a testimony and every testimony has the power to change a generation.
+                  <p
+                    className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+                  >
+                    Every generation has a testimony and every testimony has the
+                    power to change a generation.
                   </p>
-                  <p className={`text-base font-bold leading-relaxed ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                  <p
+                    className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+                  >
                     Share yours.
                   </p>
                 </div>
@@ -404,17 +524,19 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
             </div>
 
             {/* Footer */}
-            <div className={`p-6 border-t ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+            <div
+              className={`p-6 border-t ${nightMode ? "border-white/10" : "border-slate-200"}`}
+            >
               <button
                 onClick={() => setShowIntro(false)}
                 className="w-full px-4 py-3.5 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-white border border-white/20"
                 style={{
                   background: nightMode
-                    ? 'rgba(79, 150, 255, 0.85)'
-                    : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                    ? "rgba(79, 150, 255, 0.85)"
+                    : "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)",
                   boxShadow: nightMode
-                    ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                    : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                    ? "0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
+                    : "0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
                 }}
               >
                 I'm Ready
@@ -438,18 +560,25 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
+      <button
+        type="button"
+        aria-label="Close dialog"
         onClick={onClose}
+        className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
       />
 
       {/* Dialog */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${nightMode ? 'bg-[#0a0a0a]' : 'bg-white'}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dialog-title"
+          className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${
+            nightMode ? "bg-[#0a0a0a]" : "bg-white"
+          }`}
           style={{
-            animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-            transformOrigin: 'center'
+            animation: "popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+            transformOrigin: "center",
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -458,19 +587,28 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
             className="p-6"
             style={{
               background: nightMode
-                ? 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)'
-                : 'linear-gradient(135deg, rgba(219, 234, 254, 0.8) 0%, rgba(191, 219, 254, 0.8) 100%)'
+                ? "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)"
+                : "linear-gradient(135deg, rgba(219, 234, 254, 0.8) 0%, rgba(191, 219, 254, 0.8) 100%)",
             }}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Sparkles className={`w-6 h-6 ${nightMode ? 'text-white' : 'text-blue-600'}`} />
+                <Sparkles
+                  className={`w-6 h-6 ${nightMode ? "text-white" : "text-blue-600"}`}
+                />
                 <div>
-                  <h2 className={`text-xl font-bold ${nightMode ? 'text-white' : 'text-slate-900'}`}>
+                  <h2
+                    title="dialog-title"
+                    className={`text-xl font-bold ${nightMode ? "text-white" : "text-slate-900"}`}
+                  >
                     Edit Your Testimony
                   </h2>
-                  <p className={`text-sm ${nightMode ? 'text-white/90' : 'text-slate-600'}`}>
-                    {isPreviewStep ? 'Review your AI-generated draft' : 'Update your story and testimony'}
+                  <p
+                    className={`text-sm ${nightMode ? "text-white/90" : "text-slate-600"}`}
+                  >
+                    {isPreviewStep
+                      ? "Review your AI-generated draft"
+                      : "Update your story and testimony"}
                   </p>
                 </div>
               </div>
@@ -478,8 +616,8 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
                 onClick={onClose}
                 className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
                   nightMode
-                    ? 'bg-white/20 hover:bg-white/30 text-white'
-                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                    ? "bg-white/20 hover:bg-white/30 text-white"
+                    : "bg-slate-200 hover:bg-slate-300 text-slate-700"
                 }`}
               >
                 <X className="w-5 h-5" />
@@ -493,8 +631,12 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
                   key={index}
                   className={`flex-1 h-1 rounded-full transition-all ${
                     index <= currentStep
-                      ? nightMode ? 'bg-white' : 'bg-blue-600'
-                      : nightMode ? 'bg-white/30' : 'bg-slate-300'
+                      ? nightMode
+                        ? "bg-white"
+                        : "bg-blue-600"
+                      : nightMode
+                        ? "bg-white/30"
+                        : "bg-slate-300"
                   }`}
                 />
               ))}
@@ -507,12 +649,18 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-16 gap-4">
                 <div className="relative">
-                  <Sparkles className={`w-10 h-10 ${nightMode ? 'text-blue-400' : 'text-blue-500'} animate-pulse`} />
+                  <Sparkles
+                    className={`w-10 h-10 ${nightMode ? "text-blue-400" : "text-blue-500"} animate-pulse`}
+                  />
                 </div>
-                <p className={`text-sm font-medium ${nightMode ? 'text-white/70' : 'text-slate-600'}`}>
+                <p
+                  className={`text-sm font-medium ${nightMode ? "text-white/70" : "text-slate-600"}`}
+                >
                   Generating your testimony draft...
                 </p>
-                <p className={`text-xs ${nightMode ? 'text-white/40' : 'text-slate-400'}`}>
+                <p
+                  className={`text-xs ${nightMode ? "text-white/40" : "text-slate-400"}`}
+                >
                   This may take a few seconds
                 </p>
               </div>
@@ -522,23 +670,31 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
 
             {/* Error Message */}
             {errors.submit && (
-              <div className={`mt-4 p-3 rounded-lg ${nightMode ? 'bg-red-500/10 border border-red-500/20' : 'bg-red-100 border border-red-300'}`}>
-                <p className={`text-sm text-center ${nightMode ? 'text-red-400' : 'text-red-700'}`}>{errors.submit}</p>
+              <div
+                className={`mt-4 p-3 rounded-lg ${nightMode ? "bg-red-500/10 border border-red-500/20" : "bg-red-100 border border-red-300"}`}
+              >
+                <p
+                  className={`text-sm text-center ${nightMode ? "text-red-400" : "text-red-700"}`}
+                >
+                  {errors.submit}
+                </p>
               </div>
             )}
           </div>
 
           {/* Footer */}
           {!isGenerating && (
-            <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+            <div
+              className={`p-6 border-t flex gap-3 ${nightMode ? "border-white/10" : "border-slate-200"}`}
+            >
               {currentStep > 0 && (
                 <button
                   onClick={handleBack}
                   disabled={isSaving}
                   className={`px-4 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 ${
                     nightMode
-                      ? 'bg-white/5 hover:bg-white/10 text-slate-100'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      ? "bg-white/5 hover:bg-white/10 text-slate-100"
+                      : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                   }`}
                 >
                   <ArrowLeft className="w-4 h-4" />
@@ -552,10 +708,12 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
                   disabled={isSaving || !editableDraft.trim()}
                   className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 text-slate-100 border border-white/20`}
                   style={{
-                    background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                    background: nightMode
+                      ? "rgba(79, 150, 255, 0.85)"
+                      : "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)",
                     boxShadow: nightMode
-                      ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                      : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                      ? "0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
+                      : "0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
                   }}
                 >
                   {isSaving ? (
@@ -576,10 +734,12 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({ testimony, ni
                   disabled={isGenerating}
                   className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-slate-100 border border-white/20 disabled:opacity-50`}
                   style={{
-                    background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                    background: nightMode
+                      ? "rgba(79, 150, 255, 0.85)"
+                      : "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)",
                     boxShadow: nightMode
-                      ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                      : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                      ? "0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
+                      : "0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
                   }}
                 >
                   {currentStep === testimonyQuestions.length ? (
