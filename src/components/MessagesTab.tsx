@@ -1,16 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Smile, Plus, X, Reply, Trash2, MoreVertical, UserX, Image as ImageIcon } from 'lucide-react';
-import { createGroup, sendGroupMessage, blockUser, sendMessage, getUserConversations, isUserBlocked, isBlockedBy } from '../lib/database';
-import { useUserProfile } from './useUserProfile';
-import { showError, showSuccess } from '../lib/toast';
-import { ConversationSkeleton } from './SkeletonLoader';
-import { useGuestModalContext } from '../contexts/GuestModalContext';
-import { isSupabaseConfigured } from '../lib/supabase';
-import OtherUserProfileDialog from './OtherUserProfileDialog';
-import { useMessages } from '../hooks/useMessages';
-import { useNewChat } from '../hooks/useNewChat';
-import type { Message, Conversation } from '../hooks/useMessages';
-import type { Connection } from '../hooks/useNewChat';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Smile,
+  Plus,
+  X,
+  Reply,
+  Trash2,
+  MoreVertical,
+  UserX,
+  Image as ImageIcon,
+} from "lucide-react";
+import {
+  createGroup,
+  sendGroupMessage,
+  blockUser,
+  sendMessage,
+  getUserConversations,
+  isUserBlocked,
+  isBlockedBy,
+} from "../lib/database";
+import { useUserProfile } from "./useUserProfile";
+import { showError, showSuccess } from "../lib/toast";
+import { ConversationSkeleton } from "./SkeletonLoader";
+import { useGuestModalContext } from "../contexts/GuestModalContext";
+import { isSupabaseConfigured } from "../lib/supabase";
+import OtherUserProfileDialog from "./OtherUserProfileDialog";
+import { useMessages } from "../hooks/useMessages";
+import { useNewChat } from "../hooks/useNewChat";
+import type { Message, Conversation } from "../hooks/useMessages";
+import type { Connection } from "../hooks/useNewChat";
 
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: any): string => {
@@ -21,17 +38,17 @@ const formatTimestamp = (timestamp: any): string => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
+  if (diffMins < 1) return "Just now";
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return 'Yesterday';
+  if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays}d ago`;
   return messageDate.toLocaleDateString();
 };
 
 // Helper function to decode HTML entities
 const decodeHTMLEntities = (text: string): string => {
-  const textArea = document.createElement('textarea');
+  const textArea = document.createElement("textarea");
   textArea.innerHTML = text;
   return textArea.value;
 };
@@ -39,43 +56,76 @@ const decodeHTMLEntities = (text: string): string => {
 interface MessagesTabProps {
   nightMode: boolean;
   onConversationsCountChange?: (count: number) => void;
-  startChatWith?: { id: string; name: string; avatar?: string; avatarImage?: string; online?: boolean } | null;
+  startChatWith?: {
+    id: string;
+    name: string;
+    avatar?: string;
+    avatarImage?: string;
+    online?: boolean;
+  } | null;
   initialConversation?: { id: string | number; userId: string } | null;
   onBack?: () => void;
 }
 
-const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCountChange, startChatWith, initialConversation, onBack }) => {
+const MessagesTab: React.FC<MessagesTabProps> = ({
+  nightMode,
+  onConversationsCountChange,
+  startChatWith,
+  initialConversation,
+  onBack,
+}) => {
   const { profile } = useUserProfile();
-  const { isGuest, checkAndShowModal } = useGuestModalContext() as { isGuest: boolean; checkAndShowModal: () => void };
+  const { isGuest, checkAndShowModal } = useGuestModalContext() as {
+    isGuest: boolean;
+    checkAndShowModal: () => void;
+  };
 
   // ── Extracted hooks ──────────────────────────────────────
   const msg = useMessages({
     userId: profile?.supabaseId,
-    profile: profile ? {
-      supabaseId: profile.supabaseId,
-      username: profile.username,
-      displayName: profile.displayName,
-      avatar: profile.avatar,
-    } : undefined,
+    profile: profile
+      ? {
+          supabaseId: profile.supabaseId,
+          username: profile.username,
+          displayName: profile.displayName,
+          avatar: profile.avatar,
+        }
+      : undefined,
     initialConversationId: initialConversation?.id,
     onConversationsCountChange,
   });
 
   const {
-    activeChat, setActiveChat,
-    messages, conversations, setConversations,
-    loading, isInitialLoad,
+    activeChat,
+    setActiveChat,
+    messages,
+    conversations,
+    setConversations,
+    loading,
+    isInitialLoad,
     messageReactions,
-    showReactionPicker, setShowReactionPicker,
-    showAllEmojis, setShowAllEmojis,
-    expandedReactions, setExpandedReactions,
-    newMessage, setNewMessage,
-    replyingTo, setReplyingTo,
-    pendingImage, pendingImagePreview, uploadingImage,
+    showReactionPicker,
+    setShowReactionPicker,
+    showAllEmojis,
+    setShowAllEmojis,
+    expandedReactions,
+    setExpandedReactions,
+    newMessage,
+    setNewMessage,
+    replyingTo,
+    setReplyingTo,
+    pendingImage,
+    pendingImagePreview,
+    uploadingImage,
     imageInputRef,
-    messagesEndRef, messagesContainerRef, messageRefs,
-    handleReaction, handleSendMessage, handleDeleteMessage,
-    handleImageSelect, clearPendingImage,
+    messagesEndRef,
+    messagesContainerRef,
+    messageRefs,
+    handleReaction,
+    handleSendMessage,
+    handleDeleteMessage,
+    handleImageSelect,
+    clearPendingImage,
     isMessageInBottomHalf,
   } = msg;
 
@@ -85,12 +135,18 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   });
 
   const {
-    showNewChatDialog, setShowNewChatDialog,
-    searchQuery, setSearchQuery,
-    newChatMessage, setNewChatMessage,
-    showSuggestions, setShowSuggestions,
-    selectedConnections, setSelectedConnections,
-    connections, loadingConnections,
+    showNewChatDialog,
+    setShowNewChatDialog,
+    searchQuery,
+    setSearchQuery,
+    newChatMessage,
+    setNewChatMessage,
+    showSuggestions,
+    setShowSuggestions,
+    selectedConnections,
+    setSelectedConnections,
+    connections,
+    loadingConnections,
     recipientInputRef,
   } = newChat;
 
@@ -98,16 +154,20 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const [showConversationMenu, setShowConversationMenu] = useState(false);
   const [viewingChatUser, setViewingChatUser] = useState<any>(null);
-  const [mobileActionMenu, setMobileActionMenu] = useState<number | string | null>(null);
+  const [mobileActionMenu, setMobileActionMenu] = useState<
+    number | string | null
+  >(null);
   const messageLongPressRef = useRef<NodeJS.Timeout | null>(null);
-  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+  const isTouchDevice =
+    typeof window !== "undefined" &&
+    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
   // When startChatWith is provided, open chat directly instead of showing dialog
   useEffect(() => {
     if (!startChatWith?.id || !startChatWith?.name) return;
 
     // Check if conversation already exists in the list
-    const existing = conversations.find(c => c.userId === startChatWith.id);
+    const existing = conversations.find((c) => c.userId === startChatWith.id);
     if (existing) {
       // Conversation exists — just open it
       setActiveChat(existing.id);
@@ -120,18 +180,18 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       id: startChatWith.id,
       userId: startChatWith.id,
       name: startChatWith.name,
-      avatar: startChatWith.avatar || '👤',
+      avatar: startChatWith.avatar || "👤",
       avatarImage: startChatWith.avatarImage,
-      lastMessage: '',
+      lastMessage: "",
       timestamp: new Date().toISOString(),
       online: startChatWith.online,
       unreadCount: 0,
     };
 
     // Add virtual conversation to the list and open it
-    setConversations(prev => {
+    setConversations((prev) => {
       // Avoid duplicates
-      if (prev.some(c => c.userId === startChatWith.id)) return prev;
+      if (prev.some((c) => c.userId === startChatWith.id)) return prev;
       return [virtualConvo, ...prev];
     });
     setActiveChat(startChatWith.id);
@@ -150,33 +210,58 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
 
   // Reaction emojis (same as Groups)
   const reactionEmojis = [
-    '🙏', '❤️', '✝️', '🔥', '✨', '🕊️',
-    '📖', '🌟', '💪', '🛡️', '🙌', '👑',
-    '🤲', '😇', '😊', '😢', '😮', '🎉',
-    '🫂', '✋', '🥰', '😌', '✅', '💯'
+    "🙏",
+    "❤️",
+    "✝️",
+    "🔥",
+    "✨",
+    "🕊️",
+    "📖",
+    "🌟",
+    "💪",
+    "🛡️",
+    "🙌",
+    "👑",
+    "🤲",
+    "😇",
+    "😊",
+    "😢",
+    "😮",
+    "🎉",
+    "🫂",
+    "✋",
+    "🥰",
+    "😌",
+    "✅",
+    "💯",
   ];
 
   if (activeChat) {
-    const conversation = conversations.find(c => c.id === activeChat)
+    const conversation =
+      conversations.find((c) => c.id === activeChat) ||
       // Fallback: build a virtual conversation from startChatWith for friends without prior messages
-      || (startChatWith?.id === String(activeChat) ? {
-        id: startChatWith.id,
-        userId: startChatWith.id,
-        name: startChatWith.name,
-        avatar: startChatWith.avatar || '👤',
-        avatarImage: startChatWith.avatarImage,
-        lastMessage: '',
-        timestamp: new Date().toISOString(),
-        online: startChatWith.online,
-        unreadCount: 0,
-      } as Conversation : null);
+      (startChatWith?.id === String(activeChat)
+        ? ({
+            id: startChatWith.id,
+            userId: startChatWith.id,
+            name: startChatWith.name,
+            avatar: startChatWith.avatar || "👤",
+            avatarImage: startChatWith.avatarImage,
+            lastMessage: "",
+            timestamp: new Date().toISOString(),
+            online: startChatWith.online,
+            unreadCount: 0,
+          } as Conversation)
+        : null);
 
     if (!conversation) {
       // If conversations haven't loaded yet, show a loading indicator instead of null
       if (isInitialLoad) {
         return (
           <div className="flex items-center justify-center h-64">
-            <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${nightMode ? 'border-white/30' : 'border-slate-400'}`} />
+            <div
+              className={`animate-spin rounded-full h-8 w-8 border-b-2 ${nightMode ? "border-white/30" : "border-slate-400"}`}
+            />
           </div>
         );
       }
@@ -187,59 +272,87 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
       <div className="flex flex-col h-[calc(100vh-140px)]">
         {/* Header */}
         <div
-          className={`px-4 py-2.5 border-b flex items-center justify-between relative z-50 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
-          style={nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-          }}
+          className={`px-4 py-2.5 border-b flex items-center justify-between relative z-50 ${nightMode ? "bg-white/5 border-white/10" : "border-white/25"}`}
+          style={
+            nightMode
+              ? {}
+              : {
+                  background: "rgba(255, 255, 255, 0.2)",
+                  backdropFilter: "blur(30px)",
+                  WebkitBackdropFilter: "blur(30px)",
+                  boxShadow:
+                    "0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                }
+          }
         >
           <button
-            onClick={() => onBack ? onBack() : setActiveChat(null)}
-            className={nightMode ? 'text-blue-500 text-sm font-semibold' : 'text-blue-600 text-sm font-semibold'}
+            onClick={() => (onBack ? onBack() : setActiveChat(null))}
+            className={
+              nightMode
+                ? "text-blue-500 text-sm font-semibold"
+                : "text-blue-600 text-sm font-semibold"
+            }
           >
             ← Back
           </button>
           <button
             className="flex items-center gap-2 active:opacity-70 transition-opacity"
-            onClick={() => setViewingChatUser({
-              id: conversation.userId,
-              displayName: conversation.name,
-              avatar: conversation.avatar,
-              avatarImage: conversation.avatarImage,
-              online: conversation.online,
-            })}
+            onClick={() =>
+              setViewingChatUser({
+                id: conversation.userId,
+                displayName: conversation.name,
+                avatar: conversation.avatar,
+                avatarImage: conversation.avatarImage,
+                online: conversation.online,
+              })
+            }
             aria-label={`View ${conversation.name}'s profile`}
           >
             <div className="relative">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
-                nightMode
-                  ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500 text-white'
-                  : 'bg-gradient-to-br from-purple-400 to-pink-400 text-white'
-              }`}>
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
+                  nightMode
+                    ? "bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500 text-white"
+                    : "bg-gradient-to-br from-purple-400 to-pink-400 text-white"
+                }`}
+              >
                 {conversation.avatarImage ? (
-                  <img src={conversation.avatarImage} alt={conversation.name} className="w-full h-full object-cover" />
+                  <img
+                    src={conversation.avatarImage}
+                    alt={conversation.name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   conversation.avatar
                 )}
               </div>
               {conversation.online && (
-                <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? 'border-[#0a0a0a]' : 'border-white'}`}></div>
+                <div
+                  className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? "border-[#0a0a0a]" : "border-white"}`}
+                ></div>
               )}
             </div>
             <div className="flex flex-col text-left">
-              <span className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{conversation.name}</span>
-              <span className={`text-xs ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
-                {conversation.online ? '🟢 Online' : '⚫ Offline'}
+              <span
+                className={`font-semibold ${nightMode ? "text-slate-100" : "text-black"}`}
+              >
+                {conversation.name}
+              </span>
+              <span
+                className={`text-xs ${nightMode ? "text-slate-400" : "text-gray-600"}`}
+              >
+                {conversation.online ? "🟢 Online" : "⚫ Offline"}
               </span>
             </div>
           </button>
           <div className="relative">
             <button
               onClick={() => setShowConversationMenu(!showConversationMenu)}
-              className={`p-2 rounded-lg transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-100' : 'hover:bg-white/20 text-black'
-                }`}
+              className={`p-2 rounded-lg transition-colors ${
+                nightMode
+                  ? "hover:bg-white/10 text-slate-100"
+                  : "hover:bg-white/20 text-black"
+              }`}
               aria-label="Conversation options"
             >
               <MoreVertical className="w-5 h-5" />
@@ -248,17 +361,32 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
               <>
                 <div
                   className="fixed inset-0 z-40"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Close conversation menu"
                   onClick={() => setShowConversationMenu(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setShowConversationMenu(false);
+                    }
+                  }}
                 />
+
                 <div
                   className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-2xl z-[60] border ${
-                    nightMode ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-white/25'
+                    nightMode
+                      ? "bg-[#1a1a1a] border-white/10"
+                      : "bg-white border-white/25"
                   }`}
-                  style={nightMode ? {
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                  } : {
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-                  }}
+                  style={
+                    nightMode
+                      ? {
+                          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+                        }
+                      : {
+                          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+                        }
+                  }
                 >
                   <button
                     onClick={async () => {
@@ -269,18 +397,28 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         return;
                       }
                       try {
-                        await blockUser(profile.supabaseId, conversation.userId);
+                        await blockUser(
+                          profile.supabaseId,
+                          conversation.userId,
+                        );
                         showSuccess(`${conversation.name} has been blocked`);
                         setShowConversationMenu(false);
                         setActiveChat(null);
                         // Reload conversations and filter out blocked users
                         try {
-                          const updatedConversations = await getUserConversations(profile.supabaseId);
+                          const updatedConversations =
+                            await getUserConversations(profile.supabaseId);
                           const filtered = [];
-                          for (const convo of (updatedConversations || [])) {
+                          for (const convo of updatedConversations || []) {
                             try {
-                              const blk = await isUserBlocked(profile.supabaseId, convo.userId);
-                              const blkBy = await isBlockedBy(profile.supabaseId, convo.userId);
+                              const blk = await isUserBlocked(
+                                profile.supabaseId,
+                                convo.userId,
+                              );
+                              const blkBy = await isBlockedBy(
+                                profile.supabaseId,
+                                convo.userId,
+                              );
                               if (!blk && !blkBy) {
                                 filtered.push(convo);
                               }
@@ -292,17 +430,22 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                           setConversations(filtered);
                         } catch {
                           // If conversation reload fails, just remove the blocked user from current list
-                          setConversations(prev => prev.filter(c => c.userId !== conversation.userId));
+                          setConversations((prev) =>
+                            prev.filter(
+                              (c) => c.userId !== conversation.userId,
+                            ),
+                          );
                         }
                       } catch (error) {
-                        console.error('Error blocking user:', error);
-                        showError('Failed to block user');
+                        console.error("Error blocking user:", error);
+                        showError("Failed to block user");
                       }
                     }}
-                    className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-t-xl ${nightMode
-                        ? 'hover:bg-white/10 text-red-400'
-                        : 'hover:bg-red-50 text-red-600'
-                      }`}
+                    className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-t-xl ${
+                      nightMode
+                        ? "hover:bg-white/10 text-red-400"
+                        : "hover:bg-red-50 text-red-600"
+                    }`}
                   >
                     <UserX className="w-4 h-4" />
                     <span className="text-sm font-medium">Block User</span>
@@ -317,20 +460,30 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
         <div
           ref={messagesContainerRef}
           className="flex-1 p-4 overflow-y-auto"
-          style={nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)'
-          }}
+          style={
+            nightMode
+              ? {}
+              : {
+                  background: "rgba(255, 255, 255, 0.2)",
+                  backdropFilter: "blur(30px)",
+                  WebkitBackdropFilter: "blur(30px)",
+                }
+          }
         >
           {loading ? (
-            <div className={`text-center ${nightMode ? 'text-slate-100' : 'text-black'} py-8`}>
+            <div
+              className={`text-center ${nightMode ? "text-slate-100" : "text-black"} py-8`}
+            >
               Loading messages...
             </div>
           ) : messages.length === 0 ? (
-            <div className={`text-center ${nightMode ? 'text-slate-100' : 'text-black'} py-8`}>
+            <div
+              className={`text-center ${nightMode ? "text-slate-100" : "text-black"} py-8`}
+            >
               <p>No messages yet.</p>
-              <p className="text-sm mt-2">Send a message to start the conversation!</p>
+              <p className="text-sm mt-2">
+                Send a message to start the conversation!
+              </p>
             </div>
           ) : (
             messages.map((msg) => {
@@ -339,32 +492,46 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                 <div key={msg.id} className="mt-3">
                   <div className="flex gap-2 items-start">
                     {/* Avatar */}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0 overflow-hidden ${nightMode ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'bg-gradient-to-br from-purple-400 to-pink-400'}`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0 overflow-hidden ${nightMode ? "bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500" : "bg-gradient-to-br from-purple-400 to-pink-400"}`}
+                    >
                       {isMe ? (
                         profile?.avatarImage ? (
-                          <img src={profile.avatarImage} alt={profile.displayName} className="w-full h-full object-cover" />
+                          <img
+                            src={profile.avatarImage}
+                            alt={profile.displayName}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           profile?.avatar
                         )
+                      ) : conversation.avatarImage ? (
+                        <img
+                          src={conversation.avatarImage}
+                          alt={conversation.name}
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
-                        conversation.avatarImage ? (
-                          <img src={conversation.avatarImage} alt={conversation.name} className="w-full h-full object-cover" />
-                        ) : (
-                          conversation.avatar
-                        )
+                        conversation.avatar
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       {/* Name and timestamp */}
                       <div className="flex items-baseline gap-2 mb-1">
-                        <span className={`text-sm font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                        <span
+                          className={`text-sm font-semibold ${nightMode ? "text-slate-100" : "text-black"}`}
+                        >
                           {isMe ? profile?.displayName : conversation.name}
                         </span>
-                        <span className={`text-[10px] ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
+                        <span
+                          className={`text-[10px] ${nightMode ? "text-slate-100" : "text-black"} opacity-70`}
+                        >
                           {(() => {
                             // Parse the timestamp - handle both ISO strings and Date objects
-                            const msgDate = msg.created_at ? new Date(msg.created_at) : new Date();
+                            const msgDate = msg.created_at
+                              ? new Date(msg.created_at)
+                              : new Date();
                             const now = new Date();
                             const diffMs = now.getTime() - msgDate.getTime();
                             const diffMins = Math.floor(diffMs / 60000);
@@ -372,7 +539,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                             const diffDays = Math.floor(diffMs / 86400000);
 
                             // Show "Just now" for messages less than 1 minute old
-                            if (diffMins < 1) return 'Just now';
+                            if (diffMins < 1) return "Just now";
                             // Show minutes ago for messages less than 1 hour old
                             if (diffMins < 60) return `${diffMins}m ago`;
                             // Show hours ago for messages less than 24 hours old
@@ -381,10 +548,18 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                             if (diffDays < 7) return `${diffDays}d ago`;
                             // Show time for today's messages (fallback)
                             if (msgDate.toDateString() === now.toDateString()) {
-                              return msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                              return msgDate.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              });
                             }
                             // Show date and time for older messages
-                            return msgDate.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                            return msgDate.toLocaleString([], {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            });
                           })()}
                         </span>
                       </div>
@@ -398,24 +573,56 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                               setMobileActionMenu(msg.id);
                             }, 500);
                           }}
-                          onTouchEnd={() => { if (messageLongPressRef.current) { clearTimeout(messageLongPressRef.current); messageLongPressRef.current = null; } }}
-                          onTouchCancel={() => { if (messageLongPressRef.current) { clearTimeout(messageLongPressRef.current); messageLongPressRef.current = null; } }}
-                          onTouchMove={() => { if (messageLongPressRef.current) { clearTimeout(messageLongPressRef.current); messageLongPressRef.current = null; } }}
+                          onTouchEnd={() => {
+                            if (messageLongPressRef.current) {
+                              clearTimeout(messageLongPressRef.current);
+                              messageLongPressRef.current = null;
+                            }
+                          }}
+                          onTouchCancel={() => {
+                            if (messageLongPressRef.current) {
+                              clearTimeout(messageLongPressRef.current);
+                              messageLongPressRef.current = null;
+                            }
+                          }}
+                          onTouchMove={() => {
+                            if (messageLongPressRef.current) {
+                              clearTimeout(messageLongPressRef.current);
+                              messageLongPressRef.current = null;
+                            }
+                          }}
                         >
                           <div
-                            ref={(el: HTMLDivElement | null) => { messageRefs.current[msg.id] = el; }}
-                            className={nightMode ? 'bg-transparent hover:bg-white/5 text-slate-100 px-2 py-1 rounded-md max-w-full sm:max-w-md relative transition-colors' : 'bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-full sm:max-w-md relative transition-colors'}>
+                            ref={(el: HTMLDivElement | null) => {
+                              messageRefs.current[msg.id] = el;
+                            }}
+                            className={
+                              nightMode
+                                ? "bg-transparent hover:bg-white/5 text-slate-100 px-2 py-1 rounded-md max-w-full sm:max-w-md relative transition-colors"
+                                : "bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-full sm:max-w-md relative transition-colors"
+                            }
+                          >
                             {/* Reply to message preview - only show if reply_to is valid and has content */}
-                            {msg.reply_to && msg.reply_to.id && msg.reply_to.content && (
-                              <div className={`mb-2 pl-3 border-l-2 ${nightMode ? 'border-white/20 bg-white/5' : 'border-white/30 bg-white/20'} rounded-r-md py-1.5 text-xs`}>
-                                <div className={`font-semibold mb-0.5 ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
-                                  {msg.reply_to.sender?.display_name || msg.reply_to.sender?.username || 'Unknown'}
+                            {msg.reply_to &&
+                              msg.reply_to.id &&
+                              msg.reply_to.content && (
+                                <div
+                                  className={`mb-2 pl-3 border-l-2 ${nightMode ? "border-white/20 bg-white/5" : "border-white/30 bg-white/20"} rounded-r-md py-1.5 text-xs`}
+                                >
+                                  <div
+                                    className={`font-semibold mb-0.5 ${nightMode ? "text-slate-300" : "text-gray-700"}`}
+                                  >
+                                    {msg.reply_to.sender?.display_name ||
+                                      msg.reply_to.sender?.username ||
+                                      "Unknown"}
+                                  </div>
+                                  <div
+                                    className={`truncate ${nightMode ? "text-slate-400" : "text-gray-600"}`}
+                                  >
+                                    {decodeHTMLEntities(msg.reply_to.content)}
+                                  </div>
                                 </div>
-                                <div className={`truncate ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
-                                  {decodeHTMLEntities(msg.reply_to.content)}
-                                </div>
-                              </div>
-                            )}
+                              )}
                             {/* Message image */}
                             {msg.image_url && (
                               <div className="mt-1 mb-1">
@@ -424,58 +631,105 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                                   alt="Shared image"
                                   className="max-w-[280px] max-h-[300px] rounded-xl object-cover cursor-pointer transition-all hover:opacity-90 hover:scale-[1.02]"
                                   style={{
-                                    border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
-                                    boxShadow: nightMode ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
+                                    border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
+                                    boxShadow: nightMode
+                                      ? "0 2px 8px rgba(0,0,0,0.3)"
+                                      : "0 2px 8px rgba(0,0,0,0.1)",
                                   }}
-                                  onClick={() => setExpandedImage(msg.image_url || null)}
+                                  onClick={() =>
+                                    setExpandedImage(msg.image_url || null)
+                                  }
                                   loading="lazy"
                                 />
                               </div>
                             )}
                             {/* Message text (hide placeholder text for image-only messages) */}
-                            {msg.content && msg.content !== '📷 Image' && (
-                              <p className="text-[15px] whitespace-pre-wrap leading-snug" style={{ overflowWrap: 'break-word', wordBreak: 'normal' }}>{decodeHTMLEntities(msg.content)}</p>
+                            {msg.content && msg.content !== "📷 Image" && (
+                              <p
+                                className="text-[15px] whitespace-pre-wrap leading-snug"
+                                style={{
+                                  overflowWrap: "break-word",
+                                  wordBreak: "normal",
+                                }}
+                              >
+                                {decodeHTMLEntities(msg.content)}
+                              </p>
                             )}
 
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
-                              <div className={`${isMessageInBottomHalf(msg.id) ? 'absolute bottom-full mb-1 left-0' : 'absolute top-full mt-1 left-0'} border rounded-xl shadow-2xl p-2 z-[100] ${nightMode ? 'border-white/10' : 'border-white/25'}`} style={nightMode ? {
-                                background: '#1a1a1a',
-                                backdropFilter: 'blur(30px)',
-                                WebkitBackdropFilter: 'blur(30px)',
-                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                              } : {
-                                background: '#ffffff',
-                                backdropFilter: 'blur(30px)',
-                                WebkitBackdropFilter: 'blur(30px)',
-                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-                              }}>
+                              <div
+                                className={`${isMessageInBottomHalf(msg.id) ? "absolute bottom-full mb-1 left-0" : "absolute top-full mt-1 left-0"} border rounded-xl shadow-2xl p-2 z-[100] ${nightMode ? "border-white/10" : "border-white/25"}`}
+                                style={
+                                  nightMode
+                                    ? {
+                                        background: "#1a1a1a",
+                                        backdropFilter: "blur(30px)",
+                                        WebkitBackdropFilter: "blur(30px)",
+                                        boxShadow:
+                                          "0 4px 20px rgba(0, 0, 0, 0.3)",
+                                      }
+                                    : {
+                                        background: "#ffffff",
+                                        backdropFilter: "blur(30px)",
+                                        WebkitBackdropFilter: "blur(30px)",
+                                        boxShadow:
+                                          "0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                                      }
+                                }
+                              >
                                 <div className="grid grid-cols-6 gap-1 w-[200px]">
-                                  {(showAllEmojis[msg.id] ? reactionEmojis : reactionEmojis.slice(0, 6)).map(emoji => (
+                                  {(showAllEmojis[msg.id]
+                                    ? reactionEmojis
+                                    : reactionEmojis.slice(0, 6)
+                                  ).map((emoji) => (
                                     <button
                                       key={emoji}
                                       onClick={() => {
                                         handleReaction(msg.id, emoji);
                                         setShowReactionPicker(null);
                                       }}
-                                      className={nightMode ? 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center' : 'text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center'}
+                                      className={
+                                        nightMode
+                                          ? "text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center"
+                                          : "text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center"
+                                      }
                                     >
                                       {emoji}
                                     </button>
                                   ))}
                                 </div>
-                                {!showAllEmojis[msg.id] && reactionEmojis.length > 6 && (
-                                  <button
-                                    onClick={() => setShowAllEmojis(prev => ({ ...prev, [msg.id]: true }))}
-                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
-                                  >
-                                    +{reactionEmojis.length - 6} more
-                                  </button>
-                                )}
+                                {!showAllEmojis[msg.id] &&
+                                  reactionEmojis.length > 6 && (
+                                    <button
+                                      onClick={() =>
+                                        setShowAllEmojis((prev) => ({
+                                          ...prev,
+                                          [msg.id]: true,
+                                        }))
+                                      }
+                                      className={
+                                        nightMode
+                                          ? "w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors"
+                                          : "w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors"
+                                      }
+                                    >
+                                      +{reactionEmojis.length - 6} more
+                                    </button>
+                                  )}
                                 {showAllEmojis[msg.id] && (
                                   <button
-                                    onClick={() => setShowAllEmojis(prev => ({ ...prev, [msg.id]: false }))}
-                                    className={nightMode ? 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors' : 'w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors'}
+                                    onClick={() =>
+                                      setShowAllEmojis((prev) => ({
+                                        ...prev,
+                                        [msg.id]: false,
+                                      }))
+                                    }
+                                    className={
+                                      nightMode
+                                        ? "w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors"
+                                        : "w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors"
+                                    }
                                   >
                                     Show less
                                   </button>
@@ -485,27 +739,49 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                           </div>
 
                           {/* Action buttons (desktop hover only) */}
-                          <div className={`flex gap-1 transition-opacity ${isTouchDevice ? 'hidden' : 'opacity-0 group-hover:opacity-100'}`}>
+                          <div
+                            className={`flex gap-1 transition-opacity ${isTouchDevice ? "hidden" : "opacity-0 group-hover:opacity-100"}`}
+                          >
                             <button
                               onClick={() => setReplyingTo(msg)}
-                              className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 border border-white/25 rounded text-black hover:text-black shadow-sm'}
-                              style={nightMode ? {} : {
-                                background: 'rgba(255, 255, 255, 0.2)',
-                                backdropFilter: 'blur(30px)',
-                                WebkitBackdropFilter: 'blur(30px)'
-                              }}
+                              className={
+                                nightMode
+                                  ? "p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100"
+                                  : "p-1 border border-white/25 rounded text-black hover:text-black shadow-sm"
+                              }
+                              style={
+                                nightMode
+                                  ? {}
+                                  : {
+                                      background: "rgba(255, 255, 255, 0.2)",
+                                      backdropFilter: "blur(30px)",
+                                      WebkitBackdropFilter: "blur(30px)",
+                                    }
+                              }
                               title="Reply"
                             >
                               <Reply className="w-3.5 h-3.5" />
                             </button>
                             <button
-                              onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
-                              className={nightMode ? 'p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100' : 'p-1 border border-white/25 rounded text-black hover:text-black shadow-sm'}
-                              style={nightMode ? {} : {
-                                background: 'rgba(255, 255, 255, 0.2)',
-                                backdropFilter: 'blur(30px)',
-                                WebkitBackdropFilter: 'blur(30px)'
-                              }}
+                              onClick={() =>
+                                setShowReactionPicker(
+                                  showReactionPicker === msg.id ? null : msg.id,
+                                )
+                              }
+                              className={
+                                nightMode
+                                  ? "p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100"
+                                  : "p-1 border border-white/25 rounded text-black hover:text-black shadow-sm"
+                              }
+                              style={
+                                nightMode
+                                  ? {}
+                                  : {
+                                      background: "rgba(255, 255, 255, 0.2)",
+                                      backdropFilter: "blur(30px)",
+                                      WebkitBackdropFilter: "blur(30px)",
+                                    }
+                              }
                               title="React"
                             >
                               <Smile className="w-3.5 h-3.5" />
@@ -513,15 +789,24 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                             {isMe && (
                               <button
                                 onClick={async () => {
-                                  if (!window.confirm('Delete this message?')) return;
+                                  if (!window.confirm("Delete this message?"))
+                                    return;
                                   await handleDeleteMessage(msg.id);
                                 }}
-                                className={nightMode ? 'p-1 bg-white/5 border border-red-500/30 rounded text-red-400 hover:text-red-300' : 'p-1 border border-red-300 rounded text-red-600 hover:text-red-700 shadow-sm'}
-                                style={nightMode ? {} : {
-                                  background: 'rgba(255, 255, 255, 0.2)',
-                                  backdropFilter: 'blur(30px)',
-                                  WebkitBackdropFilter: 'blur(30px)'
-                                }}
+                                className={
+                                  nightMode
+                                    ? "p-1 bg-white/5 border border-red-500/30 rounded text-red-400 hover:text-red-300"
+                                    : "p-1 border border-red-300 rounded text-red-600 hover:text-red-700 shadow-sm"
+                                }
+                                style={
+                                  nightMode
+                                    ? {}
+                                    : {
+                                        background: "rgba(255, 255, 255, 0.2)",
+                                        backdropFilter: "blur(30px)",
+                                        WebkitBackdropFilter: "blur(30px)",
+                                      }
+                                }
                                 title="Delete"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -531,79 +816,133 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         </div>
 
                         {/* Display reactions */}
-                        {messageReactions[msg.id] && messageReactions[msg.id].length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {(() => {
-                              const reactions = messageReactions[msg.id];
-                              const reactionCounts = reactions.reduce((acc: Record<string, { count: number; hasReacted: boolean; users: string[] }>, r) => {
-                                if (!acc[r.emoji]) {
-                                  acc[r.emoji] = { count: 0, hasReacted: false, users: [] };
-                                }
-                                acc[r.emoji].count++;
-                                acc[r.emoji].users.push(r.userId);
-                                if (r.userId === profile?.supabaseId) {
-                                  acc[r.emoji].hasReacted = true;
-                                }
-                                return acc;
-                              }, {});
+                        {messageReactions[msg.id] &&
+                          messageReactions[msg.id].length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {(() => {
+                                const reactions = messageReactions[msg.id];
+                                const reactionCounts = reactions.reduce(
+                                  (
+                                    acc: Record<
+                                      string,
+                                      {
+                                        count: number;
+                                        hasReacted: boolean;
+                                        users: string[];
+                                      }
+                                    >,
+                                    r,
+                                  ) => {
+                                    if (!acc[r.emoji]) {
+                                      acc[r.emoji] = {
+                                        count: 0,
+                                        hasReacted: false,
+                                        users: [],
+                                      };
+                                    }
+                                    acc[r.emoji].count++;
+                                    acc[r.emoji].users.push(r.userId);
+                                    if (r.userId === profile?.supabaseId) {
+                                      acc[r.emoji].hasReacted = true;
+                                    }
+                                    return acc;
+                                  },
+                                  {},
+                                );
 
-                              const sortedReactions = Object.entries(reactionCounts).sort((a, b) => b[1].count - a[1].count);
-                              const isExpanded = expandedReactions[msg.id];
-                              const displayReactions = isExpanded ? sortedReactions : sortedReactions.slice(0, 5);
-                              const hiddenCount = sortedReactions.length - 5;
+                                const sortedReactions = Object.entries(
+                                  reactionCounts,
+                                ).sort((a, b) => b[1].count - a[1].count);
+                                const isExpanded = expandedReactions[msg.id];
+                                const displayReactions = isExpanded
+                                  ? sortedReactions
+                                  : sortedReactions.slice(0, 5);
+                                const hiddenCount = sortedReactions.length - 5;
 
-                              return (
-                                <>
-                                  {displayReactions.map(([emoji, data]) => (
-                                    <button
-                                      key={emoji}
-                                      onClick={() => handleReaction(msg.id, emoji)}
-                                      className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${data.hasReacted
-                                          ? nightMode
-                                            ? 'bg-[rgba(88,101,242,0.15)] border border-[#5865f2]'
-                                            : 'bg-blue-100 border border-blue-400'
-                                          : nightMode
-                                            ? 'bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)]'
-                                            : 'bg-transparent border border-white/25 hover:bg-white/20'
+                                return (
+                                  <>
+                                    {displayReactions.map(([emoji, data]) => (
+                                      <button
+                                        key={emoji}
+                                        onClick={() =>
+                                          handleReaction(msg.id, emoji)
+                                        }
+                                        className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
+                                          data.hasReacted
+                                            ? nightMode
+                                              ? "bg-[rgba(88,101,242,0.15)] border border-[#5865f2]"
+                                              : "bg-blue-100 border border-blue-400"
+                                            : nightMode
+                                              ? "bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)]"
+                                              : "bg-transparent border border-white/25 hover:bg-white/20"
                                         }`}
-                                    >
-                                      <span className="text-sm leading-none">{emoji}</span>
-                                      <span className={`text-[11px] font-medium leading-none ${data.hasReacted ? nightMode ? 'text-[#dee0fc]' : 'text-blue-700'
-                                          : nightMode ? 'text-[#b5bac1]' : 'text-black'
-                                        }`}>{data.count}</span>
-                                    </button>
-                                  ))}
+                                      >
+                                        <span className="text-sm leading-none">
+                                          {emoji}
+                                        </span>
+                                        <span
+                                          className={`text-[11px] font-medium leading-none ${
+                                            data.hasReacted
+                                              ? nightMode
+                                                ? "text-[#dee0fc]"
+                                                : "text-blue-700"
+                                              : nightMode
+                                                ? "text-[#b5bac1]"
+                                                : "text-black"
+                                          }`}
+                                        >
+                                          {data.count}
+                                        </span>
+                                      </button>
+                                    ))}
 
-                                  {/* Show "more" button if there are hidden reactions */}
-                                  {!isExpanded && hiddenCount > 0 && (
-                                    <button
-                                      onClick={() => setExpandedReactions(prev => ({ ...prev, [msg.id]: true }))}
-                                      className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${nightMode
-                                          ? 'bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)] text-[#b5bac1]'
-                                          : 'bg-transparent border border-white/25 hover:bg-white/20 text-black'
+                                    {/* Show "more" button if there are hidden reactions */}
+                                    {!isExpanded && hiddenCount > 0 && (
+                                      <button
+                                        onClick={() =>
+                                          setExpandedReactions((prev) => ({
+                                            ...prev,
+                                            [msg.id]: true,
+                                          }))
+                                        }
+                                        className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
+                                          nightMode
+                                            ? "bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)] text-[#b5bac1]"
+                                            : "bg-transparent border border-white/25 hover:bg-white/20 text-black"
                                         }`}
-                                    >
-                                      <span className="text-[11px] font-medium">+{hiddenCount}</span>
-                                    </button>
-                                  )}
+                                      >
+                                        <span className="text-[11px] font-medium">
+                                          +{hiddenCount}
+                                        </span>
+                                      </button>
+                                    )}
 
-                                  {/* Show "less" button if expanded */}
-                                  {isExpanded && sortedReactions.length > 5 && (
-                                    <button
-                                      onClick={() => setExpandedReactions(prev => ({ ...prev, [msg.id]: false }))}
-                                      className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${nightMode
-                                          ? 'bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)] text-[#b5bac1]'
-                                          : 'bg-transparent border border-white/25 hover:bg-white/20 text-black'
-                                        }`}
-                                    >
-                                      <span className="text-[11px] font-medium">−</span>
-                                    </button>
-                                  )}
-                                </>
-                              );
-                            })()}
-                          </div>
-                        )}
+                                    {/* Show "less" button if expanded */}
+                                    {isExpanded &&
+                                      sortedReactions.length > 5 && (
+                                        <button
+                                          onClick={() =>
+                                            setExpandedReactions((prev) => ({
+                                              ...prev,
+                                              [msg.id]: false,
+                                            }))
+                                          }
+                                          className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
+                                            nightMode
+                                              ? "bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)] text-[#b5bac1]"
+                                              : "bg-transparent border border-white/25 hover:bg-white/20 text-black"
+                                          }`}
+                                        >
+                                          <span className="text-[11px] font-medium">
+                                            −
+                                          </span>
+                                        </button>
+                                      )}
+                                  </>
+                                );
+                              })()}
+                            </div>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -616,24 +955,37 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
 
         {/* Reply preview */}
         {replyingTo && (
-          <div className={`px-4 py-2 border-t ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 bg-white/10'}`}>
+          <div
+            className={`px-4 py-2 border-t ${nightMode ? "bg-white/5 border-white/10" : "border-white/25 bg-white/10"}`}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <Reply className={`w-4 h-4 flex-shrink-0 ${nightMode ? 'text-slate-400' : 'text-gray-600'}`} />
+                <Reply
+                  className={`w-4 h-4 flex-shrink-0 ${nightMode ? "text-slate-400" : "text-gray-600"}`}
+                />
                 <div className="flex-1 min-w-0">
-                  <div className={`text-xs font-semibold ${nightMode ? 'text-slate-300' : 'text-gray-700'}`}>
-                    Replying to {replyingTo.sender_id === profile?.supabaseId ? profile?.displayName : conversation.name}
+                  <div
+                    className={`text-xs font-semibold ${nightMode ? "text-slate-300" : "text-gray-700"}`}
+                  >
+                    Replying to{" "}
+                    {replyingTo.sender_id === profile?.supabaseId
+                      ? profile?.displayName
+                      : conversation.name}
                   </div>
-                  <div className={`text-xs truncate ${nightMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                  <div
+                    className={`text-xs truncate ${nightMode ? "text-slate-400" : "text-gray-600"}`}
+                  >
                     {replyingTo.content}
                   </div>
                 </div>
               </div>
               <button
                 onClick={() => setReplyingTo(null)}
-                className={`p-1 rounded ${nightMode ? 'hover:bg-white/10' : 'hover:bg-white/20'}`}
+                className={`p-1 rounded ${nightMode ? "hover:bg-white/10" : "hover:bg-white/20"}`}
               >
-                <X className={`w-4 h-4 ${nightMode ? 'text-slate-400' : 'text-gray-600'}`} />
+                <X
+                  className={`w-4 h-4 ${nightMode ? "text-slate-400" : "text-gray-600"}`}
+                />
               </button>
             </div>
           </div>
@@ -641,14 +993,18 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
 
         {/* Image preview */}
         {pendingImagePreview && (
-          <div className={`px-4 py-2 border-t ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 bg-white/10'}`}>
+          <div
+            className={`px-4 py-2 border-t ${nightMode ? "bg-white/5 border-white/10" : "border-white/25 bg-white/10"}`}
+          >
             <div className="flex items-start gap-2">
               <div className="relative">
                 <img
                   src={pendingImagePreview}
                   alt="Image to send"
                   className="w-20 h-20 rounded-xl object-cover"
-                  style={{ border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}` }}
+                  style={{
+                    border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
+                  }}
                 />
                 <button
                   onClick={clearPendingImage}
@@ -657,8 +1013,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   <X className="w-3 h-3" />
                 </button>
               </div>
-              <p className={`text-xs mt-1 ${nightMode ? 'text-white/40' : 'text-black/40'}`}>
-                {uploadingImage ? 'Uploading...' : 'Ready to send'}
+              <p
+                className={`text-xs mt-1 ${nightMode ? "text-white/40" : "text-black/40"}`}
+              >
+                {uploadingImage ? "Uploading..." : "Ready to send"}
               </p>
             </div>
           </div>
@@ -667,17 +1025,22 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
         {/* Input */}
         <form
           onSubmit={handleSendMessage}
-          className={`sticky bottom-0 px-4 py-3 border-t flex gap-2 items-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25'}`}
-          style={nightMode ? {
-            background: 'rgba(10, 10, 10, 0.95)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)'
-          } : {
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-          }}
+          className={`sticky bottom-0 px-4 py-3 border-t flex gap-2 items-center ${nightMode ? "bg-white/5 border-white/10" : "border-white/25"}`}
+          style={
+            nightMode
+              ? {
+                  background: "rgba(10, 10, 10, 0.95)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                }
+              : {
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(30px)",
+                  WebkitBackdropFilter: "blur(30px)",
+                  boxShadow:
+                    "0 -4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                }
+          }
         >
           {/* Hidden file input */}
           <input
@@ -691,7 +1054,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           <button
             type="button"
             onClick={() => imageInputRef.current?.click()}
-            className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/10' : 'text-black/40 hover:text-black/70 hover:bg-black/5'}`}
+            className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${nightMode ? "text-white/40 hover:text-white/70 hover:bg-white/10" : "text-black/40 hover:text-black/70 hover:bg-black/5"}`}
             title="Attach image"
           >
             <ImageIcon className="w-5 h-5" />
@@ -701,7 +1064,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   // @ts-ignore - Event type mismatch between keyboard and form event
                   handleSendMessage(e);
@@ -709,119 +1072,187 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
               }}
               placeholder={pendingImage ? "Add a caption..." : "Message..."}
               rows={1}
-              className={nightMode ? 'w-full px-4 py-2.5 bg-white/5 border border-white/10 text-slate-100 placeholder-gray-400 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]' : 'w-full px-4 py-2.5 border border-white/25 text-black placeholder-black/50 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]'}
-              style={nightMode ? {
-                height: 'auto',
-                minHeight: '40px',
-                maxHeight: '100px',
-                overflowY: 'auto'
-              } : {
-                height: 'auto',
-                minHeight: '40px',
-                maxHeight: '100px',
-                overflowY: 'auto',
-                background: 'rgba(255, 255, 255, 0.2)',
-                backdropFilter: 'blur(30px)',
-                WebkitBackdropFilter: 'blur(30px)'
-              }}
+              className={
+                nightMode
+                  ? "w-full px-4 py-2.5 bg-white/5 border border-white/10 text-slate-100 placeholder-gray-400 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]"
+                  : "w-full px-4 py-2.5 border border-white/25 text-black placeholder-black/50 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]"
+              }
+              style={
+                nightMode
+                  ? {
+                      height: "auto",
+                      minHeight: "40px",
+                      maxHeight: "100px",
+                      overflowY: "auto",
+                    }
+                  : {
+                      height: "auto",
+                      minHeight: "40px",
+                      maxHeight: "100px",
+                      overflowY: "auto",
+                      background: "rgba(255, 255, 255, 0.2)",
+                      backdropFilter: "blur(30px)",
+                      WebkitBackdropFilter: "blur(30px)",
+                    }
+              }
               onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
                 const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = Math.min(target.scrollHeight, 100) + 'px';
+                target.style.height = "auto";
+                target.style.height = Math.min(target.scrollHeight, 100) + "px";
               }}
             />
           </div>
           <button
             type="submit"
             disabled={!newMessage.trim() && !pendingImage}
-            className={`w-10 h-10 border rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center transition-all duration-200 text-slate-100 ${nightMode ? 'border-white/20' : 'border-white/30'}`}
+            className={`w-10 h-10 border rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center transition-all duration-200 text-slate-100 ${nightMode ? "border-white/20" : "border-white/30"}`}
             style={{
-              background: 'rgba(79, 150, 255, 0.85)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)'
+              background: "rgba(79, 150, 255, 0.85)",
+              backdropFilter: "blur(30px)",
+              WebkitBackdropFilter: "blur(30px)",
             }}
             onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
               if (newMessage.trim() || pendingImage) {
-                e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
+                e.currentTarget.style.background = "rgba(79, 150, 255, 1.0)";
               }
             }}
             onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
+              e.currentTarget.style.background = "rgba(79, 150, 255, 0.85)";
             }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
             </svg>
           </button>
         </form>
 
         {/* Mobile action menu (bottom sheet) */}
-        {mobileActionMenu !== null && (() => {
-          const msg = messages.find(m => m.id === mobileActionMenu);
-          if (!msg) return null;
-          const isMe = msg.sender_id === profile?.supabaseId;
-          return (
-            <>
-              <div className="fixed inset-0 z-[150] bg-black/40" onClick={() => setMobileActionMenu(null)} />
-              <div
-                className="fixed bottom-0 left-0 right-0 z-[151] rounded-t-2xl pb-6 pt-2"
-                style={{
-                  background: nightMode ? 'rgba(20, 20, 30, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-                  backdropFilter: 'blur(30px)',
-                  WebkitBackdropFilter: 'blur(30px)',
-                  boxShadow: '0 -4px 24px rgba(0,0,0,0.2)',
-                }}
-              >
-                <div className={`w-10 h-1 rounded-full mx-auto mb-3 ${nightMode ? 'bg-white/20' : 'bg-black/15'}`} />
-                <div className={`px-4 pb-2 mb-2 text-xs truncate ${nightMode ? 'text-white/40 border-b border-white/10' : 'text-black/40 border-b border-black/10'}`}>
-                  {isMe ? profile?.displayName : conversation?.name}: {msg.content?.substring(0, 60)}{(msg.content?.length || 0) > 60 ? '...' : ''}
-                </div>
-                <button
-                  onClick={() => { setReplyingTo(msg); setMobileActionMenu(null); }}
-                  className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
-                    nightMode ? 'text-white/80 active:bg-white/5' : 'text-black/80 active:bg-black/5'
-                  }`}
-                >
-                  <Reply className="w-5 h-5" /> Reply
-                </button>
-                <button
-                  onClick={() => { setShowReactionPicker(msg.id); setMobileActionMenu(null); }}
-                  className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
-                    nightMode ? 'text-white/80 active:bg-white/5' : 'text-black/80 active:bg-black/5'
-                  }`}
-                >
-                  <Smile className="w-5 h-5" /> Add Reaction
-                </button>
-                {isMe && (
-                  <button
-                    onClick={async () => {
+        {mobileActionMenu !== null &&
+          (() => {
+            const msg = messages.find((m) => m.id === mobileActionMenu);
+            if (!msg) return null;
+            const isMe = msg.sender_id === profile?.supabaseId;
+            return (
+              <>
+                <div
+                  className="fixed inset-0 z-[150] bg-black/40"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Close mobile action menu"
+                  onClick={() => setMobileActionMenu(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
                       setMobileActionMenu(null);
-                      if (!window.confirm('Delete this message?')) return;
-                      await handleDeleteMessage(msg.id);
+                    }
+                  }}
+                />
+
+                <div
+                  className="fixed bottom-0 left-0 right-0 z-[151] rounded-t-2xl pb-6 pt-2"
+                  style={{
+                    background: nightMode
+                      ? "rgba(20, 20, 30, 0.98)"
+                      : "rgba(255, 255, 255, 0.98)",
+                    backdropFilter: "blur(30px)",
+                    WebkitBackdropFilter: "blur(30px)",
+                    boxShadow: "0 -4px 24px rgba(0,0,0,0.2)",
+                  }}
+                >
+                  <div
+                    className={`w-10 h-1 rounded-full mx-auto mb-3 ${nightMode ? "bg-white/20" : "bg-black/15"}`}
+                  />
+                  <div
+                    className={`px-4 pb-2 mb-2 text-xs truncate ${nightMode ? "text-white/40 border-b border-white/10" : "text-black/40 border-b border-black/10"}`}
+                  >
+                    {isMe ? profile?.displayName : conversation?.name}:{" "}
+                    {msg.content?.substring(0, 60)}
+                    {(msg.content?.length || 0) > 60 ? "..." : ""}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setReplyingTo(msg);
+                      setMobileActionMenu(null);
                     }}
                     className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
-                      nightMode ? 'text-red-400 active:bg-red-500/10' : 'text-red-600 active:bg-red-50'
+                      nightMode
+                        ? "text-white/80 active:bg-white/5"
+                        : "text-black/80 active:bg-black/5"
                     }`}
                   >
-                    <Trash2 className="w-5 h-5" /> Delete
+                    <Reply className="w-5 h-5" /> Reply
                   </button>
-                )}
-              </div>
-            </>
-          );
-        })()}
+                  <button
+                    onClick={() => {
+                      setShowReactionPicker(msg.id);
+                      setMobileActionMenu(null);
+                    }}
+                    className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                      nightMode
+                        ? "text-white/80 active:bg-white/5"
+                        : "text-black/80 active:bg-black/5"
+                    }`}
+                  >
+                    <Smile className="w-5 h-5" /> Add Reaction
+                  </button>
+                  {isMe && (
+                    <button
+                      onClick={async () => {
+                        setMobileActionMenu(null);
+                        if (!window.confirm("Delete this message?")) return;
+                        await handleDeleteMessage(msg.id);
+                      }}
+                      className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-medium transition-colors ${
+                        nightMode
+                          ? "text-red-400 active:bg-red-500/10"
+                          : "text-red-600 active:bg-red-50"
+                      }`}
+                    >
+                      <Trash2 className="w-5 h-5" /> Delete
+                    </button>
+                  )}
+                </div>
+              </>
+            );
+          })()}
 
         {/* Expanded image lightbox */}
         {expandedImage && (
           <div
             className="fixed inset-0 z-[200] flex items-center justify-center p-4 cursor-pointer"
-            style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+            style={{
+              background: "rgba(0,0,0,0.85)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Close expanded image"
             onClick={() => setExpandedImage(null)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setExpandedImage(null);
+              }
+            }}
           >
             <button
-              onClick={(e) => { e.stopPropagation(); setExpandedImage(null); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpandedImage(null);
+              }}
               className="absolute top-4 right-4 z-10 p-3 rounded-full bg-white/20 text-white hover:bg-white/30 active:scale-95 transition-all"
-              style={{ minWidth: '48px', minHeight: '48px' }}
+              style={{ minWidth: "48px", minHeight: "48px" }}
             >
               <X className="w-7 h-7" />
             </button>
@@ -832,7 +1263,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
               src={expandedImage}
               alt="Expanded image"
               className="max-w-full max-h-[85vh] rounded-2xl object-contain"
-              style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+              style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
               onClick={(e) => e.stopPropagation()}
             />
           </div>
@@ -879,8 +1310,18 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
         }
       `}</style>
       <div>
-        <h2 className={`text-lg font-bold ${nightMode ? 'text-slate-100' : 'text-black'}`}>Messages</h2>
-        <p className={nightMode ? 'text-sm text-slate-100' : 'text-sm text-black'}>Stay connected with your community</p>
+        <h2
+          className={`text-lg font-bold ${nightMode ? "text-slate-100" : "text-black"}`}
+        >
+          Messages
+        </h2>
+        <p
+          className={
+            nightMode ? "text-sm text-slate-100" : "text-sm text-black"
+          }
+        >
+          Stay connected with your community
+        </p>
       </div>
 
       {isInitialLoad ? (
@@ -891,36 +1332,64 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
         </div>
       ) : conversations.length === 0 ? (
         <div
-          className={`rounded-xl border p-10 text-center ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]'}`}
-          style={nightMode ? {} : {
-            background: 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(30px)',
-            WebkitBackdropFilter: 'blur(30px)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-          }}
+          className={`rounded-xl border p-10 text-center ${nightMode ? "bg-white/5 border-white/10" : "border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]"}`}
+          style={
+            nightMode
+              ? {}
+              : {
+                  background: "rgba(255, 255, 255, 0.2)",
+                  backdropFilter: "blur(30px)",
+                  WebkitBackdropFilter: "blur(30px)",
+                  boxShadow:
+                    "0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                }
+          }
         >
           <div className="text-6xl mb-4">💬</div>
           {!isSupabaseConfigured() ? (
             <>
-              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>Database Not Configured</p>
-              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
-                Supabase connection is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env.local file to enable messaging.
+              <p
+                className={`font-bold text-lg mb-2 ${nightMode ? "text-slate-100" : "text-black"}`}
+              >
+                Database Not Configured
               </p>
-              <div className={`p-4 rounded-lg ${nightMode ? 'bg-yellow-500/20 border border-yellow-500/30' : 'bg-yellow-50 border border-yellow-200'}`}>
-                <p className={`text-xs font-medium ${nightMode ? 'text-yellow-300' : 'text-yellow-800'}`}>
+              <p
+                className={`text-sm mb-6 ${nightMode ? "text-slate-100/80" : "text-black/70"}`}
+              >
+                Supabase connection is not configured. Please add
+                VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env.local
+                file to enable messaging.
+              </p>
+              <div
+                className={`p-4 rounded-lg ${nightMode ? "bg-yellow-500/20 border border-yellow-500/30" : "bg-yellow-50 border border-yellow-200"}`}
+              >
+                <p
+                  className={`text-xs font-medium ${nightMode ? "text-yellow-300" : "text-yellow-800"}`}
+                >
                   ⚠️ Check the console for detailed setup instructions
                 </p>
               </div>
             </>
           ) : (
             <>
-              <p className={`font-bold text-lg mb-2 ${nightMode ? 'text-slate-100' : 'text-black'}`}>No conversations yet</p>
-              <p className={`text-sm mb-6 ${nightMode ? 'text-slate-100/80' : 'text-black/70'}`}>
+              <p
+                className={`font-bold text-lg mb-2 ${nightMode ? "text-slate-100" : "text-black"}`}
+              >
+                No conversations yet
+              </p>
+              <p
+                className={`text-sm mb-6 ${nightMode ? "text-slate-100/80" : "text-black/70"}`}
+              >
                 Connect with others in the Find tab to start messaging!
               </p>
-              <div className={`p-4 rounded-lg ${nightMode ? 'bg-white/5' : 'bg-blue-50/50'}`}>
-                <p className={`text-xs font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                  💡 Tip: Visit the <span className="font-bold">Find</span> tab to find nearby believers
+              <div
+                className={`p-4 rounded-lg ${nightMode ? "bg-white/5" : "bg-blue-50/50"}`}
+              >
+                <p
+                  className={`text-xs font-medium ${nightMode ? "text-slate-100" : "text-slate-700"}`}
+                >
+                  💡 Tip: Visit the <span className="font-bold">Find</span> tab
+                  to find nearby believers
                 </p>
               </div>
             </>
@@ -931,47 +1400,72 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           <button
             key={chat.id}
             onClick={() => setActiveChat(chat.id)}
-            className={`w-full rounded-xl border px-3 py-3 text-left transition-all hover:-translate-y-1 ${nightMode ? 'bg-white/5 border-white/10' : 'border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)]'
-              }`}
-            style={nightMode ? {} : {
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-            }}
+            className={`w-full rounded-xl border px-3 py-3 text-left transition-all hover:-translate-y-1 ${
+              nightMode
+                ? "bg-white/5 border-white/10"
+                : "border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)]"
+            }`}
+            style={
+              nightMode
+                ? {}
+                : {
+                    background: "rgba(255, 255, 255, 0.2)",
+                    backdropFilter: "blur(30px)",
+                    WebkitBackdropFilter: "blur(30px)",
+                    boxShadow:
+                      "0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                  }
+            }
           >
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
-                  nightMode
-                    ? 'bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500 text-white'
-                    : 'bg-gradient-to-br from-purple-400 to-pink-400 text-white'
-                }`}>
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
+                    nightMode
+                      ? "bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500 text-white"
+                      : "bg-gradient-to-br from-purple-400 to-pink-400 text-white"
+                  }`}
+                >
                   {chat.avatarImage ? (
-                    <img src={chat.avatarImage} alt={chat.name} className="w-full h-full object-cover" />
+                    <img
+                      src={chat.avatarImage}
+                      alt={chat.name}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     chat.avatar
                   )}
                 </div>
                 {chat.online && (
-                  <div className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? 'border-[#0a0a0a]' : 'border-white'}`}></div>
+                  <div
+                    className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? "border-[#0a0a0a]" : "border-white"}`}
+                  ></div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-black'}`}>{chat.name}</h3>
+                  <h3
+                    className={`font-semibold ${nightMode ? "text-slate-100" : "text-black"}`}
+                  >
+                    {chat.name}
+                  </h3>
                   {(chat.unreadCount ?? 0) > 0 && (
-                    <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${nightMode
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-blue-500 text-white'
-                      }`}>
+                    <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500 text-white">
                       {chat.unreadCount ?? 0}
                     </span>
                   )}
                 </div>
-                <p className={`text-sm truncate ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{decodeHTMLEntities(chat.lastMessage)}</p>
+                <p
+                  className={`text-sm truncate ${nightMode ? "text-slate-100" : "text-black opacity-70"}`}
+                >
+                  {decodeHTMLEntities(chat.lastMessage)}
+                </p>
               </div>
-              <span className={`text-xs flex-shrink-0 pr-1 ${nightMode ? 'text-slate-100' : 'text-black opacity-70'}`}>{formatTimestamp(chat.timestamp)}</span>
+              <span
+                className={`text-xs flex-shrink-0 pr-1 ${nightMode ? "text-slate-100" : "text-black opacity-70"}`}
+              >
+                {formatTimestamp(chat.timestamp)}
+              </span>
             </div>
           </button>
         ))
@@ -983,49 +1477,70 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           className="fixed inset-0 z-50"
           onClick={() => {
             setShowNewChatDialog(false);
-            setSearchQuery('');
-            setNewChatMessage('');
+            setSearchQuery("");
+            setNewChatMessage("");
             setSelectedConnections([]);
           }}
         >
           <div
-            className={`fixed bottom-24 right-6 rounded-2xl w-96 max-w-[calc(100vw-3rem)] p-6 ${nightMode ? 'bg-white/5' : ''}`}
+            className={`fixed bottom-24 right-6 rounded-2xl w-96 max-w-[calc(100vw-3rem)] p-6 ${nightMode ? "bg-white/5" : ""}`}
             onClick={(e) => e.stopPropagation()}
             style={{
-              ...nightMode ? {
-                background: 'rgba(255, 255, 255, 0.05)',
-                backdropFilter: 'blur(30px)',
-                WebkitBackdropFilter: 'blur(30px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.1)'
-              } : {
-                background: 'rgba(255, 255, 255, 0.9)',
-                backdropFilter: 'blur(30px)',
-                WebkitBackdropFilter: 'blur(30px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.4)'
-              },
-              animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-              transformOrigin: 'bottom right'
+              ...(nightMode
+                ? {
+                    background: "rgba(255, 255, 255, 0.05)",
+                    backdropFilter: "blur(30px)",
+                    WebkitBackdropFilter: "blur(30px)",
+                    boxShadow:
+                      "0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.1)",
+                  }
+                : {
+                    background: "rgba(255, 255, 255, 0.9)",
+                    backdropFilter: "blur(30px)",
+                    WebkitBackdropFilter: "blur(30px)",
+                    boxShadow:
+                      "0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                  }),
+              animation: "popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              transformOrigin: "bottom right",
             }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-black'}`}>New Message</h2>
+              <h2
+                className={`text-xl font-bold ${nightMode ? "text-slate-100" : "text-black"}`}
+              >
+                New Message
+              </h2>
               <button
                 onClick={() => {
                   setShowNewChatDialog(false);
-                  setSearchQuery('');
-                  setNewChatMessage('');
+                  setSearchQuery("");
+                  setNewChatMessage("");
                   setSelectedConnections([]);
                 }}
-                className={nightMode ? 'p-2 hover:bg-white/10 rounded-lg transition-colors' : 'p-2 hover:bg-white/20 rounded-lg transition-colors'}
+                className={
+                  nightMode
+                    ? "p-2 hover:bg-white/10 rounded-lg transition-colors"
+                    : "p-2 hover:bg-white/20 rounded-lg transition-colors"
+                }
               >
-                <X className={nightMode ? 'w-5 h-5 text-slate-100' : 'w-5 h-5 text-black'} />
+                <X
+                  className={
+                    nightMode ? "w-5 h-5 text-slate-100" : "w-5 h-5 text-black"
+                  }
+                />
               </button>
             </div>
 
             {/* Recipient */}
             <div className="mb-6 relative">
-              <label className={`text-sm font-semibold mb-2 block ${nightMode ? 'text-slate-100' : 'text-black'}`}>
-                To: {selectedConnections.length > 1 && <span className="text-xs opacity-70">(Group Chat)</span>}
+              <label
+                className={`text-sm font-semibold mb-2 block ${nightMode ? "text-slate-100" : "text-black"}`}
+              >
+                To:{" "}
+                {selectedConnections.length > 1 && (
+                  <span className="text-xs opacity-70">(Group Chat)</span>
+                )}
               </label>
 
               {/* Selected Recipients Chips */}
@@ -1034,16 +1549,21 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   {selectedConnections.map((conn) => (
                     <div
                       key={conn.id}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm ${nightMode
-                          ? 'bg-blue-500/20 border border-blue-500/30 text-slate-100'
-                          : 'bg-blue-100 border border-blue-200 text-black'
-                        }`}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-full text-sm ${
+                        nightMode
+                          ? "bg-blue-500/20 border border-blue-500/30 text-slate-100"
+                          : "bg-blue-100 border border-blue-200 text-black"
+                      }`}
                     >
                       <span>{conn.avatar}</span>
-                      <span className="font-medium">{conn.name.split(' ')[0]}</span>
+                      <span className="font-medium">
+                        {conn.name.split(" ")[0]}
+                      </span>
                       <button
                         onClick={() => {
-                          setSelectedConnections(selectedConnections.filter(c => c.id !== conn.id));
+                          setSelectedConnections(
+                            selectedConnections.filter((c) => c.id !== conn.id),
+                          );
                         }}
                         className="ml-1 hover:bg-black/10 rounded-full p-0.5"
                       >
@@ -1067,92 +1587,146 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                   // Delay hiding to allow clicking on suggestions
                   setTimeout(() => setShowSuggestions(false), 200);
                 }}
-                className={nightMode ? 'w-full px-4 py-2.5 bg-white/5 border border-white/10 text-slate-100 placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' : 'w-full px-4 py-2.5 border border-white/25 text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500'}
-                style={nightMode ? {} : {
-                  background: 'rgba(255, 255, 255, 0.3)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)'
-                }}
-                placeholder={selectedConnections.length > 0 ? "Search by name or username..." : "Search by name or username..."}
+                className={
+                  nightMode
+                    ? "w-full px-4 py-2.5 bg-white/5 border border-white/10 text-slate-100 placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    : "w-full px-4 py-2.5 border border-white/25 text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                }
+                style={
+                  nightMode
+                    ? {}
+                    : {
+                        background: "rgba(255, 255, 255, 0.3)",
+                        backdropFilter: "blur(10px)",
+                        WebkitBackdropFilter: "blur(10px)",
+                      }
+                }
+                placeholder={
+                  selectedConnections.length > 0
+                    ? "Search by name or username..."
+                    : "Search by name or username..."
+                }
                 autoComplete="off"
               />
 
               {/* Suggestions Dropdown */}
               {showSuggestions && (searchQuery || connections.length > 0) && (
                 <div
-                  className={`absolute top-full left-0 right-0 mt-3 rounded-lg border max-h-48 overflow-y-auto z-10 ${nightMode ? 'bg-white/5 border-white/10' : 'bg-white border-white/25'}`}
-                  style={nightMode ? {
-                    backdropFilter: 'blur(30px)',
-                    WebkitBackdropFilter: 'blur(30px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                  } : {
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(30px)',
-                    WebkitBackdropFilter: 'blur(30px)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-                  }}
+                  className={`absolute top-full left-0 right-0 mt-3 rounded-lg border max-h-48 overflow-y-auto z-10 ${nightMode ? "bg-white/5 border-white/10" : "bg-white border-white/25"}`}
+                  style={
+                    nightMode
+                      ? {
+                          backdropFilter: "blur(30px)",
+                          WebkitBackdropFilter: "blur(30px)",
+                          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+                        }
+                      : {
+                          background: "rgba(255, 255, 255, 0.95)",
+                          backdropFilter: "blur(30px)",
+                          WebkitBackdropFilter: "blur(30px)",
+                          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+                        }
+                  }
                 >
                   {connections
-                    .filter(conn =>
-                      (!searchQuery || conn.name.toLowerCase().includes(searchQuery.toLowerCase())) &&
-                      !selectedConnections.some(sc => sc.id === conn.id)
+                    .filter(
+                      (conn) =>
+                        (!searchQuery ||
+                          conn.name
+                            .toLowerCase()
+                            .includes(searchQuery.toLowerCase())) &&
+                        !selectedConnections.some((sc) => sc.id === conn.id),
                     )
                     .slice(0, 8)
                     .map((conn) => (
                       <button
                         key={conn.id}
                         onClick={() => {
-                          setSelectedConnections([...selectedConnections, conn]);
-                          setSearchQuery('');
+                          setSelectedConnections([
+                            ...selectedConnections,
+                            conn,
+                          ]);
+                          setSearchQuery("");
                           setShowSuggestions(false);
                         }}
-                        className={`w-full px-4 py-3 flex items-center gap-3 transition-colors border-b last:border-b-0 ${nightMode
-                            ? 'hover:bg-white/10 border-white/5'
-                            : 'hover:bg-white/50 border-white/20'
-                          }`}
+                        className={`w-full px-4 py-3 flex items-center gap-3 transition-colors border-b last:border-b-0 ${
+                          nightMode
+                            ? "hover:bg-white/10 border-white/5"
+                            : "hover:bg-white/50 border-white/20"
+                        }`}
                       >
                         <div className="text-2xl">{conn.avatar}</div>
                         <div className="flex-1 text-left">
-                          <p className={`text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+                          <p
+                            className={`text-sm font-medium ${nightMode ? "text-slate-100" : "text-black"}`}
+                          >
                             {conn.name}
                           </p>
-                          <p className={`text-xs ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
-                            {conn.status === 'online' ? '🟢 Online' : '⚫ Offline'}
+                          <p
+                            className={`text-xs ${nightMode ? "text-slate-100" : "text-black"} opacity-70`}
+                          >
+                            {conn.status === "online"
+                              ? "🟢 Online"
+                              : "⚫ Offline"}
                           </p>
                         </div>
                       </button>
                     ))}
 
                   {loadingConnections ? (
-                    <div className={`px-4 py-6 text-center text-sm ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
+                    <div
+                      className={`px-4 py-6 text-center text-sm ${nightMode ? "text-slate-100" : "text-black"} opacity-70`}
+                    >
                       Loading friends...
                     </div>
-                  ) : connections.filter(conn =>
-                    (!searchQuery || conn.name.toLowerCase().includes(searchQuery.toLowerCase())) &&
-                    !selectedConnections.some(sc => sc.id === conn.id)
-                  ).length === 0 && (
-                      <div className={`px-4 py-6 text-center text-sm ${nightMode ? 'text-slate-100' : 'text-black'} opacity-70`}>
-                        {connections.length === 0 ? 'No friends yet — add friends first!' : selectedConnections.length > 0 ? 'All matching friends already added' : 'No matching friends found'}
+                  ) : (
+                    connections.filter(
+                      (conn) =>
+                        (!searchQuery ||
+                          conn.name
+                            .toLowerCase()
+                            .includes(searchQuery.toLowerCase())) &&
+                        !selectedConnections.some((sc) => sc.id === conn.id),
+                    ).length === 0 && (
+                      <div
+                        className={`px-4 py-6 text-center text-sm ${nightMode ? "text-slate-100" : "text-black"} opacity-70`}
+                      >
+                        {connections.length === 0
+                          ? "No friends yet — add friends first!"
+                          : selectedConnections.length > 0
+                            ? "All matching friends already added"
+                            : "No matching friends found"}
                       </div>
-                    )}
+                    )
+                  )}
                 </div>
               )}
             </div>
 
             {/* Message */}
             <div className="mb-6">
-              <label className={`text-sm font-semibold mb-2 block ${nightMode ? 'text-slate-100' : 'text-black'}`}>
+              <label
+                className={`text-sm font-semibold mb-2 block ${nightMode ? "text-slate-100" : "text-black"}`}
+              >
                 Message:
               </label>
               <textarea
                 value={newChatMessage}
                 onChange={(e) => setNewChatMessage(e.target.value)}
-                className={nightMode ? 'w-full px-4 py-3 bg-white/5 border border-white/10 text-slate-100 placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none' : 'w-full px-4 py-3 border border-white/25 text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none'}
-                style={nightMode ? {} : {
-                  background: 'rgba(255, 255, 255, 0.3)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)'
-                }}
+                className={
+                  nightMode
+                    ? "w-full px-4 py-3 bg-white/5 border border-white/10 text-slate-100 placeholder-[#818384] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    : "w-full px-4 py-3 border border-white/25 text-black placeholder-black/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                }
+                style={
+                  nightMode
+                    ? {}
+                    : {
+                        background: "rgba(255, 255, 255, 0.3)",
+                        backdropFilter: "blur(10px)",
+                        WebkitBackdropFilter: "blur(10px)",
+                      }
+                }
                 placeholder="Type your message..."
                 rows={4}
               />
@@ -1164,7 +1738,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                 if (selectedConnections.length > 0 && newChatMessage.trim()) {
                   if (selectedConnections.length > 1) {
                     // Create group chat
-                    const groupName = selectedConnections.map(c => c.name.split(' ')[0]).join(', ');
+                    const groupName = selectedConnections
+                      .map((c) => c.name.split(" ")[0])
+                      .join(", ");
 
                     try {
                       if (profile?.supabaseId) {
@@ -1172,44 +1748,68 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         const groupData = {
                           name: `Chat with ${groupName}`,
                           description: `Group chat created on ${new Date().toLocaleDateString()}`,
-                          memberIds: selectedConnections.map(c => String(c.id)),
-                          isPrivate: true
+                          memberIds: selectedConnections.map((c) =>
+                            String(c.id),
+                          ),
+                          isPrivate: true,
                         };
                         // @ts-ignore - createGroup type includes memberIds field
-                        const newGroup = await createGroup(profile.supabaseId, groupData);
+                        const newGroup = await createGroup(
+                          profile.supabaseId,
+                          groupData,
+                        );
 
                         // Send the initial message to the group
                         if (newGroup && (newGroup as any).id) {
-                          await sendGroupMessage((newGroup as any).id, profile.supabaseId, newChatMessage.trim());
-                          showSuccess('Group chat created!');
+                          await sendGroupMessage(
+                            (newGroup as any).id,
+                            profile.supabaseId,
+                            newChatMessage.trim(),
+                          );
+                          showSuccess("Group chat created!");
                         }
                       }
                     } catch (error) {
-                      console.error('Error creating group:', error);
-                      showError('Failed to create group chat');
+                      console.error("Error creating group:", error);
+                      showError("Failed to create group chat");
                     }
                   } else {
                     // Send direct message
                     try {
                       if (profile?.supabaseId) {
                         // Check if user can send message (message privacy filter)
-                        const { allowed, reason } = await canSendMessage(String(selectedConnections[0].id), profile.supabaseId);
+                        const { allowed, reason } = await canSendMessage(
+                          String(selectedConnections[0].id),
+                          profile.supabaseId,
+                        );
                         if (!allowed) {
-                          showError(reason || 'Unable to send message');
+                          showError(reason || "Unable to send message");
                           return;
                         }
 
-                        const result = await sendMessage(profile.supabaseId, String(selectedConnections[0].id), newChatMessage.trim());
+                        const result = await sendMessage(
+                          profile.supabaseId,
+                          String(selectedConnections[0].id),
+                          newChatMessage.trim(),
+                        );
                         if (result.error) {
                           throw new Error(result.error);
                         }
-                        showSuccess('Message sent!');
+                        showSuccess("Message sent!");
                         // Reload conversations to show new conversation
-                        const userConversations = await getUserConversations(profile.supabaseId);
+                        const userConversations = await getUserConversations(
+                          profile.supabaseId,
+                        );
                         const unblockedConversations = [];
                         for (const convo of userConversations) {
-                          const blocked = await isUserBlocked(profile.supabaseId, convo.userId);
-                          const blockedBy = await isBlockedBy(profile.supabaseId, convo.userId);
+                          const blocked = await isUserBlocked(
+                            profile.supabaseId,
+                            convo.userId,
+                          );
+                          const blockedBy = await isBlockedBy(
+                            profile.supabaseId,
+                            convo.userId,
+                          );
                           if (!blocked && !blockedBy) {
                             unblockedConversations.push(convo);
                           }
@@ -1217,48 +1817,56 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
                         setConversations(unblockedConversations);
                       }
                     } catch (error: any) {
-                      console.error('Error sending message:', error);
-                      showError(error?.message || 'Failed to send message');
+                      console.error("Error sending message:", error);
+                      showError(error?.message || "Failed to send message");
                     }
                   }
                   setShowNewChatDialog(false);
-                  setSearchQuery('');
-                  setNewChatMessage('');
+                  setSearchQuery("");
+                  setNewChatMessage("");
                   setSelectedConnections([]);
                 }
               }}
-              disabled={selectedConnections.length === 0 || !newChatMessage.trim()}
-              className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-100 ${nightMode ? 'border-white/20' : 'border-white/30'}`}
+              disabled={
+                selectedConnections.length === 0 || !newChatMessage.trim()
+              }
+              className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-100 ${nightMode ? "border-white/20" : "border-white/30"}`}
               style={{
-                background: (selectedConnections.length > 0 && newChatMessage.trim())
-                  ? 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)'
-                  : 'rgba(79, 150, 255, 0.5)',
-                boxShadow: (selectedConnections.length > 0 && newChatMessage.trim())
-                  ? nightMode
-                    ? '0 4px 12px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                    : '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-                  : 'none'
+                background:
+                  selectedConnections.length > 0 && newChatMessage.trim()
+                    ? "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)"
+                    : "rgba(79, 150, 255, 0.5)",
+                boxShadow:
+                  selectedConnections.length > 0 && newChatMessage.trim()
+                    ? nightMode
+                      ? "0 4px 12px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
+                      : "0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)"
+                    : "none",
               }}
               onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
                 if (selectedConnections.length > 0 && newChatMessage.trim()) {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #5BA3FF 0%, #4F96FF 50%, #3b82f6 100%)';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.background =
+                    "linear-gradient(135deg, #5BA3FF 0%, #4F96FF 50%, #3b82f6 100%)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
                   e.currentTarget.style.boxShadow = nightMode
-                    ? '0 6px 16px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-                    : '0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
+                    ? "0 6px 16px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)"
+                    : "0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)";
                 }
               }}
               onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
                 if (selectedConnections.length > 0 && newChatMessage.trim()) {
-                  e.currentTarget.style.background = 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)';
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.background =
+                    "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)";
+                  e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow = nightMode
-                    ? '0 4px 12px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                    : '0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
+                    ? "0 4px 12px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
+                    : "0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)";
                 }
               }}
             >
-              {selectedConnections.length > 1 ? 'Create Group Chat' : 'Send Message'}
+              {selectedConnections.length > 1
+                ? "Create Group Chat"
+                : "Send Message"}
             </button>
           </div>
         </div>
@@ -1270,20 +1878,21 @@ const MessagesTab: React.FC<MessagesTabProps> = ({ nightMode, onConversationsCou
           onClick={() => setShowNewChatDialog(true)}
           className="fixed bottom-20 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 z-40 text-white"
           style={{
-            background: 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+            background:
+              "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)",
             boxShadow: nightMode
-              ? '0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-              : '0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+              ? "0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
+              : "0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
           }}
           onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.currentTarget.style.boxShadow = nightMode
-              ? '0 8px 24px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-              : '0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
+              ? "0 8px 24px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)"
+              : "0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)";
           }}
           onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.currentTarget.style.boxShadow = nightMode
-              ? '0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-              : '0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)';
+              ? "0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
+              : "0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)";
           }}
           title="New Message"
           aria-label="New Message"
