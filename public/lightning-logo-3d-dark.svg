@@ -1,0 +1,101 @@
+<svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 3D Lightning Bolt Gradient (front face) -->
+    <linearGradient id="boltFrontD" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="40%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+
+    <!-- 3D Lightning Bolt Side Gradient (depth face) -->
+    <linearGradient id="boltSideD" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#6D28D9"/>
+    </linearGradient>
+
+    <!-- Highlight gradient for top bevel -->
+    <linearGradient id="boltHighlightD" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Text gradient -->
+    <linearGradient id="textGradD" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="50%" stop-color="#818CF8"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+
+    <!-- Outer glow filter for dark mode -->
+    <filter id="outerGlowD" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="16" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Drop shadow for 3D depth -->
+    <filter id="dropShadowD" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="3" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+
+    <!-- Text glow -->
+    <filter id="textGlowD" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#6366F1" flood-opacity="0.4"/>
+    </filter>
+
+    <!-- Radial glow behind bolt -->
+    <radialGradient id="bgGlowD" cx="28%" cy="50%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.12"/>
+      <stop offset="50%" stop-color="#3B82F6" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Dark background -->
+  <rect width="800" height="400" fill="#0a0a0a"/>
+
+  <!-- Subtle radial glow -->
+  <rect width="800" height="400" fill="url(#bgGlowD)"/>
+
+  <!-- === 3D LIGHTNING BOLT === -->
+  <g transform="translate(155, 68)" filter="url(#dropShadowD)">
+    <!-- Back/depth face -->
+    <path d="M52 8L12 152h68L72 260 168 108H100L132 8z"
+          fill="url(#boltSideD)" transform="translate(5, 6)"/>
+
+    <!-- Front face -->
+    <path d="M52 8L12 152h68L72 260 168 108H100L132 8z"
+          fill="url(#boltFrontD)"/>
+
+    <!-- Highlight/bevel -->
+    <path d="M52 8L12 152h68L72 260 168 108H100L132 8z"
+          fill="url(#boltHighlightD)" opacity="0.35"/>
+
+    <!-- Edge highlight -->
+    <path d="M52 8L12 152h68"
+          fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linejoin="round"/>
+  </g>
+
+  <!-- === LIGHTNING TEXT === -->
+  <g filter="url(#textGlowD)">
+    <text x="340" y="230"
+          font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif"
+          font-size="96"
+          font-weight="700"
+          letter-spacing="-2"
+          fill="url(#textGradD)">Lightning</text>
+  </g>
+
+  <!-- Tagline -->
+  <text x="345" y="268"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif"
+        font-size="20"
+        font-weight="500"
+        letter-spacing="4"
+        fill="#64748B"
+        opacity="0.7">FAITH  COMMUNITY  CONNECTION</text>
+</svg>
