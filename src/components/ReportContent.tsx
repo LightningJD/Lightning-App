@@ -292,9 +292,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
                 className={`w-full px-4 py-3 rounded-lg border transition-colors resize-none bg-white/5 border-white/10 text-slate-100 placeholder-slate-500 focus:border-blue-500 
                 focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
               />
-              <p
-                className={`text-xs mt-1 ${nightMode ? "text-slate-500" : "text-slate-500"}`}
-              >
+              <p className={`text-xs mt-1 text-slate-500`}>
                 {details.length}/500 characters
               </p>
             </div>
