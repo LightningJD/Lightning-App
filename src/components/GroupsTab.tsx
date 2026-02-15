@@ -446,6 +446,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
               <div>
                 <label
                   id="description"
+                  htmlFor="description"
                   className={
                     nightMode
                       ? "block text-sm font-semibold text-slate-100 mb-2"
