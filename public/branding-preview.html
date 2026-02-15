@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lightning Branding Preview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f4f8; }
+
+    .header {
+      background: linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%);
+      color: white; text-align: center; padding: 40px 20px;
+    }
+    .header h1 { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+    .header p { font-size: 16px; opacity: 0.85; }
+
+    .section { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+    .section h2 { font-size: 24px; font-weight: 700; color: #1E293B; margin-bottom: 20px; border-bottom: 3px solid #3B82F6; padding-bottom: 8px; display: inline-block; }
+
+    .logo-card { background: white; border-radius: 16px; padding: 30px; margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(30,58,95,0.1); }
+    .logo-card h3 { font-size: 16px; color: #64748B; margin-bottom: 16px; font-weight: 600; }
+
+    .logo-row { display: flex; gap: 24px; flex-wrap: wrap; }
+
+    /* Color palette */
+    .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .swatch { border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .swatch-color { height: 80px; }
+    .swatch-info { padding: 10px; background: white; }
+    .swatch-name { font-size: 12px; font-weight: 600; color: #1E293B; }
+    .swatch-hex { font-size: 11px; color: #64748B; font-family: monospace; }
+
+    /* Gradient cards */
+    .gradient-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .gradient-card { height: 100px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+    /* Message examples */
+    .message-row { display: flex; flex-direction: column; gap: 12px; max-width: 400px; }
+    .msg { padding: 12px 16px; border-radius: 18px; font-size: 14px; max-width: 280px; line-height: 1.4; }
+    .msg-sent { background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+    .msg-received { background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%); color: #1E293B; align-self: flex-start; border-bottom-left-radius: 4px; }
+
+    /* Badge examples */
+    .badge-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px;
+      padding: 0 6px; border-radius: 999px; color: white; font-size: 12px; font-weight: 700; }
+    .badge-default { background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%); box-shadow: 0 2px 8px rgba(59,130,246,0.4); }
+    .badge-urgent { background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); box-shadow: 0 2px 8px rgba(239,68,68,0.4); }
+    .badge-muted { background: linear-gradient(135deg, #94A3B8 0%, #64748B 100%); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px rgba(0,0,0,0.1); }
+    .dot-default { background: linear-gradient(135deg, #3B82F6, #6366F1); }
+    .dot-online { background: #22C55E; }
+
+    .label { font-size: 12px; color: #94A3B8; margin-top: 4px; }
+
+    @media (max-width: 600px) {
+      .gradient-row { grid-template-columns: 1fr; }
+      .palette-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Lightning Branding Guide</h1>
+    <p>3D Logo, Color Palette, and Graphics Components</p>
+  </div>
+
+  <!-- ===== LOGOS ===== -->
+  <div class="section">
+    <h2>3D Logos</h2>
+
+    <div class="logo-card">
+      <h3>Full Logo — Day Mode (on #E8F3FE background)</h3>
+      <svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="boltFront" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#60A5FA"/><stop offset="40%" stop-color="#818CF8"/><stop offset="100%" stop-color="#A78BFA"/>
+          </linearGradient>
+          <linearGradient id="boltSide" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#6D28D9"/>
+          </linearGradient>
+          <linearGradient id="boltHighlight" x1="50%" y1="0%" x2="50%" y2="100%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.6"/><stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#3B82F6"/><stop offset="50%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/>
+          </linearGradient>
+          <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="3" dy="6" stdDeviation="4" flood-color="#1E3A5F" flood-opacity="0.35"/>
+          </filter>
+          <filter id="textShadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#1E3A5F" flood-opacity="0.25"/>
+          </filter>
+          <radialGradient id="bgGlow" cx="28%" cy="50%">
+            <stop offset="0%" stop-color="#93C5FD" stop-opacity="0.15"/><stop offset="60%" stop-color="#818CF8" stop-opacity="0.05"/><stop offset="100%" stop-color="#E8F3FE" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="800" height="400" fill="#E8F3FE" rx="12"/>
+        <rect width="800" height="400" fill="url(#bgGlow)" rx="12"/>
+        <g transform="translate(155, 68)" filter="url(#dropShadow)">
+          <path d="M52 8L12 152h68L72 260 168 108H100L132 8z" fill="url(#boltSide)" transform="translate(5, 6)"/>
+          <path d="M52 8L12 152h68L72 260 168 108H100L132 8z" fill="url(#boltFront)"/>
+          <path d="M52 8L12 152h68L72 260 168 108H100L132 8z" fill="url(#boltHighlight)" opacity="0.4"/>
+          <path d="M52 8L12 152h68" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M80 152L72 260 168 108H100" fill="none" stroke="rgba(30,58,95,0.15)" stroke-width="1.5" stroke-linejoin="round"/>
+        </g>
+        <g filter="url(#textShadow)">
+          <text x="340" y="230" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="96" font-weight="700" letter-spacing="-2" fill="url(#textGrad)">Lightning</text>
+        </g>
+        <text x="345" y="268" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="500" letter-spacing="4" fill="#6B7280" opacity="0.8">FAITH  COMMUNITY  CONNECTION</text>
+      </svg>
+    </div>
+
+    <div class="logo-card" style="background: #0a0a0a;">
+      <h3 style="color: #94A3B8;">Full Logo — Dark Mode (on #0a0a0a background)</h3>
+      <svg width="800" height="400" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="boltFrontD" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#60A5FA"/><stop offset="40%" stop-color="#818CF8"/><stop offset="100%" stop-color="#A78BFA"/>
+          </linearGradient>
+          <linearGradient id="boltSideD" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#6D28D9"/>
+          </linearGradient>
+          <linearGradient id="boltHighlightD" x1="50%" y1="0%" x2="50%" y2="100%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.5"/><stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="textGradD2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#60A5FA"/><stop offset="50%" stop-color="#818CF8"/><stop offset="100%" stop-color="#A78BFA"/>
+          </linearGradient>
+          <filter id="dropShadowD" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="3" dy="6" stdDeviation="5" flood-color="#000" flood-opacity="0.5"/>
+          </filter>
+          <filter id="textGlowD" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#6366F1" flood-opacity="0.4"/>
+          </filter>
+          <radialGradient id="bgGlowD" cx="28%" cy="50%">
+            <stop offset="0%" stop-color="#6366F1" stop-opacity="0.12"/><stop offset="50%" stop-color="#3B82F6" stop-opacity="0.04"/><stop offset="100%" stop-color="#0a0a0a" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="800" height="400" fill="#0a0a0a" rx="12"/>
+        <rect width="800" height="400" fill="url(#bgGlowD)" rx="12"/>
+        <g transform="translate(155, 68)" filter="url(#dropShadowD)">
+          <path d="M52 8L12 152h68L72 260 168 108H100L132 8z" fill="url(#boltSideD)" transform="translate(5, 6)"/>
+          <path d="M52 8L12 152h68L72 260 168 108H100L132 8z" fill="url(#boltFrontD)"/>
+          <path d="M52 8L12 152h68L72 260 168 108H100L132 8z" fill="url(#boltHighlightD)" opacity="0.35"/>
+          <path d="M52 8L12 152h68" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-linejoin="round"/>
+        </g>
+        <g filter="url(#textGlowD)">
+          <text x="340" y="230" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="96" font-weight="700" letter-spacing="-2" fill="url(#textGradD2)">Lightning</text>
+        </g>
+        <text x="345" y="268" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="500" letter-spacing="4" fill="#64748B" opacity="0.7">FAITH  COMMUNITY  CONNECTION</text>
+      </svg>
+    </div>
+
+    <div class="logo-card">
+      <h3>App Icon / Favicon (3D bolt on gradient circle)</h3>
+      <div class="logo-row">
+        <div style="text-align:center;">
+          <svg width="128" height="128" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="cBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3B82F6"/><stop offset="50%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/>
+              </linearGradient>
+              <linearGradient id="cHl" x1="30%" y1="0%" x2="70%" y2="100%">
+                <stop offset="0%" stop-color="#FFF" stop-opacity="0.3"/><stop offset="100%" stop-color="#FFF" stop-opacity="0"/>
+              </linearGradient>
+              <linearGradient id="bG" x1="40%" y1="0%" x2="60%" y2="100%">
+                <stop offset="0%" stop-color="#FFF"/><stop offset="100%" stop-color="#DBEAFE"/>
+              </linearGradient>
+              <linearGradient id="bD" x1="40%" y1="0%" x2="60%" y2="100%">
+                <stop offset="0%" stop-color="#93C5FD"/><stop offset="100%" stop-color="#818CF8"/>
+              </linearGradient>
+              <filter id="cSh" x="-15%" y="-10%" width="130%" height="135%">
+                <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#1E3A5F" flood-opacity="0.3"/>
+              </filter>
+              <filter id="bGl" x="-30%" y="-30%" width="160%" height="160%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="glow"/>
+                <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <g filter="url(#cSh)">
+              <circle cx="256" cy="248" r="220" fill="url(#cBg)"/>
+              <circle cx="256" cy="248" r="220" fill="url(#cHl)"/>
+              <circle cx="256" cy="248" r="218" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+            </g>
+            <g transform="translate(256, 248)" filter="url(#bGl)">
+              <path d="M-12 -120L-52 20h50L-20 140 60 -10H12L30 -120z" fill="url(#bD)" transform="translate(3,4)" opacity="0.5"/>
+              <path d="M-12 -120L-52 20h50L-20 140 60 -10H12L30 -120z" fill="url(#bG)"/>
+              <path d="M-12 -120L-52 20h50" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+            </g>
+          </svg>
+          <div class="label">128px</div>
+        </div>
+        <div style="text-align:center;">
+          <svg width="64" height="64" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="cBg2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3B82F6"/><stop offset="50%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/>
+              </linearGradient>
+              <linearGradient id="cHl2" x1="30%" y1="0%" x2="70%" y2="100%">
+                <stop offset="0%" stop-color="#FFF" stop-opacity="0.3"/><stop offset="100%" stop-color="#FFF" stop-opacity="0"/>
+              </linearGradient>
+              <linearGradient id="bG2" x1="40%" y1="0%" x2="60%" y2="100%">
+                <stop offset="0%" stop-color="#FFF"/><stop offset="100%" stop-color="#DBEAFE"/>
+              </linearGradient>
+            </defs>
+            <circle cx="256" cy="256" r="240" fill="url(#cBg2)"/>
+            <circle cx="256" cy="256" r="240" fill="url(#cHl2)"/>
+            <g transform="translate(256, 250)">
+              <path d="M-12 -120L-52 20h50L-20 140 60 -10H12L30 -120z" fill="url(#bG2)"/>
+            </g>
+          </svg>
+          <div class="label">64px</div>
+        </div>
+        <div style="text-align:center;">
+          <svg width="32" height="32" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="cBg3" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3B82F6"/><stop offset="50%" stop-color="#6366F1"/><stop offset="100%" stop-color="#8B5CF6"/>
+              </linearGradient>
+              <linearGradient id="bG3" x1="40%" y1="0%" x2="60%" y2="100%">
+                <stop offset="0%" stop-color="#FFF"/><stop offset="100%" stop-color="#DBEAFE"/>
+              </linearGradient>
+            </defs>
+            <circle cx="256" cy="256" r="240" fill="url(#cBg3)"/>
+            <g transform="translate(256, 250)">
+              <path d="M-12 -120L-52 20h50L-20 140 60 -10H12L30 -120z" fill="url(#bG3)"/>
+            </g>
+          </svg>
+          <div class="label">32px (favicon)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== COLOR PALETTE ===== -->
+  <div class="section">
+    <h2>Color Palette</h2>
+
+    <div class="logo-card">
+      <h3>Core Brand Colors</h3>
+      <div class="palette-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#3B82F6"></div><div class="swatch-info"><div class="swatch-name">Primary</div><div class="swatch-hex">#3B82F6</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#2563EB"></div><div class="swatch-info"><div class="swatch-name">Primary Dark</div><div class="swatch-hex">#2563EB</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#93C5FD"></div><div class="swatch-info"><div class="swatch-name">Primary Light</div><div class="swatch-hex">#93C5FD</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#DBEAFE"></div><div class="swatch-info"><div class="swatch-name">Primary UltraLight</div><div class="swatch-hex">#DBEAFE</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#8B5CF6"></div><div class="swatch-info"><div class="swatch-name">Accent</div><div class="swatch-hex">#8B5CF6</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#6D28D9"></div><div class="swatch-info"><div class="swatch-name">Accent Dark</div><div class="swatch-hex">#6D28D9</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#C4B5FD"></div><div class="swatch-info"><div class="swatch-name">Accent Light</div><div class="swatch-hex">#C4B5FD</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#EDE9FE"></div><div class="swatch-info"><div class="swatch-name">Accent UltraLight</div><div class="swatch-hex">#EDE9FE</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#6366F1"></div><div class="swatch-info"><div class="swatch-name">Indigo</div><div class="swatch-hex">#6366F1</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#A5B4FC"></div><div class="swatch-info"><div class="swatch-name">Indigo Light</div><div class="swatch-hex">#A5B4FC</div></div></div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <h3>Backgrounds</h3>
+      <div class="palette-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#E8F3FE"></div><div class="swatch-info"><div class="swatch-name">Day Mode</div><div class="swatch-hex">#E8F3FE</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#FFFFFF; border: 1px solid #E2E8F0"></div><div class="swatch-info"><div class="swatch-name">Day Surface</div><div class="swatch-hex">#FFFFFF</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#F8FAFF"></div><div class="swatch-info"><div class="swatch-name">Day Elevated</div><div class="swatch-hex">#F8FAFF</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#0a0a0a"></div><div class="swatch-info"><div class="swatch-name">Night Mode</div><div class="swatch-hex">#0a0a0a</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#1a1a2e"></div><div class="swatch-info"><div class="swatch-name">Night Surface</div><div class="swatch-hex">#1a1a2e</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#222240"></div><div class="swatch-info"><div class="swatch-name">Night Elevated</div><div class="swatch-hex">#222240</div></div></div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <h3>Semantic Colors</h3>
+      <div class="palette-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#22C55E"></div><div class="swatch-info"><div class="swatch-name">Success</div><div class="swatch-hex">#22C55E</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#BBF7D0"></div><div class="swatch-info"><div class="swatch-name">Success Light</div><div class="swatch-hex">#BBF7D0</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#F59E0B"></div><div class="swatch-info"><div class="swatch-name">Warning</div><div class="swatch-hex">#F59E0B</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#FEF3C7"></div><div class="swatch-info"><div class="swatch-name">Warning Light</div><div class="swatch-hex">#FEF3C7</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#EF4444"></div><div class="swatch-info"><div class="swatch-name">Error</div><div class="swatch-hex">#EF4444</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#FEE2E2"></div><div class="swatch-info"><div class="swatch-name">Error Light</div><div class="swatch-hex">#FEE2E2</div></div></div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <h3>Text Colors</h3>
+      <div class="palette-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#1E293B"></div><div class="swatch-info"><div class="swatch-name">Day Primary</div><div class="swatch-hex">#1E293B</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#64748B"></div><div class="swatch-info"><div class="swatch-name">Day Secondary</div><div class="swatch-hex">#64748B</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#94A3B8"></div><div class="swatch-info"><div class="swatch-name">Day Muted</div><div class="swatch-hex">#94A3B8</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#F1F5F9"></div><div class="swatch-info"><div class="swatch-name">Night Primary</div><div class="swatch-hex">#F1F5F9</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GRADIENTS ===== -->
+  <div class="section">
+    <h2>Gradients</h2>
+
+    <div class="logo-card">
+      <div class="gradient-row">
+        <div class="gradient-card" style="background: linear-gradient(135deg, #3B82F6 0%, #6366F1 50%, #8B5CF6 100%);">Brand Gradient</div>
+        <div class="gradient-card" style="background: linear-gradient(135deg, #DBEAFE 0%, #EDE9FE 100%); color: #6366F1;">Brand Soft</div>
+      </div>
+      <div class="gradient-row">
+        <div class="gradient-card" style="background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);">Bold Gradient</div>
+        <div class="gradient-card" style="background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);">Message Sent</div>
+      </div>
+      <div class="gradient-row">
+        <div class="gradient-card" style="background: linear-gradient(135deg, rgba(219,234,254,0.63) 0%, transparent 100%), radial-gradient(circle at 50% 50%, rgba(139,92,246,0.175) 0%, transparent 60%), linear-gradient(45deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%); color: #6366F1;">Day Background</div>
+        <div class="gradient-card" style="background: linear-gradient(135deg, rgba(17,24,39,0.42) 0%, transparent 100%), radial-gradient(circle at 50% 50%, rgba(139,92,246,0.035) 0%, transparent 60%), linear-gradient(45deg, #0a0a0a 0%, #15121c 50%, #191e27 100%);">Night Background</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GRAPHICS COMPONENTS ===== -->
+  <div class="section">
+    <h2>Graphics &amp; Components</h2>
+
+    <div class="logo-card">
+      <h3>Message Bubbles</h3>
+      <div style="background: #E8F3FE; border-radius: 12px; padding: 24px; margin-bottom: 16px;">
+        <div class="message-row">
+          <div class="msg msg-received">Hey! Did you see the testimony that was shared today?</div>
+          <div class="msg msg-sent">Yes! It was so powerful. God is good!</div>
+          <div class="msg msg-received">Amen! Praying for more of those moments.</div>
+          <div class="msg msg-sent">Same here. This community is a blessing.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <h3>Notification Badges</h3>
+      <div class="badge-row" style="margin-bottom: 16px;">
+        <div style="text-align:center;"><span class="badge badge-default">3</span><div class="label">Default</div></div>
+        <div style="text-align:center;"><span class="badge badge-default">12</span><div class="label">Medium</div></div>
+        <div style="text-align:center;"><span class="badge badge-default">99+</span><div class="label">Max</div></div>
+        <div style="text-align:center;"><span class="badge badge-urgent">5</span><div class="label">Urgent</div></div>
+        <div style="text-align:center;"><span class="badge badge-muted">2</span><div class="label">Muted</div></div>
+        <div style="text-align:center;"><div class="dot dot-default"></div><div class="label">Unread dot</div></div>
+        <div style="text-align:center;"><div class="dot dot-online"></div><div class="label">Online</div></div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <h3>Watermark (for empty states)</h3>
+      <div style="background: #E8F3FE; border-radius: 12px; padding: 60px; text-align: center; position: relative;">
+        <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.06;">
+          <defs><linearGradient id="wmGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3B82F6"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs>
+          <g transform="translate(100, 100)"><path d="M-8 -85L-38 15h38L-14 100 44 -8H8L22 -85z" fill="url(#wmGrad)"/></g>
+        </svg>
+        <div style="color: #94A3B8; font-size: 14px; margin-top: 8px;">No messages yet. Start a conversation!</div>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <h3>Button Styles</h3>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+        <button style="background: linear-gradient(135deg, #3B82F6, #6366F1, #8B5CF6); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">Primary Action</button>
+        <button style="background: linear-gradient(135deg, #2563EB, #7C3AED); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 4px 12px rgba(99,102,241,0.3);">Bold CTA</button>
+        <button style="background: linear-gradient(135deg, #DBEAFE, #EDE9FE); color: #6366F1; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer;">Soft Button</button>
+        <button style="background: transparent; color: #3B82F6; border: 2px solid rgba(59,130,246,0.5); padding: 10px 22px; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer;">Outline</button>
+      </div>
+    </div>
+
+    <div class="logo-card">
+      <h3>Card with Brand Shadow</h3>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div style="background: white; border-radius: 16px; padding: 20px; width: 200px; box-shadow: 0 4px 12px rgba(30,58,95,0.1), 0 2px 4px rgba(30,58,95,0.06);">
+          <div style="font-weight: 700; color: #1E293B; margin-bottom: 4px;">Testimony</div>
+          <div style="font-size: 13px; color: #64748B;">God answered my prayer today...</div>
+        </div>
+        <div style="background: white; border-radius: 16px; padding: 20px; width: 200px; box-shadow: 0 0 20px rgba(59,130,246,0.3), 0 0 40px rgba(99,102,241,0.15);">
+          <div style="font-weight: 700; color: #1E293B; margin-bottom: 4px;">Featured</div>
+          <div style="font-size: 13px; color: #64748B;">With brand glow shadow</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align: center; padding: 40px; color: #94A3B8; font-size: 13px;">
+    Lightning Branding Guide — All colors match day mode background #E8F3FE
+  </div>
+
+</body>
+</html>
