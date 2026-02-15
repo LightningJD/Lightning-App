@@ -515,6 +515,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
                         <label
                           key={u.id}
                           htmlFor={`member-${u.id}`}
+                          aria-labelledby={`member-name-${u.id}`}
                           className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                             checked
                               ? nightMode
