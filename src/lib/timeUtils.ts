@@ -9,12 +9,12 @@
  * @returns Time string like "3:12" or "10:05"
  */
 export const secondsToTimeString = (seconds: number): string => {
-  if (seconds < 0) return '0:00';
+  if (seconds < 0) return "0:00";
 
   const minutes = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
 
-  return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  return `${minutes}:${secs.toString().padStart(2, "0")}`;
 };
 
 /**
@@ -26,16 +26,16 @@ export const timeStringToSeconds = (timeString: string): number | null => {
   if (!timeString || !timeString.trim()) return 0;
 
   const trimmed = timeString.trim();
-  const parts = trimmed.split(':');
+  const parts = trimmed.split(":");
 
   // Must have exactly 2 parts (minutes:seconds)
   if (parts.length !== 2) return null;
 
-  const minutes = parseInt(parts[0], 10);
-  const seconds = parseInt(parts[1], 10);
+  const minutes = Number.parseInt(parts[0], 10);
+  const seconds = Number.parseInt(parts[1], 10);
 
   // Validate numbers
-  if (isNaN(minutes) || isNaN(seconds)) return null;
+  if (Number.isNaN(minutes) || Number.isNaN(seconds)) return null;
   if (minutes < 0 || seconds < 0 || seconds >= 60) return null;
 
   return minutes * 60 + seconds;
