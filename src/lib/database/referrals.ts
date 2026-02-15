@@ -696,10 +696,17 @@ export async function recordDeviceFingerprint(userId: string, fingerprint: strin
 // ============================================
 
 /**
- * Accept ambassador terms
+ * Accept ambassador terms and generate referral code
  */
 export async function acceptAmbassadorTerms(userId: string): Promise<boolean> {
   if (!supabase) return false;
+
+  // Get username for referral code generation
+  const { data: user } = await supabase
+    .from('users')
+    .select('username')
+    .eq('id', userId)
+    .single();
 
   const { error } = await supabase
     .from('users')
@@ -710,6 +717,11 @@ export async function acceptAmbassadorTerms(userId: string): Promise<boolean> {
   if (error) {
     console.error('Error accepting ambassador terms:', error);
     return false;
+  }
+
+  // Generate referral code now that they're an ambassador
+  if (user?.username) {
+    await ensureReferralCode(userId, user.username);
   }
 
   return true;

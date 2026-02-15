@@ -6,6 +6,7 @@ import OtherUserProfileDialog from './OtherUserProfileDialog';
 import LeaderboardView from './LeaderboardView';
 import MyReferralSection from './MyReferralSection';
 import BpResetBanner from './BpResetBanner';
+import AmbassadorTermsModal from './AmbassadorTermsModal';
 import { useUserProfile } from './useUserProfile';
 import {
   getFriends,
@@ -23,7 +24,9 @@ import {
   getFriendsOfFriends,
   getPendingFriendRequests,
   acceptFriendRequest,
-  declineFriendRequest
+  declineFriendRequest,
+  acceptAmbassadorTerms,
+  ensureReferralCode
 } from '../lib/database';
 
 interface User {
@@ -77,6 +80,25 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
   const [showRanks, setShowRanks] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
+  const [showAmbassadorInvite, setShowAmbassadorInvite] = useState(false);
+
+  // Check for ambassador invite link (/ambassador)
+  useEffect(() => {
+    if (!profile?.supabaseId || profile?.ambassadorTermsAccepted) return;
+    const invite = localStorage.getItem('lightning_ambassador_invite');
+    if (invite === 'true') {
+      setShowAmbassadorInvite(true);
+    }
+  }, [profile?.supabaseId, profile?.ambassadorTermsAccepted]);
+
+  const handleAcceptAmbassadorInvite = async () => {
+    if (!profile?.supabaseId || !profile?.username) return;
+    await acceptAmbassadorTerms(profile.supabaseId);
+    await ensureReferralCode(profile.supabaseId, profile.username);
+    localStorage.removeItem('lightning_ambassador_invite');
+    setShowAmbassadorInvite(false);
+    window.dispatchEvent(new CustomEvent('profileUpdated'));
+  };
 
   // Collapse leaderboard when switching sub-tabs
   useEffect(() => {
@@ -522,8 +544,8 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
         </div>
       </div>
 
-      {/* Ambassador Card — always visible at top */}
-      {profile?.supabaseId && profile?.username && (
+      {/* Ambassador Card — only visible to active ambassadors */}
+      {profile?.supabaseId && profile?.username && profile?.ambassadorTermsAccepted && (
         <div>
           <MyReferralSection
             nightMode={nightMode}
@@ -604,8 +626,8 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
         </div>
       </div>
 
-      {/* BP Reset Winner Announcement — only on home tab */}
-      {activeDiscoverTab === 'home' && profile?.supabaseId && (
+      {/* BP Reset Winner Announcement — only on home tab, only for ambassadors */}
+      {activeDiscoverTab === 'home' && profile?.supabaseId && profile?.ambassadorTermsAccepted && (
         <BpResetBanner nightMode={nightMode} userId={profile.supabaseId} />
       )}
 
@@ -1171,6 +1193,17 @@ const NearbyTab: React.FC<NearbyTabProps> = ({ sortBy, setSortBy, activeDiscover
           )
         ) : null}
       </div>
+
+      {/* Ambassador Invite Modal — shown when user visits /ambassador link */}
+      <AmbassadorTermsModal
+        nightMode={nightMode}
+        isOpen={showAmbassadorInvite}
+        onClose={() => {
+          setShowAmbassadorInvite(false);
+          localStorage.removeItem('lightning_ambassador_invite');
+        }}
+        onAccept={handleAcceptAmbassadorInvite}
+      />
 
       {/* Other User Profile Dialog */}
       {viewingUser && (

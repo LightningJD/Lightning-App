@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import type { User, NearbyUser } from '../../types';
-import { ensureReferralCode, generateReferralCode } from './referrals';
+import { generateReferralCode } from './referrals';
 
 // ============================================
 // USER OPERATIONS
@@ -83,20 +83,11 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
         .single();
       if (error) {
         console.error('❌ Error updating existing Supabase user:', error);
-        // Ensure referral code exists for existing users (single call)
-        const username = (existing as any).username || clerkUser.username || 'user';
-        await ensureReferralCode(existing.id, username);
         return existing as unknown as User; // Return existing to avoid breaking UI
       }
-      // Ensure referral code exists for existing users (single call)
-      const username = (updated as any)?.username || (existing as any).username || clerkUser.username || 'user';
-      await ensureReferralCode(existing.id, username);
       return updated as unknown as User;
     }
 
-    // No updates needed but ensure referral code exists (single call)
-    const existingUsername = (existing as any).username || clerkUser.username || 'user';
-    await ensureReferralCode(existing.id, existingUsername);
     return existing as unknown as User;
   }
 
@@ -123,10 +114,6 @@ export const syncUserToSupabase = async (clerkUser: ClerkUser): Promise<User | n
     console.error('❌ Error creating Supabase user:', createError);
     return null;
   }
-
-  // Generate referral code for new user
-  const newUsername = (created as any)?.username || clerkUser.username || 'user';
-  await ensureReferralCode(created.id, newUsername);
 
   console.log('✅ Successfully created new user:', created.id);
   return created as unknown as User;
@@ -229,8 +216,8 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
     return null;
   }
 
-  // If username changed, regenerate referral code to match new username
-  if (profileData.username && data) {
+  // If username changed and user is an ambassador, regenerate referral code to match new username
+  if (profileData.username && data && (data as any).ambassador_terms_accepted_at) {
     try {
       const newCode = generateReferralCode(profileData.username);
       await supabase
