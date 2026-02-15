@@ -61,6 +61,9 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label="Close dialog"
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{
         background: "rgba(0, 0, 0, 0.5)",
@@ -69,6 +72,11 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          onClose();
+        }
       }}
     >
       <div
