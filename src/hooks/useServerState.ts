@@ -243,11 +243,18 @@ export function useServerState({
 
   const handleCreateServer = useCallback(async (name: string, description: string, iconEmoji: string) => {
     if (!supabaseId) return;
-    const result = await createServer(supabaseId, { name, description, iconEmoji });
-    if (result) {
-      const refreshed = await getUserServers(supabaseId);
-      setServers(refreshed || []);
-      setActiveServerId(result.id);
+    try {
+      const result = await createServer(supabaseId, { name, description, iconEmoji });
+      if (result) {
+        const refreshed = await getUserServers(supabaseId);
+        setServers(refreshed || []);
+        setActiveServerId(result.id);
+        showSuccess('Server created!');
+      } else {
+        showError('Failed to create server. Please try again.');
+      }
+    } catch (err) {
+      showError('Failed to create server. Please try again.');
     }
   }, [supabaseId]);
 
@@ -572,7 +579,7 @@ export function useServerState({
 
   const handleTimeoutMember = useCallback(async (userId: string, minutes: number) => {
     if (!activeServerId) return;
-    await timeoutMember(activeServerId, userId, minutes);
+    await timeoutMember(activeServerId, userId, supabaseId || '', minutes);
     await addAuditLogEntry(activeServerId, supabaseId || '', 'timeout_member', { userId, minutes });
     // Refresh members
     const refreshedMembers = await getServerMembers(activeServerId);
@@ -582,7 +589,7 @@ export function useServerState({
 
   const handleRemoveTimeout = useCallback(async (userId: string) => {
     if (!activeServerId) return;
-    await removeTimeout(activeServerId, userId);
+    await removeTimeout(activeServerId, userId, supabaseId || '');
     await addAuditLogEntry(activeServerId, supabaseId || '', 'remove_timeout', { userId });
     showSuccess('Timeout removed');
   }, [activeServerId, supabaseId]);
@@ -604,7 +611,7 @@ export function useServerState({
   // Load notification overrides
   useEffect(() => {
     if (!supabaseId || !activeServerId) return;
-    getUserNotificationOverrides(supabaseId).then(overrides => {
+    getUserNotificationOverrides(activeServerId, supabaseId).then(overrides => {
       setChannelNotificationOverrides(overrides || {});
     }).catch(() => {});
   }, [supabaseId, activeServerId]);
