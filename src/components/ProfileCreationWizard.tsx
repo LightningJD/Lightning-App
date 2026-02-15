@@ -1,7 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Sparkles, ArrowRight, ArrowLeft, Check, Navigation, Church, Plus, KeyRound, Gift } from 'lucide-react';
-import { useGeolocation } from '../hooks/useGeolocation';
-import { createChurch, joinChurchByCode, resolveReferralCode } from '../lib/database';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  MapPin,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  Navigation,
+  Church,
+  Plus,
+  KeyRound,
+  Gift,
+} from "lucide-react";
+import { useGeolocation } from "../hooks/useGeolocation";
+import {
+  createChurch,
+  joinChurchByCode,
+  resolveReferralCode,
+} from "../lib/database";
 
 interface FormData {
   displayName: string;
@@ -17,59 +32,70 @@ interface ProfileCreationWizardProps {
   onSkip?: () => void;
 }
 
-const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode, onComplete, onSkip }) => {
+const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
+  nightMode,
+  onComplete,
+  onSkip,
+}) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({
-    displayName: '',
-    username: '', // auto-generated from Clerk, not shown to user
-    bio: '', // user can add later in settings
-    location: '',
-    avatar: '👤' // default, user can change later
+    displayName: "",
+    username: "", // auto-generated from Clerk, not shown to user
+    bio: "", // user can add later in settings
+    location: "",
+    avatar: "👤", // default, user can change later
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [detectedCoords, setDetectedCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [detectedCoords, setDetectedCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const { detect, isDetecting, error: geoError } = useGeolocation();
 
   // Referral code state
   const [referralCode, setReferralCode] = useState(() => {
-    return localStorage.getItem('lightning_referral_code') || '';
+    return localStorage.getItem("lightning_referral_code") || "";
   });
-  const [referralValidated, setReferralValidated] = useState<{ username: string } | null>(null);
-  const [referralError, setReferralError] = useState('');
+  const [referralValidated, setReferralValidated] = useState<{
+    username: string;
+  } | null>(null);
+  const [referralError, setReferralError] = useState("");
   const [isValidatingReferral, setIsValidatingReferral] = useState(false);
 
   // Church step state
-  const [churchMode, setChurchMode] = useState<'choose' | 'join' | 'create'>('choose');
-  const [churchInviteCode, setChurchInviteCode] = useState('');
-  const [churchName, setChurchName] = useState('');
-  const [churchDenomination, setChurchDenomination] = useState('');
+  const [churchMode, setChurchMode] = useState<"choose" | "join" | "create">(
+    "choose",
+  );
+  const [churchInviteCode, setChurchInviteCode] = useState("");
+  const [churchName, setChurchName] = useState("");
+  const [churchDenomination, setChurchDenomination] = useState("");
   const [churchResult, setChurchResult] = useState<any>(null);
   const [isJoiningChurch, setIsJoiningChurch] = useState(false);
-  const [churchError, setChurchError] = useState('');
+  const [churchError, setChurchError] = useState("");
 
   const steps = [
     {
       id: 0,
-      title: 'Welcome to Lightning',
+      title: "Welcome to Lightning",
       subtitle: "Let's create your profile",
       icon: Sparkles,
-      fields: ['displayName', 'location']
+      fields: ["displayName", "location"],
     },
     {
       id: 1,
-      title: 'Join Your Church',
-      subtitle: 'Connect with your faith community',
+      title: "Join Your Church",
+      subtitle: "Connect with your faith community",
       icon: Church,
-      fields: [] // No required fields — can skip
+      fields: [], // No required fields — can skip
     },
     {
       id: 2,
-      title: 'Review Your Profile',
-      subtitle: 'Make sure everything looks good',
+      title: "Review Your Profile",
+      subtitle: "Make sure everything looks good",
       icon: Check,
-      fields: []
-    }
+      fields: [],
+    },
   ];
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
@@ -85,7 +111,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
         if (referrer) {
           setReferralValidated({ username: referrer.username });
         } else {
-          setReferralError('Invalid referral code');
+          setReferralError("Invalid referral code");
         }
         setIsValidatingReferral(false);
       })();
@@ -103,12 +129,12 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
     const newErrors: Record<string, string> = {};
     const step = steps[stepIndex];
 
-    step.fields.forEach(field => {
-      if (field === 'displayName' && !formData.displayName.trim()) {
-        newErrors.displayName = 'Name is required';
+    step.fields.forEach((field) => {
+      if (field === "displayName" && !formData.displayName.trim()) {
+        newErrors.displayName = "Name is required";
       }
-      if (field === 'location' && !formData.location.trim()) {
-        newErrors.location = 'Location is required';
+      if (field === "location" && !formData.location.trim()) {
+        newErrors.location = "Location is required";
       }
     });
 
@@ -125,10 +151,10 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
         setIsValidatingReferral(false);
         if (referrer) {
           setReferralValidated({ username: referrer.username });
-          setReferralError('');
+          setReferralError("");
         } else {
           setReferralValidated(null);
-          setReferralError('Invalid referral code');
+          setReferralError("Invalid referral code");
           return; // Don't advance — show error
         }
       }
@@ -148,11 +174,17 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await onComplete({ ...formData, _coords: detectedCoords, _churchId: churchResult?.id, _pendingChurch: churchResult?._pendingCreate ? churchResult : undefined, _referralCode: referralValidated ? referralCode : undefined } as any);
+      await onComplete({
+        ...formData,
+        _coords: detectedCoords,
+        _churchId: churchResult?.id,
+        _pendingChurch: churchResult?._pendingCreate ? churchResult : undefined,
+        _referralCode: referralValidated ? referralCode : undefined,
+      } as any);
       // Don't reset isSubmitting on success — parent will unmount this component
     } catch (error) {
-      console.error('Error creating profile:', error);
-      setErrors({ submit: 'Failed to create profile. Please try again.' });
+      console.error("Error creating profile:", error);
+      setErrors({ submit: "Failed to create profile. Please try again." });
       setIsSubmitting(false);
     }
   };
@@ -167,25 +199,29 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
 
   const handleJoinChurch = async () => {
     if (!churchInviteCode.trim()) {
-      setChurchError('Please enter an invite code');
+      setChurchError("Please enter an invite code");
       return;
     }
     setIsJoiningChurch(true);
-    setChurchError('');
+    setChurchError("");
     try {
       // We pass a temp userId — the actual join happens after profile creation
       // For now, just validate the code exists
-      const { data: church } = await import('../lib/supabase').then(m =>
-        (m.supabase as any)?.from('churches').select('*').eq('invite_code', churchInviteCode.trim()).single()
+      const { data: church } = await import("../lib/supabase").then((m) =>
+        (m.supabase as any)
+          ?.from("churches")
+          .select("*")
+          .eq("invite_code", churchInviteCode.trim())
+          .single(),
       );
       if (church) {
         setChurchResult(church);
-        setChurchMode('choose');
+        setChurchMode("choose");
       } else {
-        setChurchError('Invalid invite code. Please check and try again.');
+        setChurchError("Invalid invite code. Please check and try again.");
       }
     } catch {
-      setChurchError('Invalid invite code. Please check and try again.');
+      setChurchError("Invalid invite code. Please check and try again.");
     } finally {
       setIsJoiningChurch(false);
     }
@@ -193,13 +229,17 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
 
   const handleCreateChurch = () => {
     if (!churchName.trim()) {
-      setChurchError('Church name is required');
+      setChurchError("Church name is required");
       return;
     }
-    setChurchError('');
+    setChurchError("");
     // Store the data and create the church after profile is saved
-    setChurchResult({ _pendingCreate: true, name: churchName, denomination: churchDenomination });
-    setChurchMode('choose');
+    setChurchResult({
+      _pendingCreate: true,
+      name: churchName,
+      denomination: churchDenomination,
+    });
+    setChurchMode("choose");
   };
 
   const renderStepContent = () => {
@@ -208,45 +248,61 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
         return (
           <div className="space-y-4">
             <div>
-              <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+              <label
+                htmlFor="full-name"
+                className={`block text-sm font-medium mb-2 ${nightMode ? "text-slate-100" : "text-slate-700"}`}
+              >
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
+                id="full-name"
                 ref={inputRef as React.RefObject<HTMLInputElement>}
                 type="text"
                 value={formData.displayName}
-                onChange={(e) => handleInputChange('displayName', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("displayName", e.target.value)
+                }
                 placeholder="John Doe"
                 maxLength={50}
                 className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   nightMode
-                    ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                    : 'bg-white border-slate-200 text-slate-900'
-                } ${errors.displayName ? 'border-red-500' : ''}`}
+                    ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
+                    : "bg-white border-slate-200 text-slate-900"
+                } ${errors.displayName ? "border-red-500" : ""}`}
               />
               {errors.displayName && (
-                <p className="text-red-500 text-xs mt-1">{errors.displayName}</p>
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.displayName}
+                </p>
               )}
             </div>
 
             {/* Location */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+              <label
+                htmlFor="location"
+                className={`block text-sm font-medium mb-2 ${nightMode ? "text-slate-100" : "text-slate-700"}`}
+              >
                 Location <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <MapPin className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${nightMode ? 'text-slate-100' : 'text-slate-500'}`} />
+                <MapPin
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${nightMode ? "text-slate-100" : "text-slate-500"}`}
+                />
                 <input
+                  id="location"
                   type="text"
                   value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("location", e.target.value)
+                  }
                   placeholder="City, State"
                   maxLength={100}
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     nightMode
-                      ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                      : 'bg-white border-slate-200 text-slate-900'
-                  } ${errors.location ? 'border-red-500' : ''}`}
+                      ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
+                      : "bg-white border-slate-200 text-slate-900"
+                  } ${errors.location ? "border-red-500" : ""}`}
                 />
               </div>
               <button
@@ -255,7 +311,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                   try {
                     const result = await detect();
                     if (result.cityName) {
-                      handleInputChange('location', result.cityName);
+                      handleInputChange("location", result.cityName);
                     }
                     setDetectedCoords({ lat: result.lat, lng: result.lng });
                   } catch {
@@ -265,9 +321,9 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                 disabled={isDetecting}
                 className={`mt-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   nightMode
-                    ? 'bg-white/5 hover:bg-white/10 text-blue-400 border border-white/10'
-                    : 'bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200'
-                } ${isDetecting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    ? "bg-white/5 hover:bg-white/10 text-blue-400 border border-white/10"
+                    : "bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200"
+                } ${isDetecting ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {isDetecting ? (
                   <>
@@ -291,52 +347,71 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
 
             {/* Referral Code (optional) */}
             <div>
-              <label className={`block text-sm font-medium mb-2 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                Referral Code <span className={`font-normal text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>(optional)</span>
+              <label
+                htmlFor="referral-code"
+                className={`block text-sm font-medium mb-2 ${nightMode ? "text-slate-100" : "text-slate-700"}`}
+              >
+                Referral Code{" "}
+                <span
+                  className={`font-normal text-xs ${nightMode ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  (optional)
+                </span>
               </label>
               <div className="relative">
-                <span className={`absolute left-4 top-1/2 -translate-y-1/2 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                <span
+                  className={`absolute left-4 top-1/2 -translate-y-1/2 ${nightMode ? "text-slate-400" : "text-slate-500"}`}
+                >
                   <Gift className="w-4 h-4" />
                 </span>
                 <input
+                  id="referral-code"
                   type="text"
                   value={referralCode}
                   onChange={(e) => {
-                    const val = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const val = e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]/g, "");
                     setReferralCode(val);
                     setReferralValidated(null);
-                    setReferralError('');
+                    setReferralError("");
                   }}
                   onBlur={async () => {
                     if (!referralCode.trim()) {
                       setReferralValidated(null);
-                      setReferralError('');
+                      setReferralError("");
                       return;
                     }
                     setIsValidatingReferral(true);
                     const referrer = await resolveReferralCode(referralCode);
                     if (referrer) {
                       setReferralValidated({ username: referrer.username });
-                      setReferralError('');
+                      setReferralError("");
                     } else {
                       setReferralValidated(null);
-                      setReferralError('Invalid referral code');
+                      setReferralError("Invalid referral code");
                     }
                     setIsValidatingReferral(false);
                   }}
                   placeholder="e.g. marcus7291"
                   className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     nightMode
-                      ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                      : 'bg-white border-slate-200 text-slate-900'
-                  } ${referralError ? 'border-red-500' : referralValidated ? 'border-green-500' : ''}`}
+                      ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
+                      : "bg-white border-slate-200 text-slate-900"
+                  } ${referralError ? "border-red-500" : referralValidated ? "border-green-500" : ""}`}
                 />
               </div>
               {isValidatingReferral && (
-                <p className={`text-xs mt-1 ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>Checking code...</p>
+                <p
+                  className={`text-xs mt-1 ${nightMode ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  Checking code...
+                </p>
               )}
               {referralValidated && (
-                <p className="text-green-500 text-xs mt-1">Referred by @{referralValidated.username}</p>
+                <p className="text-green-500 text-xs mt-1">
+                  Referred by @{referralValidated.username}
+                </p>
               )}
               {referralError && (
                 <p className="text-red-500 text-xs mt-1">{referralError}</p>
@@ -351,22 +426,32 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
           <div className="space-y-4">
             {/* Already joined/created */}
             {churchResult && (
-              <div className={`p-4 rounded-xl border ${nightMode ? 'bg-green-500/10 border-green-500/30' : 'bg-green-50 border-green-200'}`}>
+              <div
+                className={`p-4 rounded-xl border ${nightMode ? "bg-green-500/10 border-green-500/30" : "bg-green-50 border-green-200"}`}
+              >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">⛪</span>
                   <div className="flex-1">
-                    <div className={`font-semibold ${nightMode ? 'text-green-400' : 'text-green-700'}`}>
-                      {churchResult._pendingCreate ? 'Creating' : 'Joining'}: {churchResult.name}
+                    <div
+                      className={`font-semibold ${nightMode ? "text-green-400" : "text-green-700"}`}
+                    >
+                      {churchResult._pendingCreate ? "Creating" : "Joining"}:{" "}
+                      {churchResult.name}
                     </div>
                     {churchResult.denomination && (
-                      <div className={`text-xs ${nightMode ? 'text-green-400/70' : 'text-green-600'}`}>
+                      <div
+                        className={`text-xs ${nightMode ? "text-green-400/70" : "text-green-600"}`}
+                      >
                         {churchResult.denomination}
                       </div>
                     )}
                   </div>
                   <button
-                    onClick={() => { setChurchResult(null); setChurchMode('choose'); }}
-                    className={`text-xs px-2 py-1 rounded ${nightMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
+                    onClick={() => {
+                      setChurchResult(null);
+                      setChurchMode("choose");
+                    }}
+                    className={`text-xs px-2 py-1 rounded ${nightMode ? "text-slate-400 hover:text-slate-300" : "text-slate-500 hover:text-slate-700"}`}
                   >
                     Change
                   </button>
@@ -375,89 +460,120 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
             )}
 
             {/* Choice buttons */}
-            {!churchResult && churchMode === 'choose' && (
+            {!churchResult && churchMode === "choose" && (
               <>
-                <p className={`text-sm text-center ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Your church is your home community on Lightning. You can always change this later.
+                <p
+                  className={`text-sm text-center ${nightMode ? "text-slate-400" : "text-slate-500"}`}
+                >
+                  Your church is your home community on Lightning. You can
+                  always change this later.
                 </p>
 
                 <button
-                  onClick={() => setChurchMode('join')}
+                  onClick={() => setChurchMode("join")}
                   className={`w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-colors ${
                     nightMode
-                      ? 'bg-white/5 border-white/10 hover:bg-white/10'
-                      : 'bg-white border-slate-200 hover:bg-blue-50 hover:border-blue-300'
+                      ? "bg-white/5 border-white/10 hover:bg-white/10"
+                      : "bg-white border-slate-200 hover:bg-blue-50 hover:border-blue-300"
                   }`}
                 >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    nightMode ? 'bg-blue-500/20' : 'bg-blue-100'
-                  }`}>
-                    <KeyRound className={`w-6 h-6 ${nightMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      nightMode ? "bg-blue-500/20" : "bg-blue-100"
+                    }`}
+                  >
+                    <KeyRound
+                      className={`w-6 h-6 ${nightMode ? "text-blue-400" : "text-blue-600"}`}
+                    />
                   </div>
                   <div>
-                    <div className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                    <div
+                      className={`font-semibold ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+                    >
                       Join a Church
                     </div>
-                    <div className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <div
+                      className={`text-xs ${nightMode ? "text-slate-400" : "text-slate-500"}`}
+                    >
                       Enter an invite code from your church
                     </div>
                   </div>
                 </button>
 
                 <button
-                  onClick={() => setChurchMode('create')}
+                  onClick={() => setChurchMode("create")}
                   className={`w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-colors ${
                     nightMode
-                      ? 'bg-white/5 border-white/10 hover:bg-white/10'
-                      : 'bg-white border-slate-200 hover:bg-blue-50 hover:border-blue-300'
+                      ? "bg-white/5 border-white/10 hover:bg-white/10"
+                      : "bg-white border-slate-200 hover:bg-blue-50 hover:border-blue-300"
                   }`}
                 >
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    nightMode ? 'bg-purple-500/20' : 'bg-purple-100'
-                  }`}>
-                    <Plus className={`w-6 h-6 ${nightMode ? 'text-purple-400' : 'text-purple-600'}`} />
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      nightMode ? "bg-purple-500/20" : "bg-purple-100"
+                    }`}
+                  >
+                    <Plus
+                      className={`w-6 h-6 ${nightMode ? "text-purple-400" : "text-purple-600"}`}
+                    />
                   </div>
                   <div>
-                    <div className={`font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                    <div
+                      className={`font-semibold ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+                    >
                       Create a Church
                     </div>
-                    <div className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <div
+                      className={`text-xs ${nightMode ? "text-slate-400" : "text-slate-500"}`}
+                    >
                       Start your church community on Lightning
                     </div>
                   </div>
                 </button>
 
-                <p className={`text-xs text-center ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                <p
+                  className={`text-xs text-center ${nightMode ? "text-slate-500" : "text-slate-400"}`}
+                >
                   You can skip this step and join a church later
                 </p>
               </>
             )}
 
             {/* Join form */}
-            {!churchResult && churchMode === 'join' && (
+            {!churchResult && churchMode === "join" && (
               <div className="space-y-3">
                 <button
-                  onClick={() => { setChurchMode('choose'); setChurchError(''); }}
-                  className={`text-sm flex items-center gap-1 ${nightMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
+                  onClick={() => {
+                    setChurchMode("choose");
+                    setChurchError("");
+                  }}
+                  className={`text-sm flex items-center gap-1 ${nightMode ? "text-slate-400 hover:text-slate-300" : "text-slate-500 hover:text-slate-700"}`}
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Back
                 </button>
 
-                <label className={`block text-sm font-medium ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                <label
+                  htmlFor="invite-code"
+                  className={`block text-sm font-medium ${nightMode ? "text-slate-100" : "text-slate-700"}`}
+                >
                   Invite Code
                 </label>
                 <input
+                  id="invite-code"
                   ref={inputRef as React.RefObject<HTMLInputElement>}
                   type="text"
                   value={churchInviteCode}
-                  onChange={(e) => { setChurchInviteCode(e.target.value); setChurchError(''); }}
+                  onChange={(e) => {
+                    setChurchInviteCode(e.target.value);
+                    setChurchError("");
+                  }}
                   placeholder="Enter 8-character code"
                   maxLength={8}
                   className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg tracking-widest font-mono ${
                     nightMode
-                      ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                      : 'bg-white border-slate-200 text-slate-900'
-                  } ${churchError ? 'border-red-500' : ''}`}
+                      ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
+                      : "bg-white border-slate-200 text-slate-900"
+                  } ${churchError ? "border-red-500" : ""}`}
                 />
                 {churchError && (
                   <p className="text-red-500 text-xs">{churchError}</p>
@@ -466,7 +582,9 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                   onClick={handleJoinChurch}
                   disabled={isJoiningChurch || !churchInviteCode.trim()}
                   className={`w-full py-3 rounded-lg font-semibold transition-all text-white disabled:opacity-50 ${
-                    nightMode ? 'bg-blue-500 hover:bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+                    nightMode
+                      ? "bg-blue-500 hover:bg-blue-400"
+                      : "bg-blue-600 hover:bg-blue-700"
                   }`}
                 >
                   {isJoiningChurch ? (
@@ -474,52 +592,73 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Verifying...
                     </span>
-                  ) : 'Join Church'}
+                  ) : (
+                    "Join Church"
+                  )}
                 </button>
               </div>
             )}
 
             {/* Create form */}
-            {!churchResult && churchMode === 'create' && (
+            {!churchResult && churchMode === "create" && (
               <div className="space-y-3">
                 <button
-                  onClick={() => { setChurchMode('choose'); setChurchError(''); }}
-                  className={`text-sm flex items-center gap-1 ${nightMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
+                  onClick={() => {
+                    setChurchMode("choose");
+                    setChurchError("");
+                  }}
+                  className={`text-sm flex items-center gap-1 ${nightMode ? "text-slate-400 hover:text-slate-300" : "text-slate-500 hover:text-slate-700"}`}
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Back
                 </button>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
+                  <label
+                    htmlFor="church-name"
+                    className={`block text-sm font-medium mb-1 ${nightMode ? "text-slate-100" : "text-slate-700"}`}
+                  >
                     Church Name <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="church-name"
                     ref={inputRef as React.RefObject<HTMLInputElement>}
                     type="text"
                     value={churchName}
-                    onChange={(e) => { setChurchName(e.target.value); setChurchError(''); }}
+                    onChange={(e) => {
+                      setChurchName(e.target.value);
+                      setChurchError("");
+                    }}
                     placeholder="e.g. Grace Community Church"
                     className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       nightMode
-                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                        : 'bg-white border-slate-200 text-slate-900'
-                    } ${churchError ? 'border-red-500' : ''}`}
+                        ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
+                        : "bg-white border-slate-200 text-slate-900"
+                    } ${churchError ? "border-red-500" : ""}`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${nightMode ? 'text-slate-100' : 'text-slate-700'}`}>
-                    Denomination <span className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>(optional)</span>
+                  <label
+                    htmlFor="church-denomination"
+                    className={`block text-sm font-medium mb-1 ${nightMode ? "text-slate-100" : "text-slate-700"}`}
+                  >
+                    Denomination{" "}
+                    <span
+                      className={`text-xs ${nightMode ? "text-slate-500" : "text-slate-400"}`}
+                    >
+                      (optional)
+                    </span>
                   </label>
                   <input
+                    id="church-denomination"
                     type="text"
                     value={churchDenomination}
                     onChange={(e) => setChurchDenomination(e.target.value)}
                     placeholder="e.g. Non-denominational, Baptist, etc."
                     className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       nightMode
-                        ? 'bg-white/5 border-white/10 text-slate-100 placeholder-gray-400'
-                        : 'bg-white border-slate-200 text-slate-900'
+                        ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
+                        : "bg-white border-slate-200 text-slate-900"
                     }`}
                   />
                 </div>
@@ -532,7 +671,9 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                   onClick={handleCreateChurch}
                   disabled={isJoiningChurch || !churchName.trim()}
                   className={`w-full py-3 rounded-lg font-semibold transition-all text-white disabled:opacity-50 ${
-                    nightMode ? 'bg-purple-500 hover:bg-purple-400' : 'bg-purple-600 hover:bg-purple-700'
+                    nightMode
+                      ? "bg-purple-500 hover:bg-purple-400"
+                      : "bg-purple-600 hover:bg-purple-700"
                   }`}
                 >
                   {isJoiningChurch ? (
@@ -540,7 +681,9 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Creating...
                     </span>
-                  ) : 'Create Church'}
+                  ) : (
+                    "Create Church"
+                  )}
                 </button>
               </div>
             )}
@@ -550,35 +693,54 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
       case 2:
         return (
           <div className="space-y-4">
-            <div className={`p-6 rounded-xl border text-center ${nightMode ? 'bg-white/5 border-white/10' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'}`}>
+            <div
+              className={`p-6 rounded-xl border text-center ${nightMode ? "bg-white/5 border-white/10" : "bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200"}`}
+            >
               <div className="flex flex-col items-center gap-4">
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center text-5xl shadow-md border-4 ${nightMode ? 'border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500' : 'border-white bg-gradient-to-br from-purple-400 to-pink-400'}`}>
+                <div
+                  className={`w-20 h-20 rounded-full flex items-center justify-center text-5xl shadow-md border-4 ${nightMode ? "border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500" : "border-white bg-gradient-to-br from-purple-400 to-pink-400"}`}
+                >
                   👤
                 </div>
                 <div>
-                  <h3 className={`text-xl font-bold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                  <h3
+                    className={`text-xl font-bold ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+                  >
                     {formData.displayName}
                   </h3>
                 </div>
                 {churchResult && (
-                  <div className={`flex items-center gap-2 text-sm ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                  <div
+                    className={`flex items-center gap-2 text-sm ${nightMode ? "text-blue-400" : "text-blue-600"}`}
+                  >
                     <span>⛪</span> {churchResult.name}
                   </div>
                 )}
-                <div className={`flex items-center gap-2 text-sm ${nightMode ? 'text-slate-100' : 'text-slate-600'}`}>
+                <div
+                  className={`flex items-center gap-2 text-sm ${nightMode ? "text-slate-100" : "text-slate-600"}`}
+                >
                   <MapPin className="w-4 h-4" />
                   {formData.location}
                 </div>
               </div>
             </div>
 
-            <p className={`text-sm text-center ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              After creating your profile, you'll be guided to share your testimony.
+            <p
+              className={`text-sm text-center ${nightMode ? "text-slate-400" : "text-slate-500"}`}
+            >
+              After creating your profile, you'll be guided to share your
+              testimony.
             </p>
 
             {errors.submit && (
-              <div className={`p-3 rounded-lg border ${nightMode ? 'bg-red-500/10 border-red-500/30' : 'bg-red-100 border-red-300'}`}>
-                <p className={`text-sm text-center ${nightMode ? 'text-red-400' : 'text-red-700'}`}>{errors.submit}</p>
+              <div
+                className={`p-3 rounded-lg border ${nightMode ? "bg-red-500/10 border-red-500/30" : "bg-red-100 border-red-300"}`}
+              >
+                <p
+                  className={`text-sm text-center ${nightMode ? "text-red-400" : "text-red-700"}`}
+                >
+                  {errors.submit}
+                </p>
               </div>
             )}
           </div>
@@ -599,10 +761,10 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
         className={`fixed inset-0 z-50 flex items-center justify-center p-4`}
       >
         <div
-          className={`w-full max-w-lg rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${nightMode ? 'bg-[#0a0a0a]' : 'bg-white'}`}
+          className={`w-full max-w-lg rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${nightMode ? "bg-[#0a0a0a]" : "bg-white"}`}
           style={{
-            animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-            transformOrigin: 'center'
+            animation: "popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+            transformOrigin: "center",
           }}
         >
           {/* Header */}
@@ -610,20 +772,24 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
             className="p-6"
             style={{
               background: nightMode
-                ? 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)'
-                : 'linear-gradient(135deg, rgba(219, 234, 254, 0.8) 0%, rgba(191, 219, 254, 0.8) 100%)'
+                ? "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)"
+                : "linear-gradient(135deg, rgba(219, 234, 254, 0.8) 0%, rgba(191, 219, 254, 0.8) 100%)",
             }}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {React.createElement(steps[currentStep].icon, {
-                  className: `w-6 h-6 ${nightMode ? 'text-white' : 'text-blue-600'}`
+                  className: `w-6 h-6 ${nightMode ? "text-white" : "text-blue-600"}`,
                 })}
                 <div>
-                  <h2 className={`text-xl font-bold ${nightMode ? 'text-white' : 'text-slate-900'}`}>
+                  <h2
+                    className={`text-xl font-bold ${nightMode ? "text-white" : "text-slate-900"}`}
+                  >
                     {steps[currentStep].title}
                   </h2>
-                  <p className={`text-sm ${nightMode ? 'text-white/90' : 'text-slate-600'}`}>
+                  <p
+                    className={`text-sm ${nightMode ? "text-white/90" : "text-slate-600"}`}
+                  >
                     {steps[currentStep].subtitle}
                   </p>
                 </div>
@@ -631,7 +797,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
               {onSkip && currentStep === 0 && (
                 <button
                   onClick={onSkip}
-                  className={`text-sm font-medium ${nightMode ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                  className={`text-sm font-medium ${nightMode ? "text-white/80 hover:text-white" : "text-slate-600 hover:text-slate-900"}`}
                 >
                   Skip
                 </button>
@@ -645,8 +811,12 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                   key={index}
                   className={`flex-1 h-1 rounded-full transition-all ${
                     index <= currentStep
-                      ? nightMode ? 'bg-white' : 'bg-blue-600'
-                      : nightMode ? 'bg-white/30' : 'bg-slate-300'
+                      ? nightMode
+                        ? "bg-white"
+                        : "bg-blue-600"
+                      : nightMode
+                        ? "bg-white/30"
+                        : "bg-slate-300"
                   }`}
                 />
               ))}
@@ -659,15 +829,17 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
           </div>
 
           {/* Footer */}
-          <div className={`p-6 border-t flex gap-3 ${nightMode ? 'border-white/10' : 'border-slate-200'}`}>
+          <div
+            className={`p-6 border-t flex gap-3 ${nightMode ? "border-white/10" : "border-slate-200"}`}
+          >
             {currentStep > 0 && (
               <button
                 onClick={handleBack}
                 disabled={isSubmitting}
                 className={`px-4 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 ${
                   nightMode
-                    ? 'bg-white/5 hover:bg-white/10 text-slate-100'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    ? "bg-white/5 hover:bg-white/10 text-slate-100"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-700"
                 }`}
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -677,27 +849,33 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
 
             {currentStep < steps.length - 1 ? (
               <button
-                onClick={() => { handleNext(); }}
+                onClick={() => {
+                  handleNext();
+                }}
                 disabled={isValidatingReferral}
                 className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-slate-100 border border-white/20 disabled:opacity-50`}
                 style={{
-                  background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                  background: nightMode
+                    ? "rgba(79, 150, 255, 0.85)"
+                    : "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)",
                   boxShadow: nightMode
-                    ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                    : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                    ? "0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
+                    : "0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
                 }}
                 onMouseEnter={(e) => {
                   if (nightMode) {
-                    e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
+                    e.currentTarget.style.background =
+                      "rgba(79, 150, 255, 1.0)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (nightMode) {
-                    e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
+                    e.currentTarget.style.background =
+                      "rgba(79, 150, 255, 0.85)";
                   }
                 }}
               >
-                {currentStep === 1 && !churchResult ? 'Skip' : 'Next'}
+                {currentStep === 1 && !churchResult ? "Skip" : "Next"}
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
@@ -706,19 +884,23 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({ nightMode
                 disabled={isSubmitting}
                 className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-slate-100 border border-white/20 disabled:opacity-50`}
                 style={{
-                  background: nightMode ? 'rgba(79, 150, 255, 0.85)' : 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)',
+                  background: nightMode
+                    ? "rgba(79, 150, 255, 0.85)"
+                    : "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)",
                   boxShadow: nightMode
-                    ? '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-                    : '0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                    ? "0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
+                    : "0 2px 8px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
                 }}
                 onMouseEnter={(e) => {
                   if (nightMode && !isSubmitting) {
-                    e.currentTarget.style.background = 'rgba(79, 150, 255, 1.0)';
+                    e.currentTarget.style.background =
+                      "rgba(79, 150, 255, 1.0)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (nightMode && !isSubmitting) {
-                    e.currentTarget.style.background = 'rgba(79, 150, 255, 0.85)';
+                    e.currentTarget.style.background =
+                      "rgba(79, 150, 255, 0.85)";
                   }
                 }}
               >

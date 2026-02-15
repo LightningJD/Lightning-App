@@ -1475,6 +1475,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
       {showNewChatDialog && (
         <div
           className="fixed inset-0 z-50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="new-message-title"
           onClick={() => {
             setShowNewChatDialog(false);
             setSearchQuery("");
@@ -1706,11 +1709,13 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
             {/* Message */}
             <div className="mb-6">
               <label
+                htmlFor="new-chat-message"
                 className={`text-sm font-semibold mb-2 block ${nightMode ? "text-slate-100" : "text-black"}`}
               >
                 Message:
               </label>
               <textarea
+                id="new-chat-message"
                 value={newChatMessage}
                 onChange={(e) => setNewChatMessage(e.target.value)}
                 className={
