@@ -445,7 +445,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
 
               <div>
                 <label
-                  id="description"
+                  htmlFor="description"
                   className={
                     nightMode
                       ? "block text-sm font-semibold text-slate-100 mb-2"
@@ -514,6 +514,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
                         <label
                           key={u.id}
                           htmlFor={`member-${u.id}`}
+                          aria-label={`Invite ${u.display_name ?? u.username}`}
                           className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                             checked
                               ? nightMode
