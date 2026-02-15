@@ -1486,6 +1486,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
           }}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
             className={`fixed bottom-24 right-6 rounded-2xl w-96 max-w-[calc(100vw-3rem)] p-6 ${nightMode ? "bg-white/5" : ""}`}
             onClick={(e) => e.stopPropagation()}
             style={{
@@ -1604,11 +1607,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                         WebkitBackdropFilter: "blur(10px)",
                       }
                 }
-                placeholder={
-                  selectedConnections.length > 0
-                    ? "Search by name or username..."
-                    : "Search by name or username..."
-                }
+                placeholder="Search by name or username..."
                 autoComplete="off"
               />
 

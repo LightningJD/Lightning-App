@@ -428,7 +428,7 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
         {/* Pending Join Requests (admin/owner only) */}
         {permissions.manage_members && pendingRequests.length > 0 && (
           <div className="rounded-2xl p-5" style={cardStyle}>
-            <label
+            <div
               className={`block text-sm font-semibold mb-3 ${nm ? "text-white/70" : "text-black/70"}`}
             >
               <span className="flex items-center gap-2">
@@ -443,7 +443,7 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
                   {pendingRequests.length}
                 </span>
               </span>
-            </label>
+            </div>
             <div className="space-y-2.5">
               {pendingRequests.map((req: any) => {
                 const user = req.user;
