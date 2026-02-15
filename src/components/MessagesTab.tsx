@@ -1604,7 +1604,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                         WebkitBackdropFilter: "blur(10px)",
                       }
                 }
-                placeholder="Search by name or username..."
+                placeholder={
+                  selectedConnections.length > 0
+                    ? "Search by name or username..."
+                    : "Search by name or username..."
+                }
                 autoComplete="off"
               />
 

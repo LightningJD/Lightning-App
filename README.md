@@ -4,7 +4,7 @@ A faith-based social platform for sharing testimonies and connecting believers.
 
 ## 🚀 Live Demo
 
-**Production:** [https://lightning-dni.pages.dev](https://lightning-dni.pages.dev)
+**Production:** [https://lightningsocial.io](https://lightningsocial.io)
 
 ## 📖 About
 
