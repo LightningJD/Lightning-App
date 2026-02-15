@@ -1,11 +1,33 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import { ChevronDown, ChevronRight, Plus, Settings, Shield, Users, MoreHorizontal, Edit3, Trash2, ArrowUp, ArrowDown, FolderPlus, X, Hash, BellOff, Lock, FolderInput, UserPlus, Bell, Check, ScrollText } from 'lucide-react';
-import { useServerPremium } from '../../contexts/PremiumContext';
-import ServerBannerDisplay from '../premium/ServerBannerDisplay';
-import VerifiedBadge from '../premium/VerifiedBadge';
-import TrialBanner from '../premium/TrialBanner';
-import GracePeriodBanner from '../premium/GracePeriodBanner';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
+import {
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Settings,
+  Shield,
+  Users,
+  MoreHorizontal,
+  Edit3,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  FolderPlus,
+  X,
+  Hash,
+  BellOff,
+  Lock,
+  FolderInput,
+  UserPlus,
+  Bell,
+  Check,
+  ScrollText,
+} from "lucide-react";
+import { useServerPremium } from "../../contexts/PremiumContext";
+import ServerBannerDisplay from "../premium/ServerBannerDisplay";
+import VerifiedBadge from "../premium/VerifiedBadge";
+import TrialBanner from "../premium/TrialBanner";
+import GracePeriodBanner from "../premium/GracePeriodBanner";
 
 interface ChannelSidebarProps {
   nightMode: boolean;
@@ -13,7 +35,15 @@ interface ChannelSidebarProps {
   serverEmoji: string;
   serverId: string;
   categories: Array<{ id: string; name: string; position: number }>;
-  channels: Array<{ id: string; name: string; topic?: string; category_id?: string; position: number; is_private?: boolean; emoji_icon?: string }>;
+  channels: Array<{
+    id: string;
+    name: string;
+    topic?: string;
+    category_id?: string;
+    position: number;
+    is_private?: boolean;
+    emoji_icon?: string;
+  }>;
   activeChannelId: string | null;
   onSelectChannel: (channelId: string) => void;
   onCreateChannel: (categoryId?: string) => void;
@@ -31,9 +61,18 @@ interface ChannelSidebarProps {
   onUpdateChannel?: (channelId: string, updates: any) => void;
   onDeleteChannel?: (channelId: string) => void;
   onReorderChannels?: (orderedIds: string[], categoryId: string | null) => void;
-  onMoveChannelToCategory?: (channelId: string, targetCategoryId: string | null) => void;
+  onMoveChannelToCategory?: (
+    channelId: string,
+    targetCategoryId: string | null,
+  ) => void;
   unreadCounts?: Record<string, number>;
-  roles?: Array<{ id: string; name: string; color: string; position: number; is_default: boolean }>;
+  roles?: Array<{
+    id: string;
+    name: string;
+    color: string;
+    position: number;
+    is_default: boolean;
+  }>;
   channelAccess?: Record<string, string[]>;
   channelNotificationOverrides?: Record<string, string>;
   onSetChannelNotification?: (channelId: string, level: string) => void;
@@ -42,59 +81,124 @@ interface ChannelSidebarProps {
 // Map common channel names to emoji icons
 const getChannelEmoji = (name: string): string => {
   const lower = name.toLowerCase();
-  if (lower.includes('general')) return '\u{1F4AC}';
-  if (lower.includes('prayer')) return '\u{1F64F}';
-  if (lower.includes('bible') || lower.includes('study') || lower.includes('scripture')) return '\u{1F4D6}';
-  if (lower.includes('worship') || lower.includes('music') || lower.includes('praise')) return '\u{1F3B5}';
-  if (lower.includes('announcements') || lower.includes('announce')) return '\u{1F4E2}';
-  if (lower.includes('welcome') || lower.includes('intro')) return '\u{1F44B}';
-  if (lower.includes('events') || lower.includes('calendar')) return '\u{1F4C5}';
-  if (lower.includes('help') || lower.includes('support')) return '\u{1F91D}';
-  if (lower.includes('testimony') || lower.includes('testimonies')) return '\u{2728}';
-  if (lower.includes('off-topic') || lower.includes('random') || lower.includes('chat')) return '\u{1F389}';
-  if (lower.includes('media') || lower.includes('photo') || lower.includes('video')) return '\u{1F4F7}';
-  if (lower.includes('resource') || lower.includes('links')) return '\u{1F517}';
-  if (lower.includes('voice')) return '\u{1F3A4}';
-  if (lower.includes('youth') || lower.includes('teen')) return '\u{1F31F}';
-  if (lower.includes('volunteer') || lower.includes('serve') || lower.includes('ministry')) return '\u{1F54A}\u{FE0F}';
-  return '\u{1F4AC}';
+  if (lower.includes("general")) return "\u{1F4AC}";
+  if (lower.includes("prayer")) return "\u{1F64F}";
+  if (
+    lower.includes("bible") ||
+    lower.includes("study") ||
+    lower.includes("scripture")
+  )
+    return "\u{1F4D6}";
+  if (
+    lower.includes("worship") ||
+    lower.includes("music") ||
+    lower.includes("praise")
+  )
+    return "\u{1F3B5}";
+  if (lower.includes("announcements") || lower.includes("announce"))
+    return "\u{1F4E2}";
+  if (lower.includes("welcome") || lower.includes("intro")) return "\u{1F44B}";
+  if (lower.includes("events") || lower.includes("calendar"))
+    return "\u{1F4C5}";
+  if (lower.includes("help") || lower.includes("support")) return "\u{1F91D}";
+  if (lower.includes("testimony") || lower.includes("testimonies"))
+    return "\u{2728}";
+  if (
+    lower.includes("off-topic") ||
+    lower.includes("random") ||
+    lower.includes("chat")
+  )
+    return "\u{1F389}";
+  if (
+    lower.includes("media") ||
+    lower.includes("photo") ||
+    lower.includes("video")
+  )
+    return "\u{1F4F7}";
+  if (lower.includes("resource") || lower.includes("links")) return "\u{1F517}";
+  if (lower.includes("voice")) return "\u{1F3A4}";
+  if (lower.includes("youth") || lower.includes("teen")) return "\u{1F31F}";
+  if (
+    lower.includes("volunteer") ||
+    lower.includes("serve") ||
+    lower.includes("ministry")
+  )
+    return "\u{1F54A}\u{FE0F}";
+  return "\u{1F4AC}";
 };
 
 const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
-  nightMode, serverName, serverEmoji, serverId, categories, channels,
-  activeChannelId, onSelectChannel, onCreateChannel, onOpenSettings, onOpenRoles, onOpenMembers,
-  onShareInvite, onOpenAuditLog, canManageChannels, fullWidth, onCreateCategory, onRenameCategory, onDeleteCategory,
-  onReorderCategories, onUpdateChannel, onDeleteChannel, onReorderChannels, onMoveChannelToCategory, unreadCounts,
-  roles, channelAccess, channelNotificationOverrides, onSetChannelNotification
+  nightMode,
+  serverName,
+  serverEmoji,
+  serverId,
+  categories,
+  channels,
+  activeChannelId,
+  onSelectChannel,
+  onCreateChannel,
+  onOpenSettings,
+  onOpenRoles,
+  onOpenMembers,
+  onShareInvite,
+  onOpenAuditLog,
+  canManageChannels,
+  fullWidth,
+  onCreateCategory,
+  onRenameCategory,
+  onDeleteCategory,
+  onReorderCategories,
+  onUpdateChannel,
+  onDeleteChannel,
+  onReorderChannels,
+  onMoveChannelToCategory,
+  unreadCounts,
+  roles,
+  channelAccess,
+  channelNotificationOverrides,
+  onSetChannelNotification,
 }) => {
   const { premium, isPremium } = useServerPremium(serverId);
 
   // Persist collapse state in localStorage per server
   const storageKey = `lightning_collapsed_${serverId}`;
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    () => {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        return saved ? new Set(JSON.parse(saved)) : new Set();
+      } catch {
+        return new Set();
+      }
+    },
+  );
 
   // Category management state
-  const [contextMenu, setContextMenu] = useState<{ type: 'category' | 'channel'; id: string; x: number; y: number } | null>(null);
-  const [renamingCategoryId, setRenamingCategoryId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState('');
+  const [contextMenu, setContextMenu] = useState<{
+    type: "category" | "channel";
+    id: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [renamingCategoryId, setRenamingCategoryId] = useState<string | null>(
+    null,
+  );
+  const [renameValue, setRenameValue] = useState("");
   const [showCreateCategory, setShowCreateCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(
+    null,
+  );
 
   // Channel editing state
   const [editingChannelId, setEditingChannelId] = useState<string | null>(null);
-  const [editChannelName, setEditChannelName] = useState('');
-  const [editChannelTopic, setEditChannelTopic] = useState('');
+  const [editChannelName, setEditChannelName] = useState("");
+  const [editChannelTopic, setEditChannelTopic] = useState("");
   const [editChannelPrivate, setEditChannelPrivate] = useState(false);
-  const [editChannelAllowedRoles, setEditChannelAllowedRoles] = useState<string[]>([]);
-  const [editChannelEmoji, setEditChannelEmoji] = useState('');
+  const [editChannelAllowedRoles, setEditChannelAllowedRoles] = useState<
+    string[]
+  >([]);
+  const [editChannelEmoji, setEditChannelEmoji] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Move to Category submenu
@@ -115,12 +219,18 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   });
 
   // Drag and drop state
-  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-  const [dragType, setDragType] = useState<'category' | 'channel' | null>(null);
+  const isTouchDevice =
+    typeof window !== "undefined" &&
+    ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  const [dragType, setDragType] = useState<"category" | "channel" | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const [dragOverPosition, setDragOverPosition] = useState<'above' | 'below' | 'inside' | null>(null);
-  const [dragSourceCategoryId, setDragSourceCategoryId] = useState<string | null>(null);
+  const [dragOverPosition, setDragOverPosition] = useState<
+    "above" | "below" | "inside" | null
+  >(null);
+  const [dragSourceCategoryId, setDragSourceCategoryId] = useState<
+    string | null
+  >(null);
 
   const renameInputRef = useRef<HTMLInputElement>(null);
   const newCategoryInputRef = useRef<HTMLInputElement>(null);
@@ -142,8 +252,13 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     } else {
       // Same server: persist the current state
       try {
-        localStorage.setItem(storageKey, JSON.stringify([...collapsedCategories]));
-      } catch { /* ignore */ }
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify([...collapsedCategories]),
+        );
+      } catch {
+        /* ignore */
+      }
     }
   }, [collapsedCategories, storageKey]);
 
@@ -178,16 +293,19 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     const handleClick = (e: MouseEvent | TouchEvent) => {
       // Ignore clicks within 100ms of menu opening (prevents same-click dismissal)
       if (Date.now() - contextMenuOpenTimeRef.current < 100) return;
-      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
+      if (
+        contextMenuRef.current &&
+        !contextMenuRef.current.contains(e.target as Node)
+      ) {
         setContextMenu(null);
         setShowMoveSubmenu(false);
       }
     };
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('touchstart', handleClick as any);
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("touchstart", handleClick as any);
     return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('touchstart', handleClick as any);
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("touchstart", handleClick as any);
     };
   }, [contextMenu]);
 
@@ -204,13 +322,18 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       }
     } else {
       try {
-        localStorage.setItem(muteStorageKey, JSON.stringify([...mutedChannels]));
-      } catch { /* ignore */ }
+        localStorage.setItem(
+          muteStorageKey,
+          JSON.stringify([...mutedChannels]),
+        );
+      } catch {
+        /* ignore */
+      }
     }
   }, [mutedChannels, muteStorageKey]);
 
   const toggleMuteChannel = useCallback((channelId: string) => {
-    setMutedChannels(prev => {
+    setMutedChannels((prev) => {
       const next = new Set(prev);
       if (next.has(channelId)) next.delete(channelId);
       else next.add(channelId);
@@ -219,7 +342,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   }, []);
 
   const toggleCategory = (categoryId: string) => {
-    setCollapsedCategories(prev => {
+    setCollapsedCategories((prev) => {
       const next = new Set(prev);
       if (next.has(categoryId)) next.delete(categoryId);
       else next.add(categoryId);
@@ -228,11 +351,19 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   };
 
   // Context menu handlers
-  const handleCategoryContextMenu = (e: React.MouseEvent, categoryId: string) => {
+  const handleCategoryContextMenu = (
+    e: React.MouseEvent,
+    categoryId: string,
+  ) => {
     if (!canManageChannels) return;
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({ type: 'category', id: categoryId, x: e.clientX, y: e.clientY });
+    setContextMenu({
+      type: "category",
+      id: categoryId,
+      x: e.clientX,
+      y: e.clientY,
+    });
   };
 
   const handleChannelContextMenu = (e: React.MouseEvent, channelId: string) => {
@@ -240,14 +371,24 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     e.stopPropagation();
     setShowMoveSubmenu(false);
     setShowNotifSubmenu(false);
-    setContextMenu({ type: 'channel', id: channelId, x: e.clientX, y: e.clientY });
+    setContextMenu({
+      type: "channel",
+      id: channelId,
+      x: e.clientX,
+      y: e.clientY,
+    });
   };
 
   const handleCategoryLongPress = (categoryId: string, e: React.TouchEvent) => {
     if (!canManageChannels) return;
     const touch = e.touches[0];
     const timer = setTimeout(() => {
-      setContextMenu({ type: 'category', id: categoryId, x: touch.clientX, y: touch.clientY });
+      setContextMenu({
+        type: "category",
+        id: categoryId,
+        x: touch.clientX,
+        y: touch.clientY,
+      });
     }, 500);
     setLongPressTimer(timer);
   };
@@ -257,7 +398,12 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     const timer = setTimeout(() => {
       setShowMoveSubmenu(false);
       setShowNotifSubmenu(false);
-      setContextMenu({ type: 'channel', id: channelId, x: touch.clientX, y: touch.clientY });
+      setContextMenu({
+        type: "channel",
+        id: channelId,
+        x: touch.clientX,
+        y: touch.clientY,
+      });
     }, 500);
     setLongPressTimer(timer);
   };
@@ -270,7 +416,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   };
 
   const handleStartRename = (categoryId: string) => {
-    const cat = categories.find(c => c.id === categoryId);
+    const cat = categories.find((c) => c.id === categoryId);
     if (cat) {
       setRenamingCategoryId(categoryId);
       setRenameValue(cat.name);
@@ -283,49 +429,54 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       onRenameCategory(renamingCategoryId, renameValue.trim());
     }
     setRenamingCategoryId(null);
-    setRenameValue('');
+    setRenameValue("");
   };
 
   const handleDeleteCategory = (categoryId: string) => {
     setContextMenu(null);
-    if (onDeleteCategory && window.confirm('Delete this category? Channels inside will become uncategorized.')) {
+    if (
+      onDeleteCategory &&
+      window.confirm(
+        "Delete this category? Channels inside will become uncategorized.",
+      )
+    ) {
       onDeleteCategory(categoryId);
     }
   };
 
-  const handleMoveCategory = (categoryId: string, direction: 'up' | 'down') => {
+  const handleMoveCategory = (categoryId: string, direction: "up" | "down") => {
     setContextMenu(null);
     if (!onReorderCategories) return;
     const sorted = [...categories].sort((a, b) => a.position - b.position);
-    const idx = sorted.findIndex(c => c.id === categoryId);
-    if (direction === 'up' && idx > 0) {
+    const idx = sorted.findIndex((c) => c.id === categoryId);
+    if (direction === "up" && idx > 0) {
       const newOrder = [...sorted];
       [newOrder[idx - 1], newOrder[idx]] = [newOrder[idx], newOrder[idx - 1]];
-      onReorderCategories(newOrder.map(c => c.id));
-    } else if (direction === 'down' && idx < sorted.length - 1) {
+      onReorderCategories(newOrder.map((c) => c.id));
+    } else if (direction === "down" && idx < sorted.length - 1) {
       const newOrder = [...sorted];
       [newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]];
-      onReorderCategories(newOrder.map(c => c.id));
+      onReorderCategories(newOrder.map((c) => c.id));
     }
   };
 
   const handleCreateCategory = () => {
     if (newCategoryName.trim() && onCreateCategory) {
       onCreateCategory(newCategoryName.trim());
-      setNewCategoryName('');
+      setNewCategoryName("");
       setShowCreateCategory(false);
     }
   };
 
   // Channel editing handlers
   const handleStartEditChannel = (channelId: string) => {
-    const ch = channels.find(c => c.id === channelId);
+    const ch = channels.find((c) => c.id === channelId);
     if (ch) {
       setEditingChannelId(channelId);
       setEditChannelName(ch.name);
-      setEditChannelTopic(ch.topic || '');
+      setEditChannelTopic(ch.topic || "");
       setEditChannelPrivate(ch.is_private || false);
-      setEditChannelEmoji(ch.emoji_icon || '');
+      setEditChannelEmoji(ch.emoji_icon || "");
       setEditChannelAllowedRoles(channelAccess?.[channelId] || []);
       setShowEmojiPicker(false);
     }
@@ -335,7 +486,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   const handleSaveChannelEdit = () => {
     if (editingChannelId && editChannelName.trim() && onUpdateChannel) {
       onUpdateChannel(editingChannelId, {
-        name: editChannelName.trim().toLowerCase().replace(/\s+/g, '-'),
+        name: editChannelName.trim().toLowerCase().replace(/\s+/g, "-"),
         topic: editChannelTopic.trim() || null,
         is_private: editChannelPrivate,
         emoji_icon: editChannelEmoji || null,
@@ -343,60 +494,76 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       });
     }
     setEditingChannelId(null);
-    setEditChannelName('');
-    setEditChannelTopic('');
+    setEditChannelName("");
+    setEditChannelTopic("");
     setEditChannelPrivate(false);
-    setEditChannelEmoji('');
+    setEditChannelEmoji("");
     setEditChannelAllowedRoles([]);
     setShowEmojiPicker(false);
   };
 
   const handleDeleteChannelClick = (channelId: string) => {
     setContextMenu(null);
-    if (onDeleteChannel && window.confirm('Delete this channel? All messages will be permanently lost.')) {
+    if (
+      onDeleteChannel &&
+      window.confirm(
+        "Delete this channel? All messages will be permanently lost.",
+      )
+    ) {
       onDeleteChannel(channelId);
     }
   };
 
   // Channel reorder handlers
-  const handleMoveChannel = (channelId: string, direction: 'up' | 'down') => {
+  const handleMoveChannel = (channelId: string, direction: "up" | "down") => {
     setContextMenu(null);
     if (!onReorderChannels) return;
-    const ch = channels.find(c => c.id === channelId);
+    const ch = channels.find((c) => c.id === channelId);
     if (!ch) return;
     const categoryId = ch.category_id || null;
     const siblings = channels
-      .filter(c => (c.category_id || null) === categoryId)
+      .filter((c) => (c.category_id || null) === categoryId)
       .sort((a, b) => a.position - b.position);
-    const idx = siblings.findIndex(c => c.id === channelId);
-    if (direction === 'up' && idx > 0) {
+    const idx = siblings.findIndex((c) => c.id === channelId);
+    if (direction === "up" && idx > 0) {
       const newOrder = [...siblings];
       [newOrder[idx - 1], newOrder[idx]] = [newOrder[idx], newOrder[idx - 1]];
-      onReorderChannels(newOrder.map(c => c.id), categoryId);
-    } else if (direction === 'down' && idx < siblings.length - 1) {
+      onReorderChannels(
+        newOrder.map((c) => c.id),
+        categoryId,
+      );
+    } else if (direction === "down" && idx < siblings.length - 1) {
       const newOrder = [...siblings];
       [newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]];
-      onReorderChannels(newOrder.map(c => c.id), categoryId);
+      onReorderChannels(
+        newOrder.map((c) => c.id),
+        categoryId,
+      );
     }
   };
 
   // Drag and drop handlers
-  const handleDragStart = (e: React.DragEvent, type: 'category' | 'channel', id: string, sourceCategoryId?: string | null) => {
+  const handleDragStart = (
+    e: React.DragEvent,
+    type: "category" | "channel",
+    id: string,
+    sourceCategoryId?: string | null,
+  ) => {
     if (!canManageChannels) return;
     setDragType(type);
     setDragId(id);
     setDragSourceCategoryId(sourceCategoryId ?? null);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
     // Make the drag image slightly transparent
     if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '0.5';
+      e.currentTarget.style.opacity = "0.5";
     }
   };
 
   const handleDragEnd = (e: React.DragEvent) => {
     if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '1';
+      e.currentTarget.style.opacity = "1";
     }
     setDragType(null);
     setDragId(null);
@@ -405,19 +572,23 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     setDragSourceCategoryId(null);
   };
 
-  const handleDragOver = (e: React.DragEvent, targetId: string, targetType: 'category' | 'channel') => {
+  const handleDragOver = (
+    e: React.DragEvent,
+    targetId: string,
+    targetType: "category" | "channel",
+  ) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = "move";
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const midY = rect.top + rect.height / 2;
 
-    if (dragType === 'channel' && targetType === 'category') {
+    if (dragType === "channel" && targetType === "category") {
       // Dropping channel on category header = move inside
       setDragOverId(targetId);
-      setDragOverPosition('inside');
+      setDragOverPosition("inside");
     } else {
       setDragOverId(targetId);
-      setDragOverPosition(e.clientY < midY ? 'above' : 'below');
+      setDragOverPosition(e.clientY < midY ? "above" : "below");
     }
   };
 
@@ -425,22 +596,27 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     e.preventDefault();
     if (!dragId) return;
 
-    if (dragType === 'category' && onReorderCategories) {
+    if (dragType === "category" && onReorderCategories) {
       // Reorder categories
       const sorted = [...categories].sort((a, b) => a.position - b.position);
-      const dragIdx = sorted.findIndex(c => c.id === dragId);
-      const targetIdx = sorted.findIndex(c => c.id === targetCategoryId);
+      const dragIdx = sorted.findIndex((c) => c.id === dragId);
+      const targetIdx = sorted.findIndex((c) => c.id === targetCategoryId);
       if (dragIdx === -1 || targetIdx === -1 || dragIdx === targetIdx) {
-        setDragType(null); setDragId(null); setDragOverId(null); setDragOverPosition(null); setDragSourceCategoryId(null);
+        setDragType(null);
+        setDragId(null);
+        setDragOverId(null);
+        setDragOverPosition(null);
+        setDragSourceCategoryId(null);
         return;
       }
 
-      const newOrder = sorted.filter(c => c.id !== dragId);
-      const insertIdx = dragOverPosition === 'above' ? targetIdx : targetIdx + 1;
+      const newOrder = sorted.filter((c) => c.id !== dragId);
+      const insertIdx =
+        dragOverPosition === "above" ? targetIdx : targetIdx + 1;
       const adjustedIdx = dragIdx < targetIdx ? insertIdx - 1 : insertIdx;
       newOrder.splice(adjustedIdx, 0, sorted[dragIdx]);
-      onReorderCategories(newOrder.map(c => c.id));
-    } else if (dragType === 'channel' && onMoveChannelToCategory) {
+      onReorderCategories(newOrder.map((c) => c.id));
+    } else if (dragType === "channel" && onMoveChannelToCategory) {
       // Move channel to this category
       onMoveChannelToCategory(dragId, targetCategoryId);
     }
@@ -452,15 +628,28 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     setDragSourceCategoryId(null);
   };
 
-  const handleChannelDrop = (e: React.DragEvent, targetChannelId: string, targetCategoryId: string | null) => {
+  const handleChannelDrop = (
+    e: React.DragEvent,
+    targetChannelId: string,
+    targetCategoryId: string | null,
+  ) => {
     e.preventDefault();
-    if (!dragId || dragType !== 'channel' || !onReorderChannels || dragId === targetChannelId) {
-      setDragType(null); setDragId(null); setDragOverId(null); setDragOverPosition(null); setDragSourceCategoryId(null);
+    if (
+      !dragId ||
+      dragType !== "channel" ||
+      !onReorderChannels ||
+      dragId === targetChannelId
+    ) {
+      setDragType(null);
+      setDragId(null);
+      setDragOverId(null);
+      setDragOverPosition(null);
+      setDragSourceCategoryId(null);
       return;
     }
 
     const siblings = channels
-      .filter(c => (c.category_id || null) === targetCategoryId)
+      .filter((c) => (c.category_id || null) === targetCategoryId)
       .sort((a, b) => a.position - b.position);
 
     // If moving from a different category, add it to target
@@ -469,18 +658,22 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
 
     if (isFromDifferentCategory) {
       // Remove from source list (handled by reorder), insert into target
-      const filteredSiblings = siblings.filter(c => c.id !== dragId);
-      const targetIdx = filteredSiblings.findIndex(c => c.id === targetChannelId);
-      const insertIdx = dragOverPosition === 'above' ? targetIdx : targetIdx + 1;
+      const filteredSiblings = siblings.filter((c) => c.id !== dragId);
+      const targetIdx = filteredSiblings.findIndex(
+        (c) => c.id === targetChannelId,
+      );
+      const insertIdx =
+        dragOverPosition === "above" ? targetIdx : targetIdx + 1;
       filteredSiblings.splice(insertIdx, 0, { id: dragId } as any);
-      ordered = filteredSiblings.map(c => c.id);
+      ordered = filteredSiblings.map((c) => c.id);
     } else {
       // Same category reorder
-      const filtered = siblings.filter(c => c.id !== dragId);
-      const targetIdx = filtered.findIndex(c => c.id === targetChannelId);
-      const insertIdx = dragOverPosition === 'above' ? targetIdx : targetIdx + 1;
+      const filtered = siblings.filter((c) => c.id !== dragId);
+      const targetIdx = filtered.findIndex((c) => c.id === targetChannelId);
+      const insertIdx =
+        dragOverPosition === "above" ? targetIdx : targetIdx + 1;
       filtered.splice(insertIdx, 0, { id: dragId } as any);
-      ordered = filtered.map(c => c.id);
+      ordered = filtered.map((c) => c.id);
     }
 
     onReorderChannels(ordered, targetCategoryId);
@@ -492,25 +685,35 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   };
 
   // Group channels by category
-  const uncategorizedChannels = channels.filter(c => !c.category_id);
+  const uncategorizedChannels = channels.filter((c) => !c.category_id);
   const categorizedGroups = [...categories]
     .sort((a, b) => a.position - b.position)
-    .map(cat => ({
+    .map((cat) => ({
       ...cat,
-      channels: channels.filter(c => c.category_id === cat.id).sort((a, b) => a.position - b.position)
+      channels: channels
+        .filter((c) => c.category_id === cat.id)
+        .sort((a, b) => a.position - b.position),
     }));
 
-  const sortedCategories = [...categories].sort((a, b) => a.position - b.position);
+  const sortedCategories = [...categories].sort(
+    (a, b) => a.position - b.position,
+  );
 
   return (
     <div
       className="flex flex-col h-full overflow-hidden"
       style={{
-        ...(fullWidth ? { width: '100%' } : { width: '220px', minWidth: '220px' }),
-        background: nightMode ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.2)',
-        backdropFilter: 'blur(30px)',
-        WebkitBackdropFilter: 'blur(30px)',
-        borderRight: fullWidth ? 'none' : `1px solid ${nightMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+        ...(fullWidth
+          ? { width: "100%" }
+          : { width: "220px", minWidth: "220px" }),
+        background: nightMode
+          ? "rgba(0, 0, 0, 0.15)"
+          : "rgba(255, 255, 255, 0.2)",
+        backdropFilter: "blur(30px)",
+        WebkitBackdropFilter: "blur(30px)",
+        borderRight: fullWidth
+          ? "none"
+          : `1px solid ${nightMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}`,
       }}
     >
       {/* Premium banner */}
@@ -527,22 +730,25 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       <div
         className="px-4 py-3.5 flex items-center gap-2.5"
         style={{
-          borderBottom: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-          background: nightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)',
+          borderBottom: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+          background: nightMode ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.3)",
         }}
       >
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0"
           style={{
-            background: isPremium && premium.cosmetics?.accent_primary
-              ? `linear-gradient(135deg, ${premium.cosmetics.accent_primary} 0%, ${premium.cosmetics.accent_secondary || premium.cosmetics.accent_primary} 100%)`
-              : 'linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)',
-            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.25)',
+            background:
+              isPremium && premium.cosmetics?.accent_primary
+                ? `linear-gradient(135deg, ${premium.cosmetics.accent_primary} 0%, ${premium.cosmetics.accent_secondary || premium.cosmetics.accent_primary} 100%)`
+                : "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)",
+            boxShadow: "0 2px 8px rgba(59, 130, 246, 0.25)",
           }}
         >
           {serverEmoji}
         </div>
-        <h3 className={`font-bold text-sm truncate flex-1 ${nightMode ? 'text-white' : 'text-black'}`}>
+        <h3
+          className={`font-bold text-sm truncate flex-1 ${nightMode ? "text-white" : "text-black"}`}
+        >
           {serverName}
         </h3>
         {isPremium && premium.cosmetics?.is_verified && (
@@ -551,17 +757,29 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       </div>
 
       {/* Trial / Grace Period banners */}
-      {premium.status === 'trialing' && premium.daysUntilTrialEnd !== undefined && premium.daysUntilTrialEnd <= 7 && (
-        <TrialBanner nightMode={nightMode} daysLeft={premium.daysUntilTrialEnd} />
-      )}
+      {premium.status === "trialing" &&
+        premium.daysUntilTrialEnd !== undefined &&
+        premium.daysUntilTrialEnd <= 7 && (
+          <TrialBanner
+            nightMode={nightMode}
+            daysLeft={premium.daysUntilTrialEnd}
+          />
+        )}
       {premium.isPastDue && premium.subscription?.grace_period_end && (
         <GracePeriodBanner
           nightMode={nightMode}
-          daysLeft={Math.max(0, Math.ceil((new Date(premium.subscription.grace_period_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))}
+          daysLeft={Math.max(
+            0,
+            Math.ceil(
+              (new Date(premium.subscription.grace_period_end).getTime() -
+                Date.now()) /
+                (1000 * 60 * 60 * 24),
+            ),
+          )}
           onUpdatePayment={() => {
             // This would open the billing portal — we need the stripe_customer_id
             // For now, navigate to settings
-            if (typeof onOpenSettings === 'function') onOpenSettings();
+            if (typeof onOpenSettings === "function") onOpenSettings();
           }}
         />
       )}
@@ -573,33 +791,47 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
           <div
             className="rounded-xl overflow-hidden"
             style={{
-              background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
-              border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
+              background: nightMode
+                ? "rgba(255,255,255,0.04)"
+                : "rgba(255,255,255,0.4)",
+              border: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
             }}
           >
-            {uncategorizedChannels.sort((a, b) => a.position - b.position).map(channel => (
-              <ChannelItem
-                key={channel.id}
-                channel={channel}
-                isActive={channel.id === activeChannelId}
-                nightMode={nightMode}
-                onClick={() => onSelectChannel(channel.id)}
-                onContextMenu={(e) => handleChannelContextMenu(e, channel.id)}
-                onOptionsClick={(e) => handleChannelContextMenu(e, channel.id)}
-                onLongPress={(e) => handleChannelLongPress(channel.id, e)}
-                onTouchEnd={handleTouchEnd}
-                unreadCount={unreadCounts?.[channel.id] || 0}
-                isMuted={mutedChannels.has(channel.id)}
-                fullWidth={fullWidth}
-                draggable={canManageChannels && !isTouchDevice}
-                onDragStart={(e) => handleDragStart(e, 'channel', channel.id, null)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => handleDragOver(e, channel.id, 'channel')}
-                onDrop={(e) => handleChannelDrop(e, channel.id, null)}
-                isDragOver={dragOverId === channel.id && dragType === 'channel'}
-                dragOverPosition={dragOverId === channel.id ? dragOverPosition as 'above' | 'below' | null : null}
-              />
-            ))}
+            {uncategorizedChannels
+              .sort((a, b) => a.position - b.position)
+              .map((channel) => (
+                <ChannelItem
+                  key={channel.id}
+                  channel={channel}
+                  isActive={channel.id === activeChannelId}
+                  nightMode={nightMode}
+                  onClick={() => onSelectChannel(channel.id)}
+                  onContextMenu={(e) => handleChannelContextMenu(e, channel.id)}
+                  onOptionsClick={(e) =>
+                    handleChannelContextMenu(e, channel.id)
+                  }
+                  onLongPress={(e) => handleChannelLongPress(channel.id, e)}
+                  onTouchEnd={handleTouchEnd}
+                  unreadCount={unreadCounts?.[channel.id] || 0}
+                  isMuted={mutedChannels.has(channel.id)}
+                  fullWidth={fullWidth}
+                  draggable={canManageChannels && !isTouchDevice}
+                  onDragStart={(e) =>
+                    handleDragStart(e, "channel", channel.id, null)
+                  }
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => handleDragOver(e, channel.id, "channel")}
+                  onDrop={(e) => handleChannelDrop(e, channel.id, null)}
+                  isDragOver={
+                    dragOverId === channel.id && dragType === "channel"
+                  }
+                  dragOverPosition={
+                    dragOverId === channel.id
+                      ? (dragOverPosition as "above" | "below" | null)
+                      : null
+                  }
+                />
+              ))}
           </div>
         )}
 
@@ -609,14 +841,25 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
             {/* Category header */}
             <div
               className={`flex items-center gap-1 px-2 mb-1.5 group relative ${
-                dragOverId === group.id && dragType === 'category' && dragOverPosition === 'above' ? 'border-t-2 border-blue-500' :
-                dragOverId === group.id && dragType === 'category' && dragOverPosition === 'below' ? 'border-b-2 border-blue-500' :
-                dragOverId === group.id && dragType === 'channel' && dragOverPosition === 'inside' ? 'bg-blue-500/10 rounded-lg' : ''
+                dragOverId === group.id &&
+                dragType === "category" &&
+                dragOverPosition === "above"
+                  ? "border-t-2 border-blue-500"
+                  : dragOverId === group.id &&
+                      dragType === "category" &&
+                      dragOverPosition === "below"
+                    ? "border-b-2 border-blue-500"
+                    : dragOverId === group.id &&
+                        dragType === "channel" &&
+                        dragOverPosition === "inside"
+                      ? "bg-blue-500/10 rounded-lg"
+                      : ""
               }`}
+              role="presentation"
               draggable={canManageChannels && !isTouchDevice}
-              onDragStart={(e) => handleDragStart(e, 'category', group.id)}
+              onDragStart={(e) => handleDragStart(e, "category", group.id)}
               onDragEnd={handleDragEnd}
-              onDragOver={(e) => handleDragOver(e, group.id, 'category')}
+              onDragOver={(e) => handleDragOver(e, group.id, "category")}
               onDrop={(e) => handleCategoryDrop(e, group.id)}
             >
               {renamingCategoryId === group.id ? (
@@ -627,14 +870,17 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                     value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleConfirmRename();
-                      if (e.key === 'Escape') { setRenamingCategoryId(null); setRenameValue(''); }
+                      if (e.key === "Enter") handleConfirmRename();
+                      if (e.key === "Escape") {
+                        setRenamingCategoryId(null);
+                        setRenameValue("");
+                      }
                     }}
                     onBlur={handleConfirmRename}
                     className={`flex-1 text-xs font-semibold px-1.5 py-0.5 rounded-md outline-none ${
                       nightMode
-                        ? 'bg-white/10 text-white border border-white/20 focus:border-blue-400'
-                        : 'bg-white/60 text-black border border-black/10 focus:border-blue-500'
+                        ? "bg-white/10 text-white border border-white/20 focus:border-blue-400"
+                        : "bg-white/60 text-black border border-black/10 focus:border-blue-500"
                     }`}
                     maxLength={30}
                   />
@@ -643,13 +889,19 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                 <>
                   <button
                     onClick={() => toggleCategory(group.id)}
-                    onDoubleClick={() => canManageChannels && handleStartRename(group.id)}
-                    onContextMenu={(e) => handleCategoryContextMenu(e, group.id)}
+                    onDoubleClick={() =>
+                      canManageChannels && handleStartRename(group.id)
+                    }
+                    onContextMenu={(e) =>
+                      handleCategoryContextMenu(e, group.id)
+                    }
                     onTouchStart={(e) => handleCategoryLongPress(group.id, e)}
                     onTouchEnd={handleTouchEnd}
                     onTouchCancel={handleTouchEnd}
                     className={`flex items-center gap-1.5 flex-1 text-xs font-semibold uppercase tracking-wide ${
-                      nightMode ? 'text-white/50 hover:text-white/70' : 'text-black/50 hover:text-black/70'
+                      nightMode
+                        ? "text-white/50 hover:text-white/70"
+                        : "text-black/50 hover:text-black/70"
                     } transition-colors`}
                   >
                     {collapsedCategories.has(group.id) ? (
@@ -661,11 +913,15 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                   </button>
 
                   {canManageChannels && (
-                    <div className={`flex items-center gap-0.5 ${fullWidth ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
+                    <div
+                      className={`flex items-center gap-0.5 ${fullWidth ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}
+                    >
                       <button
                         onClick={() => onCreateChannel(group.id)}
                         className={`p-0.5 rounded transition-all ${
-                          nightMode ? 'text-white/30 hover:text-white/60 hover:bg-white/5' : 'text-black/30 hover:text-black/60 hover:bg-black/5'
+                          nightMode
+                            ? "text-white/30 hover:text-white/60 hover:bg-white/5"
+                            : "text-black/30 hover:text-black/60 hover:bg-black/5"
                         }`}
                         title="Add channel"
                       >
@@ -676,10 +932,17 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                           e.preventDefault();
                           e.stopPropagation();
                           const rect = e.currentTarget.getBoundingClientRect();
-                          setContextMenu({ type: 'category', id: group.id, x: rect.left, y: rect.bottom + 4 });
+                          setContextMenu({
+                            type: "category",
+                            id: group.id,
+                            x: rect.left,
+                            y: rect.bottom + 4,
+                          });
                         }}
                         className={`p-0.5 rounded transition-all ${
-                          nightMode ? 'text-white/30 hover:text-white/60 hover:bg-white/5' : 'text-black/30 hover:text-black/60 hover:bg-black/5'
+                          nightMode
+                            ? "text-white/30 hover:text-white/60 hover:bg-white/5"
+                            : "text-black/30 hover:text-black/60 hover:bg-black/5"
                         }`}
                         title="Category options"
                       >
@@ -692,60 +955,84 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
             </div>
 
             {/* Channels in category */}
-            {!collapsedCategories.has(group.id) && group.channels.length > 0 && (
-              <div
-                className="rounded-xl overflow-hidden"
-                style={{
-                  background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
-                  border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
-                }}
-              >
-                {group.channels.map(channel => (
-                  <ChannelItem
-                    key={channel.id}
-                    channel={channel}
-                    isActive={channel.id === activeChannelId}
-                    nightMode={nightMode}
-                    onClick={() => onSelectChannel(channel.id)}
-                    onContextMenu={(e) => handleChannelContextMenu(e, channel.id)}
-                    onOptionsClick={(e) => handleChannelContextMenu(e, channel.id)}
-                    onLongPress={(e) => handleChannelLongPress(channel.id, e)}
-                    onTouchEnd={handleTouchEnd}
-                    unreadCount={unreadCounts?.[channel.id] || 0}
-                    isMuted={mutedChannels.has(channel.id)}
-                    fullWidth={fullWidth}
-                    draggable={canManageChannels && !isTouchDevice}
-                    onDragStart={(e) => handleDragStart(e, 'channel', channel.id, group.id)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={(e) => handleDragOver(e, channel.id, 'channel')}
-                    onDrop={(e) => handleChannelDrop(e, channel.id, group.id)}
-                    isDragOver={dragOverId === channel.id && dragType === 'channel'}
-                    dragOverPosition={dragOverId === channel.id ? dragOverPosition as 'above' | 'below' | null : null}
-                  />
-                ))}
-              </div>
-            )}
+            {!collapsedCategories.has(group.id) &&
+              group.channels.length > 0 && (
+                <div
+                  className="rounded-xl overflow-hidden"
+                  style={{
+                    background: nightMode
+                      ? "rgba(255,255,255,0.04)"
+                      : "rgba(255,255,255,0.4)",
+                    border: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
+                  }}
+                >
+                  {group.channels.map((channel) => (
+                    <ChannelItem
+                      key={channel.id}
+                      channel={channel}
+                      isActive={channel.id === activeChannelId}
+                      nightMode={nightMode}
+                      onClick={() => onSelectChannel(channel.id)}
+                      onContextMenu={(e) =>
+                        handleChannelContextMenu(e, channel.id)
+                      }
+                      onOptionsClick={(e) =>
+                        handleChannelContextMenu(e, channel.id)
+                      }
+                      onLongPress={(e) => handleChannelLongPress(channel.id, e)}
+                      onTouchEnd={handleTouchEnd}
+                      unreadCount={unreadCounts?.[channel.id] || 0}
+                      isMuted={mutedChannels.has(channel.id)}
+                      fullWidth={fullWidth}
+                      draggable={canManageChannels && !isTouchDevice}
+                      onDragStart={(e) =>
+                        handleDragStart(e, "channel", channel.id, group.id)
+                      }
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) =>
+                        handleDragOver(e, channel.id, "channel")
+                      }
+                      onDrop={(e) => handleChannelDrop(e, channel.id, group.id)}
+                      isDragOver={
+                        dragOverId === channel.id && dragType === "channel"
+                      }
+                      dragOverPosition={
+                        dragOverId === channel.id
+                          ? (dragOverPosition as "above" | "below" | null)
+                          : null
+                      }
+                    />
+                  ))}
+                </div>
+              )}
           </div>
         ))}
 
         {/* Create new category inline form */}
         {showCreateCategory && (
           <div className="px-2 py-1.5">
-            <div className={`flex items-center gap-1 rounded-lg px-1.5 py-1.5 ${
-              nightMode ? 'bg-white/5 border border-white/10' : 'bg-white/50 border border-black/5'
-            }`}>
+            <div
+              className={`flex items-center gap-1 rounded-lg px-1.5 py-1.5 ${
+                nightMode
+                  ? "bg-white/5 border border-white/10"
+                  : "bg-white/50 border border-black/5"
+              }`}
+            >
               <input
                 ref={newCategoryInputRef}
                 type="text"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreateCategory();
-                  if (e.key === 'Escape') { setShowCreateCategory(false); setNewCategoryName(''); }
+                  if (e.key === "Enter") handleCreateCategory();
+                  if (e.key === "Escape") {
+                    setShowCreateCategory(false);
+                    setNewCategoryName("");
+                  }
                 }}
                 placeholder="Category name..."
                 className={`flex-1 min-w-0 text-xs font-semibold bg-transparent outline-none placeholder:opacity-40 ${
-                  nightMode ? 'text-white' : 'text-black'
+                  nightMode ? "text-white" : "text-black"
                 }`}
                 maxLength={30}
               />
@@ -754,17 +1041,24 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                 disabled={!newCategoryName.trim()}
                 className={`p-1 rounded transition-all flex-shrink-0 ${
                   newCategoryName.trim()
-                    ? 'text-blue-500 hover:bg-blue-500/10'
-                    : nightMode ? 'text-white/20' : 'text-black/20'
+                    ? "text-blue-500 hover:bg-blue-500/10"
+                    : nightMode
+                      ? "text-white/20"
+                      : "text-black/20"
                 }`}
                 title="Add category"
               >
                 <Check className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => { setShowCreateCategory(false); setNewCategoryName(''); }}
+                onClick={() => {
+                  setShowCreateCategory(false);
+                  setNewCategoryName("");
+                }}
                 className={`p-1 rounded transition-all flex-shrink-0 ${
-                  nightMode ? 'text-white/30 hover:text-white/60' : 'text-black/30 hover:text-black/60'
+                  nightMode
+                    ? "text-white/30 hover:text-white/60"
+                    : "text-black/30 hover:text-black/60"
                 }`}
                 title="Cancel"
               >
@@ -779,8 +1073,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       <div
         className="px-3 py-2.5 space-y-1"
         style={{
-          borderTop: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-          background: nightMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)',
+          borderTop: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+          background: nightMode ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.3)",
         }}
       >
         <div className="flex items-center gap-1">
@@ -788,7 +1082,9 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
             <button
               onClick={onOpenMembers}
               className={`flex-1 flex items-center gap-2.5 text-xs px-3 py-2 rounded-xl transition-all hover:scale-[1.02] active:scale-95 ${
-                nightMode ? 'text-white/50 hover:text-white/80 hover:bg-white/5' : 'text-black/50 hover:text-black/80 hover:bg-black/5'
+                nightMode
+                  ? "text-white/50 hover:text-white/80 hover:bg-white/5"
+                  : "text-black/50 hover:text-black/80 hover:bg-black/5"
               }`}
             >
               <Users className="w-4 h-4" />
@@ -799,7 +1095,9 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
             <button
               onClick={onShareInvite}
               className={`p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5'
+                nightMode
+                  ? "text-white/40 hover:text-white/70 hover:bg-white/5"
+                  : "text-black/40 hover:text-black/70 hover:bg-black/5"
               }`}
               title="Invite People"
             >
@@ -810,7 +1108,9 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
             <button
               onClick={onOpenAuditLog}
               className={`p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5'
+                nightMode
+                  ? "text-white/40 hover:text-white/70 hover:bg-white/5"
+                  : "text-black/40 hover:text-black/70 hover:bg-black/5"
               }`}
               title="Audit Log"
             >
@@ -824,7 +1124,9 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
             <button
               onClick={() => onCreateChannel()}
               className={`flex-1 flex items-center gap-2 text-xs px-3 py-2 rounded-xl transition-all hover:scale-[1.02] active:scale-95 ${
-                nightMode ? 'text-white/50 hover:text-white/80 hover:bg-white/5' : 'text-black/50 hover:text-black/80 hover:bg-black/5'
+                nightMode
+                  ? "text-white/50 hover:text-white/80 hover:bg-white/5"
+                  : "text-black/50 hover:text-black/80 hover:bg-black/5"
               }`}
             >
               <Plus className="w-4 h-4" />
@@ -834,7 +1136,9 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               <button
                 onClick={() => setShowCreateCategory(true)}
                 className={`p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                  nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5'
+                  nightMode
+                    ? "text-white/40 hover:text-white/70 hover:bg-white/5"
+                    : "text-black/40 hover:text-black/70 hover:bg-black/5"
                 }`}
                 title="Create Category"
               >
@@ -846,7 +1150,9 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
                 <button
                   onClick={onOpenRoles}
                   className={`p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                    nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5'
+                    nightMode
+                      ? "text-white/40 hover:text-white/70 hover:bg-white/5"
+                      : "text-black/40 hover:text-black/70 hover:bg-black/5"
                   }`}
                   title="Manage Roles"
                 >
@@ -856,7 +1162,9 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
               <button
                 onClick={onOpenSettings}
                 className={`p-2 rounded-xl transition-all hover:scale-105 active:scale-95 ${
-                  nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/5' : 'text-black/40 hover:text-black/70 hover:bg-black/5'
+                  nightMode
+                    ? "text-white/40 hover:text-white/70 hover:bg-white/5"
+                    : "text-black/40 hover:text-black/70 hover:bg-black/5"
                 }`}
                 title="Server Settings"
               >
@@ -868,461 +1176,692 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       </div>
 
       {/* Context menu — rendered via portal to escape backdrop-filter containing block */}
-      {contextMenu && createPortal(
-        <>
-          <div className="fixed inset-0 z-[100]" onClick={() => { setContextMenu(null); setShowMoveSubmenu(false); }} />
-          <div
-            ref={contextMenuRef}
-            className={`fixed z-[101] rounded-xl shadow-xl border overflow-visible ${
-              nightMode ? 'border-white/10' : 'border-black/10'
-            }`}
-            style={{
-              left: Math.min(contextMenu.x, window.innerWidth - 180),
-              top: Math.min(contextMenu.y, window.innerHeight - 200),
-              minWidth: '160px',
-              background: nightMode ? 'rgba(20, 20, 20, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-            }}
-          >
-            {contextMenu.type === 'category' ? (
-              <>
-                <button
-                  onClick={() => handleStartRename(contextMenu.id)}
-                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                    nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                  }`}
-                >
-                  <Edit3 className="w-4 h-4" /> Rename
-                </button>
-
-                {(() => {
-                  const idx = sortedCategories.findIndex(c => c.id === contextMenu.id);
-                  return (
-                    <>
-                      {idx > 0 && (
-                        <button
-                          onClick={() => handleMoveCategory(contextMenu.id, 'up')}
-                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                            nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                          }`}
-                        >
-                          <ArrowUp className="w-4 h-4" /> Move Up
-                        </button>
-                      )}
-                      {idx < sortedCategories.length - 1 && (
-                        <button
-                          onClick={() => handleMoveCategory(contextMenu.id, 'down')}
-                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                            nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                          }`}
-                        >
-                          <ArrowDown className="w-4 h-4" /> Move Down
-                        </button>
-                      )}
-                    </>
-                  );
-                })()}
-
-                <button
-                  onClick={() => { setContextMenu(null); onCreateChannel(contextMenu.id); }}
-                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                    nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                  }`}
-                >
-                  <Plus className="w-4 h-4" /> Add Channel
-                </button>
-
-                <div className={`mx-2 ${nightMode ? 'border-t border-white/10' : 'border-t border-black/10'}`} />
-
-                <button
-                  onClick={() => handleDeleteCategory(contextMenu.id)}
-                  className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                    nightMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'
-                  }`}
-                >
-                  <Trash2 className="w-4 h-4" /> Delete Category
-                </button>
-              </>
-            ) : (
-              /* Channel context menu */
-              <>
-                {canManageChannels && onUpdateChannel && (
+      {contextMenu &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[100]"
+              role="presentation"
+              onClick={() => {
+                setContextMenu(null);
+                setShowMoveSubmenu(false);
+              }}
+            />
+            <div
+              ref={contextMenuRef}
+              className={`fixed z-[101] rounded-xl shadow-xl border overflow-visible ${
+                nightMode ? "border-white/10" : "border-black/10"
+              }`}
+              style={{
+                left: Math.min(contextMenu.x, window.innerWidth - 180),
+                top: Math.min(contextMenu.y, window.innerHeight - 200),
+                minWidth: "160px",
+                background: nightMode
+                  ? "rgba(20, 20, 20, 0.95)"
+                  : "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+              }}
+            >
+              {contextMenu.type === "category" ? (
+                <>
                   <button
-                    onClick={() => handleStartEditChannel(contextMenu.id)}
+                    onClick={() => handleStartRename(contextMenu.id)}
                     className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                      nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                      nightMode
+                        ? "text-white/80 hover:bg-white/5"
+                        : "text-black/80 hover:bg-black/5"
                     }`}
                   >
-                    <Edit3 className="w-4 h-4" /> Edit Channel
+                    <Edit3 className="w-4 h-4" /> Rename
                   </button>
-                )}
 
-                {/* Move Up/Down */}
-                {canManageChannels && onReorderChannels && (() => {
-                  const ch = channels.find(c => c.id === contextMenu.id);
-                  if (!ch) return null;
-                  const categoryId = ch.category_id || null;
-                  const siblings = channels
-                    .filter(c => (c.category_id || null) === categoryId)
-                    .sort((a, b) => a.position - b.position);
-                  const idx = siblings.findIndex(c => c.id === contextMenu.id);
-                  return (
-                    <>
-                      {idx > 0 && (
-                        <button
-                          onClick={() => handleMoveChannel(contextMenu.id, 'up')}
-                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                            nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                          }`}
-                        >
-                          <ArrowUp className="w-4 h-4" /> Move Up
-                        </button>
-                      )}
-                      {idx < siblings.length - 1 && (
-                        <button
-                          onClick={() => handleMoveChannel(contextMenu.id, 'down')}
-                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                            nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                          }`}
-                        >
-                          <ArrowDown className="w-4 h-4" /> Move Down
-                        </button>
-                      )}
-                    </>
-                  );
-                })()}
-
-                {/* Move to Category */}
-                {canManageChannels && onMoveChannelToCategory && categories.length > 0 && (
-                  <div
-                    className="relative"
-                    onMouseEnter={() => setShowMoveSubmenu(true)}
-                    onMouseLeave={() => setShowMoveSubmenu(false)}
-                  >
-                    <button
-                      onClick={() => setShowMoveSubmenu(!showMoveSubmenu)}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                        nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                      }`}
-                    >
-                      <FolderInput className="w-4 h-4" /> Move to Category
-                      <ChevronRight className="w-3 h-3 ml-auto" />
-                    </button>
-                    {showMoveSubmenu && (
-                      <div
-                        className={`absolute top-0 rounded-xl shadow-xl border overflow-hidden min-w-[140px] ${
-                          nightMode ? 'border-white/10' : 'border-black/10'
-                        }`}
-                        style={{
-                          ...(contextMenu.x + 320 > window.innerWidth
-                            ? { right: '100%', marginRight: '4px' }
-                            : { left: '100%', marginLeft: '4px' }),
-                          background: nightMode ? 'rgba(20, 20, 20, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                        }}
-                      >
-                        <button
-                          onClick={() => { onMoveChannelToCategory(contextMenu.id, null); setContextMenu(null); setShowMoveSubmenu(false); }}
-                          className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors ${
-                            nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                          }`}
-                        >
-                          No Category
-                        </button>
-                        {[...categories].sort((a, b) => a.position - b.position).map(cat => (
+                  {(() => {
+                    const idx = sortedCategories.findIndex(
+                      (c) => c.id === contextMenu.id,
+                    );
+                    return (
+                      <>
+                        {idx > 0 && (
                           <button
-                            key={cat.id}
-                            onClick={() => { onMoveChannelToCategory(contextMenu.id, cat.id); setContextMenu(null); setShowMoveSubmenu(false); }}
-                            className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors ${
-                              nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
+                            onClick={() =>
+                              handleMoveCategory(contextMenu.id, "up")
+                            }
+                            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                              nightMode
+                                ? "text-white/80 hover:bg-white/5"
+                                : "text-black/80 hover:bg-black/5"
                             }`}
                           >
-                            {cat.name}
+                            <ArrowUp className="w-4 h-4" /> Move Up
+                          </button>
+                        )}
+                        {idx < sortedCategories.length - 1 && (
+                          <button
+                            onClick={() =>
+                              handleMoveCategory(contextMenu.id, "down")
+                            }
+                            className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                              nightMode
+                                ? "text-white/80 hover:bg-white/5"
+                                : "text-black/80 hover:bg-black/5"
+                            }`}
+                          >
+                            <ArrowDown className="w-4 h-4" /> Move Down
+                          </button>
+                        )}
+                      </>
+                    );
+                  })()}
+
+                  <button
+                    onClick={() => {
+                      setContextMenu(null);
+                      onCreateChannel(contextMenu.id);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                      nightMode
+                        ? "text-white/80 hover:bg-white/5"
+                        : "text-black/80 hover:bg-black/5"
+                    }`}
+                  >
+                    <Plus className="w-4 h-4" /> Add Channel
+                  </button>
+
+                  <div
+                    className={`mx-2 ${nightMode ? "border-t border-white/10" : "border-t border-black/10"}`}
+                  />
+
+                  <button
+                    onClick={() => handleDeleteCategory(contextMenu.id)}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                      nightMode
+                        ? "text-red-400 hover:bg-red-500/10"
+                        : "text-red-600 hover:bg-red-50"
+                    }`}
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete Category
+                  </button>
+                </>
+              ) : (
+                /* Channel context menu */
+                <>
+                  {canManageChannels && onUpdateChannel && (
+                    <button
+                      onClick={() => handleStartEditChannel(contextMenu.id)}
+                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                        nightMode
+                          ? "text-white/80 hover:bg-white/5"
+                          : "text-black/80 hover:bg-black/5"
+                      }`}
+                    >
+                      <Edit3 className="w-4 h-4" /> Edit Channel
+                    </button>
+                  )}
+
+                  {/* Move Up/Down */}
+                  {canManageChannels &&
+                    onReorderChannels &&
+                    (() => {
+                      const ch = channels.find((c) => c.id === contextMenu.id);
+                      if (!ch) return null;
+                      const categoryId = ch.category_id || null;
+                      const siblings = channels
+                        .filter((c) => (c.category_id || null) === categoryId)
+                        .sort((a, b) => a.position - b.position);
+                      const idx = siblings.findIndex(
+                        (c) => c.id === contextMenu.id,
+                      );
+                      return (
+                        <>
+                          {idx > 0 && (
+                            <button
+                              onClick={() =>
+                                handleMoveChannel(contextMenu.id, "up")
+                              }
+                              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                                nightMode
+                                  ? "text-white/80 hover:bg-white/5"
+                                  : "text-black/80 hover:bg-black/5"
+                              }`}
+                            >
+                              <ArrowUp className="w-4 h-4" /> Move Up
+                            </button>
+                          )}
+                          {idx < siblings.length - 1 && (
+                            <button
+                              onClick={() =>
+                                handleMoveChannel(contextMenu.id, "down")
+                              }
+                              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                                nightMode
+                                  ? "text-white/80 hover:bg-white/5"
+                                  : "text-black/80 hover:bg-black/5"
+                              }`}
+                            >
+                              <ArrowDown className="w-4 h-4" /> Move Down
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()}
+
+                  {/* Move to Category */}
+                  {canManageChannels &&
+                    onMoveChannelToCategory &&
+                    categories.length > 0 && (
+                      <div
+                        className="relative"
+                        role="presentation"
+                        onMouseEnter={() => setShowMoveSubmenu(true)}
+                        onMouseLeave={() => setShowMoveSubmenu(false)}
+                      >
+                        <button
+                          onClick={() => setShowMoveSubmenu(!showMoveSubmenu)}
+                          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                            nightMode
+                              ? "text-white/80 hover:bg-white/5"
+                              : "text-black/80 hover:bg-black/5"
+                          }`}
+                        >
+                          <FolderInput className="w-4 h-4" /> Move to Category
+                          <ChevronRight className="w-3 h-3 ml-auto" />
+                        </button>
+                        {showMoveSubmenu && (
+                          <div
+                            className={`absolute top-0 rounded-xl shadow-xl border overflow-hidden min-w-[140px] ${
+                              nightMode ? "border-white/10" : "border-black/10"
+                            }`}
+                            style={{
+                              ...(contextMenu.x + 320 > window.innerWidth
+                                ? { right: "100%", marginRight: "4px" }
+                                : { left: "100%", marginLeft: "4px" }),
+                              background: nightMode
+                                ? "rgba(20, 20, 20, 0.95)"
+                                : "rgba(255, 255, 255, 0.95)",
+                              backdropFilter: "blur(20px)",
+                              WebkitBackdropFilter: "blur(20px)",
+                            }}
+                          >
+                            <button
+                              onClick={() => {
+                                onMoveChannelToCategory(contextMenu.id, null);
+                                setContextMenu(null);
+                                setShowMoveSubmenu(false);
+                              }}
+                              className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors ${
+                                nightMode
+                                  ? "text-white/80 hover:bg-white/5"
+                                  : "text-black/80 hover:bg-black/5"
+                              }`}
+                            >
+                              No Category
+                            </button>
+                            {[...categories]
+                              .sort((a, b) => a.position - b.position)
+                              .map((cat) => (
+                                <button
+                                  key={cat.id}
+                                  onClick={() => {
+                                    onMoveChannelToCategory(
+                                      contextMenu.id,
+                                      cat.id,
+                                    );
+                                    setContextMenu(null);
+                                    setShowMoveSubmenu(false);
+                                  }}
+                                  className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors ${
+                                    nightMode
+                                      ? "text-white/80 hover:bg-white/5"
+                                      : "text-black/80 hover:bg-black/5"
+                                  }`}
+                                >
+                                  {cat.name}
+                                </button>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  <div
+                    className={`mx-2 ${nightMode ? "border-t border-white/10" : "border-t border-black/10"}`}
+                  />
+
+                  {/* Notification settings - available to ALL users */}
+                  {onSetChannelNotification ? (
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setShowNotifSubmenu(!showNotifSubmenu);
+                          setShowMoveSubmenu(false);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                          nightMode
+                            ? "text-white/80 hover:bg-white/5"
+                            : "text-black/80 hover:bg-black/5"
+                        }`}
+                      >
+                        <Bell className="w-4 h-4" /> Notifications
+                        <ChevronRight className="w-3 h-3 ml-auto" />
+                      </button>
+                      {showNotifSubmenu && (
+                        <div
+                          className={`absolute top-0 rounded-xl shadow-xl border overflow-hidden min-w-[150px] ${
+                            nightMode ? "border-white/10" : "border-black/10"
+                          }`}
+                          style={{
+                            ...(contextMenu.x + 320 > window.innerWidth
+                              ? { right: "100%", marginRight: "4px" }
+                              : { left: "100%", marginLeft: "4px" }),
+                            background: nightMode
+                              ? "rgba(20, 20, 20, 0.95)"
+                              : "rgba(255, 255, 255, 0.95)",
+                            backdropFilter: "blur(20px)",
+                            WebkitBackdropFilter: "blur(20px)",
+                          }}
+                        >
+                          {[
+                            { value: "default", label: "Server Default" },
+                            { value: "all", label: "All Messages" },
+                            { value: "mentions", label: "@Mentions Only" },
+                            { value: "none", label: "Nothing (Mute)" },
+                          ].map((opt) => {
+                            const currentLevel =
+                              channelNotificationOverrides?.[contextMenu.id] ||
+                              "default";
+                            const isSelected = currentLevel === opt.value;
+                            return (
+                              <button
+                                key={opt.value}
+                                onClick={() => {
+                                  onSetChannelNotification(
+                                    contextMenu.id,
+                                    opt.value,
+                                  );
+                                  if (opt.value === "none") {
+                                    if (!mutedChannels.has(contextMenu.id))
+                                      toggleMuteChannel(contextMenu.id);
+                                  } else {
+                                    if (mutedChannels.has(contextMenu.id))
+                                      toggleMuteChannel(contextMenu.id);
+                                  }
+                                  setContextMenu(null);
+                                  setShowNotifSubmenu(false);
+                                }}
+                                className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors flex items-center gap-2 ${
+                                  isSelected
+                                    ? nightMode
+                                      ? "bg-blue-500/10 text-blue-300"
+                                      : "bg-blue-500/10 text-blue-600"
+                                    : nightMode
+                                      ? "text-white/80 hover:bg-white/5"
+                                      : "text-black/80 hover:bg-black/5"
+                                }`}
+                              >
+                                {opt.label}
+                                {isSelected && (
+                                  <Check className="w-3 h-3 ml-auto" />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        toggleMuteChannel(contextMenu.id);
+                        setContextMenu(null);
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                        nightMode
+                          ? "text-white/80 hover:bg-white/5"
+                          : "text-black/80 hover:bg-black/5"
+                      }`}
+                    >
+                      <BellOff className="w-4 h-4" />{" "}
+                      {mutedChannels.has(contextMenu.id)
+                        ? "Unmute Channel"
+                        : "Mute Channel"}
+                    </button>
+                  )}
+
+                  {canManageChannels && onDeleteChannel && (
+                    <button
+                      onClick={() => handleDeleteChannelClick(contextMenu.id)}
+                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
+                        nightMode
+                          ? "text-red-400 hover:bg-red-500/10"
+                          : "text-red-600 hover:bg-red-50"
+                      }`}
+                    >
+                      <Trash2 className="w-4 h-4" /> Delete Channel
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </>,
+          document.body,
+        )}
+
+      {/* Channel edit modal — rendered via portal to escape backdrop-filter containing block */}
+      {editingChannelId &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 z-[100] bg-black/30"
+              role="presentation"
+              onClick={() => {
+                setEditingChannelId(null);
+                setEditChannelName("");
+                setEditChannelTopic("");
+                setEditChannelPrivate(false);
+                setEditChannelEmoji("");
+                setEditChannelAllowedRoles([]);
+                setShowEmojiPicker(false);
+              }}
+            />
+            <div
+              className="fixed z-[101] rounded-2xl shadow-2xl p-5 w-[90%] max-w-sm max-h-[90vh] overflow-y-auto"
+              style={{
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                background: nightMode
+                  ? "rgba(20, 20, 30, 0.95)"
+                  : "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(30px)",
+                WebkitBackdropFilter: "blur(30px)",
+                border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
+              }}
+            >
+              <h3
+                className={`text-base font-bold mb-4 flex items-center gap-2 ${nightMode ? "text-white" : "text-black"}`}
+              >
+                <Hash className="w-4 h-4" /> Edit Channel
+              </h3>
+
+              <div className="space-y-3">
+                <div>
+                  <label
+                    htmlFor="channel-name"
+                    className={`block text-xs font-semibold mb-1 ${nightMode ? "text-white/50" : "text-black/50"}`}
+                  >
+                    Name
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 transition-all hover:scale-105 active:scale-95 ${
+                        nightMode
+                          ? "bg-white/10 border border-white/15 hover:bg-white/15"
+                          : "bg-white/60 border border-black/08 hover:bg-white/80"
+                      }`}
+                      title="Choose emoji"
+                    >
+                      {editChannelEmoji || getChannelEmoji(editChannelName)}
+                    </button>
+                    <input
+                      id="channel-name"
+                      ref={channelEditNameRef}
+                      type="text"
+                      value={editChannelName}
+                      onChange={(e) => setEditChannelName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveChannelEdit();
+                      }}
+                      className={`flex-1 px-3 py-2 rounded-xl text-sm ${nightMode ? "text-white bg-white/10 border border-white/15" : "text-black bg-white/60 border border-black/08"}`}
+                      maxLength={30}
+                    />
+                  </div>
+                  {showEmojiPicker && (
+                    <div
+                      className={`mt-2 p-2 rounded-xl border ${nightMode ? "bg-white/5 border-white/10" : "bg-white/60 border-black/05"}`}
+                    >
+                      <div className="grid grid-cols-8 gap-1">
+                        {[
+                          "\u{1F4AC}",
+                          "\u{1F64F}",
+                          "\u{1F4D6}",
+                          "\u{1F3B5}",
+                          "\u{1F4E2}",
+                          "\u{1F44B}",
+                          "\u{1F4C5}",
+                          "\u{1F91D}",
+                          "\u{2728}",
+                          "\u{1F389}",
+                          "\u{1F4F7}",
+                          "\u{1F517}",
+                          "\u{1F3A4}",
+                          "\u{1F31F}",
+                          "\u{1F54A}\u{FE0F}",
+                          "\u{26EA}",
+                          "\u{2764}\u{FE0F}",
+                          "\u{1F525}",
+                          "\u{271D}\u{FE0F}",
+                          "\u{1F451}",
+                          "\u{1F6E1}\u{FE0F}",
+                          "\u{1F3AE}",
+                          "\u{1F4BB}",
+                          "\u{1F4DA}",
+                          "\u{1F3A8}",
+                          "\u{1F30D}",
+                          "\u{1F680}",
+                          "\u{1F4A1}",
+                          "\u{1F3C6}",
+                          "\u{1F381}",
+                          "\u{1F4DD}",
+                          "\u{1F512}",
+                        ].map((emoji) => (
+                          <button
+                            key={emoji}
+                            onClick={() => {
+                              setEditChannelEmoji(emoji);
+                              setShowEmojiPicker(false);
+                            }}
+                            className={`text-lg p-1.5 rounded-lg transition-all hover:scale-110 active:scale-95 ${
+                              editChannelEmoji === emoji
+                                ? "bg-blue-500/20 ring-1 ring-blue-500"
+                                : nightMode
+                                  ? "hover:bg-white/10"
+                                  : "hover:bg-black/5"
+                            }`}
+                          >
+                            {emoji}
                           </button>
                         ))}
                       </div>
-                    )}
-                  </div>
-                )}
-
-                <div className={`mx-2 ${nightMode ? 'border-t border-white/10' : 'border-t border-black/10'}`} />
-
-                {/* Notification settings - available to ALL users */}
-                {onSetChannelNotification ? (
-                  <div className="relative">
-                    <button
-                      onClick={() => { setShowNotifSubmenu(!showNotifSubmenu); setShowMoveSubmenu(false); }}
-                      className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                        nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                      }`}
-                    >
-                      <Bell className="w-4 h-4" /> Notifications
-                      <ChevronRight className="w-3 h-3 ml-auto" />
-                    </button>
-                    {showNotifSubmenu && (
-                      <div
-                        className={`absolute top-0 rounded-xl shadow-xl border overflow-hidden min-w-[150px] ${
-                          nightMode ? 'border-white/10' : 'border-black/10'
-                        }`}
-                        style={{
-                          ...(contextMenu.x + 320 > window.innerWidth
-                            ? { right: '100%', marginRight: '4px' }
-                            : { left: '100%', marginLeft: '4px' }),
-                          background: nightMode ? 'rgba(20, 20, 20, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
-                        }}
-                      >
-                        {[
-                          { value: 'default', label: 'Server Default' },
-                          { value: 'all', label: 'All Messages' },
-                          { value: 'mentions', label: '@Mentions Only' },
-                          { value: 'none', label: 'Nothing (Mute)' },
-                        ].map(opt => {
-                          const currentLevel = channelNotificationOverrides?.[contextMenu.id] || 'default';
-                          const isSelected = currentLevel === opt.value;
-                          return (
-                            <button
-                              key={opt.value}
-                              onClick={() => {
-                                onSetChannelNotification(contextMenu.id, opt.value);
-                                if (opt.value === 'none') {
-                                  if (!mutedChannels.has(contextMenu.id)) toggleMuteChannel(contextMenu.id);
-                                } else {
-                                  if (mutedChannels.has(contextMenu.id)) toggleMuteChannel(contextMenu.id);
-                                }
-                                setContextMenu(null);
-                                setShowNotifSubmenu(false);
-                              }}
-                              className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors flex items-center gap-2 ${
-                                isSelected
-                                  ? nightMode ? 'bg-blue-500/10 text-blue-300' : 'bg-blue-500/10 text-blue-600'
-                                  : nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                              }`}
-                            >
-                              {opt.label}
-                              {isSelected && <Check className="w-3 h-3 ml-auto" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => { toggleMuteChannel(contextMenu.id); setContextMenu(null); }}
-                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                      nightMode ? 'text-white/80 hover:bg-white/5' : 'text-black/80 hover:bg-black/5'
-                    }`}
-                  >
-                    <BellOff className="w-4 h-4" /> {mutedChannels.has(contextMenu.id) ? 'Unmute Channel' : 'Mute Channel'}
-                  </button>
-                )}
-
-                {canManageChannels && onDeleteChannel && (
-                  <button
-                    onClick={() => handleDeleteChannelClick(contextMenu.id)}
-                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors ${
-                      nightMode ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'
-                    }`}
-                  >
-                    <Trash2 className="w-4 h-4" /> Delete Channel
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </>,
-        document.body
-      )}
-
-      {/* Channel edit modal — rendered via portal to escape backdrop-filter containing block */}
-      {editingChannelId && createPortal(
-        <>
-          <div className="fixed inset-0 z-[100] bg-black/30" onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); setEditChannelPrivate(false); setEditChannelEmoji(''); setEditChannelAllowedRoles([]); setShowEmojiPicker(false); }} />
-          <div
-            className="fixed z-[101] rounded-2xl shadow-2xl p-5 w-[90%] max-w-sm max-h-[90vh] overflow-y-auto"
-            style={{
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              background: nightMode ? 'rgba(20, 20, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(30px)',
-              WebkitBackdropFilter: 'blur(30px)',
-              border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
-            }}
-          >
-            <h3 className={`text-base font-bold mb-4 flex items-center gap-2 ${nightMode ? 'text-white' : 'text-black'}`}>
-              <Hash className="w-4 h-4" /> Edit Channel
-            </h3>
-
-            <div className="space-y-3">
-              <div>
-                <label className={`block text-xs font-semibold mb-1 ${nightMode ? 'text-white/50' : 'text-black/50'}`}>Name</label>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 transition-all hover:scale-105 active:scale-95 ${
-                      nightMode ? 'bg-white/10 border border-white/15 hover:bg-white/15' : 'bg-white/60 border border-black/08 hover:bg-white/80'
-                    }`}
-                    title="Choose emoji"
-                  >
-                    {editChannelEmoji || getChannelEmoji(editChannelName)}
-                  </button>
-                  <input
-                    ref={channelEditNameRef}
-                    type="text"
-                    value={editChannelName}
-                    onChange={(e) => setEditChannelName(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveChannelEdit(); }}
-                    className={`flex-1 px-3 py-2 rounded-xl text-sm ${nightMode ? 'text-white bg-white/10 border border-white/15' : 'text-black bg-white/60 border border-black/08'}`}
-                    maxLength={30}
-                  />
-                </div>
-                {showEmojiPicker && (
-                  <div className={`mt-2 p-2 rounded-xl border ${nightMode ? 'bg-white/5 border-white/10' : 'bg-white/60 border-black/05'}`}>
-                    <div className="grid grid-cols-8 gap-1">
-                      {['\u{1F4AC}', '\u{1F64F}', '\u{1F4D6}', '\u{1F3B5}', '\u{1F4E2}', '\u{1F44B}', '\u{1F4C5}', '\u{1F91D}',
-                        '\u{2728}', '\u{1F389}', '\u{1F4F7}', '\u{1F517}', '\u{1F3A4}', '\u{1F31F}', '\u{1F54A}\u{FE0F}', '\u{26EA}',
-                        '\u{2764}\u{FE0F}', '\u{1F525}', '\u{271D}\u{FE0F}', '\u{1F451}', '\u{1F6E1}\u{FE0F}', '\u{1F3AE}', '\u{1F4BB}', '\u{1F4DA}',
-                        '\u{1F3A8}', '\u{1F30D}', '\u{1F680}', '\u{1F4A1}', '\u{1F3C6}', '\u{1F381}', '\u{1F4DD}', '\u{1F512}'
-                      ].map(emoji => (
+                      {editChannelEmoji && (
                         <button
-                          key={emoji}
-                          onClick={() => { setEditChannelEmoji(emoji); setShowEmojiPicker(false); }}
-                          className={`text-lg p-1.5 rounded-lg transition-all hover:scale-110 active:scale-95 ${
-                            editChannelEmoji === emoji
-                              ? 'bg-blue-500/20 ring-1 ring-blue-500'
-                              : nightMode ? 'hover:bg-white/10' : 'hover:bg-black/5'
+                          onClick={() => {
+                            setEditChannelEmoji("");
+                            setShowEmojiPicker(false);
+                          }}
+                          className={`mt-2 w-full text-xs py-1.5 rounded-lg transition-all ${
+                            nightMode
+                              ? "text-white/40 hover:bg-white/5"
+                              : "text-black/40 hover:bg-black/5"
                           }`}
                         >
-                          {emoji}
+                          Reset to auto
                         </button>
-                      ))}
+                      )}
                     </div>
-                    {editChannelEmoji && (
-                      <button
-                        onClick={() => { setEditChannelEmoji(''); setShowEmojiPicker(false); }}
-                        className={`mt-2 w-full text-xs py-1.5 rounded-lg transition-all ${
-                          nightMode ? 'text-white/40 hover:bg-white/5' : 'text-black/40 hover:bg-black/5'
+                  )}
+                </div>
+                <div>
+                  <label
+                    htmlFor="channel-topic"
+                    className={`block text-xs font-semibold mb-1 ${nightMode ? "text-white/50" : "text-black/50"}`}
+                  >
+                    Topic{" "}
+                    <span
+                      className={`font-normal ${nightMode ? "text-white/25" : "text-black/25"}`}
+                    >
+                      (optional)
+                    </span>
+                  </label>
+                  <input
+                    id="channel-topic"
+                    type="text"
+                    value={editChannelTopic}
+                    onChange={(e) => setEditChannelTopic(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveChannelEdit();
+                    }}
+                    placeholder="Channel topic..."
+                    className={`w-full px-3 py-2 rounded-xl text-sm ${nightMode ? "text-white placeholder-white/25 bg-white/10 border border-white/15" : "text-black placeholder-black/25 bg-white/60 border border-black/08"}`}
+                    maxLength={100}
+                  />
+                </div>
+
+                {/* Privacy toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Lock
+                      className={`w-4 h-4 ${nightMode ? "text-white/50" : "text-black/50"}`}
+                    />
+                    <div>
+                      <p
+                        className={`text-xs font-semibold ${nightMode ? "text-white/70" : "text-black/70"}`}
+                      >
+                        Private Channel
+                      </p>
+                      <p
+                        className={`text-[10px] ${nightMode ? "text-white/30" : "text-black/30"}`}
+                      >
+                        Only visible to members with access
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setEditChannelPrivate(!editChannelPrivate)}
+                    className={`w-10 h-6 rounded-full transition-colors relative ${editChannelPrivate ? "bg-blue-500" : nightMode ? "bg-white/20" : "bg-black/20"}`}
+                  >
+                    <div
+                      className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${editChannelPrivate ? "translate-x-5" : "translate-x-1"}`}
+                    />
+                  </button>
+                </div>
+
+                {/* Role access selector (shown when private) */}
+                {editChannelPrivate &&
+                  roles &&
+                  roles.filter((r) => !r.is_default).length > 0 && (
+                    <div>
+                      <p
+                        className={`text-xs font-semibold mb-2 ${nightMode ? "text-white/60" : "text-black/60"}`}
+                      >
+                        Roles with access
+                      </p>
+                      <div
+                        className={`space-y-1 max-h-32 overflow-y-auto rounded-xl p-2 ${
+                          nightMode
+                            ? "bg-white/5 border border-white/10"
+                            : "bg-black/3 border border-black/5"
                         }`}
                       >
-                        Reset to auto
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className={`block text-xs font-semibold mb-1 ${nightMode ? 'text-white/50' : 'text-black/50'}`}>
-                  Topic <span className={`font-normal ${nightMode ? 'text-white/25' : 'text-black/25'}`}>(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={editChannelTopic}
-                  onChange={(e) => setEditChannelTopic(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleSaveChannelEdit(); }}
-                  placeholder="Channel topic..."
-                  className={`w-full px-3 py-2 rounded-xl text-sm ${nightMode ? 'text-white placeholder-white/25 bg-white/10 border border-white/15' : 'text-black placeholder-black/25 bg-white/60 border border-black/08'}`}
-                  maxLength={100}
-                />
+                        {roles
+                          .filter((r) => !r.is_default)
+                          .sort((a, b) => a.position - b.position)
+                          .map((role) => (
+                            <label
+                              key={role.id}
+                              className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${
+                                nightMode
+                                  ? "hover:bg-white/5"
+                                  : "hover:bg-black/3"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={editChannelAllowedRoles.includes(
+                                  role.id,
+                                )}
+                                onChange={() => {
+                                  setEditChannelAllowedRoles((prev) =>
+                                    prev.includes(role.id)
+                                      ? prev.filter((id) => id !== role.id)
+                                      : [...prev, role.id],
+                                  );
+                                }}
+                                className="w-3.5 h-3.5 rounded accent-blue-500"
+                              />
+                              <div
+                                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                style={{
+                                  backgroundColor: role.color || "#99AAB5",
+                                }}
+                              />
+                              <span
+                                className={`text-xs font-medium ${nightMode ? "text-white/70" : "text-black/70"}`}
+                              >
+                                {role.name}
+                              </span>
+                            </label>
+                          ))}
+                      </div>
+                      <p
+                        className={`text-[10px] mt-1.5 ${nightMode ? "text-white/25" : "text-black/25"}`}
+                      >
+                        Server owner and "Manage Channels" roles always have
+                        access.
+                      </p>
+                    </div>
+                  )}
               </div>
 
-              {/* Privacy toggle */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Lock className={`w-4 h-4 ${nightMode ? 'text-white/50' : 'text-black/50'}`} />
-                  <div>
-                    <p className={`text-xs font-semibold ${nightMode ? 'text-white/70' : 'text-black/70'}`}>Private Channel</p>
-                    <p className={`text-[10px] ${nightMode ? 'text-white/30' : 'text-black/30'}`}>Only visible to members with access</p>
-                  </div>
-                </div>
+              <div className="flex gap-2 mt-4">
                 <button
-                  onClick={() => setEditChannelPrivate(!editChannelPrivate)}
-                  className={`w-10 h-6 rounded-full transition-colors relative ${editChannelPrivate ? 'bg-blue-500' : (nightMode ? 'bg-white/20' : 'bg-black/20')}`}
+                  onClick={handleSaveChannelEdit}
+                  disabled={!editChannelName.trim()}
+                  className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)",
+                  }}
                 >
-                  <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${editChannelPrivate ? 'translate-x-5' : 'translate-x-1'}`} />
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingChannelId(null);
+                    setEditChannelName("");
+                    setEditChannelTopic("");
+                    setEditChannelPrivate(false);
+                    setEditChannelEmoji("");
+                    setEditChannelAllowedRoles([]);
+                    setShowEmojiPicker(false);
+                  }}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+                    nightMode
+                      ? "bg-white/10 text-white hover:bg-white/15"
+                      : "bg-black/5 text-black hover:bg-black/10"
+                  }`}
+                >
+                  Cancel
                 </button>
               </div>
-
-              {/* Role access selector (shown when private) */}
-              {editChannelPrivate && roles && roles.filter(r => !r.is_default).length > 0 && (
-                <div>
-                  <p className={`text-xs font-semibold mb-2 ${nightMode ? 'text-white/60' : 'text-black/60'}`}>
-                    Roles with access
-                  </p>
-                  <div
-                    className={`space-y-1 max-h-32 overflow-y-auto rounded-xl p-2 ${
-                      nightMode ? 'bg-white/5 border border-white/10' : 'bg-black/3 border border-black/5'
-                    }`}
-                  >
-                    {roles.filter(r => !r.is_default).sort((a, b) => a.position - b.position).map(role => (
-                      <label
-                        key={role.id}
-                        className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${
-                          nightMode ? 'hover:bg-white/5' : 'hover:bg-black/3'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={editChannelAllowedRoles.includes(role.id)}
-                          onChange={() => {
-                            setEditChannelAllowedRoles(prev =>
-                              prev.includes(role.id)
-                                ? prev.filter(id => id !== role.id)
-                                : [...prev, role.id]
-                            );
-                          }}
-                          className="w-3.5 h-3.5 rounded accent-blue-500"
-                        />
-                        <div
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: role.color || '#99AAB5' }}
-                        />
-                        <span className={`text-xs font-medium ${nightMode ? 'text-white/70' : 'text-black/70'}`}>
-                          {role.name}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                  <p className={`text-[10px] mt-1.5 ${nightMode ? 'text-white/25' : 'text-black/25'}`}>
-                    Server owner and "Manage Channels" roles always have access.
-                  </p>
-                </div>
-              )}
             </div>
-
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={handleSaveChannelEdit}
-                disabled={!editChannelName.trim()}
-                className="flex-1 py-2.5 rounded-xl text-white font-bold text-sm transition-all active:scale-95 disabled:opacity-40"
-                style={{ background: 'linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)' }}
-              >
-                Save
-              </button>
-              <button
-                onClick={() => { setEditingChannelId(null); setEditChannelName(''); setEditChannelTopic(''); setEditChannelPrivate(false); setEditChannelEmoji(''); setEditChannelAllowedRoles([]); setShowEmojiPicker(false); }}
-                className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
-                  nightMode ? 'bg-white/10 text-white hover:bg-white/15' : 'bg-black/5 text-black hover:bg-black/10'
-                }`}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
+          </>,
+          document.body,
+        )}
     </div>
   );
 };
 
 // Individual channel item with unread badge, DnD, mute indicator
 const ChannelItem: React.FC<{
-  channel: { id: string; name: string; topic?: string; is_private?: boolean; emoji_icon?: string };
+  channel: {
+    id: string;
+    name: string;
+    topic?: string;
+    is_private?: boolean;
+    emoji_icon?: string;
+  };
   isActive: boolean;
   nightMode: boolean;
   onClick: () => void;
@@ -1339,8 +1878,27 @@ const ChannelItem: React.FC<{
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
   isDragOver?: boolean;
-  dragOverPosition?: 'above' | 'below' | null;
-}> = ({ channel, isActive, nightMode, onClick, onContextMenu, onOptionsClick, onLongPress, onTouchEnd, unreadCount, isMuted, fullWidth, draggable, onDragStart, onDragEnd, onDragOver, onDrop, isDragOver, dragOverPosition }) => {
+  dragOverPosition?: "above" | "below" | null;
+}> = ({
+  channel,
+  isActive,
+  nightMode,
+  onClick,
+  onContextMenu,
+  onOptionsClick,
+  onLongPress,
+  onTouchEnd,
+  unreadCount,
+  isMuted,
+  fullWidth,
+  draggable,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDrop,
+  isDragOver,
+  dragOverPosition,
+}) => {
   const hasUnread = !isMuted && (unreadCount || 0) > 0;
 
   return (
@@ -1358,36 +1916,53 @@ const ChannelItem: React.FC<{
       role="button"
       tabIndex={0}
       className={`group/channel w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-all cursor-pointer ${
-        isDragOver && dragOverPosition === 'above' ? 'border-t-2 border-blue-500' :
-        isDragOver && dragOverPosition === 'below' ? 'border-b-2 border-blue-500' : ''
+        isDragOver && dragOverPosition === "above"
+          ? "border-t-2 border-blue-500"
+          : isDragOver && dragOverPosition === "below"
+            ? "border-b-2 border-blue-500"
+            : ""
       } ${
         isActive
-          ? 'font-semibold'
+          ? "font-semibold"
           : hasUnread
-            ? nightMode ? 'text-white font-semibold' : 'text-black font-semibold'
-            : nightMode ? 'text-white/50 hover:text-white/80' : 'text-black/50 hover:text-black/80'
+            ? nightMode
+              ? "text-white font-semibold"
+              : "text-black font-semibold"
+            : nightMode
+              ? "text-white/50 hover:text-white/80"
+              : "text-black/50 hover:text-black/80"
       }`}
-      style={isActive ? {
-        background: nightMode
-          ? 'linear-gradient(90deg, rgba(79, 150, 255, 0.15), rgba(59, 130, 246, 0.05))'
-          : 'linear-gradient(90deg, rgba(79, 150, 255, 0.12), rgba(59, 130, 246, 0.03))',
-        color: nightMode ? '#93bbff' : '#2563eb',
-        borderLeft: '3px solid rgba(79, 150, 255, 0.7)',
-      } : {
-        borderLeft: '3px solid transparent',
-      }}
+      style={
+        isActive
+          ? {
+              background: nightMode
+                ? "linear-gradient(90deg, rgba(79, 150, 255, 0.15), rgba(59, 130, 246, 0.05))"
+                : "linear-gradient(90deg, rgba(79, 150, 255, 0.12), rgba(59, 130, 246, 0.03))",
+              color: nightMode ? "#93bbff" : "#2563eb",
+              borderLeft: "3px solid rgba(79, 150, 255, 0.7)",
+            }
+          : {
+              borderLeft: "3px solid transparent",
+            }
+      }
     >
-      <span className="text-base flex-shrink-0">{channel.emoji_icon || getChannelEmoji(channel.name)}</span>
+      <span className="text-base flex-shrink-0">
+        {channel.emoji_icon || getChannelEmoji(channel.name)}
+      </span>
       <span className="truncate flex-1 text-left">{channel.name}</span>
 
       {/* Private indicator */}
       {channel.is_private && (
-        <Lock className={`w-3 h-3 flex-shrink-0 ${nightMode ? 'text-white/30' : 'text-black/30'}`} />
+        <Lock
+          className={`w-3 h-3 flex-shrink-0 ${nightMode ? "text-white/30" : "text-black/30"}`}
+        />
       )}
 
       {/* Muted indicator */}
       {isMuted && (
-        <BellOff className={`w-3 h-3 flex-shrink-0 ${nightMode ? 'text-white/30' : 'text-black/30'}`} />
+        <BellOff
+          className={`w-3 h-3 flex-shrink-0 ${nightMode ? "text-white/30" : "text-black/30"}`}
+        />
       )}
 
       {/* Unread badge */}
@@ -1395,22 +1970,29 @@ const ChannelItem: React.FC<{
         <span
           className="min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 px-1"
           style={{
-            background: 'linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)',
-            boxShadow: '0 1px 4px rgba(59, 130, 246, 0.3)',
+            background: "linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)",
+            boxShadow: "0 1px 4px rgba(59, 130, 246, 0.3)",
           }}
         >
-          {(unreadCount || 0) > 99 ? '99+' : unreadCount}
+          {(unreadCount || 0) > 99 ? "99+" : unreadCount}
         </span>
       )}
 
       {/* 3-dots options button */}
       {onOptionsClick && (
         <button
-          onClick={(e) => { e.stopPropagation(); onOptionsClick(e); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onOptionsClick(e);
+          }}
           className={`p-0.5 rounded flex-shrink-0 transition-all ${
-            fullWidth ? 'opacity-70' : 'opacity-0 group-hover/channel:opacity-70'
+            fullWidth
+              ? "opacity-70"
+              : "opacity-0 group-hover/channel:opacity-70"
           } ${
-            nightMode ? 'text-white/40 hover:text-white/70 hover:bg-white/10' : 'text-black/40 hover:text-black/70 hover:bg-black/10'
+            nightMode
+              ? "text-white/40 hover:text-white/70 hover:bg-white/10"
+              : "text-black/40 hover:text-black/70 hover:bg-black/10"
           }`}
           title="Channel options"
         >
