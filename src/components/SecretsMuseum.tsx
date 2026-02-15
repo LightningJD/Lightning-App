@@ -1,6 +1,6 @@
-import React from 'react';
-import { X, Lock, CheckCircle, Trophy, Sparkles } from 'lucide-react';
-import { getAllSecretsWithStatus, getSecretProgress } from '../lib/secrets';
+import React from "react";
+import { X, Lock, CheckCircle, Trophy, Sparkles } from "lucide-react";
+import { getAllSecretsWithStatus, getSecretProgress } from "../lib/secrets";
 
 /**
  * Secret Museum
@@ -15,26 +15,30 @@ interface SecretsMuseumProps {
   nightMode: boolean;
 }
 
-type Rarity = 'common' | 'rare' | 'epic' | 'legendary';
+type Rarity = "common" | "rare" | "epic" | "legendary";
 
-const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMode }) => {
+const SecretsMuseum: React.FC<SecretsMuseumProps> = ({
+  isOpen,
+  onClose,
+  nightMode,
+}) => {
   if (!isOpen) return null;
 
   const secrets = getAllSecretsWithStatus();
   const { found, total, percentage } = getSecretProgress();
 
   const rarityColors: Record<Rarity, string> = {
-    common: nightMode ? 'text-green-400' : 'text-green-600',
-    rare: nightMode ? 'text-blue-400' : 'text-blue-600',
-    epic: nightMode ? 'text-purple-400' : 'text-purple-600',
-    legendary: nightMode ? 'text-yellow-400' : 'text-yellow-600'
+    common: nightMode ? "text-green-400" : "text-green-600",
+    rare: nightMode ? "text-blue-400" : "text-blue-600",
+    epic: nightMode ? "text-purple-400" : "text-purple-600",
+    legendary: nightMode ? "text-yellow-400" : "text-yellow-600",
   };
 
   const rarityBgColors: Record<Rarity, string> = {
-    common: nightMode ? 'bg-green-500/20' : 'bg-green-100',
-    rare: nightMode ? 'bg-blue-500/20' : 'bg-blue-100',
-    epic: nightMode ? 'bg-purple-500/20' : 'bg-purple-100',
-    legendary: nightMode ? 'bg-yellow-500/20' : 'bg-yellow-100'
+    common: nightMode ? "bg-green-500/20" : "bg-green-100",
+    rare: nightMode ? "bg-blue-500/20" : "bg-blue-100",
+    epic: nightMode ? "bg-purple-500/20" : "bg-purple-100",
+    legendary: nightMode ? "bg-yellow-500/20" : "bg-yellow-100",
   };
 
   return (
@@ -42,16 +46,17 @@ const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMod
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
+        role="presentation"
         onClick={onClose}
       />
 
       {/* Museum */}
       <div
         className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] max-w-[95vw] max-h-[90vh] rounded-2xl shadow-2xl z-50 overflow-hidden ${
-          nightMode ? 'bg-[#0a0a0a]' : 'bg-white'
+          nightMode ? "bg-[#0a0a0a]" : "bg-white"
         }`}
         style={{
-          animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+          animation: "popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
         }}
       >
         {/* Header */}
@@ -59,18 +64,24 @@ const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMod
           className="p-6"
           style={{
             background: nightMode
-              ? 'linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)'
-              : 'linear-gradient(135deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%)'
+              ? "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)"
+              : "linear-gradient(135deg, #E8F3FE 0%, #EAE5FE 50%, #D9CDFE 100%)",
           }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Trophy className={`w-7 h-7 ${nightMode ? 'text-white' : 'text-blue-600'}`} />
+              <Trophy
+                className={`w-7 h-7 ${nightMode ? "text-white" : "text-blue-600"}`}
+              />
               <div>
-                <h2 className={`text-2xl font-bold ${nightMode ? 'text-white' : 'text-blue-900'}`}>
+                <h2
+                  className={`text-2xl font-bold ${nightMode ? "text-white" : "text-blue-900"}`}
+                >
                   Secret Museum
                 </h2>
-                <p className={`text-sm ${nightMode ? 'text-white/80' : 'text-blue-700'}`}>
+                <p
+                  className={`text-sm ${nightMode ? "text-white/80" : "text-blue-700"}`}
+                >
                   {found} of {total} discovered ({percentage}%)
                 </p>
               </div>
@@ -79,8 +90,8 @@ const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMod
               onClick={onClose}
               className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
                 nightMode
-                  ? 'bg-white/20 hover:bg-white/30 text-white'
-                  : 'bg-black/10 hover:bg-black/20 text-blue-900'
+                  ? "bg-white/20 hover:bg-white/30 text-white"
+                  : "bg-black/10 hover:bg-black/20 text-blue-900"
               }`}
             >
               <X className="w-6 h-6" />
@@ -88,9 +99,11 @@ const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMod
           </div>
 
           {/* Progress Bar */}
-          <div className={`mt-4 h-3 rounded-full overflow-hidden ${nightMode ? 'bg-white/20' : 'bg-blue-200'}`}>
+          <div
+            className={`mt-4 h-3 rounded-full overflow-hidden ${nightMode ? "bg-white/20" : "bg-blue-200"}`}
+          >
             <div
-              className={`h-full transition-all duration-500 ${nightMode ? 'bg-white' : 'bg-blue-600'}`}
+              className={`h-full transition-all duration-500 ${nightMode ? "bg-white" : "bg-blue-600"}`}
               style={{ width: `${percentage}%` }}
             />
           </div>
@@ -100,28 +113,34 @@ const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMod
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
           {found === 0 && (
             <div className="text-center py-12">
-              <Sparkles className={`w-16 h-16 mx-auto mb-4 ${nightMode ? 'text-slate-100/50' : 'text-slate-400'}`} />
-              <p className={`text-lg font-semibold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+              <Sparkles
+                className={`w-16 h-16 mx-auto mb-4 ${nightMode ? "text-slate-100/50" : "text-slate-400"}`}
+              />
+              <p
+                className={`text-lg font-semibold ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+              >
                 No secrets found yet!
               </p>
-              <p className={`text-sm mt-2 ${nightMode ? 'text-slate-100/70' : 'text-slate-600'}`}>
+              <p
+                className={`text-sm mt-2 ${nightMode ? "text-slate-100/70" : "text-slate-600"}`}
+              >
                 Explore the app to discover hidden surprises
               </p>
             </div>
           )}
 
           <div className="grid grid-cols-1 gap-4">
-            { secrets.map((secret) => (
+            {secrets.map((secret) => (
               <div
                 key={secret.id}
                 className={`p-4 rounded-xl border transition-all ${
                   secret.discovered
                     ? nightMode
-                      ? 'bg-white/5 border-white/10'
-                      : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'
+                      ? "bg-white/5 border-white/10"
+                      : "bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200"
                     : nightMode
-                    ? 'bg-white/[0.02] border-white/5'
-                    : 'bg-gray-50 border-gray-200'
+                      ? "bg-white/[0.02] border-white/5"
+                      : "bg-gray-50 border-gray-200"
                 }`}
               >
                 <div className="flex items-start gap-4">
@@ -129,21 +148,27 @@ const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMod
                   <div
                     className={`w-16 h-16 rounded-xl flex items-center justify-center text-3xl flex-shrink-0 ${
                       secret.discovered
-                        // @ts-ignore - rarity type compatibility
-                        ? rarityBgColors[secret.rarity]
+                        ? // @ts-ignore - rarity type compatibility
+                          rarityBgColors[secret.rarity]
                         : nightMode
-                        ? 'bg-white/5'
-                        : 'bg-gray-200'
+                          ? "bg-white/5"
+                          : "bg-gray-200"
                     }`}
                   >
-                    {secret.discovered ? secret.icon : <Lock className="w-8 h-8 text-gray-400" />}
+                    {secret.discovered ? (
+                      secret.icon
+                    ) : (
+                      <Lock className="w-8 h-8 text-gray-400" />
+                    )}
                   </div>
 
                   {/* Content */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`font-bold ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                        {secret.discovered ? secret.name : '???'}
+                      <h3
+                        className={`font-bold ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+                      >
+                        {secret.discovered ? secret.name : "???"}
                       </h3>
                       {secret.discovered && (
                         <CheckCircle className="w-5 h-5 text-green-500" />
@@ -161,12 +186,18 @@ const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMod
                       </span>
                     </div>
 
-                    <p className={`text-sm ${nightMode ? 'text-slate-100/70' : 'text-slate-600'} mb-2`}>
-                      {secret.discovered ? secret.description : 'Locked - Keep exploring!'}
+                    <p
+                      className={`text-sm ${nightMode ? "text-slate-100/70" : "text-slate-600"} mb-2`}
+                    >
+                      {secret.discovered
+                        ? secret.description
+                        : "Locked - Keep exploring!"}
                     </p>
 
                     {secret.discovered && (
-                      <div className={`text-xs ${nightMode ? 'text-slate-100/50' : 'text-slate-500'} italic`}>
+                      <div
+                        className={`text-xs ${nightMode ? "text-slate-100/50" : "text-slate-500"} italic`}
+                      >
                         💡 {secret.funFact}
                       </div>
                     )}
@@ -178,11 +209,17 @@ const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMod
 
           {/* Hints Section */}
           {found > 0 && found < total && (
-            <div className={`mt-6 p-4 rounded-xl ${nightMode ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-              <p className={`text-sm font-semibold mb-2 ${nightMode ? 'text-blue-400' : 'text-blue-900'}`}>
+            <div
+              className={`mt-6 p-4 rounded-xl ${nightMode ? "bg-blue-500/10" : "bg-blue-50"}`}
+            >
+              <p
+                className={`text-sm font-semibold mb-2 ${nightMode ? "text-blue-400" : "text-blue-900"}`}
+              >
                 💡 Hints for finding more:
               </p>
-              <ul className={`text-xs space-y-1 ${nightMode ? 'text-slate-100/70' : 'text-slate-600'}`}>
+              <ul
+                className={`text-xs space-y-1 ${nightMode ? "text-slate-100/70" : "text-slate-600"}`}
+              >
                 <li>• Try clicking things multiple times</li>
                 <li>• Check the app at special times (3:16?)</li>
                 <li>• Complete milestones (messages, friends)</li>
@@ -194,13 +231,20 @@ const SecretsMuseum: React.FC<SecretsMuseumProps> = ({ isOpen, onClose, nightMod
 
           {/* Master Hunter Message */}
           {found === total && (
-            <div className={`mt-6 p-6 rounded-xl text-center ${nightMode ? 'bg-yellow-500/10' : 'bg-yellow-50'}`}>
+            <div
+              className={`mt-6 p-6 rounded-xl text-center ${nightMode ? "bg-yellow-500/10" : "bg-yellow-50"}`}
+            >
               <Trophy className="w-16 h-16 mx-auto mb-4 text-yellow-500" />
-              <p className={`text-xl font-bold mb-2 ${nightMode ? 'text-yellow-400' : 'text-yellow-900'}`}>
+              <p
+                className={`text-xl font-bold mb-2 ${nightMode ? "text-yellow-400" : "text-yellow-900"}`}
+              >
                 🏆 Master Hunter!
               </p>
-              <p className={`text-sm ${nightMode ? 'text-slate-100/70' : 'text-slate-600'}`}>
-                You've discovered all {total} secrets! You're in the top 1% of Lightning users.
+              <p
+                className={`text-sm ${nightMode ? "text-slate-100/70" : "text-slate-600"}`}
+              >
+                You've discovered all {total} secrets! You're in the top 1% of
+                Lightning users.
               </p>
             </div>
           )}
