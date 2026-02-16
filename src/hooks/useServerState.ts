@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { showSuccess, showError } from '../lib/toast';
 import {
   createServer,
@@ -105,6 +105,11 @@ export function useServerState({
   // Invite requests
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
 
+  // Skip the next permission load (set after server creation so the
+  // loadServerData effect doesn't overwrite Owner permissions with
+  // stale/default values from the DB before RLS has caught up).
+  const skipPermissionLoad = useRef(false);
+
   // Join by invite code
   const [showJoinDialog, setShowJoinDialog] = useState(false);
   const [joinCode, setJoinCode] = useState('');
@@ -205,7 +210,12 @@ export function useServerState({
       setMembers(membersResult || []);
       setRoles(rolesResult || []);
       setPendingRequests(pendingResult || []);
-      if (permsResult?.permissions) {
+      if (skipPermissionLoad.current) {
+        // Server was just created — keep the Owner permissions we set
+        // in handleCreateServer instead of overwriting with potentially
+        // stale DB values. Clear the flag so future loads work normally.
+        skipPermissionLoad.current = false;
+      } else if (permsResult?.permissions) {
         setPermissions(permsResult.permissions);
       }
       if (permsResult?.role?.id) {
@@ -258,9 +268,11 @@ export function useServerState({
         };
         setServers(prev => [...prev, newServer]);
         setActiveServerId(result.id);
-        // Set Owner permissions immediately — the RLS chain on
+        // Set Owner permissions immediately and tell loadServerData
+        // not to overwrite them — the RLS chain on
         // server_role_permissions may not resolve in time for
-        // getMemberPermissions to return the real values.
+        // getMemberPermissions to return correct values.
+        skipPermissionLoad.current = true;
         setPermissions({
           manage_server: true,
           manage_channels: true,
