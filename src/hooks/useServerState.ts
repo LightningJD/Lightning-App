@@ -258,6 +258,21 @@ export function useServerState({
         };
         setServers(prev => [...prev, newServer]);
         setActiveServerId(result.id);
+        // Set Owner permissions immediately — the RLS chain on
+        // server_role_permissions may not resolve in time for
+        // getMemberPermissions to return the real values.
+        setPermissions({
+          manage_server: true,
+          manage_channels: true,
+          manage_roles: true,
+          manage_members: true,
+          send_messages: true,
+          pin_messages: true,
+          delete_messages: true,
+          create_invite: true,
+          kick_members: true,
+          ban_members: true,
+        });
         showSuccess('Server created!');
         // Refresh in background for complete data
         getUserServers(supabaseId).then(refreshed => {
