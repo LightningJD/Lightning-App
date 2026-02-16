@@ -241,8 +241,11 @@ export function useServerState({
 
   // ── Server Handlers ──────────────────────────────────────────
 
-  const handleCreateServer = useCallback(async (name: string, description: string, iconEmoji: string) => {
-    if (!supabaseId) return;
+  const handleCreateServer = useCallback(async (name: string, description: string, iconEmoji: string): Promise<boolean> => {
+    if (!supabaseId) {
+      showError('Profile not loaded yet. Please wait a moment and try again.');
+      return false;
+    }
     try {
       const result = await createServer(supabaseId, { name, description, iconEmoji });
       if (result) {
@@ -250,11 +253,14 @@ export function useServerState({
         setServers(refreshed || []);
         setActiveServerId(result.id);
         showSuccess('Server created!');
+        return true;
       } else {
         showError('Failed to create server. Please try again.');
+        return false;
       }
     } catch (err) {
       showError('Failed to create server. Please try again.');
+      return false;
     }
   }, [supabaseId]);
 
