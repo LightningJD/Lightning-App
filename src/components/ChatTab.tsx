@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, MessageCircle } from 'lucide-react';
 import { useUserProfile } from './useUserProfile';
 import { getUserConversations, getUserServers, createServer, getFriends, subscribeToMessages, unsubscribe, isUserBlocked, isBlockedBy } from '../lib/database';
+import { showError } from '../lib/toast';
 import MessagesTab from './MessagesTab';
 import ServersTab from './servers/ServersTab';
 import CreateServerDialog from './servers/CreateServerDialog';
@@ -234,8 +235,11 @@ const ChatTab: React.FC<ChatTabProps> = ({
 
   // ── Create server handler ────────────────────────────────
 
-  const handleCreateServer = useCallback(async (name: string, description: string, iconEmoji: string) => {
-    if (!profile?.supabaseId) return;
+  const handleCreateServer = useCallback(async (name: string, description: string, iconEmoji: string): Promise<boolean> => {
+    if (!profile?.supabaseId) {
+      showError('Profile not loaded yet. Please wait a moment and try again.');
+      return false;
+    }
     const result = await createServer(profile.supabaseId, { name, description, iconEmoji });
     if (result) {
       // Refresh server list and auto-select the new server
@@ -244,8 +248,11 @@ const ChatTab: React.FC<ChatTabProps> = ({
       setSelectedServerId(result.id);
       onActiveServerChange?.(name, iconEmoji);
       setView('server');
+      setShowCreateServer(false);
+      return true;
     }
-    setShowCreateServer(false);
+    showError('Failed to create server. Please try again.');
+    return false;
   }, [profile?.supabaseId, onActiveServerChange]);
 
   // ── Determine active rail item ────────────────────────────

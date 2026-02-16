@@ -7,7 +7,7 @@ interface CreateServerDialogProps {
   nightMode: boolean;
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (name: string, description: string, iconEmoji: string) => void;
+  onCreate: (name: string, description: string, iconEmoji: string) => Promise<boolean>;
 }
 
 const SERVER_EMOJIS = [
@@ -51,12 +51,14 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
       return;
     }
     setLoading(true);
-    await onCreate(sanitizedName, description.trim(), iconEmoji);
+    const success = await onCreate(sanitizedName, description.trim(), iconEmoji);
     setLoading(false);
-    setName("");
-    setDescription("");
-    setIconEmoji("\u{26EA}");
-    onClose();
+    if (success) {
+      setName("");
+      setDescription("");
+      setIconEmoji("\u{26EA}");
+      onClose();
+    }
   };
 
   return (
