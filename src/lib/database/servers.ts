@@ -45,23 +45,9 @@ export const createServer = async (creatorId: string, serverData: CreateServerDa
 
   const serverId = (server as any).id;
 
-  // 2. Add creator as member first (no role yet).
-  //    RLS policies on server_roles, server_categories, server_channels
-  //    require is_server_member() to pass for SELECT. Without this step,
-  //    the .select() calls after INSERT would return empty because the
-  //    creator isn't recognized as a member yet.
-  // @ts-ignore
-  const { error: memberError } = await supabase.from('server_members').insert({
-    server_id: serverId,
-    user_id: creatorId,
-    role_id: null
-  });
-
-  if (memberError) {
-    console.error('Error adding creator as server member:', memberError);
-  }
-
-  // 3. Create default roles (Owner, Admin, Moderator, Member)
+  // 2. Create default roles FIRST (before adding member).
+  //    RLS allows this because is_server_admin() checks servers.creator_id,
+  //    which passes since the current user just created the server.
   const roles = [
     { name: 'Owner', color: '#F1C40F', position: 0, is_default: false },
     { name: 'Admin', color: '#E74C3C', position: 1, is_default: false },
@@ -77,20 +63,30 @@ export const createServer = async (creatorId: string, serverData: CreateServerDa
 
   if (rolesError) {
     console.error('Error creating default roles:', rolesError);
-    return server;
+    return null;
   }
 
-  // 4. Assign Owner role to the creator
+  // 3. Add creator as member WITH the Owner role.
+  //    server_members.role_id is NOT NULL, so we must provide a valid role.
   const ownerRole = (createdRoles as any[]).find((r: any) => r.name === 'Owner');
-  if (ownerRole) {
-    // @ts-ignore
-    await supabase.from('server_members')
-      .update({ role_id: ownerRole.id })
-      .eq('server_id', serverId)
-      .eq('user_id', creatorId);
+  if (!ownerRole) {
+    console.error('Error: Owner role not found after creation');
+    return null;
   }
 
-  // 5. Create permissions for each role
+  // @ts-ignore
+  const { error: memberError } = await supabase.from('server_members').insert({
+    server_id: serverId,
+    user_id: creatorId,
+    role_id: ownerRole.id
+  });
+
+  if (memberError) {
+    console.error('Error adding creator as server member:', memberError);
+    return null;
+  }
+
+  // 4. Create permissions for each role
   const rolePermissions = (createdRoles as any[]).map((role: any) => {
     const isOwner = role.name === 'Owner';
     const isAdmin = role.name === 'Admin';
@@ -105,7 +101,7 @@ export const createServer = async (creatorId: string, serverData: CreateServerDa
       send_messages: true,
       pin_messages: isOwner || isAdmin || isMod,
       delete_messages: isOwner || isAdmin || isMod,
-      create_invite: true, // All roles can share invite codes; joining requires admin approval
+      create_invite: true,
       kick_members: isOwner || isAdmin || isMod,
       ban_members: isOwner || isAdmin,
     };
@@ -117,7 +113,7 @@ export const createServer = async (creatorId: string, serverData: CreateServerDa
     console.error('Error creating role permissions:', permError);
   }
 
-  // 6. Create default "Text Channels" category
+  // 5. Create default "Text Channels" category
   const { data: category, error: categoryError } = await supabase
     .from('server_categories')
     // @ts-ignore
@@ -133,7 +129,7 @@ export const createServer = async (creatorId: string, serverData: CreateServerDa
     console.error('Error creating default category:', categoryError);
   }
 
-  // 7. Create #general channel
+  // 6. Create #general channel
   // @ts-ignore
   const { error: channelError } = await supabase.from('server_channels').insert({
     server_id: serverId,
