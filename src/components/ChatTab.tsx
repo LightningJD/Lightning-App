@@ -242,13 +242,17 @@ const ChatTab: React.FC<ChatTabProps> = ({
     }
     const result = await createServer(profile.supabaseId, { name, description, iconEmoji });
     if (result) {
-      // Refresh server list and auto-select the new server
-      const refreshed = await getUserServers(profile.supabaseId);
-      setServers((refreshed || []) as Server[]);
+      // Add server immediately so it's available right away
+      const newServer = { ...result, userRole: { name: 'Owner' }, member_count: 1 } as Server;
+      setServers(prev => [...prev, newServer]);
       setSelectedServerId(result.id);
       onActiveServerChange?.(name, iconEmoji);
       setView('server');
       setShowCreateServer(false);
+      // Refresh in background for complete data
+      getUserServers(profile.supabaseId).then(refreshed => {
+        if (refreshed && refreshed.length > 0) setServers(refreshed as Server[]);
+      });
       return true;
     }
     showError('Failed to create server. Please try again.');
