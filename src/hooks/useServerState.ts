@@ -249,10 +249,20 @@ export function useServerState({
     try {
       const result = await createServer(supabaseId, { name, description, iconEmoji });
       if (result) {
-        const refreshed = await getUserServers(supabaseId);
-        setServers(refreshed || []);
+        // Add the server to the array immediately so activeServer is defined
+        // right away (getUserServers may fail due to RLS timing).
+        const newServer = {
+          ...result,
+          userRole: { name: 'Owner' },
+          member_count: 1,
+        };
+        setServers(prev => [...prev, newServer]);
         setActiveServerId(result.id);
         showSuccess('Server created!');
+        // Refresh in background for complete data
+        getUserServers(supabaseId).then(refreshed => {
+          if (refreshed && refreshed.length > 0) setServers(refreshed);
+        });
         return true;
       } else {
         showError('Failed to create server. Please try again.');
