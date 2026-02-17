@@ -138,6 +138,9 @@ export function useChannelMessages({
   // ── Data Loading ───────────────────────────────────────────
 
   useEffect(() => {
+    // Don't start loading/polling until we have a valid userId
+    if (!channelId || !userId) return;
+
     let pollInterval: NodeJS.Timeout | null = null;
     let typingPollInterval: NodeJS.Timeout | null = null;
     let isMounted = true;
@@ -229,7 +232,7 @@ export function useChannelMessages({
       // Clear typing indicator on leave
       clearTypingIndicator(channelId, userId).catch(() => {});
     };
-  }, [channelId]);
+  }, [channelId, userId]);
 
   // Track if user is scrolled up (not near bottom)
   useEffect(() => {
@@ -368,7 +371,12 @@ export function useChannelMessages({
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!newMessage.trim() && !pendingImage) || !userId || !channelId) return;
+    if (!newMessage.trim() && !pendingImage) return;
+    if (!userId) {
+      showError('Still loading your profile — please try again in a moment');
+      return;
+    }
+    if (!channelId) return;
 
     if (newMessage.trim()) {
       const validation = validateMessage(newMessage, 'message');

@@ -956,19 +956,17 @@ export const sendChannelMessage = async (channelId: string, senderId: string, co
     insertPayload.image_url = imageUrl;
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('channel_messages')
     // @ts-ignore
-    .insert(insertPayload)
-    .select()
-    .single();
+    .insert(insertPayload);
 
   if (error) {
     console.error('Error sending channel message:', error);
     return null;
   }
 
-  return data;
+  return true;
 };
 
 /**
@@ -1326,19 +1324,17 @@ export const sendChannelReply = async (
     insertPayload.image_url = imageUrl;
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('channel_messages')
     // @ts-ignore
-    .insert(insertPayload)
-    .select()
-    .single();
+    .insert(insertPayload);
 
   if (error) {
     console.error('Error sending channel reply:', error);
     return null;
   }
 
-  return data;
+  return true;
 };
 
 // ============================================
