@@ -78,11 +78,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         className="absolute inset-[-1px] rounded-[17px] pointer-events-none"
         style={{
           padding: '1px',
-          background: 'linear-gradient(135deg, #4faaf8, #3b82f6, #2563eb, #8b5cf6)',
+          background: nightMode
+            ? 'linear-gradient(135deg, rgba(123,118,224,0.3), rgba(91,86,204,0.15), rgba(155,150,245,0.2))'
+            : 'linear-gradient(135deg, rgba(79,172,254,0.25), rgba(59,130,246,0.15), rgba(139,92,246,0.15))',
           WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
           WebkitMaskComposite: 'xor',
           maskComposite: 'exclude' as any,
-          opacity: nightMode ? 0.5 : 0.35,
         }}
       />
 
@@ -91,33 +92,36 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         className="relative rounded-2xl overflow-hidden"
         style={nightMode ? {
           background: 'rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.06)',
           backdropFilter: 'blur(10px)',
           WebkitBackdropFilter: 'blur(10px)',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
         } : {
-          background: 'rgba(255,255,255,0.2)',
-          backdropFilter: 'blur(30px)',
-          WebkitBackdropFilter: 'blur(30px)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.05), inset 0 1px 2px rgba(255,255,255,0.4)',
+          background: 'rgba(255,255,255,0.5)',
+          border: '1px solid rgba(150,165,225,0.15)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: '0 2px 10px rgba(150,165,225,0.07)',
         }}
       >
         <div className="p-4 flex flex-col gap-3">
 
           {/* Card Header */}
           <div className="flex items-center gap-2 pb-1">
-            <span className={`text-xs font-bold uppercase tracking-widest ${
-              nightMode ? 'text-blue-400' : 'text-blue-600'
-            }`}>
-              ⚡ Faith Profile
+            <span className="text-xs font-bold uppercase tracking-widest" style={{
+              color: nightMode ? '#7b76e0' : '#4facfe',
+            }}>
+              ⚡ Lightning Profile
             </span>
-            <div className={`flex-1 h-px ${nightMode ? 'bg-white/[0.08]' : 'bg-black/[0.06]'}`} />
+            <div className="flex-1 h-px" style={{
+              background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)',
+            }} />
           </div>
 
           {/* Bio — Always visible */}
           {hasBio && (
-            <p className={`text-sm leading-relaxed ${
-              nightMode ? 'text-slate-300' : 'text-slate-600'
-            }`}>
+            <p className="text-sm leading-relaxed" style={{
+              color: nightMode ? '#8e89a8' : '#4a5e88',
+            }}>
               {profile.bio}
             </p>
           )}
@@ -125,25 +129,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           {/* Favorite Verse — Always visible */}
           {hasVerse && (
             <div
-              className="rounded-xl p-4"
+              className="rounded-lg p-3"
               style={{
-                background: nightMode ? 'rgba(79,150,255,0.06)' : 'rgba(59,130,246,0.05)',
-                borderLeft: nightMode ? '3px solid #4faaf8' : '3px solid #3b82f6',
+                background: nightMode ? 'rgba(123,118,224,0.05)' : 'rgba(79,172,254,0.05)',
+                borderLeft: nightMode ? '2px solid #7b76e0' : '2px solid #4facfe',
               }}
             >
-              <div className={`text-[11px] font-bold uppercase tracking-wide mb-2 ${
-                nightMode ? 'text-slate-500' : 'text-slate-400'
-              }`}>
+              <div className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{
+                color: nightMode ? '#5d5877' : '#8e9ec0',
+              }}>
                 Favorite Verse
               </div>
-              <div className={`text-[13px] italic leading-relaxed ${
-                nightMode ? 'text-slate-300' : 'text-slate-600'
-              }`}>
+              <div className="text-[13px] italic leading-relaxed" style={{
+                fontFamily: "'Playfair Display', serif",
+                color: nightMode ? '#b8b4c8' : '#3a4d6e',
+              }}>
                 &ldquo;{profile.favoriteVerse}&rdquo;
               </div>
-              <div className={`text-xs font-semibold mt-2 ${
-                nightMode ? 'text-blue-400' : 'text-blue-600'
-              }`}>
+              <div className="text-[11px] font-semibold mt-2" style={{
+                color: nightMode ? '#7b76e0' : '#2b6cb0',
+              }}>
                 — {profile.favoriteVerseRef}
               </div>
             </div>
@@ -185,7 +190,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               {expanded && (
                 <>
                   {/* Divider */}
-                  <div className={`h-px ${nightMode ? 'bg-blue-400/15' : 'bg-blue-500/10'}`} />
+                  <div className="h-px" style={{ background: nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.1)' }} />
 
                   <div className="flex flex-col">
                     {/* Church Row */}
@@ -218,11 +223,16 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             {profile.faithInterests!.map((interest, i) => (
                               <span
                                 key={i}
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
-                                  nightMode
-                                    ? 'bg-[rgba(79,150,255,0.1)] border-[rgba(79,150,255,0.2)] text-[#93bbff]'
-                                    : 'bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.2)] text-blue-700'
-                                }`}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border"
+                                style={nightMode ? {
+                                  background: 'rgba(123,118,224,0.1)',
+                                  borderColor: 'rgba(123,118,224,0.2)',
+                                  color: '#9b96f5',
+                                } : {
+                                  background: 'rgba(79,172,254,0.08)',
+                                  borderColor: 'rgba(79,172,254,0.2)',
+                                  color: '#2b6cb0',
+                                }}
                               >
                                 {INTEREST_EMOJIS[interest] || '✨'} {interest}
                               </span>
@@ -246,7 +256,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                             <div className="mt-2">
                               <div className="flex justify-between items-center text-[11px] mb-1">
                                 <span className={nightMode ? 'text-slate-400' : 'text-slate-500'}>Saved for</span>
-                                <span className={`font-semibold ${nightMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                                <span className="font-semibold" style={{ color: nightMode ? '#7b76e0' : '#2b6cb0' }}>
                                   {yearsWalking} {yearsWalking === 1 ? 'year' : 'years'}
                                 </span>
                               </div>
@@ -257,7 +267,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                                   className="h-full rounded-full"
                                   style={{
                                     width: `${Math.min(100, (yearsWalking / 50) * 100)}%`,
-                                    background: 'linear-gradient(90deg, #4faaf8, #2563eb)',
+                                    background: nightMode
+                                      ? 'linear-gradient(90deg, #7b76e0, #9b96f5)'
+                                      : 'linear-gradient(90deg, #4facfe, #2b6cb0)',
                                   }}
                                 />
                               </div>
@@ -271,11 +283,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   {/* Collapse button */}
                   <button
                     onClick={() => setExpanded(false)}
-                    className={`flex items-center justify-center gap-1 py-1 text-[11px] font-medium rounded-lg transition-colors ${
-                      nightMode
-                        ? 'text-blue-400 hover:text-blue-300'
-                        : 'text-blue-600 hover:text-blue-700'
-                    }`}
+                    className="flex items-center justify-center gap-1 py-1 text-[11px] font-medium rounded-lg transition-colors"
+                    style={{ color: nightMode ? '#7b76e0' : '#2b6cb0' }}
                   >
                     Less <ChevronUp className="w-3.5 h-3.5" />
                   </button>
@@ -286,13 +295,15 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
           {/* Stats - compact inline style */}
           {hasStats && (
-            <div className={`flex items-center justify-center gap-4 py-2 px-3 rounded-xl ${
-              nightMode ? 'bg-white/[0.03]' : 'bg-white/20'
-            }`}>
+            <div className="flex items-center justify-center gap-4 py-2 px-3 rounded-xl" style={{
+              background: nightMode ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.4)',
+              backdropFilter: nightMode ? undefined : 'blur(8px)',
+              WebkitBackdropFilter: nightMode ? undefined : 'blur(8px)',
+            }}>
               <StatItem nightMode={nightMode} value={profile.story?.viewCount || 0} label="Views" />
-              <div className={`w-px h-4 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+              <div className="w-px h-4" style={{ background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)' }} />
               <StatItem nightMode={nightMode} value={profile.story?.likeCount || 0} label="Likes" />
-              <div className={`w-px h-4 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+              <div className="w-px h-4" style={{ background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)' }} />
               <StatItem nightMode={nightMode} value={profile.story?.commentCount || 0} label="Comments" />
             </div>
           )}
@@ -309,12 +320,13 @@ const StatItem: React.FC<{
   label: string;
 }> = ({ nightMode, value, label }) => (
   <div className="flex items-center gap-1.5">
-    <span className={`text-sm font-bold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+    <span className="text-sm font-bold" style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>
       {value}
     </span>
-    <span className={`text-[10px] font-medium uppercase tracking-wide ${
-      nightMode ? 'text-slate-500' : 'text-slate-400'
-    }`}>
+    <span className="text-[10px] font-medium uppercase tracking-wide" style={{
+      color: nightMode ? '#5d5877' : '#8e9ec0',
+      opacity: 0.5,
+    }}>
       {label}
     </span>
   </div>

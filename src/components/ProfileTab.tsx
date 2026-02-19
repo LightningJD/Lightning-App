@@ -475,7 +475,20 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
     <div className="py-4 space-y-4">
       <div className="flex flex-col items-center -mt-8 relative z-10 px-4 pt-6">
         <div
-          className={`w-[237px] h-[237px] rounded-full flex items-center justify-center text-[12.14rem] shadow-md border-4 ${nightMode ? "border-[#0a0a0a] bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500" : "border-white bg-gradient-to-br from-purple-400 to-pink-400"} flex-shrink-0 mb-4 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95`}
+          className="rounded-full flex items-center justify-center flex-shrink-0 mb-3 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95"
+          style={{
+            width: '100px',
+            height: '100px',
+            fontSize: '38px',
+            fontFamily: "'Playfair Display', serif",
+            color: 'white',
+            background: nightMode
+              ? 'linear-gradient(135deg, #7b76e0, #9b96f5)'
+              : 'linear-gradient(135deg, #4facfe, #9b96f5)',
+            boxShadow: nightMode
+              ? '0 0 0 3px rgba(123,118,224,0.5), 0 0 20px rgba(123,118,224,0.25)'
+              : '0 0 0 3px rgba(79,172,254,0.4), 0 0 20px rgba(79,172,254,0.2)',
+          }}
           onClick={handleAvatarTap}
           role="presentation"
           title="Triple tap for a surprise..."
@@ -492,21 +505,30 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
         <div className="text-center w-full">
           <h1
-            className={`text-xl font-bold ${nightMode ? "text-slate-100" : "text-black"} break-words text-center flex items-center justify-center gap-1.5`}
+            className="text-xl break-words text-center flex items-center justify-center gap-1.5"
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 600,
+              color: nightMode ? '#e8e5f2' : '#1e2b4a',
+            }}
           >
             {profile.username}
             {isUserPro && <ProBadge size="sm" />}
           </h1>
           <p
-            className={`${nightMode ? "text-slate-100" : "text-black"} text-sm ${!nightMode && "opacity-70"} mt-1`}
+            className="text-xs mt-1"
+            style={{
+              color: nightMode ? '#5d5877' : '#8e9ec0',
+            }}
           >
-            {profile.displayName}
+            @{profile.displayName}{profile.churchName ? ` · ${profile.churchName}` : ''}
           </p>
 
           {/* Location */}
           {profile.location && (
             <div
-              className={`flex items-center justify-center gap-1.5 mt-2 ${nightMode ? "text-slate-100" : "text-black"} text-sm`}
+              className="flex items-center justify-center gap-1.5 mt-2 text-xs"
+              style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
             >
               <MapPin className="w-3.5 h-3.5" />
               <span>{profile.location}</span>
@@ -815,21 +837,23 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         profile?.story?.id && (
           <div className="flex flex-col items-center py-1">
             <div
-              className={`w-px h-2.5 ${nightMode ? "bg-blue-400/25" : "bg-blue-500/20"}`}
+              className="w-px h-2.5"
+              style={{ background: nightMode ? 'rgba(123,118,224,0.25)' : 'rgba(79,172,254,0.2)' }}
             />
             <div
               className="w-2 h-2 rounded-full"
               style={{
                 background: nightMode
-                  ? "rgba(96,165,250,0.5)"
-                  : "rgba(59,130,246,0.45)",
+                  ? "rgba(123,118,224,0.5)"
+                  : "rgba(79,172,254,0.45)",
                 boxShadow: nightMode
-                  ? "0 0 8px rgba(96,165,250,0.4)"
-                  : "0 0 6px rgba(59,130,246,0.3)",
+                  ? "0 0 8px rgba(123,118,224,0.4)"
+                  : "0 0 6px rgba(79,172,254,0.3)",
               }}
             />
             <div
-              className={`w-px h-2.5 ${nightMode ? "bg-blue-400/25" : "bg-blue-500/20"}`}
+              className="w-px h-2.5"
+              style={{ background: nightMode ? 'rgba(123,118,224,0.25)' : 'rgba(79,172,254,0.2)' }}
             />
           </div>
         )}
@@ -847,25 +871,50 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
       {/* Testimony Section - Only show when testimony exists */}
       {profile?.story?.id && (
         <div className="px-4">
+          {/* Section label */}
+          <div className="text-[11px] uppercase tracking-widest font-medium mb-2 ml-1" style={{
+            color: nightMode ? '#5d5877' : '#4a5e88',
+          }}>
+            Salvation Testimony
+          </div>
           <div
-            className={`p-6 rounded-xl border ${nightMode ? "bg-white/5 border-white/10" : "border-white/30 shadow-[0_4px_12px_rgba(0,0,0,0.08)]"}`}
+            className="p-5 rounded-xl relative overflow-hidden"
             style={
               nightMode
-                ? {}
+                ? {
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                  }
                 : {
-                    background: "rgba(255, 255, 255, 0.2)",
-                    backdropFilter: "blur(30px)",
-                    WebkitBackdropFilter: "blur(30px)",
-                    boxShadow:
-                      "0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                    background: "rgba(255, 255, 255, 0.5)",
+                    border: '1px solid rgba(150,165,225,0.15)',
+                    backdropFilter: "blur(12px)",
+                    WebkitBackdropFilter: "blur(12px)",
+                    boxShadow: '0 1px 6px rgba(150,165,225,0.05)',
                   }
             }
           >
+            {/* 3px gradient left accent bar */}
+            <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-sm" style={{
+              background: nightMode
+                ? 'linear-gradient(180deg, #7b76e0, #9b96f5)'
+                : 'linear-gradient(180deg, #4facfe, #9b96f5)',
+            }} />
+            {/* Tag */}
+            <div className="text-[10px] uppercase tracking-wide font-semibold mb-2 ml-1" style={{
+              color: nightMode ? '#7b76e0' : '#4facfe',
+            }}>
+              Salvation Testimony
+            </div>
             <div className="flex items-center justify-between mb-4">
               <h2
-                className={`text-xl font-bold ${nightMode ? "text-slate-100" : "text-black"} flex items-center gap-2`}
+                className="text-base font-medium flex items-center gap-2 leading-tight"
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                }}
               >
-                <span>✨</span> {profile?.story?.title || "My Testimony"}
+                {profile?.story?.title || "My Testimony"}
               </h2>
               <div className="flex items-center gap-2">
                 {/* Like Button - Top Right - Only show when testimony exists */}
@@ -1052,7 +1101,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             {profile?.story?.id && canView ? (
               <>
                 <p
-                  className={`text-sm ${nightMode ? "text-slate-100" : "text-black"} leading-relaxed whitespace-pre-wrap`}
+                  className="text-[13px] leading-relaxed whitespace-pre-wrap"
+                  style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                   dangerouslySetInnerHTML={{
                     __html: sanitizeUserContent(profile?.story?.content || ""),
                   }}
@@ -1061,12 +1111,14 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                 {/* Lesson Learned - Inline with preview/expand */}
                 {profile?.story?.lesson && (
                   <div
-                    className={`mt-5 pt-5 border-t ${nightMode ? "border-white/10" : "border-white/20"}`}
+                    className="mt-5 pt-5"
+                    style={{ borderTop: nightMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(150,165,225,0.15)' }}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-base">📖</span>
                       <h3
-                        className={`text-sm font-semibold ${nightMode ? "text-slate-100" : "text-black"}`}
+                        className="text-sm font-semibold"
+                        style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
                       >
                         A Lesson Learned
                       </h3>
@@ -1074,7 +1126,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
 
                     {/* Preview (first 150 characters) */}
                     <p
-                      className={`text-sm ${nightMode ? "text-slate-300" : "text-gray-700"} italic leading-relaxed`}
+                      className="text-sm italic leading-relaxed"
+                      style={{
+                        fontFamily: "'Playfair Display', serif",
+                        color: nightMode ? '#b8b4c8' : '#3a4d6e',
+                      }}
                       dangerouslySetInnerHTML={{
                         __html: sanitizeUserContent(
                           showLesson
@@ -1088,11 +1144,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                     {(profile?.story?.lesson?.length || 0) > 150 && (
                       <button
                         onClick={() => setShowLesson(!showLesson)}
-                        className={`mt-2 text-sm font-medium transition-colors ${
-                          nightMode
-                            ? "text-blue-400 hover:text-blue-300"
-                            : "text-blue-600 hover:text-blue-700"
-                        }`}
+                        className="mt-2 text-sm font-medium transition-colors"
+                        style={{ color: nightMode ? '#7b76e0' : '#2b6cb0' }}
                       >
                         {showLesson ? "Read less" : "Read more"}
                       </button>
@@ -1447,6 +1500,20 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             <Share2 className="w-4 h-4" />
             Share Testimony
           </button>
+        )}
+
+        {/* View counter */}
+        {profile?.story?.viewCount != null && profile.story.viewCount > 0 && (
+          <div
+            className="text-center text-[11px] mt-2 tracking-wide"
+            style={{
+              color: nightMode ? '#8e89a8' : '#4a5e88',
+              opacity: nightMode ? 0.65 : 0.45,
+            }}
+          >
+            <span style={{ fontSize: '12px', opacity: 0.7, fontStyle: 'normal' }}>&#x29BF;</span>{' '}
+            {profile.story.viewCount} views
+          </div>
         )}
       </div>
 
