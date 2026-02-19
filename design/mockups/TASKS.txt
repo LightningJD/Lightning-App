@@ -1,0 +1,178 @@
+LIGHTNING APP UI/UX REDESIGN — TASK TRACKER
+=============================================
+Claude Code: Read this file at the start of each session.
+Do the NEXT unchecked task. When done, mark it [x] and stop.
+After each task, run the app to verify nothing is broken.
+
+INSTRUCTIONS:
+- Read design/mockups/LIGHTNING-REDESIGN-GUIDE.txt for full design system and tokens
+- For each task, open the matching HTML mockup to see exact colors, spacing, fonts
+- Preserve ALL existing logic, handlers, state, validation — this is a visual restyle only
+- Support both night mode and day mode (nightMode prop already exists everywhere)
+- After completing a task, mark it [x] below and commit with message: "Restyle: [component name]"
+
+DESIGN TOKENS (quick reference):
+  Night: bg #0d0b18, card rgba(255,255,255,0.04), border rgba(255,255,255,0.06)
+         text #e8e5f2 / #8e89a8 / #5d5877, accent #7b76e0 / #9b96f5
+  Day:   bg gradient(135deg, #cdd8f8, #d6daf5, #dee0f6, #e4e0f5)
+         card rgba(255,255,255,0.5), border rgba(150,165,225,0.15), blur 12px
+         text #1e2b4a / #4a5e88 / #8e9ec0, accent #4facfe / #2b6cb0
+  Fonts: General Sans (body), DM Sans 600 (titles), Playfair Display (testimony/quotes)
+  Badges: #ef4444 red everywhere
+  Icons: colorless outline SVGs, stroke currentColor, stroke-width 1.8 (2.2 active)
+
+=============================================
+TASKS (do in order, one at a time):
+=============================================
+
+[ ] TASK 1: Bottom Navigation Bar
+    File: src/components/AppLayout.tsx (NavButton component)
+    Mockup: design/mockups/component-13-bottom-nav.html
+    Changes:
+    - Replace Lucide icons with custom outline SVGs: House+Tower (Home), Bolt (Charge), Person (You)
+    - Rename "Find" tab to "Charge" in all labels and references
+    - Night active: rgba(123,118,224,0.12) bg, rgba(123,118,224,0.18) border, white text
+    - Night inactive: #5d5877
+    - Day active: rgba(79,172,254,0.1) bg, rgba(79,172,254,0.15) border, dark text
+    - Day inactive: #8e9ec0
+    - Badge: red #ef4444 with 2px border matching nav bg
+    - Nav bar: frosted glass with backdrop-filter blur(20px)
+    - Stroke-width: 1.8 inactive, 2.2 active
+
+[ ] TASK 2: Settings Page
+    File: src/components/SettingsMenu.tsx
+    Mockup: design/mockups/component-11-settings.html
+    Changes:
+    - Add back arrow top-left (not X button) for navigation
+    - Title in DM Sans font
+    - Profile summary card at top: avatar + name + handle
+    - Grouped glass cards with uppercase small muted group labels
+    - Toggle switches: accent color when on (purple night / blue day)
+    - Pro badge: accent tinted pill
+    - Sign out: subtle card, red text only (#e05c6c)
+    - Version footer at bottom
+
+[ ] TASK 3: Profile / You Tab
+    Files: src/components/ProfileCard.tsx + src/components/ProfileTab.tsx
+    Mockup: design/mockups/component-09-profile.html
+    Changes:
+    - Avatar: increase to 100px with gradient glow ring (box-shadow)
+    - Name font: DM Sans weight 600
+    - Header text: "LIGHTNING PROFILE"
+    - View counter: small text below Share button, night opacity 0.65, day opacity 0.45
+    - Salvation Testimony: primary card with 3px gradient left accent bar, full size
+    - Life Testimonies: secondary cards at 85% opacity, smaller title (9.5px vs 10px), smaller quote
+    - Section labels: "Salvation Testimony" (singular) vs "Life Testimonies" (plural)
+    - Favorite verse card: glass style with Playfair Display italic
+
+[ ] TASK 4: Home Tab Rail + DMs
+    File: src/components/ChatTab.tsx
+    Mockup: design/mockups/component-06-home-rail-dms.html
+    Changes:
+    - Server rail: change from vertical sidebar to horizontal scroll at top
+    - Rail order: DM button (double bubble SVG) → server icons → + create button
+    - Server icons: letter initial + gradient circle (replace emojis)
+    - DM list below: glass cards with avatar, name, last message, timestamp
+    - Unread DMs: red #ef4444 badge
+    - Two states: DM list (default) vs Server channels (tap a server)
+
+[ ] TASK 5: Channel Chat
+    File: src/components/servers/ServerView.tsx
+    Mockup: design/mockups/component-07-channel-chat.html
+    Changes:
+    - Channel names: dash prefix (—) not hashtag
+    - Role badges: Admin/Mod/Member pills next to usernames
+    - Message bubbles: glass style
+    - Input: frosted glass pill with + button and send arrow
+    - Back arrow + swipe right to return to Home tab
+
+[ ] TASK 6: DM Chat View
+    File: src/components/MessagesTab.tsx
+    Mockup: design/mockups/component-12-dm-chat.html
+    Changes:
+    - Own messages: accent-tinted bubbles, right-aligned, rounded with tail
+    - Other's messages: glass bubbles, left-aligned
+    - No role badges (1-on-1 DM)
+    - Header: gradient avatar + online dot + name
+    - Input: frosted pill shape
+    - Back arrow + swipe right to DM list
+
+[ ] TASK 7: Create Testimony Flow
+    File: src/components/TestimonyWizard.tsx
+    Mockup: design/mockups/component-08-create-testimony.html
+    Changes:
+    - Progress dots: pill shape for current step
+    - Category cards: glass style with emoji + label
+    - AI draft card: frosted glass
+    - All inputs: glass style matching design system
+    - Buttons: accent gradient
+
+[ ] TASK 8: Charge Tab (formerly Find)
+    File: src/components/NearbyTab.tsx
+    Mockup: design/mockups/component-05-simplified-find.html
+    Changes:
+    - Rename all "Find" references to "Charge"
+    - Greeting: Playfair Display italic, time-based
+    - Subtitle: "Charge your faith" in General Sans
+    - Search bar: glass pill shape
+    - Remove Friends sub-tab, People sub-tab
+    - Simplify to: greeting + search + testimony directory
+
+[ ] TASK 9: Notifications Panel (NEW)
+    File: src/components/NotificationsPanel.tsx (CREATE NEW)
+    Mockup: design/mockups/component-10-notifications.html
+    Changes:
+    - New component triggered from bell icon in header
+    - Title: "Notifications" in DM Sans
+    - Filter pills: All / Testimonies / Friends / Church
+    - Friend request cards with Accept (accent) / Decline (muted) buttons
+    - Night Accept: rgba(123,118,224,0.2) bg, #9b96f5 text
+    - Night Decline: transparent bg, #5d5877 text
+    - Day Accept: rgba(79,172,254,0.15) bg, #2b6cb0 text
+    - Notification feed grouped by Today / Earlier
+    - Red dot for unread items
+    - Reuse: getPendingFriendRequests(), acceptFriendRequest(), declineFriendRequest()
+
+[ ] TASK 10: Create Server Dialog
+    File: src/components/servers/CreateServerDialog.tsx
+    Mockup: design/mockups/component-14-create-server.html
+    Changes:
+    - Replace emoji picker (SERVER_EMOJIS array) with gradient color picker (8 options)
+    - Live preview: letter initial on chosen gradient, updates as user types
+    - Add "Upload custom image instead" link below gradients
+    - Glass style for dialog, inputs, button
+    - Keep: validateGroup(), sanitizeInput(), onCreate(), loading state
+
+[ ] TASK 11: Profile Creation Wizard
+    File: src/components/ProfileCreationWizard.tsx
+    Mockup: design/mockups/component-15-profile-wizard.html
+    Changes:
+    - Step 1: Bolt outline SVG icon, title "Welcome to Lightning", subtitle "Let's create your profile"
+      Fields: Full Name*, Location* (with "Use my location"), Referral Code (optional). Button: "Next"
+    - Step 2: Church outline SVG icon, title "Find your Community", subtitle "Connect with others"
+      Options: "Join a Server" / "Start a Server". Back: "Previous". Skip: "Skip for now"
+    - Step 3: Bolt outline SVG icon, title "Boom"
+      Subtitle: "His lightning lights up the world; the earth sees and trembles. - Psalm 97:4" (Playfair italic)
+      Review card with letter+gradient avatar. Back: "Previous". Button: "Enter Lightning ⚡"
+    - Progress dots: pill for current step
+    - All inputs: glass style
+
+[ ] TASK 12: Global Cleanup
+    Files: Multiple
+    Changes:
+    - Create SwipeablePageWrapper component (framer-motion or react-swipeable)
+    - Wrap all sub-pages: Settings, Channel Chat, DM, Notifications, Profile views, etc.
+    - Back arrow (←) on all sub-pages (not root tabs)
+    - Verify "Find" → "Charge" rename is complete everywhere
+    - Verify all notification badges are red #ef4444
+    - Verify no colored emojis remain as UI icons
+    - Verify all SVG icons are colorless outline style
+    - Install framer-motion or react-swipeable if not already present
+
+=============================================
+REFERENCE FILES:
+  design/mockups/LIGHTNING-REDESIGN-GUIDE.txt — Full spec + design tokens
+  design/mockups/emoji-to-svg-replacements.html — Icon conversion reference
+  design/mockups/red-notification-badges-preview.html — Badge placement guide
+  design/mockups/nav-community-charge-concepts.html — Nav icon concepts
+=============================================
