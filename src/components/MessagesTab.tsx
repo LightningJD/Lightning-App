@@ -29,6 +29,29 @@ import { useNewChat } from "../hooks/useNewChat";
 import type { Message, Conversation } from "../hooks/useMessages";
 import type { Connection } from "../hooks/useNewChat";
 
+// ── Gradient avatar helpers ──────────────────────────────────────
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg, #e05c6c, #e8b84a)',
+  'linear-gradient(135deg, #5cc88a, #4ab8c4)',
+  'linear-gradient(135deg, #e8b84a, #e05c6c)',
+  'linear-gradient(135deg, #7b76e0, #9b96f5)',
+  'linear-gradient(135deg, #6b9ed6, #4a7ab8)',
+  'linear-gradient(135deg, #f6c744, #e8a020)',
+  'linear-gradient(135deg, #5cc88a, #2a9d5c)',
+  'linear-gradient(135deg, #4facfe, #e05c6c)',
+];
+const getGradient = (id: string): string => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+    hash |= 0;
+  }
+  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+};
+const getInitials = (name: string): string => {
+  return name.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase();
+};
+
 // Helper function to format timestamp
 const formatTimestamp = (timestamp: any): string => {
   const now = new Date();
@@ -260,7 +283,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
         return (
           <div className="flex items-center justify-center h-64">
             <div
-              className={`animate-spin rounded-full h-8 w-8 border-b-2 ${nightMode ? "border-white/30" : "border-slate-400"}`}
+              className="animate-spin rounded-full h-8 w-8 border-b-2"
+              style={{ borderColor: nightMode ? 'rgba(123,118,224,0.4)' : 'rgba(79,172,254,0.4)' }}
             />
           </div>
         );
@@ -272,31 +296,32 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
       <div className="flex flex-col h-[calc(100vh-140px)]">
         {/* Header */}
         <div
-          className={`px-4 py-2.5 border-b flex items-center justify-between relative z-50 ${nightMode ? "bg-white/5 border-white/10" : "border-white/25"}`}
+          className="px-4 py-2.5 flex items-center justify-between relative z-50"
           style={
             nightMode
-              ? {}
+              ? {
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  background: 'rgba(13,11,24,0.8)',
+                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                }
               : {
-                  background: "rgba(255, 255, 255, 0.2)",
-                  backdropFilter: "blur(30px)",
-                  WebkitBackdropFilter: "blur(30px)",
-                  boxShadow:
-                    "0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  background: 'rgba(205,216,248,0.6)',
+                  borderBottom: '1px solid rgba(150,165,225,0.15)',
                 }
           }
         >
           <button
             onClick={() => (onBack ? onBack() : setActiveChat(null))}
-            className={
-              nightMode
-                ? "text-blue-500 text-sm font-semibold"
-                : "text-blue-600 text-sm font-semibold"
-            }
+            className="text-sm font-semibold mr-2"
+            style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
           >
             ← Back
           </button>
           <button
-            className="flex items-center gap-2 active:opacity-70 transition-opacity"
+            className="flex items-center gap-2 active:opacity-70 transition-opacity flex-1 min-w-0"
             onClick={() =>
               setViewingChatUser({
                 id: conversation.userId,
@@ -308,13 +333,15 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
             }
             aria-label={`View ${conversation.name}'s profile`}
           >
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
-                  nightMode
-                    ? "bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500 text-white"
-                    : "bg-gradient-to-br from-purple-400 to-pink-400 text-white"
-                }`}
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white overflow-hidden"
+                style={{
+                  background: conversation.avatarImage ? undefined : getGradient(conversation.userId || conversation.name),
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: '14px',
+                  fontWeight: 600,
+                }}
               >
                 {conversation.avatarImage ? (
                   <img
@@ -323,36 +350,39 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  conversation.avatar
+                  getInitials(conversation.name || 'U')
                 )}
               </div>
               {conversation.online && (
                 <div
-                  className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? "border-[#0a0a0a]" : "border-white"}`}
-                ></div>
+                  className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full"
+                  style={{
+                    background: '#5cc88a',
+                    border: `2px solid ${nightMode ? '#0d0b18' : '#d6daf5'}`,
+                  }}
+                />
               )}
             </div>
-            <div className="flex flex-col text-left">
+            <div className="flex flex-col text-left min-w-0">
               <span
-                className={`font-semibold ${nightMode ? "text-slate-100" : "text-black"}`}
+                className="font-semibold text-sm"
+                style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a', fontFamily: "'DM Sans', sans-serif" }}
               >
                 {conversation.name}
               </span>
               <span
-                className={`text-xs ${nightMode ? "text-slate-400" : "text-gray-600"}`}
+                className="text-xs"
+                style={{ color: conversation.online ? (nightMode ? '#5cc88a' : '#16834a') : (nightMode ? '#5d5877' : '#8e9ec0') }}
               >
-                {conversation.online ? "🟢 Online" : "⚫ Offline"}
+                {conversation.online ? "Online" : "Offline"}
               </span>
             </div>
           </button>
           <div className="relative">
             <button
               onClick={() => setShowConversationMenu(!showConversationMenu)}
-              className={`p-2 rounded-lg transition-colors ${
-                nightMode
-                  ? "hover:bg-white/10 text-slate-100"
-                  : "hover:bg-white/20 text-black"
-              }`}
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
               aria-label="Conversation options"
             >
               <MoreVertical className="w-5 h-5" />
@@ -373,18 +403,22 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                 />
 
                 <div
-                  className={`absolute right-0 top-full mt-2 w-48 rounded-xl shadow-2xl z-[60] border ${
-                    nightMode
-                      ? "bg-[#1a1a1a] border-white/10"
-                      : "bg-white border-white/25"
-                  }`}
+                  className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-2xl z-[60]"
                   style={
                     nightMode
                       ? {
-                          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+                          background: 'rgba(13,11,24,0.95)',
+                          border: '1px solid rgba(255,255,255,0.06)',
+                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
                         }
                       : {
-                          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+                          background: 'rgba(255,255,255,0.9)',
+                          border: '1px solid rgba(150,165,225,0.15)',
+                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)',
                         }
                   }
                 >
@@ -460,28 +494,21 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
         <div
           ref={messagesContainerRef}
           className="flex-1 p-4 overflow-y-auto"
-          style={
-            nightMode
-              ? {}
-              : {
-                  background: "rgba(255, 255, 255, 0.2)",
-                  backdropFilter: "blur(30px)",
-                  WebkitBackdropFilter: "blur(30px)",
-                }
-          }
         >
           {loading ? (
             <div
-              className={`text-center ${nightMode ? "text-slate-100" : "text-black"} py-8`}
+              className="text-center py-8"
+              style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
             >
               Loading messages...
             </div>
           ) : messages.length === 0 ? (
             <div
-              className={`text-center ${nightMode ? "text-slate-100" : "text-black"} py-8`}
+              className="text-center py-8"
+              style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
             >
               <p>No messages yet.</p>
-              <p className="text-sm mt-2">
+              <p className="text-sm mt-2" style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}>
                 Send a message to start the conversation!
               </p>
             </div>
@@ -493,7 +520,15 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                   <div className="flex gap-2 items-start">
                     {/* Avatar */}
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-lg flex-shrink-0 overflow-hidden ${nightMode ? "bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500" : "bg-gradient-to-br from-purple-400 to-pink-400"}`}
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0 overflow-hidden"
+                      style={{
+                        background: isMe
+                          ? (profile?.avatarImage ? undefined : getGradient(profile?.supabaseId || 'me'))
+                          : (conversation.avatarImage ? undefined : getGradient(conversation.userId || conversation.name)),
+                        fontFamily: "'Playfair Display', serif",
+                        fontSize: '11px',
+                        fontWeight: 600,
+                      }}
                     >
                       {isMe ? (
                         profile?.avatarImage ? (
@@ -503,7 +538,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          profile?.avatar
+                          getInitials(profile?.displayName || 'Me')
                         )
                       ) : conversation.avatarImage ? (
                         <img
@@ -512,7 +547,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        conversation.avatar
+                        getInitials(conversation.name || 'U')
                       )}
                     </div>
 
@@ -520,12 +555,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                       {/* Name and timestamp */}
                       <div className="flex items-baseline gap-2 mb-1">
                         <span
-                          className={`text-sm font-semibold ${nightMode ? "text-slate-100" : "text-black"}`}
+                          className="text-sm font-semibold"
+                          style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
                         >
                           {isMe ? profile?.displayName : conversation.name}
                         </span>
                         <span
-                          className={`text-[10px] ${nightMode ? "text-slate-100" : "text-black"} opacity-70`}
+                          className="text-[10px]"
+                          style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
                         >
                           {(() => {
                             // Parse the timestamp - handle both ISO strings and Date objects
@@ -596,10 +633,21 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                             ref={(el: HTMLDivElement | null) => {
                               messageRefs.current[msg.id] = el;
                             }}
-                            className={
-                              nightMode
-                                ? "bg-transparent hover:bg-white/5 text-slate-100 px-2 py-1 rounded-md max-w-full sm:max-w-md relative transition-colors"
-                                : "bg-transparent hover:bg-white/20 text-black px-2 py-1 rounded-md max-w-full sm:max-w-md relative transition-colors"
+                            className="px-3 py-2 max-w-full sm:max-w-md relative transition-colors"
+                            style={isMe
+                              ? {
+                                  background: nightMode ? 'rgba(123,118,224,0.12)' : 'rgba(79,172,254,0.12)',
+                                  border: `1px solid ${nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.15)'}`,
+                                  borderRadius: '14px 14px 4px 14px',
+                                  color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                                }
+                              : {
+                                  background: nightMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)',
+                                  border: `1px solid ${nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(150,165,225,0.1)'}`,
+                                  borderRadius: '14px 14px 14px 4px',
+                                  color: nightMode ? '#b8b4c8' : '#3a4d6e',
+                                  ...(nightMode ? {} : { backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }),
+                                }
                             }
                           >
                             {/* Reply to message preview - only show if reply_to is valid and has content */}
@@ -607,17 +655,23 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                               msg.reply_to.id &&
                               msg.reply_to.content && (
                                 <div
-                                  className={`mb-2 pl-3 border-l-2 ${nightMode ? "border-white/20 bg-white/5" : "border-white/30 bg-white/20"} rounded-r-md py-1.5 text-xs`}
+                                  className="mb-2 pl-3 rounded-r-md py-1.5 text-xs"
+                                  style={{
+                                    borderLeft: `2px solid ${nightMode ? 'rgba(123,118,224,0.4)' : 'rgba(79,172,254,0.4)'}`,
+                                    background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(150,165,225,0.08)',
+                                  }}
                                 >
                                   <div
-                                    className={`font-semibold mb-0.5 ${nightMode ? "text-slate-300" : "text-gray-700"}`}
+                                    className="font-semibold mb-0.5"
+                                    style={{ color: nightMode ? '#9b96f5' : '#4facfe' }}
                                   >
                                     {msg.reply_to.sender?.display_name ||
                                       msg.reply_to.sender?.username ||
                                       "Unknown"}
                                   </div>
                                   <div
-                                    className={`truncate ${nightMode ? "text-slate-400" : "text-gray-600"}`}
+                                    className="truncate"
+                                    style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                                   >
                                     {decodeHTMLEntities(msg.reply_to.content)}
                                   </div>
@@ -650,6 +704,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                 style={{
                                   overflowWrap: "break-word",
                                   wordBreak: "normal",
+                                  color: 'inherit',
                                 }}
                               >
                                 {decodeHTMLEntities(msg.content)}
@@ -659,22 +714,22 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                             {/* Reaction Picker */}
                             {showReactionPicker === msg.id && (
                               <div
-                                className={`${isMessageInBottomHalf(msg.id) ? "absolute bottom-full mb-1 left-0" : "absolute top-full mt-1 left-0"} border rounded-xl shadow-2xl p-2 z-[100] ${nightMode ? "border-white/10" : "border-white/25"}`}
+                                className={`${isMessageInBottomHalf(msg.id) ? "absolute bottom-full mb-1 left-0" : "absolute top-full mt-1 left-0"} rounded-xl shadow-2xl p-2 z-[100]`}
                                 style={
                                   nightMode
                                     ? {
-                                        background: "#1a1a1a",
-                                        backdropFilter: "blur(30px)",
-                                        WebkitBackdropFilter: "blur(30px)",
-                                        boxShadow:
-                                          "0 4px 20px rgba(0, 0, 0, 0.3)",
+                                        background: 'rgba(13,11,24,0.95)',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
                                       }
                                     : {
-                                        background: "#ffffff",
-                                        backdropFilter: "blur(30px)",
-                                        WebkitBackdropFilter: "blur(30px)",
-                                        boxShadow:
-                                          "0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                                        background: 'rgba(255,255,255,0.9)',
+                                        border: '1px solid rgba(150,165,225,0.15)',
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
                                       }
                                 }
                               >
@@ -689,11 +744,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                         handleReaction(msg.id, emoji);
                                         setShowReactionPicker(null);
                                       }}
-                                      className={
-                                        nightMode
-                                          ? "text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/10 rounded flex items-center justify-center"
-                                          : "text-lg hover:scale-110 transition-transform p-1.5 hover:bg-white/20 rounded flex items-center justify-center"
-                                      }
+                                      className="text-lg hover:scale-110 transition-transform p-1.5 rounded flex items-center justify-center"
+                                      style={{ ...(nightMode ? {} : {}), }}
                                     >
                                       {emoji}
                                     </button>
@@ -708,11 +760,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                           [msg.id]: true,
                                         }))
                                       }
-                                      className={
-                                        nightMode
-                                          ? "w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors"
-                                          : "w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors"
-                                      }
+                                      className="w-full mt-1 px-2 py-1 text-[10px] font-semibold rounded transition-colors"
+                                      style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                                     >
                                       +{reactionEmojis.length - 6} more
                                     </button>
@@ -725,11 +774,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                         [msg.id]: false,
                                       }))
                                     }
-                                    className={
-                                      nightMode
-                                        ? "w-full mt-1 px-2 py-1 text-[10px] font-semibold text-slate-100 hover:bg-white/10 rounded transition-colors"
-                                        : "w-full mt-1 px-2 py-1 text-[10px] font-semibold text-black hover:bg-white/20 rounded transition-colors"
-                                    }
+                                    className="w-full mt-1 px-2 py-1 text-[10px] font-semibold rounded transition-colors"
+                                    style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                                   >
                                     Show less
                                   </button>
@@ -744,20 +790,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                           >
                             <button
                               onClick={() => setReplyingTo(msg)}
-                              className={
-                                nightMode
-                                  ? "p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100"
-                                  : "p-1 border border-white/25 rounded text-black hover:text-black shadow-sm"
-                              }
-                              style={
-                                nightMode
-                                  ? {}
-                                  : {
-                                      background: "rgba(255, 255, 255, 0.2)",
-                                      backdropFilter: "blur(30px)",
-                                      WebkitBackdropFilter: "blur(30px)",
-                                    }
-                              }
+                              className="p-1 rounded transition-colors"
+                              style={{
+                                background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
+                                border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.1)'}`,
+                                color: nightMode ? '#8e89a8' : '#4a5e88',
+                              }}
                               title="Reply"
                             >
                               <Reply className="w-3.5 h-3.5" />
@@ -768,20 +806,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                   showReactionPicker === msg.id ? null : msg.id,
                                 )
                               }
-                              className={
-                                nightMode
-                                  ? "p-1 bg-white/5 border border-white/10 rounded text-slate-100 hover:text-slate-100"
-                                  : "p-1 border border-white/25 rounded text-black hover:text-black shadow-sm"
-                              }
-                              style={
-                                nightMode
-                                  ? {}
-                                  : {
-                                      background: "rgba(255, 255, 255, 0.2)",
-                                      backdropFilter: "blur(30px)",
-                                      WebkitBackdropFilter: "blur(30px)",
-                                    }
-                              }
+                              className="p-1 rounded transition-colors"
+                              style={{
+                                background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
+                                border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.1)'}`,
+                                color: nightMode ? '#8e89a8' : '#4a5e88',
+                              }}
                               title="React"
                             >
                               <Smile className="w-3.5 h-3.5" />
@@ -793,20 +823,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                     return;
                                   await handleDeleteMessage(msg.id);
                                 }}
-                                className={
-                                  nightMode
-                                    ? "p-1 bg-white/5 border border-red-500/30 rounded text-red-400 hover:text-red-300"
-                                    : "p-1 border border-red-300 rounded text-red-600 hover:text-red-700 shadow-sm"
-                                }
-                                style={
-                                  nightMode
-                                    ? {}
-                                    : {
-                                        background: "rgba(255, 255, 255, 0.2)",
-                                        backdropFilter: "blur(30px)",
-                                        WebkitBackdropFilter: "blur(30px)",
-                                      }
-                                }
+                                className="p-1 rounded transition-colors"
+                                style={{
+                                  background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
+                                  border: `1px solid ${nightMode ? 'rgba(239,68,68,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                                  color: nightMode ? '#ef4444' : '#dc2626',
+                                }}
                                 title="Delete"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -867,29 +889,29 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                         onClick={() =>
                                           handleReaction(msg.id, emoji)
                                         }
-                                        className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
-                                          data.hasReacted
-                                            ? nightMode
-                                              ? "bg-[rgba(88,101,242,0.15)] border border-[#5865f2]"
-                                              : "bg-blue-100 border border-blue-400"
-                                            : nightMode
-                                              ? "bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)]"
-                                              : "bg-transparent border border-white/25 hover:bg-white/20"
-                                        }`}
+                                        className="inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all"
+                                        style={data.hasReacted
+                                          ? {
+                                              background: nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.15)',
+                                              border: `1px solid ${nightMode ? '#7b76e0' : '#4facfe'}`,
+                                            }
+                                          : {
+                                              background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
+                                              border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.1)'}`,
+                                              ...(nightMode ? {} : { backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }),
+                                            }
+                                        }
                                       >
                                         <span className="text-sm leading-none">
                                           {emoji}
                                         </span>
                                         <span
-                                          className={`text-[11px] font-medium leading-none ${
-                                            data.hasReacted
-                                              ? nightMode
-                                                ? "text-[#dee0fc]"
-                                                : "text-blue-700"
-                                              : nightMode
-                                                ? "text-[#b5bac1]"
-                                                : "text-black"
-                                          }`}
+                                          className="text-[11px] font-medium leading-none"
+                                          style={{
+                                            color: data.hasReacted
+                                              ? (nightMode ? '#9b96f5' : '#4facfe')
+                                              : (nightMode ? '#8e89a8' : '#4a5e88'),
+                                          }}
                                         >
                                           {data.count}
                                         </span>
@@ -905,11 +927,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                             [msg.id]: true,
                                           }))
                                         }
-                                        className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
-                                          nightMode
-                                            ? "bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)] text-[#b5bac1]"
-                                            : "bg-transparent border border-white/25 hover:bg-white/20 text-black"
-                                        }`}
+                                        className="inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all"
+                                        style={{
+                                          background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
+                                          border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.1)'}`,
+                                          color: nightMode ? '#8e89a8' : '#4a5e88',
+                                        }}
                                       >
                                         <span className="text-[11px] font-medium">
                                           +{hiddenCount}
@@ -927,11 +950,12 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                               [msg.id]: false,
                                             }))
                                           }
-                                          className={`inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all ${
-                                            nightMode
-                                              ? "bg-transparent border border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.05)] text-[#b5bac1]"
-                                              : "bg-transparent border border-white/25 hover:bg-white/20 text-black"
-                                          }`}
+                                          className="inline-flex items-center px-1.5 py-0.5 rounded-lg text-xs min-h-[28px] transition-all"
+                                          style={{
+                                            background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
+                                            border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.1)'}`,
+                                            color: nightMode ? '#8e89a8' : '#4a5e88',
+                                          }}
                                         >
                                           <span className="text-[11px] font-medium">
                                             −
@@ -956,16 +980,22 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
         {/* Reply preview */}
         {replyingTo && (
           <div
-            className={`px-4 py-2 border-t ${nightMode ? "bg-white/5 border-white/10" : "border-white/25 bg-white/10"}`}
+            className="px-4 py-2"
+            style={{
+              background: nightMode ? 'rgba(13,11,24,0.6)' : 'rgba(205,216,248,0.4)',
+              borderTop: `1px solid ${nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(150,165,225,0.15)'}`,
+            }}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <Reply
-                  className={`w-4 h-4 flex-shrink-0 ${nightMode ? "text-slate-400" : "text-gray-600"}`}
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color: nightMode ? '#7b76e0' : '#4facfe' }}
                 />
                 <div className="flex-1 min-w-0">
                   <div
-                    className={`text-xs font-semibold ${nightMode ? "text-slate-300" : "text-gray-700"}`}
+                    className="text-xs font-semibold"
+                    style={{ color: nightMode ? '#9b96f5' : '#4facfe' }}
                   >
                     Replying to{" "}
                     {replyingTo.sender_id === profile?.supabaseId
@@ -973,7 +1003,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                       : conversation.name}
                   </div>
                   <div
-                    className={`text-xs truncate ${nightMode ? "text-slate-400" : "text-gray-600"}`}
+                    className="text-xs truncate"
+                    style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                   >
                     {replyingTo.content}
                   </div>
@@ -981,11 +1012,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
               </div>
               <button
                 onClick={() => setReplyingTo(null)}
-                className={`p-1 rounded ${nightMode ? "hover:bg-white/10" : "hover:bg-white/20"}`}
+                className="p-1 rounded transition-colors"
+                style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
               >
-                <X
-                  className={`w-4 h-4 ${nightMode ? "text-slate-400" : "text-gray-600"}`}
-                />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -994,7 +1024,11 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
         {/* Image preview */}
         {pendingImagePreview && (
           <div
-            className={`px-4 py-2 border-t ${nightMode ? "bg-white/5 border-white/10" : "border-white/25 bg-white/10"}`}
+            className="px-4 py-2"
+            style={{
+              background: nightMode ? 'rgba(13,11,24,0.6)' : 'rgba(205,216,248,0.4)',
+              borderTop: `1px solid ${nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(150,165,225,0.15)'}`,
+            }}
           >
             <div className="flex items-start gap-2">
               <div className="relative">
@@ -1014,7 +1048,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                 </button>
               </div>
               <p
-                className={`text-xs mt-1 ${nightMode ? "text-white/40" : "text-black/40"}`}
+                className="text-xs mt-1"
+                style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
               >
                 {uploadingImage ? "Uploading..." : "Ready to send"}
               </p>
@@ -1025,20 +1060,20 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
         {/* Input */}
         <form
           onSubmit={handleSendMessage}
-          className={`sticky bottom-0 px-4 py-3 border-t flex gap-2 items-center ${nightMode ? "bg-white/5 border-white/10" : "border-white/25"}`}
+          className="sticky bottom-0 px-4 py-3 flex gap-2 items-center"
           style={
             nightMode
               ? {
-                  background: "rgba(10, 10, 10, 0.95)",
-                  backdropFilter: "blur(20px)",
-                  WebkitBackdropFilter: "blur(20px)",
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  background: 'rgba(13,11,24,0.8)',
+                  borderTop: '1px solid rgba(255,255,255,0.04)',
                 }
               : {
-                  background: "rgba(255, 255, 255, 0.95)",
-                  backdropFilter: "blur(30px)",
-                  WebkitBackdropFilter: "blur(30px)",
-                  boxShadow:
-                    "0 -4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  background: 'rgba(205,216,248,0.6)',
+                  borderTop: '1px solid rgba(150,165,225,0.15)',
                 }
           }
         >
@@ -1054,7 +1089,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
           <button
             type="button"
             onClick={() => imageInputRef.current?.click()}
-            className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${nightMode ? "text-white/40 hover:text-white/70 hover:bg-white/10" : "text-black/40 hover:text-black/70 hover:bg-black/5"}`}
+            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+            style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
             title="Attach image"
           >
             <ImageIcon className="w-5 h-5" />
@@ -1072,11 +1108,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
               }}
               placeholder={pendingImage ? "Add a caption..." : "Message..."}
               rows={1}
-              className={
-                nightMode
-                  ? "w-full px-4 py-2.5 bg-white/5 border border-white/10 text-slate-100 placeholder-gray-400 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]"
-                  : "w-full px-4 py-2.5 border border-white/25 text-black placeholder-black/50 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-[15px]"
-              }
+              className="w-full px-4 py-2.5 rounded-full focus:outline-none resize-none text-[15px]"
               style={
                 nightMode
                   ? {
@@ -1084,15 +1116,20 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                       minHeight: "40px",
                       maxHeight: "100px",
                       overflowY: "auto",
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.06)',
+                      color: '#e8e5f2',
                     }
                   : {
                       height: "auto",
                       minHeight: "40px",
                       maxHeight: "100px",
                       overflowY: "auto",
-                      background: "rgba(255, 255, 255, 0.2)",
-                      backdropFilter: "blur(30px)",
-                      WebkitBackdropFilter: "blur(30px)",
+                      background: 'rgba(255,255,255,0.5)',
+                      border: '1px solid rgba(150,165,225,0.15)',
+                      color: '#1e2b4a',
+                      backdropFilter: 'blur(12px)',
+                      WebkitBackdropFilter: 'blur(12px)',
                     }
               }
               onInput={(e: React.FormEvent<HTMLTextAreaElement>) => {
@@ -1105,19 +1142,9 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
           <button
             type="submit"
             disabled={!newMessage.trim() && !pendingImage}
-            className={`w-10 h-10 border rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center transition-all duration-200 text-slate-100 ${nightMode ? "border-white/20" : "border-white/30"}`}
+            className="w-10 h-10 rounded-full disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center transition-all duration-200 text-white"
             style={{
-              background: "rgba(79, 150, 255, 0.85)",
-              backdropFilter: "blur(30px)",
-              WebkitBackdropFilter: "blur(30px)",
-            }}
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-              if (newMessage.trim() || pendingImage) {
-                e.currentTarget.style.background = "rgba(79, 150, 255, 1.0)";
-              }
-            }}
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.currentTarget.style.background = "rgba(79, 150, 255, 0.85)";
+              background: nightMode ? '#7b76e0' : '#4facfe',
             }}
           >
             <svg
@@ -1130,7 +1157,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                d="M5 12h14M12 5l7 7-7 7"
               />
             </svg>
           </button>
@@ -1162,18 +1189,23 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                   className="fixed bottom-0 left-0 right-0 z-[151] rounded-t-2xl pb-6 pt-2"
                   style={{
                     background: nightMode
-                      ? "rgba(20, 20, 30, 0.98)"
-                      : "rgba(255, 255, 255, 0.98)",
-                    backdropFilter: "blur(30px)",
-                    WebkitBackdropFilter: "blur(30px)",
-                    boxShadow: "0 -4px 24px rgba(0,0,0,0.2)",
+                      ? 'rgba(13,11,24,0.98)'
+                      : 'rgba(205,216,248,0.95)',
+                    backdropFilter: 'blur(30px)',
+                    WebkitBackdropFilter: 'blur(30px)',
+                    boxShadow: '0 -4px 24px rgba(0,0,0,0.2)',
                   }}
                 >
                   <div
-                    className={`w-10 h-1 rounded-full mx-auto mb-3 ${nightMode ? "bg-white/20" : "bg-black/15"}`}
+                    className="w-10 h-1 rounded-full mx-auto mb-3"
+                    style={{ background: nightMode ? 'rgba(255,255,255,0.15)' : 'rgba(150,165,225,0.3)' }}
                   />
                   <div
-                    className={`px-4 pb-2 mb-2 text-xs truncate ${nightMode ? "text-white/40 border-b border-white/10" : "text-black/40 border-b border-black/10"}`}
+                    className="px-4 pb-2 mb-2 text-xs truncate"
+                    style={{
+                      color: nightMode ? '#5d5877' : '#8e9ec0',
+                      borderBottom: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)'}`,
+                    }}
                   >
                     {isMe ? profile?.displayName : conversation?.name}:{" "}
                     {msg.content?.substring(0, 60)}
@@ -1311,14 +1343,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
       `}</style>
       <div>
         <h2
-          className={`text-lg font-bold ${nightMode ? "text-slate-100" : "text-black"}`}
+          className="text-lg font-bold"
+          style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a', fontFamily: "'Playfair Display', serif" }}
         >
           Messages
         </h2>
         <p
-          className={
-            nightMode ? "text-sm text-slate-100" : "text-sm text-black"
-          }
+          className="text-sm"
+          style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
         >
           Stay connected with your community
         </p>
@@ -1332,16 +1364,18 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
         </div>
       ) : conversations.length === 0 ? (
         <div
-          className={`rounded-xl border p-10 text-center ${nightMode ? "bg-white/5 border-white/10" : "border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)]"}`}
+          className="rounded-xl p-10 text-center"
           style={
             nightMode
-              ? {}
+              ? {
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                }
               : {
-                  background: "rgba(255, 255, 255, 0.2)",
-                  backdropFilter: "blur(30px)",
-                  WebkitBackdropFilter: "blur(30px)",
-                  boxShadow:
-                    "0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                  background: 'rgba(255,255,255,0.35)',
+                  border: '1px solid rgba(150,165,225,0.1)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
                 }
           }
         >
@@ -1349,12 +1383,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
           {!isSupabaseConfigured() ? (
             <>
               <p
-                className={`font-bold text-lg mb-2 ${nightMode ? "text-slate-100" : "text-black"}`}
+                className="font-bold text-lg mb-2"
+                style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
               >
                 Database Not Configured
               </p>
               <p
-                className={`text-sm mb-6 ${nightMode ? "text-slate-100/80" : "text-black/70"}`}
+                className="text-sm mb-6"
+                style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
               >
                 Supabase connection is not configured. Please add
                 VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env.local
@@ -1373,12 +1409,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
           ) : (
             <>
               <p
-                className={`font-bold text-lg mb-2 ${nightMode ? "text-slate-100" : "text-black"}`}
+                className="font-bold text-lg mb-2"
+                style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
               >
                 No conversations yet
               </p>
               <p
-                className={`text-sm mb-6 ${nightMode ? "text-slate-100/80" : "text-black/70"}`}
+                className="text-sm mb-6"
+                style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
               >
                 Connect with others in the Find tab to start messaging!
               </p>
@@ -1400,31 +1438,32 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
           <button
             key={chat.id}
             onClick={() => setActiveChat(chat.id)}
-            className={`w-full rounded-xl border px-3 py-3 text-left transition-all hover:-translate-y-1 ${
-              nightMode
-                ? "bg-white/5 border-white/10"
-                : "border-white/25 shadow-[0_4px_20px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.1)]"
-            }`}
+            className="w-full rounded-xl px-3 py-3 text-left transition-all hover:-translate-y-0.5"
             style={
               nightMode
-                ? {}
+                ? {
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                  }
                 : {
-                    background: "rgba(255, 255, 255, 0.2)",
-                    backdropFilter: "blur(30px)",
-                    WebkitBackdropFilter: "blur(30px)",
-                    boxShadow:
-                      "0 4px 20px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
+                    background: 'rgba(255,255,255,0.35)',
+                    border: '1px solid rgba(150,165,225,0.1)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    boxShadow: '0 1px 4px rgba(150,165,225,0.05)',
                   }
             }
           >
             <div className="flex items-center gap-3">
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl overflow-hidden ${
-                    nightMode
-                      ? "bg-gradient-to-br from-sky-300 via-blue-400 to-blue-500 text-white"
-                      : "bg-gradient-to-br from-purple-400 to-pink-400 text-white"
-                  }`}
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-white overflow-hidden"
+                  style={{
+                    background: chat.avatarImage ? undefined : getGradient(chat.userId || chat.name),
+                    fontFamily: "'Playfair Display', serif",
+                    fontSize: '14px',
+                    fontWeight: 600,
+                  }}
                 >
                   {chat.avatarImage ? (
                     <img
@@ -1433,36 +1472,46 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    chat.avatar
+                    getInitials(chat.name || 'U')
                   )}
                 </div>
                 {chat.online && (
                   <div
-                    className={`absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 ${nightMode ? "border-[#0a0a0a]" : "border-white"}`}
-                  ></div>
+                    className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full"
+                    style={{
+                      background: '#5cc88a',
+                      border: `2px solid ${nightMode ? '#0d0b18' : '#d6daf5'}`,
+                    }}
+                  />
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3
-                    className={`font-semibold ${nightMode ? "text-slate-100" : "text-black"}`}
+                    className="font-semibold text-sm"
+                    style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
                   >
                     {chat.name}
                   </h3>
                   {(chat.unreadCount ?? 0) > 0 && (
-                    <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500 text-white">
+                    <span
+                      className="flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold text-white"
+                      style={{ background: '#ef4444' }}
+                    >
                       {chat.unreadCount ?? 0}
                     </span>
                   )}
                 </div>
                 <p
-                  className={`text-sm truncate ${nightMode ? "text-slate-100" : "text-black opacity-70"}`}
+                  className="text-sm truncate"
+                  style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                 >
                   {decodeHTMLEntities(chat.lastMessage)}
                 </p>
               </div>
               <span
-                className={`text-xs flex-shrink-0 pr-1 ${nightMode ? "text-slate-100" : "text-black opacity-70"}`}
+                className="text-xs flex-shrink-0 pr-1"
+                style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
               >
                 {formatTimestamp(chat.timestamp)}
               </span>
@@ -1513,7 +1562,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
           >
             <div className="flex items-center justify-between mb-4">
               <h2
-                className={`text-xl font-bold ${nightMode ? "text-slate-100" : "text-black"}`}
+                className="text-xl font-bold"
+                style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a', fontFamily: "'Playfair Display', serif" }}
               >
                 New Message
               </h2>
@@ -1531,9 +1581,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                 }
               >
                 <X
-                  className={
-                    nightMode ? "w-5 h-5 text-slate-100" : "w-5 h-5 text-black"
-                  }
+                  className="w-5 h-5"
+                  style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                 />
               </button>
             </div>
@@ -1541,7 +1590,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
             {/* Recipient */}
             <div className="mb-6 relative">
               <label
-                className={`text-sm font-semibold mb-2 block ${nightMode ? "text-slate-100" : "text-black"}`}
+                className="text-sm font-semibold mb-2 block"
+                style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
               >
                 To:{" "}
                 {selectedConnections.length > 1 && (
@@ -1660,16 +1710,18 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                         <div className="text-2xl">{conn.avatar}</div>
                         <div className="flex-1 text-left">
                           <p
-                            className={`text-sm font-medium ${nightMode ? "text-slate-100" : "text-black"}`}
+                            className="text-sm font-medium"
+                            style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
                           >
                             {conn.name}
                           </p>
                           <p
-                            className={`text-xs ${nightMode ? "text-slate-100" : "text-black"} opacity-70`}
+                            className="text-xs"
+                            style={{ color: conn.status === "online" ? (nightMode ? '#5cc88a' : '#16834a') : (nightMode ? '#5d5877' : '#8e9ec0') }}
                           >
                             {conn.status === "online"
-                              ? "🟢 Online"
-                              : "⚫ Offline"}
+                              ? "Online"
+                              : "Offline"}
                           </p>
                         </div>
                       </button>
@@ -1677,7 +1729,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
 
                   {loadingConnections ? (
                     <div
-                      className={`px-4 py-6 text-center text-sm ${nightMode ? "text-slate-100" : "text-black"} opacity-70`}
+                      className="px-4 py-6 text-center text-sm"
+                      style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                     >
                       Loading friends...
                     </div>
@@ -1691,7 +1744,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                         !selectedConnections.some((sc) => sc.id === conn.id),
                     ).length === 0 && (
                       <div
-                        className={`px-4 py-6 text-center text-sm ${nightMode ? "text-slate-100" : "text-black"} opacity-70`}
+                        className="px-4 py-6 text-center text-sm"
+                        style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                       >
                         {connections.length === 0
                           ? "No friends yet — add friends first!"
@@ -1709,7 +1763,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
             <div className="mb-6">
               <label
                 htmlFor="new-chat-message"
-                className={`text-sm font-semibold mb-2 block ${nightMode ? "text-slate-100" : "text-black"}`}
+                className="text-sm font-semibold mb-2 block"
+                style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
               >
                 Message:
               </label>
@@ -1834,38 +1889,18 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
               disabled={
                 selectedConnections.length === 0 || !newChatMessage.trim()
               }
-              className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-100 ${nightMode ? "border-white/20" : "border-white/30"}`}
+              className="w-full py-3 rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-white"
               style={{
                 background:
                   selectedConnections.length > 0 && newChatMessage.trim()
-                    ? "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)"
-                    : "rgba(79, 150, 255, 0.5)",
+                    ? (nightMode ? '#7b76e0' : '#4facfe')
+                    : (nightMode ? 'rgba(123,118,224,0.4)' : 'rgba(79,172,254,0.4)'),
                 boxShadow:
                   selectedConnections.length > 0 && newChatMessage.trim()
-                    ? nightMode
-                      ? "0 4px 12px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
-                      : "0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)"
-                    : "none",
-              }}
-              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                if (selectedConnections.length > 0 && newChatMessage.trim()) {
-                  e.currentTarget.style.background =
-                    "linear-gradient(135deg, #5BA3FF 0%, #4F96FF 50%, #3b82f6 100%)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow = nightMode
-                    ? "0 6px 16px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)"
-                    : "0 6px 16px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)";
-                }
-              }}
-              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                if (selectedConnections.length > 0 && newChatMessage.trim()) {
-                  e.currentTarget.style.background =
-                    "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = nightMode
-                    ? "0 4px 12px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
-                    : "0 4px 12px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)";
-                }
+                    ? (nightMode
+                      ? '0 4px 12px rgba(123,118,224,0.4)'
+                      : '0 4px 12px rgba(79,172,254,0.3)')
+                    : 'none',
               }}
             >
               {selectedConnections.length > 1
@@ -1882,21 +1917,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
           onClick={() => setShowNewChatDialog(true)}
           className="fixed bottom-20 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 z-40 text-white"
           style={{
-            background:
-              "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)",
+            background: nightMode ? '#7b76e0' : '#4facfe',
             boxShadow: nightMode
-              ? "0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
-              : "0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
-          }}
-          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.boxShadow = nightMode
-              ? "0 8px 24px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25)"
-              : "0 8px 24px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)";
-          }}
-          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.boxShadow = nightMode
-              ? "0 6px 20px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)"
-              : "0 6px 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)";
+              ? '0 6px 20px rgba(123,118,224,0.4)'
+              : '0 6px 20px rgba(79,172,254,0.4)',
           }}
           title="New Message"
           aria-label="New Message"
