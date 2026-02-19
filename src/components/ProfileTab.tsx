@@ -787,6 +787,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                     id: profile.story.id,
                     viewCount: profile.story.viewCount,
                     likeCount: profile.story.likeCount,
+                    commentCount: profile.story.commentCount,
                   }
                 : null,
             }}

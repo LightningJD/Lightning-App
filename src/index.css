@@ -46,6 +46,15 @@ html {
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
+/* Hide scrollbar completely (for horizontal rails, etc.) */
+.hide-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+
 /* Glassmorphism: Animated Gradient Background */
 @keyframes gradientMove {
   0%, 100% {

@@ -382,8 +382,12 @@ const ChatTab: React.FC<ChatTabProps> = ({
               {dmConversations.map((convo) => (
                 <div
                   key={convo.id}
-                  className="flex items-center gap-3 p-2.5 rounded-lg transition-all cursor-pointer"
-                  style={nightMode ? {} : {
+                  className="flex items-center gap-3 p-2.5 rounded-lg transition-all cursor-pointer hover:brightness-110"
+                  style={nightMode ? {
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    marginBottom: '3px',
+                  } : {
                     background: 'rgba(255,255,255,0.35)',
                     border: '1px solid rgba(150,165,225,0.1)',
                     backdropFilter: 'blur(12px)',
@@ -420,7 +424,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
                       {convo.avatarImage ? (
                         <img src={convo.avatarImage} alt={convo.name} className="w-full h-full rounded-full object-cover" />
                       ) : (
-                        (convo.name || 'U')[0].toUpperCase()
+                        getInitials(convo.name || 'U')
                       )}
                     </div>
                     {convo.online && (
@@ -487,8 +491,12 @@ const ChatTab: React.FC<ChatTabProps> = ({
                   {friendsWithoutConvos.map((friend) => (
                     <div
                       key={friend.id}
-                      className="flex items-center gap-3 p-2.5 rounded-lg transition-all cursor-pointer"
-                      style={nightMode ? {} : {
+                      className="flex items-center gap-3 p-2.5 rounded-lg transition-all cursor-pointer hover:brightness-110"
+                      style={nightMode ? {
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                        marginBottom: '3px',
+                      } : {
                         background: 'rgba(255,255,255,0.35)',
                         border: '1px solid rgba(150,165,225,0.1)',
                         backdropFilter: 'blur(12px)',
@@ -525,7 +533,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
                           {friend.avatarImage ? (
                             <img src={friend.avatarImage} alt={friend.name} className="w-full h-full rounded-full object-cover" />
                           ) : (
-                            (friend.name || 'U')[0].toUpperCase()
+                            getInitials(friend.name || 'U')
                           )}
                         </div>
                         {friend.online && (
@@ -580,9 +588,8 @@ const ChatTab: React.FC<ChatTabProps> = ({
       {/* Horizontal Rail (hidden on mobile when in DM/server chat) */}
       {showRail && (
         <div
-          className="flex items-center gap-2 px-3 py-2 overflow-x-auto flex-shrink-0"
+          className="flex items-center gap-2 px-3 py-2 overflow-x-auto flex-shrink-0 hide-scrollbar"
           style={{
-            scrollbarWidth: 'none',
             borderBottom: nightMode ? '1px solid rgba(255,255,255,0.04)' : '1px solid rgba(150,165,225,0.1)',
           }}
         >
