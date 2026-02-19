@@ -26,11 +26,13 @@ TASKS (do in order, one at a time):
 =============================================
 
 [ ] TASK 1: Bottom Navigation Bar
-    File: src/components/AppLayout.tsx (NavButton component)
+    File: src/components/AppLayout.tsx (NavButton component is defined here)
+    Also touches: src/App.tsx (references currentTab, imports AppLayout)
     Mockup: design/mockups/component-13-bottom-nav.html
     Changes:
     - Replace Lucide icons with custom outline SVGs: House+Tower (Home), Bolt (Charge), Person (You)
-    - Rename "Find" tab to "Charge" in all labels and references
+    - Rename "Find" tab to "Charge" — update tab="find" to tab="charge" in AppLayout.tsx
+    - Also update all "find" tab references in App.tsx (currentTab === "find", setCurrentTab("find"), etc.)
     - Night active: rgba(123,118,224,0.12) bg, rgba(123,118,224,0.18) border, white text
     - Night inactive: #5d5877
     - Day active: rgba(79,172,254,0.1) bg, rgba(79,172,254,0.15) border, dark text
@@ -77,7 +79,9 @@ TASKS (do in order, one at a time):
     - Two states: DM list (default) vs Server channels (tap a server)
 
 [ ] TASK 5: Channel Chat
-    File: src/components/servers/ServerView.tsx
+    Files: src/components/servers/ChannelChat.tsx (messages area)
+           src/components/servers/ChannelSidebar.tsx (channel list)
+           src/components/servers/ServersTab.tsx (orchestrates server view, imports ChannelChat + ChannelSidebar)
     Mockup: design/mockups/component-07-channel-chat.html
     Changes:
     - Channel names: dash prefix (—) not hashtag
@@ -98,7 +102,8 @@ TASKS (do in order, one at a time):
     - Back arrow + swipe right to DM list
 
 [ ] TASK 7: Create Testimony Flow
-    File: src/components/TestimonyWizard.tsx
+    File: src/components/TestimonyQuestionnaire.tsx
+    Also: src/config/testimonyQuestions.ts (question config, do not modify logic)
     Mockup: design/mockups/component-08-create-testimony.html
     Changes:
     - Progress dots: pill shape for current step
@@ -109,6 +114,7 @@ TASKS (do in order, one at a time):
 
 [ ] TASK 8: Charge Tab (formerly Find)
     File: src/components/NearbyTab.tsx
+    Also: src/components/AppLayout.tsx and src/App.tsx (if not already renamed in Task 1)
     Mockup: design/mockups/component-05-simplified-find.html
     Changes:
     - Rename all "Find" references to "Charge"
@@ -119,7 +125,8 @@ TASKS (do in order, one at a time):
     - Simplify to: greeting + search + testimony directory
 
 [ ] TASK 9: Notifications Panel (NEW)
-    File: src/components/NotificationsPanel.tsx (CREATE NEW)
+    File: src/components/NotificationsPanel.tsx (CREATE THIS NEW FILE)
+    Wire up: src/components/AppLayout.tsx (bell icon in header triggers this panel)
     Mockup: design/mockups/component-10-notifications.html
     Changes:
     - New component triggered from bell icon in header
@@ -131,17 +138,18 @@ TASKS (do in order, one at a time):
     - Day Accept: rgba(79,172,254,0.15) bg, #2b6cb0 text
     - Notification feed grouped by Today / Earlier
     - Red dot for unread items
-    - Reuse: getPendingFriendRequests(), acceptFriendRequest(), declineFriendRequest()
+    - Reuse existing functions from src/lib/database/friends.ts:
+      getPendingFriendRequests(), acceptFriendRequest(), declineFriendRequest()
 
 [ ] TASK 10: Create Server Dialog
     File: src/components/servers/CreateServerDialog.tsx
     Mockup: design/mockups/component-14-create-server.html
     Changes:
-    - Replace emoji picker (SERVER_EMOJIS array) with gradient color picker (8 options)
+    - Replace emoji picker (SERVER_EMOJIS array) with gradient color picker (8 gradient circle options)
     - Live preview: letter initial on chosen gradient, updates as user types
     - Add "Upload custom image instead" link below gradients
     - Glass style for dialog, inputs, button
-    - Keep: validateGroup(), sanitizeInput(), onCreate(), loading state
+    - Keep all existing logic: validateGroup(), sanitizeInput(), onCreate(), loading state
 
 [ ] TASK 11: Profile Creation Wizard
     File: src/components/ProfileCreationWizard.tsx
@@ -158,16 +166,16 @@ TASKS (do in order, one at a time):
     - All inputs: glass style
 
 [ ] TASK 12: Global Cleanup
-    Files: Multiple
+    Files: Multiple across src/
     Changes:
-    - Create SwipeablePageWrapper component (framer-motion or react-swipeable)
+    - Create src/components/SwipeablePageWrapper.tsx (use framer-motion or react-swipeable)
     - Wrap all sub-pages: Settings, Channel Chat, DM, Notifications, Profile views, etc.
-    - Back arrow (←) on all sub-pages (not root tabs)
-    - Verify "Find" → "Charge" rename is complete everywhere
+    - Back arrow (←) on all sub-pages (not root tabs, not modals)
+    - Verify "Find" → "Charge" rename is complete everywhere (grep for "find" in tab/nav contexts)
     - Verify all notification badges are red #ef4444
-    - Verify no colored emojis remain as UI icons
+    - Verify no colored emojis remain as UI icons (check for ⛪ 🙏 📖 💬 🔊 🔔 👤)
     - Verify all SVG icons are colorless outline style
-    - Install framer-motion or react-swipeable if not already present
+    - Install framer-motion or react-swipeable if not already in package.json
 
 =============================================
 REFERENCE FILES:
