@@ -104,7 +104,7 @@ export interface AppContextType {
   setActiveServerEmoji: (emoji: string | null) => void;
 
   // Notification counts
-  notificationCounts: { messages: number; find: number };
+  notificationCounts: { messages: number; charge: number };
   handleConversationsCountChange: (count: number) => void;
 
   // Settings state
@@ -292,7 +292,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     useState(false);
   const [notificationCounts, setNotificationCounts] = React.useState({
     messages: 0,
-    find: 0,
+    charge: 0,
   });
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
@@ -437,7 +437,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const pending = await getPendingFriendRequests(userProfile.supabaseId);
         if (isMounted) {
-          setNotificationCounts((prev) => ({ ...prev, find: pending.length }));
+          setNotificationCounts((prev) => ({ ...prev, charge: pending.length }));
         }
       } catch {
         // Silently fail
@@ -479,10 +479,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [userProfile?.supabaseId]);
 
-  // Clear find badge when user opens Find tab
+  // Clear charge badge when user opens Charge tab
   React.useEffect(() => {
-    if (currentTab === "find") {
-      setNotificationCounts((prev) => ({ ...prev, find: 0 }));
+    if (currentTab === "charge") {
+      setNotificationCounts((prev) => ({ ...prev, charge: 0 }));
     }
   }, [currentTab]);
 

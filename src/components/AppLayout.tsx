@@ -1,6 +1,74 @@
 import React from "react";
-import { Home, Search, User, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
 import { useAppContext } from "../contexts/AppContext";
+
+// ============================================
+// CUSTOM SVG NAV ICONS — colorless outlines
+// ============================================
+
+const HomeIcon: React.FC<{ className?: string; strokeWidth?: number }> = ({
+  className,
+  strokeWidth = 1.8,
+}) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Small house */}
+    <path d="M2 13l5-4 5 4v7H2V13z" />
+    <path d="M5 20v-3h4v3" />
+    {/* Tall building */}
+    <rect x="13" y="4" width="9" height="16" rx="1" />
+    {/* Window dots */}
+    <line x1="16" y1="7.5" x2="16" y2="7.5" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="19" y1="7.5" x2="19" y2="7.5" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="16" y1="11" x2="16" y2="11" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="19" y1="11" x2="19" y2="11" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="16" y1="14.5" x2="16" y2="14.5" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="19" y1="14.5" x2="19" y2="14.5" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M16 20v-2.5h3v2.5" />
+  </svg>
+);
+
+const BoltIcon: React.FC<{ className?: string; strokeWidth?: number }> = ({
+  className,
+  strokeWidth = 1.8,
+}) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+  </svg>
+);
+
+const PersonIcon: React.FC<{ className?: string; strokeWidth?: number }> = ({
+  className,
+  strokeWidth = 1.8,
+}) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -72,8 +140,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   )}
                 </div>
               )}
-              {currentTab === "find" && (
-                <div className="font-semibold text-black text-xl">Find</div>
+              {currentTab === "charge" && (
+                <div className="font-semibold text-black text-xl">Charge</div>
               )}
               <button
                 onClick={() => setShowMenu(true)}
@@ -138,8 +206,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   )}
                 </div>
               )}
-              {currentTab === "find" && (
-                <div className="font-semibold text-slate-100 text-xl">Find</div>
+              {currentTab === "charge" && (
+                <div className="font-semibold text-slate-100 text-xl">Charge</div>
               )}
               <button
                 onClick={() => setShowMenu(true)}
@@ -169,52 +237,51 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           dialogs in a stacking context */}
       <div className="relative">{children}</div>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation — Frosted glass */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-40 border-t ${nightMode ? "border-white/10" : "border-white/15"}`}
+        className="fixed bottom-0 left-0 right-0 z-40"
         style={
           nightMode
             ? {
-                background: "rgba(10, 10, 10, 0.9)",
+                background: "rgba(13, 11, 24, 0.9)",
+                borderTop: "1px solid rgba(255, 255, 255, 0.04)",
                 backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
-                boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.3)",
               }
             : {
-                background: "rgba(255, 255, 255, 0.15)",
-                backdropFilter: "blur(40px)",
-                WebkitBackdropFilter: "blur(40px)",
-                boxShadow:
-                  "0 -2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.3)",
+                background: "rgba(205, 216, 248, 0.6)",
+                borderTop: "1px solid rgba(150, 165, 225, 0.1)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
               }
         }
       >
-        <div className="px-2 sm:px-6 lg:px-8 flex justify-around items-center h-14">
+        <div className="px-2 sm:px-6 lg:px-8 flex justify-around items-center" style={{ padding: "6px 12px 16px" }}>
           <NavButton
             tab="home"
-            icon={Home}
             label="Home"
             currentTab={currentTab}
             nightMode={nightMode}
             badge={notificationCounts.messages}
             onClick={() => setCurrentTab("home")}
+            icon={<HomeIcon className="w-[18px] h-[18px]" strokeWidth={currentTab === "home" ? 2.2 : 1.8} />}
           />
           <NavButton
-            tab="find"
-            icon={Search}
-            label="Find"
+            tab="charge"
+            label="Charge"
             currentTab={currentTab}
             nightMode={nightMode}
-            badge={notificationCounts.find}
-            onClick={() => setCurrentTab("find")}
+            badge={notificationCounts.charge}
+            onClick={() => setCurrentTab("charge")}
+            icon={<BoltIcon className="w-[18px] h-[18px]" strokeWidth={currentTab === "charge" ? 2.2 : 1.8} />}
           />
           <NavButton
             tab="you"
-            icon={User}
             label="You"
             currentTab={currentTab}
             nightMode={nightMode}
             onClick={() => setCurrentTab("you")}
+            icon={<PersonIcon className="w-[18px] h-[18px]" strokeWidth={currentTab === "you" ? 2.2 : 1.8} />}
           />
         </div>
       </div>
@@ -242,7 +309,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
 interface NavButtonProps {
   tab: string;
-  icon: React.FC<any>;
+  icon: React.ReactNode;
   label: string;
   currentTab: string;
   nightMode: boolean;
@@ -252,7 +319,7 @@ interface NavButtonProps {
 
 const NavButton: React.FC<NavButtonProps> = ({
   tab,
-  icon: Icon,
+  icon,
   label,
   currentTab,
   nightMode,
@@ -260,38 +327,83 @@ const NavButton: React.FC<NavButtonProps> = ({
   onClick,
 }) => {
   const isActive = currentTab === tab;
+
+  // Night mode colors
+  const nightActive = {
+    color: "#e8e5f2",
+    background: "rgba(123, 118, 224, 0.12)",
+    border: "1px solid rgba(123, 118, 224, 0.18)",
+  };
+  const nightInactive = {
+    color: "#5d5877",
+    background: "transparent",
+    border: "1px solid transparent",
+  };
+
+  // Day mode colors
+  const dayActive = {
+    color: "#1e2b4a",
+    background: "rgba(79, 172, 254, 0.1)",
+    border: "1px solid rgba(79, 172, 254, 0.15)",
+  };
+  const dayInactive = {
+    color: "#8e9ec0",
+    background: "transparent",
+    border: "1px solid transparent",
+  };
+
+  const style = nightMode
+    ? isActive ? nightActive : nightInactive
+    : isActive ? dayActive : dayInactive;
+
+  // Badge border color matches nav background
+  const badgeBorderColor = nightMode ? "#0d0b18" : "#d6daf5";
+
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${
-        isActive
-          ? nightMode
-            ? "text-slate-100 border-white/20"
-            : "text-slate-100 border-white/30"
-          : nightMode
-            ? "text-white/40 border-transparent hover:bg-white/5"
-            : "text-black/40 border-transparent hover:bg-white/10"
-      }`}
-      style={
-        isActive
-          ? {
-              background: "rgba(79, 150, 255, 0.85)",
-              backdropFilter: "blur(30px)",
-              WebkitBackdropFilter: "blur(30px)",
-            }
-          : {}
-      }
+      className="flex flex-col items-center gap-0.5 rounded-[10px] cursor-pointer transition-all"
+      style={{
+        padding: "5px 14px",
+        color: style.color,
+        background: style.background,
+        border: style.border,
+      }}
       aria-label={`${label}${badge && badge > 0 ? ` (${badge} ${tab === "home" ? "unread" : "new"})` : ""}`}
     >
-      <div className="relative">
-        <Icon className="w-5 h-5" />
+      <div className="relative" style={{ color: style.color }}>
+        {icon}
         {badge !== undefined && badge > 0 && (
-          <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20 badge-pulse">
-            <span className="text-[9px] font-bold text-white">{badge}</span>
+          <div
+            className="absolute flex items-center justify-center badge-pulse"
+            style={{
+              top: "-2px",
+              right: "2px",
+              minWidth: "14px",
+              height: "14px",
+              borderRadius: "7px",
+              fontSize: "7px",
+              fontWeight: 700,
+              padding: "0 3px",
+              background: "#ef4444",
+              color: "white",
+              border: `2px solid ${badgeBorderColor}`,
+            }}
+          >
+            {badge}
           </div>
         )}
       </div>
-      <span className="text-[10px] font-medium">{label}</span>
+      <span
+        style={{
+          fontSize: "7.5px",
+          fontWeight: 500,
+          letterSpacing: "0.3px",
+          color: style.color,
+        }}
+      >
+        {label}
+      </span>
     </button>
   );
 };

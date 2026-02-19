@@ -54,9 +54,9 @@ function AppInner() {
             />
           </ComponentErrorBoundary>
         );
-      case 'find':
+      case 'charge':
         return (
-          <ComponentErrorBoundary name="Find" nightMode={ctx.nightMode}>
+          <ComponentErrorBoundary name="Charge" nightMode={ctx.nightMode}>
             <NearbyTab
               sortBy={ctx.sortBy}
               setSortBy={ctx.setSortBy}
