@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 9: Profile / You Tab</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 12px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.exists-tag{background:rgba(92,200,138,0.15);color:#5cc88a}
+.phones-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.phone-box{flex-shrink:0}
+.comp-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#5d5877;margin-bottom:8px;font-weight:600;text-align:center}
+.phone{width:260px;height:580px;border-radius:34px;position:relative;overflow:hidden}
+.phone.dark{background:#0d0b18;border:3px solid rgba(255,255,255,0.12);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.phone.light{background:linear-gradient(135deg,#cdd8f8 0%,#d6daf5 40%,#dee0f6 70%,#e4e0f5 100%);border:3px solid rgba(255,255,255,0.5);box-shadow:0 20px 60px rgba(0,0,0,0.12)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:22px;border-radius:0 0 12px 12px;z-index:10}
+.phone.dark::before{background:#08060f}.phone.light::before{background:#c4cee8}
+.phone.light .blob1{position:absolute;top:-10%;left:15%;width:200px;height:200px;background:radial-gradient(circle,rgba(150,170,245,0.16) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0}
+.phone.light .blob2{position:absolute;bottom:-8%;right:10%;width:180px;height:180px;background:radial-gradient(circle,rgba(170,160,240,0.1) 0%,transparent 60%);border-radius:50%;pointer-events:none;z-index:0}
+.phone-screen{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding-top:24px;position:relative;z-index:1}
+.phone-screen::-webkit-scrollbar{display:none}
+
+/* Profile card */
+.pcard{border-radius:14px;padding:14px 14px 10px;margin:0 8px 8px;position:relative;overflow:hidden}
+.pcard::before{content:'';position:absolute;inset:-1px;border-radius:15px;padding:1px;pointer-events:none;z-index:0}
+.pcard-inner{position:relative;z-index:1}
+.p-header{display:flex;align-items:center;gap:4px;margin-bottom:8px}
+.p-header-label{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px}
+.p-header-line{flex:1;height:1px}
+/* LARGE avatar */
+.avatar{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:38px;font-family:'Playfair Display',serif;color:white;margin:0 auto 8px;position:relative}
+.avatar::after{content:'';position:absolute;inset:-3px;border-radius:50%;padding:3px;pointer-events:none}
+.p-name{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;text-align:center;margin-bottom:1px}
+.p-handle{font-size:8px;text-align:center;margin-bottom:8px}
+.p-bio{font-size:8px;line-height:1.5;text-align:center;margin-bottom:8px;padding:0 4px}
+/* Verse */
+.p-verse{padding:8px;border-radius:8px;margin-bottom:8px;border-left:2px solid}
+.p-verse-label{font-size:6px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.p-verse-text{font-size:8.5px;font-style:italic;line-height:1.45;font-family:'Playfair Display',serif}
+.p-verse-ref{font-size:7px;font-weight:600;margin-top:3px}
+/* Music */
+.music{display:flex;align-items:center;gap:6px;padding:7px;border-radius:8px;margin-bottom:8px}
+.music-play{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.music-info{flex:1;min-width:0}.music-title{font-size:8px;font-weight:600}.music-artist{font-size:7px;opacity:0.5}
+.music-bar{height:2px;border-radius:1px;margin-top:3px;position:relative}.music-fill{height:100%;border-radius:1px;width:35%}
+.music-wave{display:flex;align-items:flex-end;gap:1.5px;height:14px}
+.music-wave i{display:block;width:2px;border-radius:1px;animation:wave 0.8s ease-in-out infinite}
+.music-wave i:nth-child(1){height:6px;animation-delay:0s}.music-wave i:nth-child(2){height:10px;animation-delay:0.1s}.music-wave i:nth-child(3){height:4px;animation-delay:0.2s}.music-wave i:nth-child(4){height:12px;animation-delay:0.15s}.music-wave i:nth-child(5){height:7px;animation-delay:0.25s}
+@keyframes wave{0%,100%{transform:scaleY(0.5)}50%{transform:scaleY(1)}}
+/* Stats */
+.stats{display:flex;justify-content:center;gap:0;margin-bottom:8px;border-radius:8px;overflow:hidden;padding:6px 0}
+.stat{flex:1;text-align:center;position:relative}
+.stat+.stat::before{content:'';position:absolute;left:0;top:20%;height:60%;width:1px}
+.stat-n{font-size:12px;font-weight:700}.stat-l{font-size:6px;text-transform:uppercase;letter-spacing:0.8px;opacity:0.5}
+.views-subtle{text-align:center;font-size:7px;margin:8px 0 -4px;letter-spacing:0.3px}
+.dk .views-subtle{color:#8e89a8;opacity:0.65}
+.lt .views-subtle{color:#4a5e88;opacity:0.45}
+.views-eye{font-size:8px;opacity:0.7;font-style:normal}
+/* Buttons */
+.p-btns{display:flex;gap:4px}
+.p-btn{flex:1;padding:6px;border-radius:8px;border:none;font-size:8px;font-weight:600;font-family:'General Sans',sans-serif;cursor:pointer;text-align:center}
+/* Testimony section */
+.sec-label{font-size:7px;text-transform:uppercase;letter-spacing:1.2px;font-weight:500;margin:8px 10px 5px}
+.tcard{border-radius:10px;padding:10px;margin:0 8px 6px}
+.t-tag{font-size:6px;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;margin-bottom:3px}
+.tcard.primary{position:relative;overflow:hidden}
+.tcard.primary::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:2px}
+.tcard.secondary{opacity:0.85}
+.tcard.secondary .t-title{font-size:9.5px}
+.tcard.secondary .t-quote{font-size:7.5px}
+.dk .tcard.primary::before{background:linear-gradient(180deg,#7b76e0,#9b96f5)}
+.lt .tcard.primary::before{background:linear-gradient(180deg,#4facfe,#9b96f5)}
+.t-title{font-family:'Playfair Display',serif;font-size:11px;font-weight:500;margin-bottom:3px;line-height:1.3}
+.t-quote{font-family:'Playfair Display',serif;font-size:8.5px;font-style:italic;line-height:1.4;padding:6px;border-radius:6px;margin-bottom:4px;border-left:2px solid}
+.t-body{font-size:7.5px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.t-acts{display:flex;gap:8px;margin-top:5px;font-size:7px}
+/* Nav */
+.nav{position:absolute;bottom:0;left:0;right:0;padding:3px 8px 16px;display:flex;justify-content:space-around;z-index:5}
+.ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:5.5px;letter-spacing:0.5px;text-transform:uppercase;padding:3px 10px;border-radius:8px}.ni-i{font-size:13px}
+
+/* NIGHT */
+.dk .pcard{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(10px)}
+.dk .pcard::before{background:linear-gradient(135deg,rgba(123,118,224,0.3),rgba(91,86,204,0.15),rgba(155,150,245,0.2));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.dk .p-header-label{color:#7b76e0}.dk .p-header-line{background:rgba(255,255,255,0.06)}
+.dk .avatar{background:linear-gradient(135deg,#7b76e0,#9b96f5)}
+.dk .avatar::after{background:linear-gradient(135deg,rgba(123,118,224,0.5),rgba(155,150,245,0.3));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.dk .p-name{color:#e8e5f2}.dk .p-handle{color:#5d5877}.dk .p-bio{color:#8e89a8}
+.dk .p-verse{background:rgba(123,118,224,0.05);border-left-color:#7b76e0}
+.dk .p-verse-label{color:#5d5877}.dk .p-verse-text{color:#b8b4c8}.dk .p-verse-ref{color:#7b76e0}
+.dk .music{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
+.dk .music-play{background:rgba(123,118,224,0.15);color:#7b76e0}
+.dk .music-title{color:#e8e5f2}.dk .music-bar{background:rgba(255,255,255,0.06)}.dk .music-fill{background:#7b76e0}.dk .music-wave i{background:#7b76e0}
+.dk .stats{background:rgba(255,255,255,0.03)}.dk .stat-n{color:#e8e5f2}.dk .stat+.stat::before{background:rgba(255,255,255,0.06)}
+.dk .p-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .p-btn.primary{background:rgba(123,118,224,0.15);border-color:rgba(123,118,224,0.2);color:#7b76e0}
+.dk .sec-label{color:#5d5877}
+.dk .tcard{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.dk .t-tag{color:#7b76e0}.dk .t-title{color:#e8e5f2}
+.dk .t-quote{background:rgba(123,118,224,0.04);border-left-color:rgba(123,118,224,0.2);color:#b8b4c8}
+.dk .t-body{color:#8e89a8}.dk .t-acts{color:#5d5877}
+.dk .nav{background:rgba(13,11,24,0.85);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.04)}
+.dk .ni{color:#5d5877}.dk .ni.a{color:#7b76e0;background:rgba(123,118,224,0.1)}
+/* DAY */
+.lt .pcard{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(20px);box-shadow:0 2px 10px rgba(150,165,225,0.07)}
+.lt .pcard::before{background:linear-gradient(135deg,rgba(79,172,254,0.25),rgba(59,130,246,0.15),rgba(139,92,246,0.15));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.lt .p-header-label{color:#4facfe}.lt .p-header-line{background:rgba(150,165,225,0.15)}
+.lt .avatar{background:linear-gradient(135deg,#4facfe,#9b96f5)}
+.lt .avatar::after{background:linear-gradient(135deg,rgba(79,172,254,0.4),rgba(155,150,245,0.25));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.lt .p-name{color:#1e2b4a}.lt .p-handle{color:#8e9ec0}.lt .p-bio{color:#4a5e88}
+.lt .p-verse{background:rgba(79,172,254,0.05);border-left-color:#4facfe}
+.lt .p-verse-label{color:#8e9ec0}.lt .p-verse-text{color:#3a4d6e}.lt .p-verse-ref{color:#2b6cb0}
+.lt .music{background:rgba(255,255,255,0.4);border:1px solid rgba(150,165,225,0.1);backdrop-filter:blur(8px)}
+.lt .music-play{background:rgba(79,172,254,0.12);color:#2b6cb0}
+.lt .music-title{color:#1e2b4a}.lt .music-bar{background:rgba(150,165,225,0.15)}.lt .music-fill{background:#4facfe}.lt .music-wave i{background:#4facfe}
+.lt .stats{background:rgba(255,255,255,0.4);backdrop-filter:blur(8px)}.lt .stat-n{color:#1e2b4a}.lt .stat+.stat::before{background:rgba(150,165,225,0.15)}
+.lt .p-btn{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);color:#4a5e88;backdrop-filter:blur(8px)}
+.lt .p-btn.primary{background:rgba(79,172,254,0.12);border-color:rgba(79,172,254,0.2);color:#2b6cb0}
+.lt .sec-label{color:#4a5e88}
+.lt .tcard{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(12px);box-shadow:0 1px 6px rgba(150,165,225,0.05)}
+.lt .t-tag{color:#4facfe}.lt .t-title{color:#1e2b4a}
+.lt .t-quote{background:rgba(79,172,254,0.04);border-left-color:rgba(79,172,254,0.2);color:#3a4d6e}
+.lt .t-body{color:#4a5e88}.lt .t-acts{color:#8e9ec0}
+.lt .nav{background:rgba(205,216,248,0.5);backdrop-filter:blur(20px);border-top:1px solid rgba(150,165,225,0.1)}
+.lt .ni{color:#8e9ec0}.lt .ni.a{color:#2b6cb0;background:rgba(79,172,254,0.1)}
+</style></head><body>
+<div class="counter">Component 9 of 15</div>
+<h1>Profile / You Tab</h1>
+<div class="subtitle"><span class="tag exists-tag">✅ EXISTS — Restyle only, large avatar</span></div>
+<div class="tab-info">📍 You Tab &nbsp;|&nbsp; ProfileCard with ~100px avatar + verse + music + stats + testimonies</div>
+<div class="phones-row">
+  <!-- NIGHT -->
+  <div class="phone-box">
+    <div class="comp-label">🌙 Night Mode</div>
+    <div class="phone dark">
+      <div class="phone-screen dk">
+        <div class="pcard"><div class="pcard-inner">
+          <div class="p-header"><span class="p-header-label">⚡ Lightning Profile</span><div class="p-header-line"></div></div>
+          
+          <div class="avatar">J</div>
+          <div class="p-name">Jordyn Lightning</div>
+          <div class="p-handle">@jordyn · The Crossing Church</div>
+          <div class="p-bio">Student ministry leader. Building Lightning to help believers share what God is doing.</div>
+          <div class="p-verse">
+            <div class="p-verse-label">Favorite Verse</div>
+            <div class="p-verse-text">"Call to me and I will answer you and show you great and mighty things you do not know"</div>
+            <div class="p-verse-ref">— Jeremiah 33:3</div>
+          </div>
+          <div class="music">
+            <div class="music-play">▶</div>
+            <div class="music-info"><div class="music-title">You Are Mine</div><div class="music-artist">Soaking in His Presence</div><div class="music-bar"><div class="music-fill"></div></div></div>
+            <div class="music-wave"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="p-btns"><button class="p-btn primary">⚡ Share Testimony</button><button class="p-btn">Edit Profile</button></div>
+          <div class="views-subtle"><span class="views-eye">⦿</span> 342 views</div>
+        </div></div>
+        <div class="sec-label">Salvation Testimony</div>
+        <div class="tcard primary">
+          <div class="t-tag">Salvation Testimony</div>
+          <div class="t-title">A Dream That Changed Everything</div>
+          <div class="t-quote">"Here was the Creator of the universe, and He was talking directly to me."</div>
+          <div class="t-body">Today, I spend my time drawing pictures of Jesus and watching movies about His life, but it wasn't always this way...</div>
+          <div class="t-acts"><span>♡ 34</span><span>💬 12</span><span>↗ Share</span></div>
+        </div>
+        <div class="sec-label" style="margin-top:4px">Life Testimonies</div>
+        <div class="tcard secondary">
+          <div class="t-tag">Life Testimony</div>
+          <div class="t-title">$4,250 and a Dream</div>
+          <div class="t-quote">"With nothing but a budget and a burning vision, God opened doors no human hand could."</div>
+          <div class="t-body">When I started building Lightning, everyone said I was crazy...</div>
+          <div class="t-acts"><span>♡ 56</span><span>💬 19</span><span>↗ Share</span></div>
+        </div>
+      </div>
+      <div class="dk"><div class="nav"><div class="ni"><div class="ni-i">⚡</div>Home</div><div class="ni"><div class="ni-i">🔍</div>Find</div><div class="ni a"><div class="ni-i">👤</div>You</div></div></div>
+    </div>
+  </div>
+  <!-- DAY -->
+  <div class="phone-box">
+    <div class="comp-label">☀️ Day Mode (Peri V3)</div>
+    <div class="phone light">
+      <div class="blob1"></div><div class="blob2"></div>
+      <div class="phone-screen lt">
+        <div class="pcard"><div class="pcard-inner">
+          <div class="p-header"><span class="p-header-label">⚡ Lightning Profile</span><div class="p-header-line"></div></div>
+          
+          <div class="avatar">J</div>
+          <div class="p-name">Jordyn Lightning</div>
+          <div class="p-handle">@jordyn · The Crossing Church</div>
+          <div class="p-bio">Student ministry leader. Building Lightning to help believers share what God is doing.</div>
+          <div class="p-verse">
+            <div class="p-verse-label">Favorite Verse</div>
+            <div class="p-verse-text">"Call to me and I will answer you and show you great and mighty things you do not know"</div>
+            <div class="p-verse-ref">— Jeremiah 33:3</div>
+          </div>
+          <div class="music">
+            <div class="music-play">▶</div>
+            <div class="music-info"><div class="music-title">You Are Mine</div><div class="music-artist">Soaking in His Presence</div><div class="music-bar"><div class="music-fill"></div></div></div>
+            <div class="music-wave"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="p-btns"><button class="p-btn primary">⚡ Share Testimony</button><button class="p-btn">Edit Profile</button></div>
+          <div class="views-subtle"><span class="views-eye">⦿</span> 342 views</div>
+        </div></div>
+        <div class="sec-label">Salvation Testimony</div>
+        <div class="tcard primary">
+          <div class="t-tag">Salvation Testimony</div>
+          <div class="t-title">A Dream That Changed Everything</div>
+          <div class="t-quote">"Here was the Creator of the universe, and He was talking directly to me."</div>
+          <div class="t-body">Today, I spend my time drawing pictures of Jesus and watching movies about His life, but it wasn't always this way...</div>
+          <div class="t-acts"><span>♡ 34</span><span>💬 12</span><span>↗ Share</span></div>
+        </div>
+        <div class="sec-label" style="margin-top:4px">Life Testimonies</div>
+        <div class="tcard secondary">
+          <div class="t-tag">Life Testimony</div>
+          <div class="t-title">$4,250 and a Dream</div>
+          <div class="t-quote">"With nothing but a budget and a burning vision, God opened doors no human hand could."</div>
+          <div class="t-body">When I started building Lightning, everyone said I was crazy...</div>
+          <div class="t-acts"><span>♡ 56</span><span>💬 19</span><span>↗ Share</span></div>
+        </div>
+      </div>
+      <div class="lt"><div class="nav"><div class="ni"><div class="ni-i">⚡</div>Home</div><div class="ni"><div class="ni-i">🔍</div>Find</div><div class="ni a"><div class="ni-i">👤</div>You</div></div></div>
+    </div>
+  </div>
+</div>
+</body></html>

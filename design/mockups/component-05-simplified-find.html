@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 5: Simplified Find Tab (No Sub-tabs)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 16px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.restructure{background:rgba(123,118,224,0.15);color:#9b96f5}
+.three-up{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;align-items:flex-start;margin-top:12px}
+.comp-box{flex:1;max-width:320px;min-width:260px}
+.comp-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#5d5877;margin-bottom:8px;font-weight:600;text-align:center}
+.comp-card{border-radius:16px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);padding:14px}
+.note{margin-top:14px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);font-size:11px;color:#8e89a8;line-height:1.7}
+.note b{color:#e8e5f2}
+.note h4{font-family:'Playfair Display',serif;font-size:13px;margin-bottom:5px;color:#b8b4f5}
+.note .code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+
+/* Flow diagram */
+.flow{margin-top:8px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)}
+.flow-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:10px}
+.flow-from{padding:3px 8px;border-radius:6px;background:rgba(224,92,108,0.1);color:#e05c6c;font-weight:600;font-size:9px;white-space:nowrap}
+.flow-arrow{color:#5d5877;font-size:12px}
+.flow-to{padding:3px 8px;border-radius:6px;background:rgba(92,200,138,0.1);color:#5cc88a;font-weight:600;font-size:9px;white-space:nowrap}
+
+/* Phone */
+.phone-box{flex-shrink:0}
+.phone{width:260px;height:560px;border-radius:34px;position:relative;overflow:hidden}
+.phone.dark{background:#0d0b18;border:3px solid rgba(255,255,255,0.12);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.phone.light{background:linear-gradient(135deg,#cdd8f8 0%,#d6daf5 40%,#dee0f6 70%,#e4e0f5 100%);border:3px solid rgba(255,255,255,0.5);box-shadow:0 20px 60px rgba(0,0,0,0.12)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:22px;border-radius:0 0 12px 12px;z-index:10}
+.phone.dark::before{background:#08060f}
+.phone.light::before{background:#c4cee8}
+.phone.light .blob1{position:absolute;top:-10%;left:15%;width:200px;height:200px;background:radial-gradient(circle,rgba(150,170,245,0.16) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0}
+.phone.light .blob2{position:absolute;bottom:-8%;right:10%;width:180px;height:180px;background:radial-gradient(circle,rgba(170,160,240,0.1) 0%,transparent 60%);border-radius:50%;pointer-events:none;z-index:0}
+.phone-screen{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding-top:26px;position:relative;z-index:1}
+.phone-screen::-webkit-scrollbar{display:none}
+
+/* ===== NIGHT ===== */
+.dk .ph{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(13,11,24,0.75);border-bottom:1px solid rgba(255,255,255,0.04);position:sticky;top:0;z-index:5}
+.dk .ph-logo{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;font-family:'Playfair Display',serif;color:#e8e5f2}
+.dk .ph-icons{display:flex;gap:4px}
+.dk .ph-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .ph-icon.notif{position:relative}
+.dk .ph-icon.notif::after{content:'2';position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#e05c6c;color:white;font-size:6px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.dk .ct{padding:10px 10px 80px;font-family:'General Sans',sans-serif}
+.dk .greet{font-family:'Playfair Display',serif;font-size:14px;font-weight:500;color:#e8e5f2;margin-bottom:2px}
+.dk .greet-sub{font-size:9px;color:#8e89a8;margin-bottom:10px}
+.dk .sb{display:flex;align-items:center;gap:5px;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);margin-bottom:10px}
+.dk .sb span{color:#5d5877;font-size:10px}.dk .sb-t{font-size:9px;color:#5d5877}
+.dk .church-bar{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px;background:rgba(255,255,255,0.03);margin-bottom:10px;font-size:8px;color:#8e89a8}
+.dk .church-bar b{color:#e8e5f2;font-weight:500}
+/* Testimony cards */
+.dk .tc{border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:10px;margin-bottom:8px}
+.dk .tc-top{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.dk .tc-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:'Playfair Display',serif;color:white;flex-shrink:0}
+.dk .tc-nm{font-size:9px;font-weight:600;color:#e8e5f2}
+.dk .tc-meta{font-size:7px;color:#5d5877}
+.dk .tc-title{font-family:'Playfair Display',serif;font-size:11px;font-weight:500;color:#e8e5f2;margin-bottom:4px;line-height:1.3}
+.dk .tc-body{font-size:8px;color:#8e89a8;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.dk .tc-quote{font-family:'Playfair Display',serif;font-size:9px;font-style:italic;color:#7b76e0;padding:6px 8px;border-radius:8px;background:rgba(123,118,224,0.05);margin:6px 0;line-height:1.4;border-left:2px solid rgba(123,118,224,0.2)}
+.dk .tc-acts{display:flex;gap:8px;margin-top:6px}
+.dk .tc-act{font-size:7px;color:#5d5877;display:flex;align-items:center;gap:3px}
+.dk .tc-tag{display:inline-block;padding:2px 6px;border-radius:8px;font-size:6.5px;font-weight:500;background:rgba(123,118,224,0.08);color:#7b76e0;margin-top:4px}
+.dk .nav{position:absolute;bottom:0;left:0;right:0;padding:4px 10px 16px;display:flex;justify-content:space-around;background:rgba(13,11,24,0.85);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.04)}
+.dk .ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:6px;color:#5d5877;letter-spacing:0.5px;text-transform:uppercase;padding:3px 10px;border-radius:8px}
+.dk .ni.a{color:#7b76e0;background:rgba(123,118,224,0.1)}.dk .ni-i{font-size:13px}
+
+/* ===== DAY — Peri V3 ===== */
+.lt .ph{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(205,216,248,0.5);border-bottom:1px solid rgba(150,165,225,0.15);position:sticky;top:0;z-index:5}
+.lt .ph-logo{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;font-family:'Playfair Display',serif;color:#1e2b4a}
+.lt .ph-icons{display:flex;gap:4px}
+.lt .ph-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(12px);color:#4a5e88}
+.lt .ph-icon.notif{position:relative}
+.lt .ph-icon.notif::after{content:'2';position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;background:#e05c6c;color:white;font-size:6px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.lt .ct{padding:10px 10px 80px;font-family:'General Sans',sans-serif}
+.lt .greet{font-family:'Playfair Display',serif;font-size:14px;font-weight:500;color:#1e2b4a;margin-bottom:2px}
+.lt .greet-sub{font-size:9px;color:#4a5e88;margin-bottom:10px}
+.lt .sb{display:flex;align-items:center;gap:5px;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(20px);margin-bottom:10px;box-shadow:0 2px 10px rgba(150,165,225,0.07)}
+.lt .sb span{color:#4a5e88;font-size:10px}.lt .sb-t{font-size:9px;color:#8e9ec0}
+.lt .church-bar{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px;background:rgba(255,255,255,0.4);backdrop-filter:blur(12px);margin-bottom:10px;font-size:8px;color:#4a5e88}
+.lt .church-bar b{color:#1e2b4a;font-weight:500}
+.lt .tc{border-radius:12px;background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(20px);padding:10px;margin-bottom:8px;box-shadow:0 2px 10px rgba(150,165,225,0.07)}
+.lt .tc-top{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.lt .tc-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:'Playfair Display',serif;color:white;flex-shrink:0}
+.lt .tc-nm{font-size:9px;font-weight:600;color:#1e2b4a}
+.lt .tc-meta{font-size:7px;color:#8e9ec0}
+.lt .tc-title{font-family:'Playfair Display',serif;font-size:11px;font-weight:500;color:#1e2b4a;margin-bottom:4px;line-height:1.3}
+.lt .tc-body{font-size:8px;color:#4a5e88;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.lt .tc-quote{font-family:'Playfair Display',serif;font-size:9px;font-style:italic;color:#2b6cb0;padding:6px 8px;border-radius:8px;background:rgba(79,172,254,0.06);margin:6px 0;line-height:1.4;border-left:2px solid rgba(79,172,254,0.2)}
+.lt .tc-acts{display:flex;gap:8px;margin-top:6px}
+.lt .tc-act{font-size:7px;color:#8e9ec0;display:flex;align-items:center;gap:3px}
+.lt .tc-tag{display:inline-block;padding:2px 6px;border-radius:8px;font-size:6.5px;font-weight:500;background:rgba(79,172,254,0.08);color:#2b6cb0;margin-top:4px}
+.lt .nav{position:absolute;bottom:0;left:0;right:0;padding:4px 10px 16px;display:flex;justify-content:space-around;background:rgba(205,216,248,0.5);backdrop-filter:blur(20px);border-top:1px solid rgba(150,165,225,0.1)}
+.lt .ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:6px;color:#8e9ec0;letter-spacing:0.5px;text-transform:uppercase;padding:3px 10px;border-radius:8px}
+.lt .ni.a{color:#2b6cb0;background:rgba(79,172,254,0.1)}.lt .ni-i{font-size:13px}
+
+/* Phase */
+.phase-box{max-width:860px;margin:20px auto 0;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.phase-header{padding:12px 16px;display:flex;align-items:center;gap:10px}
+.phase-header.mvp{background:rgba(92,200,138,0.08);border-bottom:1px solid rgba(92,200,138,0.1)}
+.phase-badge{padding:4px 10px;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.phase-badge.mvp{background:rgba(92,200,138,0.15);color:#5cc88a}
+.phase-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500}
+.phase-body{padding:14px 16px;background:rgba(255,255,255,0.015);font-size:11px;color:#8e89a8;line-height:1.8}
+.phase-body b{color:#e8e5f2}
+.phase-body code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+.impl{margin-top:10px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04)}
+.impl.add{background:rgba(92,200,138,0.03);border-color:rgba(92,200,138,0.08)}
+.impl.remove{background:rgba(224,92,108,0.03);border-color:rgba(224,92,108,0.08)}
+.impl.restyle{background:rgba(232,184,74,0.03);border-color:rgba(232,184,74,0.08)}
+.impl-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.impl.add .impl-title{color:#5cc88a}
+.impl.remove .impl-title{color:#e05c6c}
+.impl.restyle .impl-title{color:#e8b84a}
+.impl li{font-size:10px;margin-bottom:2px;color:#8e89a8;list-style:none;padding-left:12px;position:relative}
+.impl li::before{content:'';position:absolute;left:0;top:6px;width:4px;height:4px;border-radius:50%}
+.impl.add li::before{background:#5cc88a}
+.impl.remove li::before{background:#e05c6c}
+.impl.restyle li::before{background:#e8b84a}
+@media(max-width:900px){.three-up{flex-direction:column;align-items:center}.comp-box{max-width:100%}}
+</style></head><body>
+<div class="counter">Component 5 of 15</div>
+<h1>Find Tab — Simplified (No Sub-tabs)</h1>
+<div class="subtitle"><span class="tag restructure">🔄 RESTRUCTURE — Pure testimony directory</span></div>
+<div class="tab-info">📍 Find Tab &nbsp;|&nbsp; Sub-tabs removed &nbsp;|&nbsp; Just greeting → search → testimony feed</div>
+<div class="three-up">
+  <div class="comp-box">
+    <div class="comp-label">What changed</div>
+    <div class="comp-card" style="padding:12px">
+      <div style="font-size:10px;font-weight:600;color:#e05c6c;margin-bottom:4px">❌ REMOVED from Find tab</div>
+      <div style="font-size:9px;color:#8e89a8;margin-bottom:8px">Home/Friends/People sub-tabs, entire People discovery section, Friends list</div>
+      <div style="font-size:10px;font-weight:600;color:#5cc88a;margin-bottom:4px">✅ FIND TAB IS NOW</div>
+      <div style="font-size:9px;color:#8e89a8;margin-bottom:8px">Greeting → Search bar → Church testimony feed. That's it. Clean, focused, testimony directory.</div>
+      <div style="font-size:10px;font-weight:600;color:#e8b84a;margin-bottom:4px">🔄 WHERE FEATURES MOVED</div>
+      <div class="flow">
+        <div class="flow-row"><span class="flow-from">📬 Friend Requests</span><span class="flow-arrow">→</span><span class="flow-to">🔔 Notifications</span></div>
+        <div class="flow-row"><span class="flow-from">⛪ Church Members</span><span class="flow-arrow">→</span><span class="flow-to">🔍 Search results</span></div>
+        <div class="flow-row"><span class="flow-from">🤝 Friends of Friends</span><span class="flow-arrow">→</span><span class="flow-to">🔍 Search results</span></div>
+        <div class="flow-row"><span class="flow-from">📍 Nearby</span><span class="flow-arrow">→</span><span class="flow-to">Phase 2 🌐</span></div>
+        <div class="flow-row"><span class="flow-from">🏆 Leaderboard</span><span class="flow-arrow">→</span><span class="flow-to">👤 You tab or ⚡ Server</span></div>
+      </div>
+    </div>
+    <div class="note">
+      <h4>How friend adding still works</h4>
+      1. User types a name in <b>search bar</b><br>
+      2. Search shows matching people<br>
+      3. Tap → view profile → <b>Add Friend</b><br>
+      4. Recipient gets notification (🔔)<br>
+      5. Accept/Decline in <b>notification panel</b><br><br>
+      <h4>Existing code preserved</h4>
+      <span class="code">sendFriendRequest()</span> — still works, triggered from profile view<br>
+      <span class="code">acceptFriendRequest()</span> — moves to notification handler<br>
+      <span class="code">declineFriendRequest()</span> — moves to notification handler<br>
+      <span class="code">getChurchTestimonies()</span> — stays, powers the feed<br>
+      <span class="code">searchUsers()</span> — stays, powers search results<br>
+    </div>
+  </div>
+  <!-- NIGHT -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">🌙 Night Mode</div>
+    <div class="phone dark">
+      <div class="phone-screen dk">
+        <div class="ph">
+          <div class="ph-logo"><span>⚡</span> Lightning</div>
+          <div class="ph-icons"><div class="ph-icon notif">🔔</div><div class="ph-icon">☰</div></div>
+        </div>
+        <div class="ct">
+          <div class="greet">Good evening, Jordyn ✨</div>
+          <div class="greet-sub">See what God is doing in people's lives</div>
+          <div class="sb"><span>🔍</span><span class="sb-t">Search testimonies, people...</span></div>
+          <div class="church-bar">⛪ <b>The Crossing Church</b> · 47 testimonies</div>
+
+          <!-- Pure testimony feed -->
+          <div class="tc">
+            <div class="tc-top">
+              <div class="tc-av" style="background:linear-gradient(135deg,#5cc88a,#2a9d5c)">M</div>
+              <div><div class="tc-nm">Marcus Rivera</div><div class="tc-meta">3 hours ago · Worship Team</div></div>
+            </div>
+            <div class="tc-title">From Addiction to Freedom</div>
+            <div class="tc-quote">"I was chained for 6 years. One night in my car, I cried out to God — and He answered before I finished the sentence."</div>
+            <div class="tc-body">For six years I was trapped in a cycle I couldn't break. Every morning I'd tell myself this would be the last time, and every night I'd fail again. The shame was crushing...</div>
+            <div class="tc-tag">Deliverance</div>
+            <div class="tc-acts"><span class="tc-act">♡ 24</span><span class="tc-act">💬 8</span><span class="tc-act">↗ Share</span></div>
+          </div>
+
+          <div class="tc">
+            <div class="tc-top">
+              <div class="tc-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">S</div>
+              <div><div class="tc-nm">Sarah Mitchell</div><div class="tc-meta">Yesterday · Student Ministry</div></div>
+            </div>
+            <div class="tc-title">He Heard My Silent Prayer</div>
+            <div class="tc-quote">"I didn't even have words. I just sat in the silence, and somehow He knew exactly what I needed."</div>
+            <div class="tc-body">I'd been going through the motions at church for months. Smiling on the outside, completely numb on the inside. I stopped praying because I didn't know what to say anymore...</div>
+            <div class="tc-tag">Restoration</div>
+            <div class="tc-acts"><span class="tc-act">♡ 31</span><span class="tc-act">💬 12</span><span class="tc-act">↗ Share</span></div>
+          </div>
+
+          <div class="tc">
+            <div class="tc-top">
+              <div class="tc-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">J</div>
+              <div><div class="tc-nm">Pastor James Allen</div><div class="tc-meta">2 days ago · Lead Pastor</div></div>
+            </div>
+            <div class="tc-title">The Miracle on Highway 9</div>
+            <div class="tc-body">Twenty years ago I was driving home on Highway 9 when the steering wheel locked. The car was heading straight for the median at 70mph. What happened next changed my understanding of God's protection forever...</div>
+            <div class="tc-tag">Protection</div>
+            <div class="tc-acts"><span class="tc-act">♡ 56</span><span class="tc-act">💬 19</span><span class="tc-act">↗ Share</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="dk"><div class="nav"><div class="ni"><div class="ni-i">⚡</div>Home</div><div class="ni a"><div class="ni-i">🔍</div>Find</div><div class="ni"><div class="ni-i">👤</div>You</div></div></div>
+    </div>
+  </div>
+  <!-- DAY -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">☀️ Day Mode (Peri V3)</div>
+    <div class="phone light">
+      <div class="blob1"></div><div class="blob2"></div>
+      <div class="phone-screen lt">
+        <div class="ph">
+          <div class="ph-logo"><span>⚡</span> Lightning</div>
+          <div class="ph-icons"><div class="ph-icon notif">🔔</div><div class="ph-icon">☰</div></div>
+        </div>
+        <div class="ct">
+          <div class="greet">Good evening, Jordyn ✨</div>
+          <div class="greet-sub">See what God is doing in people's lives</div>
+          <div class="sb"><span>🔍</span><span class="sb-t">Search testimonies, people...</span></div>
+          <div class="church-bar">⛪ <b>The Crossing Church</b> · 47 testimonies</div>
+
+          <div class="tc">
+            <div class="tc-top">
+              <div class="tc-av" style="background:linear-gradient(135deg,#5cc88a,#2a9d5c)">M</div>
+              <div><div class="tc-nm">Marcus Rivera</div><div class="tc-meta">3 hours ago · Worship Team</div></div>
+            </div>
+            <div class="tc-title">From Addiction to Freedom</div>
+            <div class="tc-quote">"I was chained for 6 years. One night in my car, I cried out to God — and He answered before I finished the sentence."</div>
+            <div class="tc-body">For six years I was trapped in a cycle I couldn't break. Every morning I'd tell myself this would be the last time, and every night I'd fail again. The shame was crushing...</div>
+            <div class="tc-tag">Deliverance</div>
+            <div class="tc-acts"><span class="tc-act">♡ 24</span><span class="tc-act">💬 8</span><span class="tc-act">↗ Share</span></div>
+          </div>
+
+          <div class="tc">
+            <div class="tc-top">
+              <div class="tc-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">S</div>
+              <div><div class="tc-nm">Sarah Mitchell</div><div class="tc-meta">Yesterday · Student Ministry</div></div>
+            </div>
+            <div class="tc-title">He Heard My Silent Prayer</div>
+            <div class="tc-quote">"I didn't even have words. I just sat in the silence, and somehow He knew exactly what I needed."</div>
+            <div class="tc-body">I'd been going through the motions at church for months. Smiling on the outside, completely numb on the inside...</div>
+            <div class="tc-tag">Restoration</div>
+            <div class="tc-acts"><span class="tc-act">♡ 31</span><span class="tc-act">💬 12</span><span class="tc-act">↗ Share</span></div>
+          </div>
+
+          <div class="tc">
+            <div class="tc-top">
+              <div class="tc-av" style="background:linear-gradient(135deg,#4facfe,#9b96f5)">J</div>
+              <div><div class="tc-nm">Pastor James Allen</div><div class="tc-meta">2 days ago · Lead Pastor</div></div>
+            </div>
+            <div class="tc-title">The Miracle on Highway 9</div>
+            <div class="tc-body">Twenty years ago I was driving home on Highway 9 when the steering wheel locked. The car was heading straight for the median at 70mph...</div>
+            <div class="tc-tag">Protection</div>
+            <div class="tc-acts"><span class="tc-act">♡ 56</span><span class="tc-act">💬 19</span><span class="tc-act">↗ Share</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="lt"><div class="nav"><div class="ni"><div class="ni-i">⚡</div>Home</div><div class="ni a"><div class="ni-i">🔍</div>Find</div><div class="ni"><div class="ni-i">👤</div>You</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="phase-box">
+  <div class="phase-header mvp"><div class="phase-badge mvp">MVP ✅</div><div class="phase-title">Simplify Find tab to pure testimony directory</div></div>
+  <div class="phase-body">
+    This is actually a <b>removal of complexity</b> — less code, not more. The Find tab becomes exactly what your MVP promises: a testimony directory.<br><br>
+    <div class="impl remove">
+      <div class="impl-title">Remove from Find tab ❌</div>
+      <li>Entire <code>activeDiscoverTab</code> state + sub-tab UI</li>
+      <li>Friends sub-tab render branch</li>
+      <li>People sub-tab render branch (Church Members, FoF, Nearby sections)</li>
+      <li>Leaderboard section (move to You tab or Server)</li>
+      <li>Referral section (move to You tab)</li>
+    </div>
+    <div class="impl add">
+      <div class="impl-title">Move to Notifications (🔔) ✅</div>
+      <li>Friend request accept/decline UI</li>
+      <li><code>pendingRequests</code> state + handlers</li>
+      <li>Badge count on bell icon when requests pending</li>
+      <li>Notification panel (may need to build or expand existing)</li>
+    </div>
+    <div class="impl add">
+      <div class="impl-title">Search bar handles people discovery ✅</div>
+      <li>Search already finds users by name — keep this</li>
+      <li>Search result → tap → view profile → Add Friend</li>
+      <li>No separate "People" section needed at MVP</li>
+    </div>
+    <div class="impl restyle">
+      <div class="impl-title">Restyle testimony feed 🎨</div>
+      <li>Testimony cards: glass style, gradient avatars, Playfair titles</li>
+      <li>AI-generated pull quote highlighted in card</li>
+      <li>Category tag (Deliverance, Healing, etc.) — use existing data</li>
+      <li>Actions row: ♡ Like, 💬 Comment, ↗ Share</li>
+      <li>Church context bar: "⛪ The Crossing · 47 testimonies"</li>
+    </div>
+  </div>
+</div>
+</body></html>

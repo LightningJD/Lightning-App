@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 6: Home Tab — Two States</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 12px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.restyle-tag{background:rgba(232,184,74,0.15);color:#e8b84a}
+.four-up{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:flex-start;margin-top:12px}
+.state-group{display:flex;flex-direction:column;align-items:center;gap:6px}
+.state-label{font-size:10px;font-weight:700;text-align:center;padding:4px 12px;border-radius:8px;margin-bottom:2px}
+.state-label.dm{background:rgba(123,118,224,0.1);color:#9b96f5}
+.state-label.srv{background:rgba(92,200,138,0.1);color:#5cc88a}
+.phones{display:flex;gap:8px}
+.phone{width:220px;height:480px;border-radius:30px;position:relative;overflow:hidden;flex-shrink:0}
+.phone.dark{background:#0d0b18;border:3px solid rgba(255,255,255,0.12);box-shadow:0 16px 50px rgba(0,0,0,0.5)}
+.phone.light{background:linear-gradient(135deg,#cdd8f8 0%,#d6daf5 40%,#dee0f6 70%,#e4e0f5 100%);border:3px solid rgba(255,255,255,0.5);box-shadow:0 16px 50px rgba(0,0,0,0.12)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:80px;height:20px;border-radius:0 0 10px 10px;z-index:10}
+.phone.dark::before{background:#08060f}
+.phone.light::before{background:#c4cee8}
+.phone.light .blob1{position:absolute;top:-10%;left:15%;width:180px;height:180px;background:radial-gradient(circle,rgba(150,170,245,0.16) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0}
+.phone.light .blob2{position:absolute;bottom:-8%;right:10%;width:160px;height:160px;background:radial-gradient(circle,rgba(170,160,240,0.1) 0%,transparent 60%);border-radius:50%;pointer-events:none;z-index:0}
+.phone-screen{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding-top:22px;position:relative;z-index:1}
+.phone-screen::-webkit-scrollbar{display:none}
+.mode-tag{position:absolute;top:6px;right:8px;font-size:7px;z-index:11;opacity:0.5}
+.ph{padding:7px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+.ph-logo{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500;font-family:'Playfair Display',serif}
+.ph-icons{display:flex;gap:3px}
+.ph-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px}
+.ct{padding:6px 8px 70px;font-family:'General Sans',sans-serif}
+.rail{display:flex;gap:5px;padding:3px 0 8px;overflow-x:auto;scrollbar-width:none}.rail::-webkit-scrollbar{display:none}
+.ri{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;cursor:pointer;transition:all .2s;position:relative}
+.ri.active{border-radius:12px}
+.ri .badge{position:absolute;top:-2px;right:-2px;min-width:12px;height:12px;border-radius:6px;background:#e05c6c;color:white;font-size:6px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 2px}
+.ri-add{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;cursor:pointer}
+.sec{font-size:6.5px;text-transform:uppercase;letter-spacing:1px;font-weight:500;margin:5px 0 4px}
+.dm{display:flex;align-items:center;gap:6px;padding:6px;border-radius:8px;cursor:pointer;margin-bottom:3px}
+.dm-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'Playfair Display',serif;color:white;flex-shrink:0;position:relative}
+.dm-av .online{position:absolute;bottom:0;right:0;width:7px;height:7px;border-radius:50%;background:#5cc88a}
+.dm-info{flex:1;min-width:0}.dm-nm{font-size:8.5px;font-weight:600}.dm-prev{font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}.dm-time{font-size:6px}
+.dm-badge{min-width:14px;height:14px;border-radius:7px;color:white;font-size:7px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.srv-head{padding:8px;border-radius:10px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.srv-name{font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px}
+.srv-meta{font-size:7px;margin-top:1px;display:flex;align-items:center;gap:3px}
+.srv-meta .dot{width:6px;height:6px;border-radius:50%;background:#5cc88a}
+.ch-cat{font-size:6px;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin:6px 0 3px;padding:0 4px}
+.ch{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:7px;cursor:pointer;font-size:8.5px;margin-bottom:1px}
+.ch .hash{font-size:9px;opacity:0.5;width:12px}
+.ch-badge{min-width:14px;height:14px;border-radius:7px;font-size:7px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;margin-left:auto}
+.nav{position:absolute;bottom:0;left:0;right:0;padding:3px 8px 14px;display:flex;justify-content:space-around;z-index:5}
+.ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:5.5px;letter-spacing:0.5px;text-transform:uppercase;padding:3px 8px;border-radius:7px}.ni-i{font-size:12px}
+/* NIGHT */
+.dk .ph{backdrop-filter:blur(20px);background:rgba(13,11,24,0.75);border-bottom:1px solid rgba(255,255,255,0.04)}
+.dk .ph-logo{color:#e8e5f2}.dk .ph-icon{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .ri{background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.08)}
+.dk .ri.active{background:rgba(123,118,224,0.15);border-color:rgba(123,118,224,0.3);box-shadow:0 0 10px rgba(123,118,224,0.15)}
+.dk .ri-add{background:rgba(255,255,255,0.03);border:1.5px dashed rgba(123,118,224,0.3);color:#7b76e0}
+.dk .sec{color:#5d5877}.dk .dm:hover{background:rgba(255,255,255,0.03)}
+.dk .dm-nm{color:#e8e5f2}.dk .dm-prev{color:#5d5877}.dk .dm-time{color:#5d5877}.dk .dm-badge{background:#7b76e0}.dk .dm-av .online{border:2px solid #0d0b18}
+.dk .srv-head{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.dk .srv-name{color:#e8e5f2}.dk .srv-meta{color:#5d5877}.dk .ch-cat{color:#5d5877}
+.dk .ch{color:#8e89a8}.dk .ch:hover{background:rgba(255,255,255,0.03)}.dk .ch.active{background:rgba(123,118,224,0.1);color:#e8e5f2}
+.dk .ch-badge{background:#7b76e0;color:white}
+.dk .nav{background:rgba(13,11,24,0.85);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.04)}
+.dk .ni{color:#5d5877}.dk .ni.a{color:#7b76e0;background:rgba(123,118,224,0.1)}
+/* DAY */
+.lt .ph{backdrop-filter:blur(20px);background:rgba(205,216,248,0.5);border-bottom:1px solid rgba(150,165,225,0.15)}
+.lt .ph-logo{color:#1e2b4a}.lt .ph-icon{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(12px);color:#4a5e88}
+.lt .ri{background:rgba(255,255,255,0.5);border:1.5px solid rgba(150,165,225,0.15);backdrop-filter:blur(12px);box-shadow:0 2px 6px rgba(150,165,225,0.07)}
+.lt .ri.active{background:rgba(79,172,254,0.12);border-color:rgba(79,172,254,0.25);box-shadow:0 0 10px rgba(79,172,254,0.12)}
+.lt .ri-add{background:rgba(255,255,255,0.3);border:1.5px dashed rgba(79,172,254,0.3);color:#4facfe;backdrop-filter:blur(8px)}
+.lt .sec{color:#4a5e88}
+.lt .dm{background:rgba(255,255,255,0.35);border:1px solid rgba(150,165,225,0.1);backdrop-filter:blur(12px);box-shadow:0 1px 4px rgba(150,165,225,0.05)}
+.lt .dm:hover{background:rgba(255,255,255,0.55)}
+.lt .dm-nm{color:#1e2b4a}.lt .dm-prev{color:#8e9ec0}.lt .dm-time{color:#8e9ec0}.lt .dm-badge{background:#4facfe}.lt .dm-av .online{border:2px solid #d6daf5}
+.lt .srv-head{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(20px);box-shadow:0 2px 8px rgba(150,165,225,0.07)}
+.lt .srv-name{color:#1e2b4a}.lt .srv-meta{color:#8e9ec0}.lt .ch-cat{color:#4a5e88}
+.lt .ch{color:#4a5e88}.lt .ch:hover{background:rgba(255,255,255,0.3)}.lt .ch.active{background:rgba(79,172,254,0.1);color:#1e2b4a}
+.lt .ch-badge{background:#4facfe;color:white}
+.lt .nav{background:rgba(205,216,248,0.5);backdrop-filter:blur(20px);border-top:1px solid rgba(150,165,225,0.1)}
+.lt .ni{color:#8e9ec0}.lt .ni.a{color:#2b6cb0;background:rgba(79,172,254,0.1)}
+.phase-box{max-width:960px;margin:20px auto 0;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.phase-header{padding:12px 16px;display:flex;align-items:center;gap:10px;background:rgba(92,200,138,0.08);border-bottom:1px solid rgba(92,200,138,0.1)}
+.phase-badge{padding:4px 10px;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(92,200,138,0.15);color:#5cc88a}
+.phase-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500}
+.phase-body{padding:14px 16px;background:rgba(255,255,255,0.015);font-size:11px;color:#8e89a8;line-height:1.8}
+.phase-body b{color:#e8e5f2}
+.phase-body code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+@media(max-width:1000px){.four-up{flex-direction:column;align-items:center}}
+</style></head><body>
+<div class="counter">Component 6 of 15</div>
+<h1>Home Tab — Two States</h1>
+<div class="subtitle"><span class="tag restyle-tag">🎨 RESTYLE — Vertical → Horizontal rail + both views</span></div>
+<div class="tab-info">📍 Home Tab &nbsp;|&nbsp; Left pair: DMs active &nbsp;|&nbsp; Right pair: Server selected</div>
+<div class="four-up">
+  <div class="state-group">
+    <div class="state-label dm">💬 DM View (Default)</div>
+    <div class="phones">
+      <div class="phone dark"><div class="mode-tag">🌙</div><div class="phone-screen dk">
+        <div class="ph"><div class="ph-logo"><span>⚡</span> Lightning</div><div class="ph-icons"><div class="ph-icon">🔔</div><div class="ph-icon">☰</div></div></div>
+        <div class="ct">
+          <div class="rail">
+            <div class="ri active" style="font-size:14px">💬</div>
+            <div class="ri" style="background:linear-gradient(135deg,#f6c744,#e8a020);border-color:transparent;color:white;font-size:9px;font-weight:700"><span class="badge">3</span>⚡</div>
+            <div class="ri" style="background:linear-gradient(135deg,#5cc88a,#2a9d5c);border-color:transparent;color:white;font-size:9px;font-weight:700">TC</div>
+            <div class="ri" style="background:linear-gradient(135deg,#7b76e0,#e05c6c);border-color:transparent;color:white;font-size:9px;font-weight:700">GC</div>
+            <div class="ri-add">+</div>
+          </div>
+          <div class="sec">Direct Messages</div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)"><div class="online"></div>M</div><div class="dm-info"><div class="dm-nm">Marcus Johnson</div><div class="dm-prev">That testimony was powerful 🔥</div></div><div class="dm-meta"><div class="dm-time">2m</div><div class="dm-badge">2</div></div></div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div><div class="dm-info"><div class="dm-nm">Aaliyah Williams</div><div class="dm-prev">Can you send me the playlist?</div></div><div class="dm-meta"><div class="dm-time">1h</div></div></div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div><div class="dm-info"><div class="dm-nm">Pastor Allen</div><div class="dm-prev">Great job leading small group</div></div><div class="dm-meta"><div class="dm-time">3h</div></div></div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">K</div><div class="dm-info"><div class="dm-nm">Kayla Reyes</div><div class="dm-prev">See you Sunday!</div></div><div class="dm-meta"><div class="dm-time">5h</div></div></div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#6b9ed6,#4a7ab8)"><div class="online"></div>D</div><div class="dm-info"><div class="dm-nm">David Chen</div><div class="dm-prev">Praying for you 🙏</div></div><div class="dm-meta"><div class="dm-time">1d</div><div class="dm-badge">1</div></div></div>
+        </div>
+      </div><div class="dk"><div class="nav"><div class="ni a"><div class="ni-i">⚡</div>Home</div><div class="ni"><div class="ni-i">🔍</div>Find</div><div class="ni"><div class="ni-i">👤</div>You</div></div></div></div>
+      <div class="phone light"><div class="blob1"></div><div class="blob2"></div><div class="mode-tag">☀️</div><div class="phone-screen lt">
+        <div class="ph"><div class="ph-logo"><span>⚡</span> Lightning</div><div class="ph-icons"><div class="ph-icon">🔔</div><div class="ph-icon">☰</div></div></div>
+        <div class="ct">
+          <div class="rail">
+            <div class="ri active" style="font-size:14px">💬</div>
+            <div class="ri" style="background:linear-gradient(135deg,#f6c744,#e8a020);border-color:transparent;color:white;font-size:9px;font-weight:700"><span class="badge">3</span>⚡</div>
+            <div class="ri" style="background:linear-gradient(135deg,#5cc88a,#2a9d5c);border-color:transparent;color:white;font-size:9px;font-weight:700">TC</div>
+            <div class="ri" style="background:linear-gradient(135deg,#4facfe,#e05c6c);border-color:transparent;color:white;font-size:9px;font-weight:700">GC</div>
+            <div class="ri-add">+</div>
+          </div>
+          <div class="sec">Direct Messages</div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)"><div class="online"></div>M</div><div class="dm-info"><div class="dm-nm">Marcus Johnson</div><div class="dm-prev">That testimony was powerful 🔥</div></div><div class="dm-meta"><div class="dm-time">2m</div><div class="dm-badge">2</div></div></div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div><div class="dm-info"><div class="dm-nm">Aaliyah Williams</div><div class="dm-prev">Can you send me the playlist?</div></div><div class="dm-meta"><div class="dm-time">1h</div></div></div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div><div class="dm-info"><div class="dm-nm">Pastor Allen</div><div class="dm-prev">Great job leading small group</div></div><div class="dm-meta"><div class="dm-time">3h</div></div></div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#4facfe,#9b96f5)">K</div><div class="dm-info"><div class="dm-nm">Kayla Reyes</div><div class="dm-prev">See you Sunday!</div></div><div class="dm-meta"><div class="dm-time">5h</div></div></div>
+          <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#6b9ed6,#4a7ab8)"><div class="online"></div>D</div><div class="dm-info"><div class="dm-nm">David Chen</div><div class="dm-prev">Praying for you 🙏</div></div><div class="dm-meta"><div class="dm-time">1d</div><div class="dm-badge">1</div></div></div>
+        </div>
+      </div><div class="lt"><div class="nav"><div class="ni a"><div class="ni-i">⚡</div>Home</div><div class="ni"><div class="ni-i">🔍</div>Find</div><div class="ni"><div class="ni-i">👤</div>You</div></div></div></div>
+    </div>
+  </div>
+
+  <div class="state-group">
+    <div class="state-label srv">⚡ Server View (Tapped)</div>
+    <div class="phones">
+      <div class="phone dark"><div class="mode-tag">🌙</div><div class="phone-screen dk">
+        <div class="ph"><div class="ph-logo"><span>⚡</span> Lightning</div><div class="ph-icons"><div class="ph-icon">🔔</div><div class="ph-icon">☰</div></div></div>
+        <div class="ct">
+          <div class="rail">
+            <div class="ri" style="font-size:14px">💬</div>
+            <div class="ri active" style="background:linear-gradient(135deg,#f6c744,#e8a020);border-color:rgba(246,199,68,0.4);color:white;font-size:9px;font-weight:700;box-shadow:0 0 10px rgba(246,199,68,0.2)">⚡</div>
+            <div class="ri" style="background:linear-gradient(135deg,#5cc88a,#2a9d5c);border-color:transparent;color:white;font-size:9px;font-weight:700">TC</div>
+            <div class="ri" style="background:linear-gradient(135deg,#7b76e0,#e05c6c);border-color:transparent;color:white;font-size:9px;font-weight:700">GC</div>
+            <div class="ri-add">+</div>
+          </div>
+          <div class="srv-head"><div><div class="srv-name">⚡ The Crossing</div><div class="srv-meta"><span class="dot"></span> 24 online · 156 members</div></div><div class="ph-icon" style="font-size:8px">⚙️</div></div>
+          <div class="ch-cat">Welcome</div>
+          <div class="ch"><span class="hash">#</span> announcements</div>
+          <div class="ch"><span class="hash">#</span> introductions</div>
+          <div class="ch-cat">Testimony</div>
+          <div class="ch active"><span class="hash">#</span> share-testimonies <span class="ch-badge">5</span></div>
+          <div class="ch"><span class="hash">#</span> prayer-requests <span class="ch-badge">2</span></div>
+          <div class="ch"><span class="hash">#</span> praise-reports</div>
+          <div class="ch-cat">Community</div>
+          <div class="ch"><span class="hash">#</span> general-chat <span class="ch-badge">12</span></div>
+          <div class="ch"><span class="hash">#</span> youth-group</div>
+          <div class="ch"><span class="hash">#</span> worship-music</div>
+          <div class="ch"><span class="hash">#</span> bible-study</div>
+          <div class="ch-cat">Voice</div>
+          <div class="ch"><span class="hash">🔊</span> Prayer Room</div>
+          <div class="ch"><span class="hash">🔊</span> Worship Session</div>
+        </div>
+      </div><div class="dk"><div class="nav"><div class="ni a"><div class="ni-i">⚡</div>Home</div><div class="ni"><div class="ni-i">🔍</div>Find</div><div class="ni"><div class="ni-i">👤</div>You</div></div></div></div>
+      <div class="phone light"><div class="blob1"></div><div class="blob2"></div><div class="mode-tag">☀️</div><div class="phone-screen lt">
+        <div class="ph"><div class="ph-logo"><span>⚡</span> Lightning</div><div class="ph-icons"><div class="ph-icon">🔔</div><div class="ph-icon">☰</div></div></div>
+        <div class="ct">
+          <div class="rail">
+            <div class="ri" style="font-size:14px">💬</div>
+            <div class="ri active" style="background:linear-gradient(135deg,#f6c744,#e8a020);border-color:rgba(246,199,68,0.4);color:white;font-size:9px;font-weight:700;box-shadow:0 0 10px rgba(246,199,68,0.15)">⚡</div>
+            <div class="ri" style="background:linear-gradient(135deg,#5cc88a,#2a9d5c);border-color:transparent;color:white;font-size:9px;font-weight:700">TC</div>
+            <div class="ri" style="background:linear-gradient(135deg,#4facfe,#e05c6c);border-color:transparent;color:white;font-size:9px;font-weight:700">GC</div>
+            <div class="ri-add">+</div>
+          </div>
+          <div class="srv-head"><div><div class="srv-name">⚡ The Crossing</div><div class="srv-meta"><span class="dot"></span> 24 online · 156 members</div></div><div class="ph-icon" style="font-size:8px">⚙️</div></div>
+          <div class="ch-cat">Welcome</div>
+          <div class="ch"><span class="hash">#</span> announcements</div>
+          <div class="ch"><span class="hash">#</span> introductions</div>
+          <div class="ch-cat">Testimony</div>
+          <div class="ch active"><span class="hash">#</span> share-testimonies <span class="ch-badge">5</span></div>
+          <div class="ch"><span class="hash">#</span> prayer-requests <span class="ch-badge">2</span></div>
+          <div class="ch"><span class="hash">#</span> praise-reports</div>
+          <div class="ch-cat">Community</div>
+          <div class="ch"><span class="hash">#</span> general-chat <span class="ch-badge">12</span></div>
+          <div class="ch"><span class="hash">#</span> youth-group</div>
+          <div class="ch"><span class="hash">#</span> worship-music</div>
+          <div class="ch"><span class="hash">#</span> bible-study</div>
+          <div class="ch-cat">Voice</div>
+          <div class="ch"><span class="hash">🔊</span> Prayer Room</div>
+          <div class="ch"><span class="hash">🔊</span> Worship Session</div>
+        </div>
+      </div><div class="lt"><div class="nav"><div class="ni a"><div class="ni-i">⚡</div>Home</div><div class="ni"><div class="ni-i">🔍</div>Find</div><div class="ni"><div class="ni-i">👤</div>You</div></div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="phase-box">
+  <div class="phase-header"><div class="phase-badge">MVP ✅</div><div class="phase-title">Restyle rail layout + both view states</div></div>
+  <div class="phase-body">
+    Both states already exist in <code>ChatTab.tsx</code> via <code>ChatView</code> type (<code>'list' | 'dm' | 'server'</code>).<br><br>
+    <b>DM View (💬 active):</b> Horizontal rail → DM conversation list. Tapping a convo goes full-screen into <code>MessagesTab</code>.<br><br>
+    <b>Server View (⚡ active):</b> Same rail with server icon highlighted (rounded square + glow border matching server's gradient) → Server header with name/member count + channel list. Tapping a channel goes full-screen into chat.<br><br>
+    <b>Active state behavior:</b> The selected rail icon gets <code>border-radius:12px</code> (rounded square) + a subtle glow shadow matching the icon's own gradient color. Unselected icons stay circular. This mirrors Discord's circle→roundrect animation.<br><br>
+    <b>All existing logic preserved:</b> <code>getUserServers()</code>, <code>getUserConversations()</code>, <code>handleSelectServer()</code>, <code>CreateServerDialog</code>, real-time subscriptions, online status, unread badges, skeleton loading.
+  </div>
+</div>
+</body></html>

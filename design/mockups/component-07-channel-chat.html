@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 7: Channel Chat View</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 12px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.exists-tag{background:rgba(92,200,138,0.15);color:#5cc88a}
+.three-up{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:flex-start;margin-top:12px}
+.comp-box{flex:1;max-width:280px;min-width:240px}
+.comp-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#5d5877;margin-bottom:8px;font-weight:600;text-align:center}
+.note{margin-top:14px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);font-size:11px;color:#8e89a8;line-height:1.7}
+.note b{color:#e8e5f2}
+.note h4{font-family:'Playfair Display',serif;font-size:13px;margin-bottom:5px;color:#b8b4f5}
+.note .code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+.note .keep{color:#5cc88a;font-weight:600}
+.note .change{color:#e8b84a;font-weight:600}
+.phone-box{flex-shrink:0}
+.phone{width:240px;height:520px;border-radius:32px;position:relative;overflow:hidden}
+.phone.dark{background:#0d0b18;border:3px solid rgba(255,255,255,0.12);box-shadow:0 18px 50px rgba(0,0,0,0.5)}
+.phone.light{background:linear-gradient(135deg,#cdd8f8 0%,#d6daf5 40%,#dee0f6 70%,#e4e0f5 100%);border:3px solid rgba(255,255,255,0.5);box-shadow:0 18px 50px rgba(0,0,0,0.12)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:85px;height:21px;border-radius:0 0 11px 11px;z-index:10}
+.phone.dark::before{background:#08060f}
+.phone.light::before{background:#c4cee8}
+.phone.light .blob1{position:absolute;top:-10%;left:15%;width:190px;height:190px;background:radial-gradient(circle,rgba(150,170,245,0.16) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0}
+.phone.light .blob2{position:absolute;bottom:-8%;right:10%;width:170px;height:170px;background:radial-gradient(circle,rgba(170,160,240,0.1) 0%,transparent 60%);border-radius:50%;pointer-events:none;z-index:0}
+.phone-screen{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding-top:24px;position:relative;z-index:1;display:flex;flex-direction:column}
+.phone-screen::-webkit-scrollbar{display:none}
+
+/* Chat header */
+.ch-hdr{padding:8px 10px;display:flex;align-items:center;gap:6px;position:sticky;top:0;z-index:5}
+.ch-back{font-size:14px;cursor:pointer;width:20px}
+.ch-info{flex:1}.ch-name{font-size:10px;font-weight:600}.ch-desc{font-size:7px;opacity:0.5}
+.ch-members{font-size:9px;opacity:0.5;cursor:pointer}
+/* Messages */
+.msgs{flex:1;padding:8px 8px 4px;overflow-y:auto}
+.msg{display:flex;gap:6px;margin-bottom:10px}
+.msg-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:'Playfair Display',serif;color:white;flex-shrink:0;margin-top:2px}
+.msg-body{flex:1;min-width:0}
+.msg-head{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px}
+.msg-nm{font-size:8.5px;font-weight:600}
+.msg-role{font-size:6px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:1px 5px;border-radius:4px}
+.msg-ts{font-size:6px;opacity:0.35}
+.msg-txt{font-size:8.5px;line-height:1.5}
+.msg-img{width:100%;max-width:140px;border-radius:8px;margin-top:4px}
+.msg-reactions{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.msg-rx{padding:2px 6px;border-radius:10px;font-size:7px;display:flex;align-items:center;gap:2px;cursor:pointer}
+/* Reply indicator */
+.msg-reply{font-size:7px;opacity:0.5;margin-bottom:3px;display:flex;align-items:center;gap:3px;padding-left:14px}
+.msg-reply::before{content:'↳';font-size:8px}
+/* Input */
+.ch-input{padding:6px 8px;display:flex;align-items:center;gap:6px;position:sticky;bottom:0;z-index:5}
+.ch-input-plus{font-size:14px;cursor:pointer;opacity:0.5}
+.ch-input-field{flex:1;border:none;outline:none;font-size:8px;font-family:'General Sans',sans-serif;padding:6px 8px;border-radius:8px}
+.ch-input-send{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;border:none;font-weight:700}
+
+/* NIGHT */
+.dk .ch-hdr{backdrop-filter:blur(20px);background:rgba(13,11,24,0.8);border-bottom:1px solid rgba(255,255,255,0.04)}
+.dk .ch-back{color:#8e89a8}.dk .ch-name{color:#e8e5f2}.dk .ch-desc{color:#5d5877}.dk .ch-members{color:#8e89a8}
+.dk .msg-nm{color:#e8e5f2}.dk .msg-txt{color:#b8b4c8}
+.dk .msg-rx{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .msg-rx:hover{background:rgba(123,118,224,0.1)}
+.dk .ch-input{backdrop-filter:blur(20px);background:rgba(13,11,24,0.8);border-top:1px solid rgba(255,255,255,0.04)}
+.dk .ch-input-plus{color:#5d5877}
+.dk .ch-input-field{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#e8e5f2}
+.dk .ch-input-field::placeholder{color:#5d5877}
+.dk .ch-input-send{background:#7b76e0;color:white}
+/* DAY */
+.lt .ch-hdr{backdrop-filter:blur(20px);background:rgba(205,216,248,0.6);border-bottom:1px solid rgba(150,165,225,0.15)}
+.lt .ch-back{color:#4a5e88}.lt .ch-name{color:#1e2b4a}.lt .ch-desc{color:#8e9ec0}.lt .ch-members{color:#4a5e88}
+.lt .msg-nm{color:#1e2b4a}.lt .msg-txt{color:#3a4d6e}
+.lt .msg-rx{background:rgba(255,255,255,0.4);border:1px solid rgba(150,165,225,0.1);color:#4a5e88;backdrop-filter:blur(8px)}
+.lt .msg-rx:hover{background:rgba(79,172,254,0.1)}
+.lt .ch-input{backdrop-filter:blur(20px);background:rgba(205,216,248,0.6);border-top:1px solid rgba(150,165,225,0.15)}
+.lt .ch-input-plus{color:#8e9ec0}
+.lt .ch-input-field{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);color:#1e2b4a;backdrop-filter:blur(12px)}
+.lt .ch-input-field::placeholder{color:#8e9ec0}
+.lt .ch-input-send{background:#4facfe;color:white}
+
+.phase-box{max-width:860px;margin:20px auto 0;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.phase-header{padding:12px 16px;display:flex;align-items:center;gap:10px;background:rgba(92,200,138,0.08);border-bottom:1px solid rgba(92,200,138,0.1)}
+.phase-badge{padding:4px 10px;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(92,200,138,0.15);color:#5cc88a}
+.phase-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500}
+.phase-body{padding:14px 16px;background:rgba(255,255,255,0.015);font-size:11px;color:#8e89a8;line-height:1.8}
+.phase-body b{color:#e8e5f2}
+.phase-body code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+@media(max-width:900px){.three-up{flex-direction:column;align-items:center}.comp-box{max-width:100%}}
+</style></head><body>
+<div class="counter">Component 7 of 15</div>
+<h1>Channel Chat View</h1>
+<div class="subtitle"><span class="tag exists-tag">✅ EXISTS — ChannelChat.tsx is feature-rich, restyle only</span></div>
+<div class="tab-info">📍 Home Tab → Server → Tap channel &nbsp;|&nbsp; Full-screen chat with messages, reactions, replies</div>
+<div class="three-up">
+  <div class="comp-box">
+    <div class="comp-label">Existing features</div>
+    <div class="note" style="margin-top:0">
+      <h4>Already built in ChannelChat.tsx</h4>
+      <span class="keep">✅</span> <span class="code">useChannelMessages</span> hook<br>
+      <span class="keep">✅</span> Message rendering with avatars + timestamps<br>
+      <span class="keep">✅</span> @mention parsing + highlighting<br>
+      <span class="keep">✅</span> Emoji reactions (add/remove/expand)<br>
+      <span class="keep">✅</span> Emoji picker<br>
+      <span class="keep">✅</span> Reply-to-message<br>
+      <span class="keep">✅</span> Pinned messages panel<br>
+      <span class="keep">✅</span> Image attachments + expand<br>
+      <span class="keep">✅</span> Slowmode cooldown<br>
+      <span class="keep">✅</span> Typing indicators<br>
+      <span class="keep">✅</span> Long-press actions<br>
+      <span class="keep">✅</span> Message search<br>
+      <span class="keep">✅</span> Member list sidebar<br>
+      <span class="keep">✅</span> Real-time subscription<br><br>
+      <h4>What mockup adds</h4>
+      <span class="change">🎨</span> Role badges (PASTOR, LEADER, ADMIN)<br>
+      <span class="change">🎨</span> Gradient avatars<br>
+      <span class="change">🎨</span> Glass-style reaction chips<br>
+      <span class="change">🎨</span> Updated input bar style<br>
+      <span class="change">🎨</span> — dash prefix in header
+    </div>
+  </div>
+  <!-- NIGHT -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">🌙 Night Mode</div>
+    <div class="phone dark">
+      <div class="phone-screen dk">
+        <div class="ch-hdr">
+          <div class="ch-back">←</div>
+          <div class="ch-info"><div class="ch-name">— share-testimonies</div><div class="ch-desc">Share what God is doing in your life</div></div>
+          <div class="ch-members">👥</div>
+        </div>
+        <div class="msgs">
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm">Pastor Allen</span><span class="msg-role" style="background:rgba(232,184,74,0.15);color:#e8b84a">PASTOR</span><span class="msg-ts">Today 7:42 PM</span></div>
+              <div class="msg-txt">Just wanted to say — the testimonies being shared here are incredible. Keep them coming, church. Every story matters. 🙏</div>
+              <div class="msg-reactions"><span class="msg-rx">🙏 8</span><span class="msg-rx">❤️ 5</span><span class="msg-rx">⚡ 3</span></div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)">M</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm">Marcus Johnson</span><span class="msg-ts">Today 7:45 PM</span></div>
+              <div class="msg-txt">Thank you pastor 🔥 I almost didn't share mine but the Holy Spirit wouldn't let me stay quiet</div>
+              <div class="msg-reactions"><span class="msg-rx">🔥 12</span><span class="msg-rx">💯 4</span></div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm">Aaliyah Williams</span><span class="msg-role" style="background:rgba(92,200,138,0.15);color:#5cc88a">LEADER</span><span class="msg-ts">Today 7:48 PM</span></div>
+              <div class="msg-txt">Marcus your testimony literally had me in tears at my desk. God is so faithful. Can I share it with my small group?</div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)">M</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm">Marcus Johnson</span><span class="msg-ts">Today 7:49 PM</span></div>
+              <div class="msg-txt">Of course!! That's what it's here for 🙌</div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">J</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm" style="color:#7b76e0">Jordyn Lightning</span><span class="msg-role" style="background:rgba(123,118,224,0.15);color:#7b76e0">ADMIN</span><span class="msg-ts">Today 7:52 PM</span></div>
+              <div class="msg-txt">This is exactly why we built Lightning ⚡ Y'all are making this vision real.</div>
+              <div class="msg-reactions"><span class="msg-rx">⚡ 15</span><span class="msg-rx">❤️ 9</span><span class="msg-rx">🙏 7</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="ch-input">
+          <span class="ch-input-plus">+</span>
+          <input class="ch-input-field" placeholder="Message — share-testimonies" readonly>
+          <button class="ch-input-send">↑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- DAY -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">☀️ Day Mode (Peri V3)</div>
+    <div class="phone light">
+      <div class="blob1"></div><div class="blob2"></div>
+      <div class="phone-screen lt">
+        <div class="ch-hdr">
+          <div class="ch-back">←</div>
+          <div class="ch-info"><div class="ch-name">— share-testimonies</div><div class="ch-desc">Share what God is doing in your life</div></div>
+          <div class="ch-members">👥</div>
+        </div>
+        <div class="msgs">
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm">Pastor Allen</span><span class="msg-role" style="background:rgba(232,184,74,0.1);color:#b47a10">PASTOR</span><span class="msg-ts">Today 7:42 PM</span></div>
+              <div class="msg-txt">Just wanted to say — the testimonies being shared here are incredible. Keep them coming, church. Every story matters. 🙏</div>
+              <div class="msg-reactions"><span class="msg-rx">🙏 8</span><span class="msg-rx">❤️ 5</span><span class="msg-rx">⚡ 3</span></div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)">M</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm">Marcus Johnson</span><span class="msg-ts">Today 7:45 PM</span></div>
+              <div class="msg-txt">Thank you pastor 🔥 I almost didn't share mine but the Holy Spirit wouldn't let me stay quiet</div>
+              <div class="msg-reactions"><span class="msg-rx">🔥 12</span><span class="msg-rx">💯 4</span></div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm">Aaliyah Williams</span><span class="msg-role" style="background:rgba(92,200,138,0.1);color:#16834a">LEADER</span><span class="msg-ts">Today 7:48 PM</span></div>
+              <div class="msg-txt">Marcus your testimony literally had me in tears at my desk. God is so faithful. Can I share it with my small group?</div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)">M</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm">Marcus Johnson</span><span class="msg-ts">Today 7:49 PM</span></div>
+              <div class="msg-txt">Of course!! That's what it's here for 🙌</div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="msg-av" style="background:linear-gradient(135deg,#4facfe,#9b96f5)">J</div>
+            <div class="msg-body">
+              <div class="msg-head"><span class="msg-nm" style="color:#2b6cb0">Jordyn Lightning</span><span class="msg-role" style="background:rgba(79,172,254,0.1);color:#2b6cb0">ADMIN</span><span class="msg-ts">Today 7:52 PM</span></div>
+              <div class="msg-txt">This is exactly why we built Lightning ⚡ Y'all are making this vision real.</div>
+              <div class="msg-reactions"><span class="msg-rx">⚡ 15</span><span class="msg-rx">❤️ 9</span><span class="msg-rx">🙏 7</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="ch-input">
+          <span class="ch-input-plus">+</span>
+          <input class="ch-input-field" placeholder="Message — share-testimonies" readonly>
+          <button class="ch-input-send">↑</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="phase-box">
+  <div class="phase-header"><div class="phase-badge">MVP ✅</div><div class="phase-title">Restyle chat view (all logic exists)</div></div>
+  <div class="phase-body">
+    <code>ChannelChat.tsx</code> is one of your most complete components — messages, reactions, replies, pins, mentions, images, slowmode, typing indicators, member list, search. All stays.<br><br>
+    <b>Restyle only:</b><br>
+    • Message avatars: gradient backgrounds (use sender's assigned gradient)<br>
+    • Role badges: PASTOR / LEADER / ADMIN pills with role-specific colors<br>
+    • Reaction chips: glass-style with backdrop-filter (day mode)<br>
+    • Input bar: frosted glass style, — prefix in placeholder<br>
+    • Channel header: — dash prefix instead of #<br>
+    • Fonts: General Sans for all text, existing emoji rendering stays<br><br>
+    <b>Note on role badges:</b> Your <code>RoleManager.tsx</code> already handles server roles. The badge display is a <b>new visual element</b> but uses existing role data — just render it next to the username based on the sender's role in the server.
+  </div>
+</div>
+</body></html>

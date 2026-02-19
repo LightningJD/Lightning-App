@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 1: Find Tab — Greeting (Dark + Light)</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#08060f;color:#e8e5f2;padding:20px 16px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.new{background:rgba(232,184,74,0.15);color:#e8b84a}
+.keep{background:rgba(92,200,138,0.15);color:#5cc88a}
+
+/* Layout */
+.three-up{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;align-items:flex-start;margin-top:12px}
+
+/* Component card (left) */
+.comp-box{flex:1;max-width:340px;min-width:260px}
+.comp-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#5d5877;margin-bottom:8px;font-weight:600;text-align:center}
+.comp-card{border-radius:16px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);padding:18px 14px}
+.greeting{font-family:'Playfair Display',serif;font-size:20px;font-weight:500;margin-bottom:4px}
+.greet-sub{font-size:12px;color:#8e89a8}
+.note{margin-top:14px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);font-size:11px;color:#8e89a8;line-height:1.7}
+.note b{color:#e8e5f2}
+.note h4{font-family:'Playfair Display',serif;font-size:13px;margin-bottom:5px;color:#b8b4f5}
+
+/* Phone frames */
+.phone-box{flex-shrink:0}
+.phone{width:260px;height:560px;border-radius:34px;border:3px solid rgba(255,255,255,0.12);position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.phone.dark{background:#0d0b18}
+.phone.light{background:linear-gradient(145deg,#f0edf8,#e8e4f2,#eae6f4);border-color:rgba(0,0,0,0.1);box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:22px;border-radius:0 0 12px 12px;z-index:10}
+.phone.dark::before{background:#08060f}
+.phone.light::before{background:#ddd8e8}
+.phone-screen{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding-top:26px}
+.phone-screen::-webkit-scrollbar{display:none}
+
+/* ===== DARK MODE PHONE STYLES ===== */
+.dk .p-header{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(13,11,24,0.75);border-bottom:1px solid rgba(255,255,255,0.04);position:sticky;top:0;z-index:5}
+.dk .p-logo{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;font-family:'Playfair Display',serif;color:#e8e5f2}
+.dk .p-icons{display:flex;gap:4px}
+.dk .p-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .p-ct{padding:10px 10px 80px}
+.dk .p-greeting{font-family:'Playfair Display',serif;font-size:14px;font-weight:500;color:#e8e5f2;margin-bottom:2px}
+.dk .p-sub{font-size:9px;color:#8e89a8;margin-bottom:10px}
+.dk .p-hl{border:1.5px dashed rgba(123,118,224,0.4);border-radius:10px;padding:8px;margin-bottom:10px;position:relative}
+.dk .p-hl-label{position:absolute;top:-7px;left:8px;background:#0d0b18;padding:0 5px;font-size:6.5px;text-transform:uppercase;letter-spacing:1px;color:#7b76e0;font-weight:600}
+.dk .p-search{display:flex;align-items:center;gap:5px;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);margin-bottom:8px}
+.dk .p-search span{color:#5d5877;font-size:10px}
+.dk .p-search-text{font-size:9px;color:#5d5877}
+.dk .p-pills{display:flex;gap:3px;margin-bottom:8px;overflow-x:auto;scrollbar-width:none}
+.dk .p-pills::-webkit-scrollbar{display:none}
+.dk .p-pill{padding:3px 8px;border-radius:12px;font-size:7.5px;font-weight:500;border:1px solid rgba(255,255,255,0.08);color:#8e89a8;background:rgba(255,255,255,0.03);flex-shrink:0;white-space:nowrap}
+.dk .p-pill.a{background:rgba(123,118,224,0.1);color:#7b76e0;border-color:rgba(123,118,224,0.2)}
+.dk .p-sec{font-size:6.5px;text-transform:uppercase;letter-spacing:1.2px;color:#5d5877;font-weight:500;margin:8px 0 5px}
+.dk .p-trending{border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:3px 0;margin-bottom:8px}
+.dk .p-trend{display:flex;align-items:center;gap:6px;padding:5px 8px}
+.dk .p-trend-n{font-size:11px;font-family:'Playfair Display',serif;color:#7b76e0;width:16px}
+.dk .p-trend-name{font-size:9px;font-weight:500;color:#e8e5f2}
+.dk .p-trend-ct{font-size:7px;color:#5d5877}
+.dk .p-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
+.dk .p-gc{border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:10px 8px;text-align:center}
+.dk .p-gc-e{font-size:18px;margin-bottom:3px}
+.dk .p-gc-l{font-size:8px;font-weight:500;color:#e8e5f2}
+.dk .p-gc-c{font-size:6.5px;color:#5d5877}
+.dk .p-ppl{border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:3px 0}
+.dk .p-pp{display:flex;align-items:center;gap:7px;padding:6px 8px}
+.dk .p-pp-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'Playfair Display',serif;color:white;flex-shrink:0}
+.dk .p-pp-info{flex:1;min-width:0}
+.dk .p-pp-name{font-size:9px;font-weight:600;color:#e8e5f2}
+.dk .p-pp-desc{font-size:7px;color:#5d5877}
+.dk .p-fb{padding:3px 9px;border-radius:7px;font-size:7.5px;font-weight:600;background:rgba(123,118,224,0.1);color:#7b76e0;border:none;font-family:'DM Sans',sans-serif}
+
+/* ===== LIGHT MODE PHONE STYLES ===== */
+.lt .p-header{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(240,237,248,0.75);border-bottom:1px solid rgba(0,0,0,0.06);position:sticky;top:0;z-index:5}
+.lt .p-logo{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;font-family:'Playfair Display',serif;color:#1a1a2e}
+.lt .p-icons{display:flex;gap:4px}
+.lt .p-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.06);color:#6b6880}
+.lt .p-ct{padding:10px 10px 80px}
+.lt .p-greeting{font-family:'Playfair Display',serif;font-size:14px;font-weight:500;color:#1a1a2e;margin-bottom:2px}
+.lt .p-sub{font-size:9px;color:#6b6880;margin-bottom:10px}
+.lt .p-hl{border:1.5px dashed rgba(123,118,224,0.45);border-radius:10px;padding:8px;margin-bottom:10px;position:relative}
+.lt .p-hl-label{position:absolute;top:-7px;left:8px;background:#ede9f6;padding:0 5px;font-size:6.5px;text-transform:uppercase;letter-spacing:1px;color:#7b76e0;font-weight:600}
+.lt .p-search{display:flex;align-items:center;gap:5px;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,0.7);border:1px solid rgba(0,0,0,0.07);margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.lt .p-search span{color:#6b6880;font-size:10px}
+.lt .p-search-text{font-size:9px;color:#9994ac}
+.lt .p-pills{display:flex;gap:3px;margin-bottom:8px;overflow-x:auto;scrollbar-width:none}
+.lt .p-pills::-webkit-scrollbar{display:none}
+.lt .p-pill{padding:3px 8px;border-radius:12px;font-size:7.5px;font-weight:500;border:1px solid rgba(0,0,0,0.08);color:#6b6880;background:rgba(255,255,255,0.5);flex-shrink:0;white-space:nowrap}
+.lt .p-pill.a{background:rgba(123,118,224,0.12);color:#5b56c0;border-color:rgba(123,118,224,0.25)}
+.lt .p-sec{font-size:6.5px;text-transform:uppercase;letter-spacing:1.2px;color:#9994ac;font-weight:500;margin:8px 0 5px}
+.lt .p-trending{border-radius:10px;background:rgba(255,255,255,0.6);border:1px solid rgba(0,0,0,0.06);padding:3px 0;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.lt .p-trend{display:flex;align-items:center;gap:6px;padding:5px 8px}
+.lt .p-trend-n{font-size:11px;font-family:'Playfair Display',serif;color:#5b56c0;width:16px}
+.lt .p-trend-name{font-size:9px;font-weight:500;color:#1a1a2e}
+.lt .p-trend-ct{font-size:7px;color:#9994ac}
+.lt .p-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
+.lt .p-gc{border-radius:9px;background:rgba(255,255,255,0.6);border:1px solid rgba(0,0,0,0.06);padding:10px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.lt .p-gc-e{font-size:18px;margin-bottom:3px}
+.lt .p-gc-l{font-size:8px;font-weight:500;color:#1a1a2e}
+.lt .p-gc-c{font-size:6.5px;color:#9994ac}
+.lt .p-ppl{border-radius:10px;background:rgba(255,255,255,0.6);border:1px solid rgba(0,0,0,0.06);padding:3px 0;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.lt .p-pp{display:flex;align-items:center;gap:7px;padding:6px 8px}
+.lt .p-pp-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'Playfair Display',serif;color:white;flex-shrink:0}
+.lt .p-pp-info{flex:1;min-width:0}
+.lt .p-pp-name{font-size:9px;font-weight:600;color:#1a1a2e}
+.lt .p-pp-desc{font-size:7px;color:#9994ac}
+.lt .p-fb{padding:3px 9px;border-radius:7px;font-size:7.5px;font-weight:600;background:rgba(123,118,224,0.12);color:#5b56c0;border:none;font-family:'DM Sans',sans-serif}
+
+/* Bottom nav - dark */
+.dk .p-nav{position:absolute;bottom:0;left:0;right:0;padding:4px 10px 16px;display:flex;justify-content:space-around;background:rgba(13,11,24,0.85);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.04)}
+.dk .p-ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:6px;color:#5d5877;letter-spacing:0.5px;text-transform:uppercase;padding:3px 10px;border-radius:8px}
+.dk .p-ni.a{color:#7b76e0;background:rgba(123,118,224,0.1)}
+.dk .p-ni-icon{font-size:13px}
+
+/* Bottom nav - light */
+.lt .p-nav{position:absolute;bottom:0;left:0;right:0;padding:4px 10px 16px;display:flex;justify-content:space-around;background:rgba(240,237,248,0.85);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.06)}
+.lt .p-ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:6px;color:#9994ac;letter-spacing:0.5px;text-transform:uppercase;padding:3px 10px;border-radius:8px}
+.lt .p-ni.a{color:#5b56c0;background:rgba(123,118,224,0.1)}
+.lt .p-ni-icon{font-size:13px}
+
+/* Verdict */
+.verdict{max-width:860px;margin:20px auto 0;padding:16px 20px;border-radius:12px;background:rgba(92,200,138,0.05);border:1px solid rgba(92,200,138,0.1);font-size:11px;color:#8e89a8;line-height:1.7;text-align:center}
+.verdict b{color:#5cc88a}
+
+/* Responsive */
+@media(max-width:860px){.three-up{flex-direction:column;align-items:center}.comp-box{max-width:100%}}
+</style></head><body>
+
+<div class="counter">Component 1 of 15</div>
+<h1>Find Tab — Personalized Greeting</h1>
+<div class="subtitle"><span class="tag new">🆕 NEW</span> &nbsp; <span class="tag keep">✅ KEEPING</span></div>
+<div class="tab-info">📍 Find Tab &nbsp;|&nbsp; ~15 lines of code &nbsp;|&nbsp; Zero empty-state risk</div>
+
+<div class="three-up">
+  <!-- LEFT: Component -->
+  <div class="comp-box">
+    <div class="comp-label">Component</div>
+    <div class="comp-card">
+      <div class="greeting">Good evening, Jordyn ✨</div>
+      <div class="greet-sub">See what God is doing in people's lives</div>
+    </div>
+    <div class="note">
+      <h4>Implementation Notes</h4>
+      <b>Logic:</b> Reads display name from profile. Shows "Good morning" before noon, "Good afternoon" until 5pm, "Good evening" after.<br><br>
+      <b>Dark values:</b><br>
+      Text: #e8e5f2<br>
+      Subtitle: #8e89a8<br><br>
+      <b>Light values:</b><br>
+      Text: #1a1a2e<br>
+      Subtitle: #6b6880<br><br>
+      <b>Font:</b> Playfair Display 500 for name, DM Sans 400 for subtitle.
+    </div>
+  </div>
+
+  <!-- MIDDLE: Dark Phone -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">🌙 Dark Mode</div>
+    <div class="phone dark">
+      <div class="phone-screen dk">
+        <div class="p-header"><div class="p-logo"><span>⚡</span> Lightning</div><div class="p-icons"><div class="p-icon">🔔</div><div class="p-icon">☰</div></div></div>
+        <div class="p-ct">
+          <div class="p-hl">
+            <div class="p-hl-label">← This component</div>
+            <div class="p-greeting">Good evening, Jordyn ✨</div>
+            <div class="p-sub" style="margin-bottom:0">See what God is doing in people's lives</div>
+          </div>
+          <div class="p-search"><span>🔍</span><span class="p-search-text">Search testimonies, people, churches...</span></div>
+          <div class="p-pills"><div class="p-pill a">All</div><div class="p-pill">Salvation</div><div class="p-pill">Healing</div><div class="p-pill">Deliverance</div><div class="p-pill">Provision</div></div>
+          <div class="p-sec">Trending Testimonies</div>
+          <div class="p-trending">
+            <div class="p-trend"><div class="p-trend-n">1</div><div><div class="p-trend-name">#GodIsHealer</div><div class="p-trend-ct">342 testimonies this week</div></div></div>
+            <div class="p-trend"><div class="p-trend-n">2</div><div><div class="p-trend-name">#FreedomInChrist</div><div class="p-trend-ct">218 testimonies this week</div></div></div>
+            <div class="p-trend"><div class="p-trend-n">3</div><div><div class="p-trend-name">#RestoredMarriage</div><div class="p-trend-ct">156 testimonies this week</div></div></div>
+          </div>
+          <div class="p-sec">Explore by Category</div>
+          <div class="p-grid">
+            <div class="p-gc"><div class="p-gc-e">✝️</div><div class="p-gc-l">Salvation</div><div class="p-gc-c">2.4K stories</div></div>
+            <div class="p-gc"><div class="p-gc-e">💊</div><div class="p-gc-l">Healing</div><div class="p-gc-c">1.8K stories</div></div>
+            <div class="p-gc"><div class="p-gc-e">⛓️‍💥</div><div class="p-gc-l">Deliverance</div><div class="p-gc-c">1.2K stories</div></div>
+            <div class="p-gc"><div class="p-gc-e">💰</div><div class="p-gc-l">Provision</div><div class="p-gc-c">890 stories</div></div>
+          </div>
+          <div class="p-sec">People to Follow</div>
+          <div class="p-ppl">
+            <div class="p-pp"><div class="p-pp-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div><div class="p-pp-info"><div class="p-pp-name">Pastor James Allen</div><div class="p-pp-desc">Lead Pastor · Grace Community</div></div><button class="p-fb">Follow</button></div>
+            <div class="p-pp"><div class="p-pp-av" style="background:linear-gradient(135deg,#7b76e0,#5cc88a)">K</div><div class="p-pp-info"><div class="p-pp-name">Kayla Reyes</div><div class="p-pp-desc">Youth Leader · 47 testimonies</div></div><button class="p-fb">Follow</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="dk"><div class="p-nav"><div class="p-ni"><div class="p-ni-icon">⚡</div>Home</div><div class="p-ni a"><div class="p-ni-icon">🔍</div>Find</div><div class="p-ni"><div class="p-ni-icon">👤</div>You</div></div></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Light Phone -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">☀️ Light Mode</div>
+    <div class="phone light">
+      <div class="phone-screen lt">
+        <div class="p-header"><div class="p-logo"><span>⚡</span> Lightning</div><div class="p-icons"><div class="p-icon">🔔</div><div class="p-icon">☰</div></div></div>
+        <div class="p-ct">
+          <div class="p-hl">
+            <div class="p-hl-label">← This component</div>
+            <div class="p-greeting">Good evening, Jordyn ✨</div>
+            <div class="p-sub" style="margin-bottom:0">See what God is doing in people's lives</div>
+          </div>
+          <div class="p-search"><span>🔍</span><span class="p-search-text">Search testimonies, people, churches...</span></div>
+          <div class="p-pills"><div class="p-pill a">All</div><div class="p-pill">Salvation</div><div class="p-pill">Healing</div><div class="p-pill">Deliverance</div><div class="p-pill">Provision</div></div>
+          <div class="p-sec">Trending Testimonies</div>
+          <div class="p-trending">
+            <div class="p-trend"><div class="p-trend-n">1</div><div><div class="p-trend-name">#GodIsHealer</div><div class="p-trend-ct">342 testimonies this week</div></div></div>
+            <div class="p-trend"><div class="p-trend-n">2</div><div><div class="p-trend-name">#FreedomInChrist</div><div class="p-trend-ct">218 testimonies this week</div></div></div>
+            <div class="p-trend"><div class="p-trend-n">3</div><div><div class="p-trend-name">#RestoredMarriage</div><div class="p-trend-ct">156 testimonies this week</div></div></div>
+          </div>
+          <div class="p-sec">Explore by Category</div>
+          <div class="p-grid">
+            <div class="p-gc"><div class="p-gc-e">✝️</div><div class="p-gc-l">Salvation</div><div class="p-gc-c">2.4K stories</div></div>
+            <div class="p-gc"><div class="p-gc-e">💊</div><div class="p-gc-l">Healing</div><div class="p-gc-c">1.8K stories</div></div>
+            <div class="p-gc"><div class="p-gc-e">⛓️‍💥</div><div class="p-gc-l">Deliverance</div><div class="p-gc-c">1.2K stories</div></div>
+            <div class="p-gc"><div class="p-gc-e">💰</div><div class="p-gc-l">Provision</div><div class="p-gc-c">890 stories</div></div>
+          </div>
+          <div class="p-sec">People to Follow</div>
+          <div class="p-ppl">
+            <div class="p-pp"><div class="p-pp-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div><div class="p-pp-info"><div class="p-pp-name">Pastor James Allen</div><div class="p-pp-desc">Lead Pastor · Grace Community</div></div><button class="p-fb">Follow</button></div>
+            <div class="p-pp"><div class="p-pp-av" style="background:linear-gradient(135deg,#7b76e0,#5cc88a)">K</div><div class="p-pp-info"><div class="p-pp-name">Kayla Reyes</div><div class="p-pp-desc">Youth Leader · 47 testimonies</div></div><button class="p-fb">Follow</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="lt"><div class="p-nav"><div class="p-ni"><div class="p-ni-icon">⚡</div>Home</div><div class="p-ni a"><div class="p-ni-icon">🔍</div>Find</div><div class="p-ni"><div class="p-ni-icon">👤</div>You</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="verdict">
+  <b>✅ DECISION: KEEP</b><br>
+  Greeting goes at the top of the Find tab. Both dark and light mode values documented.<br>
+  Next up: Component 2 — Search Bar + Filter Pills
+</div>
+
+</body></html>

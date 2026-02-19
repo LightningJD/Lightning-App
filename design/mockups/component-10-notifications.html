@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 10: Notifications Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 12px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.new-tag{background:rgba(123,118,224,0.15);color:#9b96f5}
+.three-up{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:flex-start;margin-top:12px}
+.comp-box{flex:1;max-width:280px;min-width:240px}
+.comp-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#5d5877;margin-bottom:8px;font-weight:600;text-align:center}
+.note{margin-top:14px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);font-size:11px;color:#8e89a8;line-height:1.7}
+.note b{color:#e8e5f2}.note h4{font-family:'Playfair Display',serif;font-size:13px;margin-bottom:5px;color:#b8b4f5}
+.note .code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+.note .keep{color:#5cc88a;font-weight:600}.note .new{color:#9b96f5;font-weight:600}.note .move{color:#e8b84a;font-weight:600}
+.phone-box{flex-shrink:0}
+.phone{width:240px;height:540px;border-radius:32px;position:relative;overflow:hidden}
+.phone.dark{background:#0d0b18;border:3px solid rgba(255,255,255,0.12);box-shadow:0 18px 50px rgba(0,0,0,0.5)}
+.phone.light{background:linear-gradient(135deg,#cdd8f8 0%,#d6daf5 40%,#dee0f6 70%,#e4e0f5 100%);border:3px solid rgba(255,255,255,0.5);box-shadow:0 18px 50px rgba(0,0,0,0.12)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:85px;height:21px;border-radius:0 0 11px 11px;z-index:10}
+.phone.dark::before{background:#08060f}.phone.light::before{background:#c4cee8}
+.phone.light .blob1{position:absolute;top:-10%;left:15%;width:190px;height:190px;background:radial-gradient(circle,rgba(150,170,245,0.16) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0}
+.phone.light .blob2{position:absolute;bottom:-8%;right:10%;width:170px;height:170px;background:radial-gradient(circle,rgba(170,160,240,0.1) 0%,transparent 60%);border-radius:50%;pointer-events:none;z-index:0}
+.phone-screen{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding-top:24px;position:relative;z-index:1}
+.phone-screen::-webkit-scrollbar{display:none}
+/* Header */
+.n-hdr{padding:10px 10px 6px;display:flex;align-items:center;justify-content:space-between}
+.n-title{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500}
+.n-mark{font-size:7px;font-weight:600;padding:3px 8px;border-radius:6px;cursor:pointer}
+/* Pills */
+.pills{display:flex;gap:4px;padding:0 10px 8px;overflow-x:auto;scrollbar-width:none}.pills::-webkit-scrollbar{display:none}
+.pill{padding:4px 10px;border-radius:12px;font-size:7.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+/* Friend request card */
+.fr-card{margin:0 8px 6px;padding:8px;border-radius:10px}
+.fr-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.fr-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:'Playfair Display',serif;color:white;flex-shrink:0}
+.fr-info{flex:1;min-width:0}.fr-name{font-size:9px;font-weight:600}.fr-church{font-size:7px;opacity:0.5}
+.fr-btns{display:flex;gap:4px}
+.fr-btn{padding:4px 10px;border-radius:6px;border:none;font-size:7px;font-weight:600;font-family:'General Sans',sans-serif;cursor:pointer}
+/* Section */
+.sec{font-size:6.5px;text-transform:uppercase;letter-spacing:1px;font-weight:500;margin:6px 10px 4px}
+/* Notif items */
+.nf{display:flex;align-items:flex-start;gap:6px;padding:7px 10px;border-radius:8px;margin:0 4px 2px}
+.nf-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'Playfair Display',serif;color:white;flex-shrink:0;margin-top:1px}
+.nf-body{flex:1;min-width:0}.nf-text{font-size:8px;line-height:1.4}.nf-text b{font-weight:600}.nf-ts{font-size:6.5px;opacity:0.4;margin-top:1px}
+.nf-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+
+/* NIGHT */
+.dk .n-title{color:#e8e5f2}
+.dk .n-mark{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .pill{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .pill.active{background:rgba(123,118,224,0.15);border-color:rgba(123,118,224,0.25);color:#7b76e0}
+.dk .fr-card{background:rgba(123,118,224,0.06);border:1px solid rgba(123,118,224,0.12)}
+.dk .fr-name{color:#e8e5f2}.dk .fr-church{color:#5d5877}
+.dk .fr-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .fr-btn.accept{background:rgba(123,118,224,0.2);border-color:rgba(123,118,224,0.3);color:#9b96f5;padding:5px 16px;font-size:7.5px}
+.dk .fr-btn.decline{background:transparent;border-color:rgba(255,255,255,0.04);color:#5d5877;font-size:6.5px;padding:4px 8px}
+.dk .sec{color:#5d5877}
+.dk .nf{color:#8e89a8}.dk .nf.unread{background:rgba(255,255,255,0.02)}
+.dk .nf-text{color:#b8b4c8}.dk .nf-text b{color:#e8e5f2}
+.dk .nf-dot{background:#7b76e0}
+/* DAY */
+.lt .n-title{color:#1e2b4a}
+.lt .n-mark{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);color:#4a5e88;backdrop-filter:blur(8px)}
+.lt .pill{background:rgba(255,255,255,0.4);border:1px solid rgba(150,165,225,0.1);color:#4a5e88;backdrop-filter:blur(8px)}
+.lt .pill.active{background:rgba(79,172,254,0.12);border-color:rgba(79,172,254,0.2);color:#2b6cb0}
+.lt .fr-card{background:rgba(79,172,254,0.06);border:1px solid rgba(79,172,254,0.12);backdrop-filter:blur(8px)}
+.lt .fr-name{color:#1e2b4a}.lt .fr-church{color:#8e9ec0}
+.lt .fr-btn{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);color:#4a5e88;backdrop-filter:blur(8px)}
+.lt .fr-btn.accept{background:rgba(79,172,254,0.15);border-color:rgba(79,172,254,0.25);color:#2b6cb0;padding:5px 16px;font-size:7.5px}
+.lt .fr-btn.decline{background:transparent;border-color:rgba(150,165,225,0.08);color:#8e9ec0;font-size:6.5px;padding:4px 8px}
+.lt .sec{color:#4a5e88}
+.lt .nf{color:#4a5e88}.lt .nf.unread{background:rgba(255,255,255,0.3);backdrop-filter:blur(8px)}
+.lt .nf-text{color:#3a4d6e}.lt .nf-text b{color:#1e2b4a}
+.lt .nf-dot{background:#4facfe}
+.phase-box{max-width:860px;margin:20px auto 0;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.phase-header{padding:12px 16px;display:flex;align-items:center;gap:10px;background:rgba(123,118,224,0.08);border-bottom:1px solid rgba(123,118,224,0.1)}
+.phase-badge{padding:4px 10px;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(123,118,224,0.15);color:#9b96f5}
+.phase-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500}
+.phase-body{padding:14px 16px;background:rgba(255,255,255,0.015);font-size:11px;color:#8e89a8;line-height:1.8}
+.phase-body b{color:#e8e5f2}
+.phase-body code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+@media(max-width:900px){.three-up{flex-direction:column;align-items:center}.comp-box{max-width:100%}}
+</style></head><body>
+<div class="counter">Component 10 of 15</div>
+<h1>Notifications Panel</h1>
+<div class="subtitle"><span class="tag new-tag">🆕 NEW PANEL — Friend requests moved here + notification feed</span></div>
+<div class="tab-info">📍 Accessed via 🔔 bell icon in header &nbsp;|&nbsp; Friend requests + likes + comments + church activity</div>
+<div class="three-up">
+  <div class="comp-box">
+    <div class="comp-label">Architecture</div>
+    <div class="note" style="margin-top:0">
+      <h4>New component needed</h4>
+      <span class="new">🆕</span> <span class="code">NotificationsPanel.tsx</span><br><br>
+      <h4>Moved here (from Find tab)</h4>
+      <span class="move">📬</span> Friend requests with Accept/Decline<br>
+      <span class="move">📬</span> Pending request count → bell badge<br><br>
+      <h4>Existing code reused</h4>
+      <span class="keep">✅</span> <span class="code">getPendingFriendRequests()</span><br>
+      <span class="keep">✅</span> <span class="code">acceptFriendRequest()</span><br>
+      <span class="keep">✅</span> <span class="code">declineFriendRequest()</span><br>
+      <span class="keep">✅</span> <span class="code">NotificationSettings.tsx</span><br><br>
+      <h4>New notification types</h4>
+      <span class="new">🆕</span> Testimony liked<br>
+      <span class="new">🆕</span> Testimony commented<br>
+      <span class="new">🆕</span> Testimony shared<br>
+      <span class="new">🆕</span> Church announcement<br>
+      <span class="new">🆕</span> Milestone (100 views, etc.)<br>
+      <span class="new">🆕</span> Friend request received<br><br>
+      <h4>Filter pills</h4>
+      All / Testimonies / Friends / Church
+    </div>
+  </div>
+  <!-- NIGHT -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">🌙 Night Mode</div>
+    <div class="phone dark">
+      <div class="phone-screen dk">
+        <div class="n-hdr"><div class="n-title">Notifications</div></div>
+        <div class="pills"><div class="pill active">All</div><div class="pill">Testimonies</div><div class="pill">Friends</div><div class="pill">Church</div></div>
+        <!-- Friend request -->
+        <div class="sec">Friend Requests</div>
+        <div class="fr-card">
+          <div class="fr-header">
+            <div class="fr-av" style="background:linear-gradient(135deg,#6b9ed6,#7b76e0)">R</div>
+            <div class="fr-info"><div class="fr-name">Rachel Kim</div><div class="fr-church">Grace Community · 3 mutual friends</div></div>
+          </div>
+          <div class="fr-btns"><button class="fr-btn accept">Accept</button><button class="fr-btn decline">Decline</button></div>
+        </div>
+        <div class="sec">Today</div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)">M</div>
+          <div class="nf-body"><div class="nf-text"><b>Marcus Johnson</b> liked your testimony "A Dream That Changed Everything"</div><div class="nf-ts">2 minutes ago</div></div>
+          <div class="nf-dot"></div>
+        </div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div>
+          <div class="nf-body"><div class="nf-text"><b>Aaliyah Williams</b> commented: "This gave me chills! 🙏"</div><div class="nf-ts">15 minutes ago</div></div>
+          <div class="nf-dot"></div>
+        </div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#7b76e0,#6b9ed6)">⚡</div>
+          <div class="nf-body"><div class="nf-text"><b>The Crossing</b> posted in — announcements</div><div class="nf-ts">1 hour ago</div></div>
+          <div class="nf-dot"></div>
+        </div>
+        <div class="sec" style="margin-top:6px">Earlier</div>
+        <div class="nf">
+          <div class="nf-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div>
+          <div class="nf-body"><div class="nf-text"><b>Pastor Allen</b> shared your testimony in — general-chat</div><div class="nf-ts">5 hours ago</div></div>
+        </div>
+        <div class="nf">
+          <div class="nf-av" style="background:linear-gradient(135deg,#5cc88a,#2a9d5c)">D</div>
+          <div class="nf-body"><div class="nf-text"><b>David Chen</b> and <b>4 others</b> liked your testimony</div><div class="nf-ts">Yesterday</div></div>
+        </div>
+        <div class="nf">
+          <div class="nf-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">⚡</div>
+          <div class="nf-body"><div class="nf-text">Your testimony reached <b>100 views</b>! Keep sharing 🎉</div><div class="nf-ts">Yesterday</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- DAY -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">☀️ Day Mode (Peri V3)</div>
+    <div class="phone light">
+      <div class="blob1"></div><div class="blob2"></div>
+      <div class="phone-screen lt">
+        <div class="n-hdr"><div class="n-title">Notifications</div></div>
+        <div class="pills"><div class="pill active">All</div><div class="pill">Testimonies</div><div class="pill">Friends</div><div class="pill">Church</div></div>
+        <div class="sec">Friend Requests</div>
+        <div class="fr-card">
+          <div class="fr-header">
+            <div class="fr-av" style="background:linear-gradient(135deg,#6b9ed6,#4facfe)">R</div>
+            <div class="fr-info"><div class="fr-name">Rachel Kim</div><div class="fr-church">Grace Community · 3 mutual friends</div></div>
+          </div>
+          <div class="fr-btns"><button class="fr-btn accept">Accept</button><button class="fr-btn decline">Decline</button></div>
+        </div>
+        <div class="sec">Today</div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)">M</div>
+          <div class="nf-body"><div class="nf-text"><b>Marcus Johnson</b> liked your testimony "A Dream That Changed Everything"</div><div class="nf-ts">2 minutes ago</div></div>
+          <div class="nf-dot"></div>
+        </div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div>
+          <div class="nf-body"><div class="nf-text"><b>Aaliyah Williams</b> commented: "This gave me chills! 🙏"</div><div class="nf-ts">15 minutes ago</div></div>
+          <div class="nf-dot"></div>
+        </div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#4facfe,#6b9ed6)">⚡</div>
+          <div class="nf-body"><div class="nf-text"><b>The Crossing</b> posted in — announcements</div><div class="nf-ts">1 hour ago</div></div>
+          <div class="nf-dot"></div>
+        </div>
+        <div class="sec" style="margin-top:6px">Earlier</div>
+        <div class="nf">
+          <div class="nf-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div>
+          <div class="nf-body"><div class="nf-text"><b>Pastor Allen</b> shared your testimony in — general-chat</div><div class="nf-ts">5 hours ago</div></div>
+        </div>
+        <div class="nf">
+          <div class="nf-av" style="background:linear-gradient(135deg,#5cc88a,#2a9d5c)">D</div>
+          <div class="nf-body"><div class="nf-text"><b>David Chen</b> and <b>4 others</b> liked your testimony</div><div class="nf-ts">Yesterday</div></div>
+        </div>
+        <div class="nf">
+          <div class="nf-av" style="background:linear-gradient(135deg,#4facfe,#9b96f5)">⚡</div>
+          <div class="nf-body"><div class="nf-text">Your testimony reached <b>100 views</b>! Keep sharing 🎉</div><div class="nf-ts">Yesterday</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="phase-box">
+  <div class="phase-header"><div class="phase-badge">MVP ✅ (partial new)</div><div class="phase-title">New panel, but uses existing friend request logic</div></div>
+  <div class="phase-body">
+    This is the <b>only new component</b> needed for MVP. But it's lightweight — mostly UI with existing backend functions.<br><br>
+    <b>What's new:</b><br>
+    • <code>NotificationsPanel.tsx</code> — slide-in panel or full page from 🔔 bell tap<br>
+    • Bell icon badge count (pending friend requests + unread notifs)<br>
+    • Filter pills (All / Testimonies / Friends / Church)<br>
+    • Friend request cards at top with Accept/Decline/View<br>
+    • Notification feed grouped by Today / Earlier<br>
+    • Unread dot indicator per notification<br>
+    • "Mark all read" button<br><br>
+    <b>What's reused:</b><br>
+    • <code>getPendingFriendRequests()</code> — already built<br>
+    • <code>acceptFriendRequest()</code> / <code>declineFriendRequest()</code> — already built<br>
+    • <code>NotificationSettings.tsx</code> — already built<br><br>
+    <b>Backend note:</b> The notification feed itself (likes, comments, shares, milestones) may need a <code>notifications</code> table in Supabase if it doesn't exist. Friend requests already have a table. This is the one piece that might need backend work.
+  </div>
+</div>
+</body></html>

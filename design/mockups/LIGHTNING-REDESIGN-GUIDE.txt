@@ -1,0 +1,772 @@
+# ⚡ Lightning App — UI/UX Redesign Bundle
+
+## For Claude Code Implementation
+
+This bundle contains everything needed to restyle the Lightning app. Each HTML file is a pixel-perfect mockup showing night and day modes. The spec doc contains all logic, wording, and implementation details.
+
+---
+
+## How to Use This Bundle
+
+1. **Read the spec first**: `lightning-implementation-spec.docx` has the full component list, design tokens, global behaviors, and what code to preserve
+2. **Open each component HTML** to see exact colors, spacing, typography, and layout
+3. **Implement one component at a time** — start with simple ones (Settings, Bottom Nav) before complex ones (Home Tab, Notifications)
+4. **Preserve all existing logic** — this is a visual restyle, not a rebuild
+
+---
+
+## Design System Quick Reference
+
+### Typography
+- **DM Sans 600**: Profile names, page/section titles
+- **General Sans**: Body, labels, buttons, handles, inputs
+- **Playfair Display**: Testimony titles, pull quotes, avatar initials
+
+### Night Mode Colors
+- Background: `#0d0b18`
+- Card: `rgba(255,255,255,0.04)` bg + `rgba(255,255,255,0.06)` border
+- Text: `#e8e5f2` / `#8e89a8` / `#5d5877`
+- Accent: `#7b76e0` / `#9b96f5`
+- Badge: `#ef4444`
+
+### Day Mode Colors (Peri V3 Glass Edge)
+- Background: `linear-gradient(135deg, #cdd8f8, #d6daf5, #dee0f6, #e4e0f5)`
+- Card: `rgba(255,255,255,0.5)` bg + `rgba(150,165,225,0.15)` border + `backdrop-filter: blur(12px)`
+- Text: `#1e2b4a` / `#4a5e88` / `#8e9ec0`
+- Accent: `#4facfe` / `#2b6cb0`
+- Badge: `#ef4444`
+
+### Global Rules
+- All icons: colorless outline SVGs, stroke: currentColor, stroke-width: 1.8 (2.2 active)
+- All notification badges: red `#ef4444`
+- Back navigation: ← arrow + swipe-right gesture on all sub-pages
+- Tab rename: "Find" → "Charge" everywhere
+- Server icons: letter initial + gradient circle (default), image upload (optional)
+
+---
+
+## File Index
+
+### Spec Document
+- `lightning-implementation-spec.docx` — Full implementation spec with all 15 components
+
+### Component Mockups (MVP — implement these)
+| File | Component | Source File to Modify |
+|------|-----------|----------------------|
+| `component-01-final.html` | Greeting | Charge tab greeting section |
+| `component-02-final.html` | Search Bar | Charge tab search section |
+| `component-05-simplified-find.html` | Charge Tab (simplified) | NearbyTab.tsx |
+| `component-06-home-rail-dms.html` | Home Tab Rail + DMs | ChatTab.tsx |
+| `component-07-channel-chat.html` | Channel Chat | ServerView.tsx |
+| `component-08-create-testimony.html` | Create Testimony | TestimonyWizard.tsx |
+| `component-09-profile.html` | Profile / You Tab | ProfileCard.tsx + ProfileTab.tsx |
+| `component-10-notifications.html` | Notifications Panel | NEW: NotificationsPanel.tsx |
+| `component-11-settings.html` | Settings | SettingsMenu.tsx |
+| `component-12-dm-chat.html` | DM Chat View | MessagesTab.tsx |
+| `component-13-bottom-nav.html` | Bottom Navigation | AppLayout.tsx |
+| `component-14-create-server.html` | Create Server Dialog | CreateServerDialog.tsx |
+| `component-15-profile-wizard.html` | Profile Creation Wizard | ProfileCreationWizard.tsx |
+
+### Phase 2 (reference only — do NOT implement yet)
+| File | Component |
+|------|-----------|
+| `component-03-trending.html` | Trending Testimonies carousel |
+
+### Supporting References
+| File | What It Shows |
+|------|---------------|
+| `emoji-to-svg-replacements.html` | All emoji → SVG icon conversions |
+| `red-notification-badges-preview.html` | Red badge placement across 6 contexts |
+| `nav-community-charge-concepts.html` | Bottom nav icon concepts |
+
+---
+
+## Implementation Order (Recommended)
+
+1. **Bottom Nav** (component-13) — smallest change, biggest visual impact
+2. **Settings** (component-11) — self-contained page, good warmup
+3. **Profile** (component-09) — high visibility, moderate complexity
+4. **Home Tab Rail + DMs** (component-06) — layout change (vertical → horizontal rail)
+5. **Channel Chat** (component-07) — message styling
+6. **DM Chat** (component-12) — similar to channel chat but with own/other bubble styles
+7. **Create Testimony** (component-08) — step wizard restyle
+8. **Charge Tab** (component-05) — greeting + search + directory
+9. **Notifications** (component-10) — NEW component, build from scratch
+10. **Create Server** (component-14) — swap emoji picker for gradient picker
+11. **Profile Wizard** (component-15) — copy updates + restyle
+12. **Global** — SwipeablePageWrapper, tab rename, badge colors
+
+---
+
+## New Components to Create
+- `NotificationsPanel.tsx` — triggered from bell icon, see component-10
+- `SwipeablePageWrapper.tsx` — wraps all sub-pages for ← back + swipe-right gesture
+
+## New Dependencies
+- `framer-motion` or `react-swipeable` — for swipe gesture detection
+-e 
+
+========================================
+FULL IMPLEMENTATION SPEC
+-e ========================================
+
+**⚡ LIGHTNING APP**
+
+UI/UX Redesign Implementation Spec
+
+February 17, 2026 \| Version 1.0
+
+15 Components Reviewed \| 12 MVP \| 3 Phase 2
+
+Prepared for: Jordyn Doanne, CEO & Founder
+
+Table of Contents
+
+1\. Component Status Overview
+
+2\. Design System
+
+3\. Global Behaviors
+
+4\. Component Specifications (1-15)
+
+5\. Phase 2 Features
+
+6\. Icon System
+
+7\. Implementation Notes
+
+1\. Component Status Overview
+
+  -------- ------------------------------- ------------ -----------------------
+  **\#**   **Component**                   **Status**   **Work Type**
+
+  **1**    Greeting                        **MVP ✅**   *Restyle existing*
+
+  **2**    Search Bar + Filter Pills       **MVP ✅**   *Search restyle / Pills
+                                                        Phase 2*
+
+  **3**    Trending Testimonies            **Phase 2    *New component*
+                                           🌐**         
+
+  **4**    Explore by Category             **Phase 2    *New component*
+                                           🌐**         
+
+  **5**    People Discovery (Find Tab)     **MVP ✅**   *Simplified restyle*
+
+  **6**    Home Tab Rail + DMs             **MVP ✅**   *Layout change +
+                                                        restyle*
+
+  **7**    Channel Chat                    **MVP ✅**   *Restyle existing*
+
+  **8**    Create Testimony                **MVP ✅**   *Restyle existing*
+
+  **9**    Profile / You Tab               **MVP ✅**   *Restyle existing*
+
+  **10**   Notifications Panel             **MVP ✅**   *New lightweight
+                                                        component*
+
+  **11**   Settings                        **MVP ✅**   *Restyle existing*
+
+  **12**   DM Chat View                    **MVP ✅**   *Restyle existing*
+
+  **13**   Bottom Navigation Bar           **MVP ✅**   *Restyle + icons +
+                                                        rename*
+
+  **14**   Create Server Dialog            **MVP ✅**   *Restyle + gradient
+                                                        picker*
+
+  **15**   Profile Creation Wizard         **MVP ✅**   *Restyle existing*
+  -------- ------------------------------- ------------ -----------------------
+
+2\. Design System
+
+2.1 Typography
+
+-   **DM Sans 600:** Profile name, page/section titles (Settings,
+    Notifications headers)
+
+-   **General Sans:** Body text, UI labels, buttons, handles, input text
+
+-   **Playfair Display:** Testimony titles, pull quotes, avatar initial
+    letters
+
+2.2 Color System - Night Mode
+
+-   **Background:** #0d0b18 (deep navy)
+
+-   **Card/Glass:** rgba(255,255,255,0.04) bg + rgba(255,255,255,0.06)
+    border
+
+-   **Text Primary:** #e8e5f2
+
+-   **Text Secondary:** #8e89a8
+
+-   **Text Muted:** #5d5877
+
+-   **Accent:** #7b76e0 (purple) / #9b96f5 (light purple)
+
+-   **Notification Badge:** #ef4444 (red)
+
+-   **Success:** #5cc88a
+
+-   **Danger:** #e05c6c
+
+2.3 Color System - Day Mode (Peri V3 Glass Edge)
+
+-   **Background:** linear-gradient(135deg, #cdd8f8, #d6daf5, #dee0f6,
+    #e4e0f5)
+
+-   **Card/Glass:** rgba(255,255,255,0.5) bg + rgba(150,165,225,0.15)
+    border + backdrop-filter:blur(12px)
+
+-   **Text Primary:** #1e2b4a
+
+-   **Text Secondary:** #4a5e88
+
+-   **Text Muted:** #8e9ec0
+
+-   **Accent:** #4facfe (blue) / #2b6cb0 (dark blue)
+
+-   **Notification Badge:** #ef4444 (red, same both modes)
+
+2.4 Glass Card Pattern
+
+All cards, inputs, and interactive surfaces use a consistent glass
+morphism pattern:
+
+-   Night: rgba(255,255,255,0.04) background, rgba(255,255,255,0.06)
+    border, no blur
+
+-   Day: rgba(255,255,255,0.5) background, rgba(150,165,225,0.15)
+    border, backdrop-filter: blur(12px)
+
+-   Border radius: 10-14px for cards, 8-10px for inputs, 18px for pill
+    inputs
+
+-   Box shadow (day only): 0 1px 6px rgba(150,165,225,0.05)
+
+3\. Global Behaviors
+
+3.1 Navigation: Back Arrow + Swipe Right
+
+Every page that is not a root tab gets a left arrow in the top-left
+corner AND supports swipe-right gesture to go back. These are always
+paired.
+
+**Applies to:** Settings, Channel Chat, DM Conversation, Any User
+Profile, Notifications Panel, Create Testimony (each step), Help Center,
+Privacy Policy, Terms of Service, Blocked Users, Contact Support, any
+sub-page pushed onto the navigation stack.
+
+**Does NOT apply to:** Root tabs (Home, Charge, You) --- these are the
+base level. Modals/dialogs (confirm, share, create server) --- these use
+tap-outside or swipe-down to dismiss.
+
+**Implementation:** Create a SwipeablePageWrapper component using
+framer-motion or react-swipeable. Detect right swipe starting from left
+30% of screen, threshold 80px. Wrap all pushable pages once.
+
+3.2 Red Notification Badges (#ef4444)
+
+All unread/active notification indicators use red #ef4444. Applied
+consistently across:
+
+-   Bottom nav badge (count on Home icon)
+
+-   DM list badges (unread count per conversation)
+
+-   Server rail dots (red dot on servers with activity)
+
+-   Notification feed dots (red dot next to unread notifications)
+
+-   Bell icon badge (count in header)
+
+-   Channel list badges (unread count per channel)
+
+3.3 Tab Rename: Find → Charge
+
+The middle tab is renamed from \'Find\' to \'Charge\' throughout the
+entire app. The concept: reading testimonies charges your faith. Bolt
+icon + \'Charge\' label. This rename applies to all references in code,
+navigation, headers, and any user-facing text.
+
+3.4 Colorless Outline SVG Icons
+
+All UI icons across the app are colorless outline SVGs that inherit
+color from their parent element. No colored emojis in the interface.
+Icons change color only via active/inactive state.
+
+**Icon replacements:**
+
+-   Bell (notifications): Classic bell outline SVG
+
+-   Chat (DM button): Double bubble outline SVG
+
+-   Speaker (voice channels): Speaker + waves outline SVG
+
+-   Server icons: Letter initial + gradient circle (default), image
+    upload (optional)
+
+-   Bottom nav Home: House + Tower combined outline SVG
+
+-   Bottom nav Charge: Bolt outline SVG
+
+-   Bottom nav You: Person outline SVG
+
+3.5 Server Icon System
+
+Server icons use letter initial on a gradient circle as the default.
+Users can optionally upload a custom image.
+
+-   Default: First letter of server name in DM Sans 700 on a gradient
+    circle
+
+-   8 gradient options to choose from when creating a server
+
+-   Optional: Upload custom image (replaces letter+gradient)
+
+-   This replaces the current emoji picker in CreateServerDialog
+
+4\. Component Specifications
+
+Component 1: Greeting
+
+**Decision:** MVP ✅ --- Restyle
+
+**File:** Greeting component in Charge tab (formerly Find tab)
+
+-   Time-based greeting: Good morning/afternoon/evening + user first
+    name
+
+-   Playfair Display italic for greeting text
+
+-   Subtitle: \'Charge your faith ⚡\' in General Sans
+
+-   Subtle, elegant --- no heavy gradients on text
+
+Component 2: Search Bar + Filter Pills
+
+**Decision:** Search MVP ✅ / Pills Phase 2 🌐
+
+**File:** Search component in Charge tab
+
+-   Search bar: Glass pill shape, magnifying glass icon, \'Search
+    testimonies\...\' placeholder
+
+-   Filter pills (Phase 2): Category filtering chips below search bar
+
+-   Real-time search with debouncing (already built)
+
+Component 3: Trending Testimonies
+
+**Decision:** Phase 2 🌐
+
+Horizontal scroll carousel of trending testimonies. Requires backend
+analytics to determine trending content. Deferred to Phase 2.
+
+Component 4: Explore by Category
+
+**Decision:** Phase 2 🌐
+
+Emoji grid for browsing testimonies by category (salvation, healing,
+provision, etc.). Deferred to Phase 2.
+
+Component 5: People Discovery (Charge Tab)
+
+**Decision:** MVP ✅ --- Simplified
+
+**File:** NearbyTab.tsx → simplified Charge tab content
+
+-   Removed: Friends sub-tab (friends accessible via Home tab DMs)
+
+-   Removed: People sub-tab (complex, unnecessary for MVP)
+
+-   Moved: Friend requests → Notifications panel (Component 10)
+
+-   Result: Charge tab = greeting + search + testimony directory (clean,
+    focused)
+
+Component 6: Home Tab Rail + DMs
+
+**Decision:** MVP ✅ --- Layout change + restyle
+
+**File:** ChatTab.tsx
+
+-   Server rail: Vertical sidebar → horizontal scroll at top of Home tab
+
+-   Rail order: DM button (double bubble icon) → server icons → + create
+    button
+
+-   Server icons: Letter + gradient circles (not emojis)
+
+-   DM list below rail: Glass cards with avatar, name, last message,
+    timestamp
+
+-   Unread DMs: Red badge with count
+
+-   Two states: DM list active (default) vs Server channels active (tap
+    a server)
+
+Component 7: Channel Chat
+
+**Decision:** MVP ✅ --- Restyle
+
+**File:** ServerView.tsx
+
+-   Channel names: Dash prefix (---) not hashtag
+
+-   Role badges: Admin/Mod/Member pills next to username
+
+-   Messages: Glass bubbles with avatar, reactions, reply-to
+
+-   Input: Frosted glass pill with + button and send arrow
+
+-   Back arrow + swipe right to return to Home tab
+
+Component 8: Create Testimony
+
+**Decision:** MVP ✅ --- Restyle
+
+**File:** TestimonyWizard.tsx
+
+-   4-step flow: Category → Questions → AI Draft → Review
+
+-   Progress dots: Pill shape for current step
+
+-   Category cards: Glass style with emoji + label
+
+-   AI draft: Frosted card with generated testimony text
+
+-   Review: Final preview with edit capability
+
+Component 9: Profile / You Tab
+
+**Decision:** MVP ✅ --- Restyle
+
+**Files:** ProfileCard.tsx + ProfileTab.tsx
+
+-   Avatar: 48px → 100px with gradient glow ring
+
+-   Profile name font: DM Sans 600 weight (not Playfair Display)
+
+-   Header: \'⚡ LIGHTNING PROFILE\'
+
+-   View counter: \'⦿ 342 views\' at 7px, positioned below Share
+    Testimony button
+
+-   View counter opacity: Night 0.65, Day 0.45
+
+-   Salvation Testimony: Primary card, gradient left accent bar (3px),
+    full size
+
+-   Life Testimonies: Secondary cards, 85% opacity, smaller title
+    (9.5px), smaller quote (7.5px)
+
+-   Section labels: \'Salvation Testimony\' (singular) vs \'Life
+    Testimonies\' (plural)
+
+-   Preserved: Avatar, bio, favorite verse, Spotify player, church info,
+    faith interests, analytics
+
+Component 10: Notifications Panel
+
+**Decision:** MVP ✅ --- New lightweight component
+
+**File:** NEW NotificationsPanel.tsx
+
+-   Triggered from bell icon in header
+
+-   Bell icon badge count = pending friend requests + unread
+    notifications
+
+-   Title: \'Notifications\' in DM Sans
+
+-   Filter pills: All / Testimonies / Friends / Church
+
+-   Friend request cards at top with Accept (accent color) / Decline
+    (muted, subtle)
+
+-   Night Accept: rgba(123,118,224,0.2) bg, #9b96f5 text
+
+-   Night Decline: transparent bg, #5d5877 text, 6.5px font
+
+-   Day Accept: rgba(79,172,254,0.15) bg, #2b6cb0 text
+
+-   Day Decline: transparent bg, #8e9ec0 text
+
+-   No red or green colors on accept/decline --- uses app accent colors
+    only
+
+-   Whole card tappable to view profile (except buttons)
+
+-   Notification feed grouped by Today / Earlier
+
+-   Red dot for unread notifications
+
+-   Types: Testimony liked, commented, shared, church announcement,
+    milestone, friend request
+
+-   Backend note: May need notifications table in Supabase if not
+    present
+
+-   Reuses: getPendingFriendRequests(), acceptFriendRequest(),
+    declineFriendRequest()
+
+Component 11: Settings
+
+**Decision:** MVP ✅ --- Restyle
+
+**File:** SettingsMenu.tsx
+
+-   Back arrow (←) top left + swipe right to dismiss
+
+-   Profile summary card at top: Avatar + name + handle
+
+-   Grouped cards: Account, Lightning Pro, Privacy & Safety,
+    Notifications, Appearance, About & Support
+
+-   Toggle switches: Accent color when on (purple night / blue day)
+
+-   Pro badge: Accent tinted pill
+
+-   Sign out: Subtle card with red text only
+
+-   Version footer: \'Lightning v1.0.0 · Built with ❤️ and faith\'
+
+-   All existing logic preserved: Edit Profile, Profile Picture, Profile
+    Song, Night Mode, all toggles
+
+Component 12: DM Chat View
+
+**Decision:** MVP ✅ --- Restyle
+
+**File:** MessagesTab.tsx (1,911 lines)
+
+-   Own messages: Accent-tinted bubbles, right-aligned, rounded with
+    tail
+
+-   Other\'s messages: Glass bubbles, left-aligned
+
+-   No role badges (1-on-1 DM, not server)
+
+-   Header: Other person\'s gradient avatar + online dot + name
+
+-   Features preserved: Reactions, emoji picker, reply-to, image
+    attachments, long-press, typing
+
+-   Input: Frosted pill shape with + and send button
+
+-   Back arrow + swipe right to DM list
+
+Component 13: Bottom Navigation Bar
+
+**Decision:** MVP ✅ --- Restyle + icon swap + rename
+
+**File:** AppLayout.tsx NavButton component
+
+-   3 tabs: Home · Charge · You
+
+-   Home icon: House + Tower combined outline SVG (small house + tall
+    building)
+
+-   Charge icon: Bolt outline SVG
+
+-   You icon: Person outline SVG
+
+-   All icons colorless, inherit color from active/inactive state
+
+-   Night active: rgba(123,118,224,0.12) bg + rgba(123,118,224,0.18)
+    border, white text
+
+-   Night inactive: #5d5877
+
+-   Day active: rgba(79,172,254,0.1) bg + rgba(79,172,254,0.15) border,
+    dark text
+
+-   Day inactive: #8e9ec0
+
+-   Badge: Red #ef4444 with border matching nav background
+
+-   Nav bar: Frosted glass background with backdrop-filter
+
+Component 14: Create Server Dialog
+
+**Decision:** MVP ✅ --- Restyle + gradient picker
+
+**File:** CreateServerDialog.tsx
+
+-   Emoji picker → gradient color picker (8 gradient circle options)
+
+-   Live preview: Letter initial on chosen gradient updates as user
+    types
+
+-   \'Upload custom image instead\' link below gradients (optional)
+
+-   Close: X button (modal, correct for dialogs)
+
+-   Tap outside to dismiss (already built)
+
+-   Preserved: validateGroup(), sanitizeInput(), onCreate(), loading
+    state
+
+Component 15: Profile Creation Wizard
+
+**Decision:** MVP ✅ --- Restyle + copy updates
+
+**File:** ProfileCreationWizard.tsx
+
+-   3 steps: Welcome → Community → Boom
+
+**Step 1 --- Welcome:**
+
+-   Icon: Bolt outline SVG
+
+-   Title: Welcome to Lightning
+
+-   Subtitle: Let's create your profile
+
+-   Fields: Full Name (required), Location (required) with Use my
+    location button, Referral Code (optional)
+
+-   Button: Next
+
+**Step 2 --- Community:**
+
+-   Icon: Church outline SVG
+
+-   Title: Find your Community
+
+-   Subtitle: Connect with others
+
+-   Option 1: Join a Server --- Enter invite code from your community
+
+-   Option 2: Start a Server --- Start your community on Lightning
+
+-   Back button: Previous (ghost style)
+
+-   Skip: Skip for now (subtle text link)
+
+**Step 3 --- Boom:**
+
+-   Icon: Bolt outline SVG
+
+-   Title: Boom
+
+-   Subtitle: His lightning lights up the world; the earth sees and
+    trembles. - Psalm 97:4 (Playfair Display italic)
+
+-   Review card: Letter+gradient avatar, name, location, church
+
+-   Helper text: After creating your profile, you'll be guided to share
+    your testimony.
+
+-   Back button: Previous
+
+-   Final button: Enter Lightning ⚡
+
+**Preserved:** All validation, geolocation hook, church invite/create,
+referral code, form state
+
+5\. Phase 2 Features
+
+These components were reviewed and intentionally deferred to
+post-launch:
+
+-   **Trending Testimonies (Component 3):** Horizontal carousel
+    requiring backend analytics for trending/engagement scoring. Build
+    after launch data exists.
+
+-   **Explore by Category (Component 4):** Emoji grid for browsing by
+    category. Requires curated category taxonomy and enough content to
+    fill each category.
+
+-   **Filter Pills (Component 2 partial):** Category filtering chips
+    below search. Can add once categories are defined in Phase 2.
+
+6\. Icon System Reference
+
+Complete list of SVG icons used in the redesign. All are outline-only,
+stroke: currentColor, no fill, stroke-width: 1.8 (2.2 when active).
+
+-   **Home (House+Tower):** Small house left + tall building right with
+    window dots
+
+-   **Charge (Bolt):** Lightning bolt path, no fill
+
+-   **You (Person):** Head circle + shoulders path
+
+-   **Bell:** Classic bell shape + bottom arc
+
+-   **Chat (Double Bubble):** Two overlapping speech bubbles
+
+-   **Speaker:** Speaker cone + two sound wave arcs
+
+-   **Back Arrow:** ← character, 14px, positioned top-left
+
+-   **Close:** ✕ character in 24px circle, used only in modals
+
+-   **Map Pin:** Drop pin with inner circle (location input)
+
+-   **Search:** Circle + diagonal line (magnifying glass)
+
+7\. Implementation Notes
+
+7.1 Files to Create
+
+-   NotificationsPanel.tsx --- new component (Component 10)
+
+-   SwipeablePageWrapper.tsx --- new component (global swipe-right
+    gesture)
+
+7.2 Files to Modify (Restyle)
+
+-   AppLayout.tsx --- Nav icons, tab rename, badge color
+
+-   ChatTab.tsx --- Home tab rail layout (vertical → horizontal), DM
+    list glass style
+
+-   ServerView.tsx --- Channel chat glass style, role badges, dash
+    prefix
+
+-   MessagesTab.tsx --- DM chat bubble styles, own/other differentiation
+
+-   ProfileCard.tsx + ProfileTab.tsx --- Avatar size, DM Sans name,
+    testimony hierarchy
+
+-   SettingsMenu.tsx --- Glass cards, grouped sections, toggle colors
+
+-   TestimonyWizard.tsx --- Glass cards, progress dots
+
+-   CreateServerDialog.tsx --- Gradient picker replacing emoji picker
+
+-   ProfileCreationWizard.tsx --- Glass inputs, progress dots, review
+    card
+
+-   NearbyTab.tsx --- Simplified to Charge tab (greeting + search +
+    directory)
+
+7.3 Files Unchanged
+
+-   All Supabase database functions
+
+-   All authentication (Clerk) logic
+
+-   All hooks (useMessages, useGeolocation, etc.)
+
+-   All validation (inputValidation.ts)
+
+-   All utility functions
+
+-   NotificationSettings.tsx (already built)
+
+-   HelpCenter.tsx, ContactSupport.tsx, PrivacyPolicy.tsx
+
+7.4 Key Dependencies
+
+-   framer-motion or react-swipeable --- for SwipeablePageWrapper
+    gesture handling
+
+-   No other new dependencies required
+
+*⚡ Lightning --- Charge Your Faith*

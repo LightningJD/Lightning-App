@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 8: Create Testimony (Updated Questions)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 12px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.exists-tag{background:rgba(92,200,138,0.15);color:#5cc88a}
+.three-up{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;align-items:flex-start;margin-top:12px}
+.comp-box{flex:1;max-width:280px;min-width:240px}
+.comp-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#5d5877;margin-bottom:8px;font-weight:600;text-align:center}
+.note{margin-top:14px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);font-size:11px;color:#8e89a8;line-height:1.7}
+.note b{color:#e8e5f2}
+.note h4{font-family:'Playfair Display',serif;font-size:13px;margin-bottom:5px;color:#b8b4f5}
+.note .code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+.note .keep{color:#5cc88a;font-weight:600}
+.note .change{color:#e8b84a;font-weight:600}
+.phone-box{flex-shrink:0}
+.phone{width:240px;height:540px;border-radius:32px;position:relative;overflow:hidden}
+.phone.dark{background:#0d0b18;border:3px solid rgba(255,255,255,0.12);box-shadow:0 18px 50px rgba(0,0,0,0.5)}
+.phone.light{background:linear-gradient(135deg,#cdd8f8 0%,#d6daf5 40%,#dee0f6 70%,#e4e0f5 100%);border:3px solid rgba(255,255,255,0.5);box-shadow:0 18px 50px rgba(0,0,0,0.12)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:85px;height:21px;border-radius:0 0 11px 11px;z-index:10}
+.phone.dark::before{background:#08060f}
+.phone.light::before{background:#c4cee8}
+.phone.light .blob1{position:absolute;top:-10%;left:15%;width:190px;height:190px;background:radial-gradient(circle,rgba(150,170,245,0.16) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0}
+.phone.light .blob2{position:absolute;bottom:-8%;right:10%;width:170px;height:170px;background:radial-gradient(circle,rgba(170,160,240,0.1) 0%,transparent 60%);border-radius:50%;pointer-events:none;z-index:0}
+.phone-screen{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding-top:24px;position:relative;z-index:1}
+.phone-screen::-webkit-scrollbar{display:none}
+/* Shared */
+.hero{text-align:center;padding:14px 12px 6px}
+.hero-icon{font-size:24px;margin-bottom:3px}
+.hero-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:600;margin-bottom:2px}
+.hero-sub{font-size:7.5px;line-height:1.4;max-width:200px;margin:0 auto}
+.progress{display:flex;gap:3px;padding:0 10px;margin:8px 0 4px}
+.progress-dot{flex:1;height:3px;border-radius:2px}
+.q-label{font-size:7px;text-transform:uppercase;letter-spacing:1px;font-weight:500;margin:4px 10px 2px}
+.q-text{font-size:9px;font-weight:600;line-height:1.4;padding:0 10px;margin-bottom:2px}
+.q-hint{font-size:7px;font-style:italic;padding:0 10px;margin-bottom:6px;opacity:0.5;line-height:1.3}
+.textarea{margin:0 10px;border-radius:10px;padding:8px;font-size:8px;font-family:'General Sans',sans-serif;line-height:1.5;min-height:120px;border:none;resize:none;display:block;width:calc(100% - 20px)}
+.char-count{font-size:6.5px;text-align:right;padding:2px 12px 0;opacity:0.4}
+.nav-btns{display:flex;gap:6px;margin:8px 10px 0;padding-bottom:4px}
+.nav-btn{flex:1;padding:7px;border-radius:8px;border:none;font-size:8px;font-weight:600;font-family:'General Sans',sans-serif;cursor:pointer;text-align:center}
+.gen-btn{margin:8px 10px 0;padding:9px;border-radius:10px;border:none;font-size:9px;font-weight:600;font-family:'General Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;width:calc(100% - 20px)}
+.preview{margin:8px 10px 20px;padding:10px;border-radius:10px;border-left-width:2px;border-left-style:solid}
+.preview-label{font-size:6.5px;text-transform:uppercase;letter-spacing:1px;font-weight:500;margin-bottom:4px}
+.preview-text{font-family:'Playfair Display',serif;font-size:9.5px;font-style:italic;line-height:1.5}
+/* NIGHT */
+.dk .hero-title{color:#e8e5f2}.dk .hero-sub{color:#8e89a8}
+.dk .progress-dot{background:rgba(255,255,255,0.06)}.dk .progress-dot.done{background:#7b76e0}.dk .progress-dot.current{background:rgba(123,118,224,0.4)}
+.dk .q-label{color:#7b76e0}.dk .q-text{color:#e8e5f2}.dk .q-hint{color:#5d5877}
+.dk .textarea{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#e8e5f2}
+.dk .textarea::placeholder{color:#5d5877}
+.dk .char-count{color:#5d5877}
+.dk .nav-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .nav-btn.primary{background:rgba(123,118,224,0.15);border-color:rgba(123,118,224,0.2);color:#7b76e0}
+.dk .gen-btn{background:linear-gradient(135deg,#7b76e0,#9b96f5);color:white}
+.dk .preview{background:rgba(123,118,224,0.05);border-left-color:#7b76e0;border:1px solid rgba(123,118,224,0.1);border-left:2px solid #7b76e0}
+.dk .preview-label{color:#7b76e0}.dk .preview-text{color:#b8b4c8}
+/* DAY */
+.lt .hero-title{color:#1e2b4a}.lt .hero-sub{color:#4a5e88}
+.lt .progress-dot{background:rgba(150,165,225,0.15)}.lt .progress-dot.done{background:#4facfe}.lt .progress-dot.current{background:rgba(79,172,254,0.35)}
+.lt .q-label{color:#4facfe}.lt .q-text{color:#1e2b4a}.lt .q-hint{color:#8e9ec0}
+.lt .textarea{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);color:#1e2b4a;backdrop-filter:blur(12px)}
+.lt .textarea::placeholder{color:#8e9ec0}
+.lt .char-count{color:#8e9ec0}
+.lt .nav-btn{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);color:#4a5e88;backdrop-filter:blur(8px)}
+.lt .nav-btn.primary{background:rgba(79,172,254,0.12);border-color:rgba(79,172,254,0.2);color:#2b6cb0}
+.lt .gen-btn{background:linear-gradient(135deg,#4facfe,#6bc5f8);color:white;box-shadow:0 4px 14px rgba(79,172,254,0.2)}
+.lt .preview{background:rgba(79,172,254,0.05);border-left-color:#4facfe;border:1px solid rgba(79,172,254,0.1);border-left:2px solid #4facfe;backdrop-filter:blur(8px)}
+.lt .preview-label{color:#4facfe}.lt .preview-text{color:#3a4d6e}
+.phase-box{max-width:860px;margin:20px auto 0;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.phase-header{padding:12px 16px;display:flex;align-items:center;gap:10px;background:rgba(92,200,138,0.08);border-bottom:1px solid rgba(92,200,138,0.1)}
+.phase-badge{padding:4px 10px;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(92,200,138,0.15);color:#5cc88a}
+.phase-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500}
+.phase-body{padding:14px 16px;background:rgba(255,255,255,0.015);font-size:11px;color:#8e89a8;line-height:1.8}
+.phase-body b{color:#e8e5f2}
+.phase-body code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+@media(max-width:900px){.three-up{flex-direction:column;align-items:center}.comp-box{max-width:100%}}
+</style></head><body>
+<div class="counter">Component 8 of 15</div>
+<h1>Create Testimony Flow</h1>
+<div class="subtitle"><span class="tag exists-tag">✅ EXISTS — Updated questions + larger textarea</span></div>
+<div class="tab-info">📍 4-step wizard &nbsp;|&nbsp; Questions updated &nbsp;|&nbsp; Validation/AI gen/save/share all stay</div>
+<div class="three-up">
+  <div class="comp-box">
+    <div class="comp-label">Updated questions</div>
+    <div class="note" style="margin-top:0">
+      <h4>New Q1</h4>
+      How was your life like before you were saved? <span style="font-size:9px;opacity:0.5">(What were you going through? Were you raised in a Christian home? What was your background like?)</span><br><br>
+      <h4>New Q2</h4>
+      What led you to salvation or your own personal relationship with God? <span style="font-size:9px;opacity:0.5">(Was there a person, event, realization, or a series of circumstances that started it?)</span><br><br>
+      <h4>New Q3</h4>
+      Was there a specific moment that was the turning point in your relationship with God? Or did you have a specific experience with God in some way? <span style="font-size:9px;opacity:0.5">(Describe in detail this moment or experience for others)</span><br><br>
+      <h4>New Q4</h4>
+      Where are you now in your walk with God? <span style="font-size:9px;opacity:0.5">(What is your current relationship with Him like? Are you being called to something today? How is your life now?)</span><br><br>
+      <h4>What stays untouched</h4>
+      <span class="keep">✅</span> <span class="code">minLength</span> validation per Q<br>
+      <span class="keep">✅</span> <span class="code">suggestedLength</span> targets<br>
+      <span class="keep">✅</span> <span class="code">MIN_TOTAL_WORDS</span> (80)<br>
+      <span class="keep">✅</span> <span class="code">getWordCount()</span><br>
+      <span class="keep">✅</span> <span class="code">validateAnswers()</span><br>
+      <span class="keep">✅</span> <span class="code">generateTestimony()</span> Claude API<br>
+      <span class="keep">✅</span> Step nav, save modal, share modal<br>
+      <span class="keep">✅</span> Visibility settings
+    </div>
+  </div>
+  <!-- NIGHT -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">🌙 Night Mode</div>
+    <div class="phone dark">
+      <div class="phone-screen dk">
+        <div class="hero"><div class="hero-icon">⚡</div><div class="hero-title">Share Your Testimony</div><div class="hero-sub">AI will help you craft your story. Just answer 4 simple questions.</div></div>
+        <div class="progress"><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div><div class="progress-dot"></div></div>
+        <div class="q-label">Question 2 of 4</div>
+        <div class="q-text">What led you to salvation or your own personal relationship with God?</div>
+        <div class="q-hint">Was there a person, event, realization, or a series of circumstances that started it?</div>
+        <textarea class="textarea" placeholder="Share what led you to God — a person, event, moment of realization..." readonly></textarea>
+        <div class="char-count">0 / 70 min characters</div>
+        <div class="nav-btns"><button class="nav-btn">← Back</button><button class="nav-btn primary">Next →</button></div>
+        <button class="gen-btn" style="margin-top:10px">⚡ Generate with AI</button>
+        <div class="preview">
+          <div class="preview-label">AI Preview</div>
+          <div class="preview-text">"Your testimony will appear here after AI helps you craft it. Raw and real — just polished enough to share."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- DAY -->
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">☀️ Day Mode (Peri V3)</div>
+    <div class="phone light">
+      <div class="blob1"></div><div class="blob2"></div>
+      <div class="phone-screen lt">
+        <div class="hero"><div class="hero-icon">⚡</div><div class="hero-title">Share Your Testimony</div><div class="hero-sub">AI will help you craft your story. Just answer 4 simple questions.</div></div>
+        <div class="progress"><div class="progress-dot done"></div><div class="progress-dot current"></div><div class="progress-dot"></div><div class="progress-dot"></div></div>
+        <div class="q-label">Question 2 of 4</div>
+        <div class="q-text">What led you to salvation or your own personal relationship with God?</div>
+        <div class="q-hint">Was there a person, event, realization, or a series of circumstances that started it?</div>
+        <textarea class="textarea" placeholder="Share what led you to God — a person, event, moment of realization..." readonly></textarea>
+        <div class="char-count">0 / 70 min characters</div>
+        <div class="nav-btns"><button class="nav-btn">← Back</button><button class="nav-btn primary">Next →</button></div>
+        <button class="gen-btn" style="margin-top:10px">⚡ Generate with AI</button>
+        <div class="preview">
+          <div class="preview-label">AI Preview</div>
+          <div class="preview-text">"Your testimony will appear here after AI helps you craft it. Raw and real — just polished enough to share."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="phase-box">
+  <div class="phase-header"><div class="phase-badge">MVP ✅</div><div class="phase-title">Restyle + swap questions (config change only)</div></div>
+  <div class="phase-body">
+    <b>Questions:</b> Just swap the strings in <code>src/config/testimonyQuestions.ts</code>. The <code>question</code>, <code>placeholder</code>, and <code>hint</code> fields change. Everything else (<code>id</code>, <code>minLength</code>, <code>suggestedLength</code>, validation logic, word count, AI generation) stays untouched.<br><br>
+    <b>Textarea:</b> Increased from ~50px to ~120px min-height. Users are writing paragraphs, not one-liners.<br><br>
+    <b>New layout:</b> Shows one question at a time (current step) with the full question text + hint above the textarea, progress dots at top, Back/Next nav below, then Generate + Preview at bottom after all 4 are answered.<br><br>
+    <b>Character count:</b> Live counter below textarea showing current vs minimum (already built via <code>minLength</code> validation).
+  </div>
+</div>
+</body></html>

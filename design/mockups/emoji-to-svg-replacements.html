@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Emoji → SVG Icon Replacement Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 12px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:20px;text-align:center;margin-bottom:4px}
+.sub{text-align:center;font-size:10px;color:#8e89a8;margin-bottom:20px}
+.grid{display:flex;flex-direction:column;gap:16px;align-items:center}
+.icon-row{width:380px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);padding:12px 14px;overflow:hidden}
+.icon-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.icon-current{font-size:22px}
+.icon-name{font-size:9px;font-weight:600;color:#e8e5f2}
+.icon-where{font-size:7px;color:#5d5877}
+.arrow{color:#7b76e0;font-size:10px;margin:0 4px}
+.options{display:flex;gap:10px}
+.opt{flex:1;text-align:center;border-radius:10px;padding:10px 6px 8px;cursor:pointer;border:1px solid rgba(255,255,255,0.04);transition:all .2s}
+.opt:hover{border-color:rgba(123,118,224,0.2);background:rgba(123,118,224,0.05)}
+.opt-icon{margin:0 auto 6px;display:flex;align-items:center;justify-content:center}
+.opt-icon svg{stroke:#e8e5f2;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.opt-label{font-size:7px;font-weight:600;color:#9b96f5;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px}
+.opt-desc{font-size:6px;color:#5d5877;line-height:1.4}
+/* Small/large icon previews */
+.size-row{display:flex;align-items:center;gap:10px;margin-top:6px;justify-content:center}
+.size-preview{display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04)}
+.size-preview svg{stroke:#e8e5f2;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.size-label{font-size:5px;color:#5d5877;text-align:center;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px}
+</style></head><body>
+<h1>Emoji → Outline SVG Replacements</h1>
+<div class="sub">Pick one variation per icon — all colorless, all consistent</div>
+
+<div class="grid">
+
+  <!-- 1. BELL 🔔 -->
+  <div class="icon-row">
+    <div class="icon-header">
+      <div class="icon-current">🔔</div>
+      <div><div class="icon-name">Bell — Notifications</div><div class="icon-where">Header bar, notification trigger</div></div>
+    </div>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+        <div class="opt-label">A. Classic</div>
+        <div class="opt-desc">Standard bell shape. Clean, universal.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><line x1="12" y1="2" x2="12" y2="4"/></svg></div>
+        <div class="opt-label">B. Bell + Pin</div>
+        <div class="opt-desc">Bell with top pin/clapper. Slightly more detailed.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/><circle cx="18" cy="5" r="3" stroke-width="0" fill="currentColor" opacity="0.3"/></svg></div>
+        <div class="opt-label">C. Bell + Dot</div>
+        <div class="opt-desc">Bell with subtle alert dot built in. Implies "notifications here."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. CHURCH ⛪ -->
+  <div class="icon-row">
+    <div class="icon-header">
+      <div class="icon-current">⛪</div>
+      <div><div class="icon-name">Church — Server Icons</div><div class="icon-where">Server rail, church servers</div></div>
+    </div>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M10 4h4"/><path d="M6 12l6-6 6 6"/><path d="M4 22V12h16v10"/><path d="M10 22v-5h4v5"/></svg></div>
+        <div class="opt-label">A. Steeple + Cross</div>
+        <div class="opt-desc">Church with cross on top. Clear faith symbol.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M3 22V10l9-7 9 7v12"/><path d="M10 22v-6h4v6"/><path d="M12 2v3"/><path d="M10.5 3.5h3"/></svg></div>
+        <div class="opt-label">B. Chapel</div>
+        <div class="opt-desc">Simpler A-frame chapel. Small cross. Minimal.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="14" rx="1"/><path d="M8 12l4-4 4 4"/><path d="M10 22v-4h4v4"/><path d="M12 3v3"/><path d="M10.5 4.5h3"/><circle cx="12" cy="14" r="2"/></svg></div>
+        <div class="opt-label">C. Cathedral</div>
+        <div class="opt-desc">Building with arch window + cross. More detailed, grander.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. PRAYER 🙏 -->
+  <div class="icon-row">
+    <div class="icon-header">
+      <div class="icon-current">🙏</div>
+      <div><div class="icon-name">Prayer — Server Icons</div><div class="icon-where">Server rail, prayer group servers</div></div>
+    </div>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 4c0 0-4 3-4 7v5l4 4 4-4v-5c0-4-4-7-4-7z"/><path d="M8 16h8"/><line x1="12" y1="4" x2="12" y2="20"/></svg></div>
+        <div class="opt-label">A. Praying Hands</div>
+        <div class="opt-desc">Two hands pressed together. Classic prayer symbol.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div class="opt-label">B. Shield</div>
+        <div class="opt-desc">Shield shape — "spiritual armor," protection through prayer.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <div class="opt-label">C. Heart/Circle</div>
+        <div class="opt-desc">Devotional time concept. Simple, warm.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. BIBLE 📖 -->
+  <div class="icon-row">
+    <div class="icon-header">
+      <div class="icon-current">📖</div>
+      <div><div class="icon-name">Bible / Book — Server Icons</div><div class="icon-where">Server rail, study group servers</div></div>
+    </div>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+        <div class="opt-label">A. Closed Book</div>
+        <div class="opt-desc">Single book, spine visible. Clean and simple.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg></div>
+        <div class="opt-label">B. Open Book</div>
+        <div class="opt-desc">Book spread open. "The Word is open to you."</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/><path d="M12 7v1"/><path d="M12 12v1"/><path d="M11 9.5h2"/></svg></div>
+        <div class="opt-label">C. Open Book + Cross</div>
+        <div class="opt-desc">Open book with small cross. Distinctly Bible, not just any book.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. CHAT 💬 -->
+  <div class="icon-row">
+    <div class="icon-header">
+      <div class="icon-current">💬</div>
+      <div><div class="icon-name">Chat — DM Button</div><div class="icon-where">Server rail, first item (DM access)</div></div>
+    </div>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+        <div class="opt-label">A. Single Bubble</div>
+        <div class="opt-desc">One chat bubble. Clean, minimal, universally understood.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9 9.75 9.75 0 01-4.24-.93L3 22l1.93-4.76A9 9 0 0112 3a9 9 0 019 9z"/></svg></div>
+        <div class="opt-label">B. Round Bubble</div>
+        <div class="opt-desc">Circular chat bubble. Softer, more modern feel.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2l-3 3v-3H8a2 2 0 01-2-2v-1"/><path d="M14 4H5a2 2 0 00-2 2v6a2 2 0 002 2h1v3l3-3h5a2 2 0 002-2V6a2 2 0 00-2-2z"/></svg></div>
+        <div class="opt-label">C. Double Bubble</div>
+        <div class="opt-desc">Two overlapping bubbles. Implies conversation / messaging.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. SPEAKER 🔊 -->
+  <div class="icon-row">
+    <div class="icon-header">
+      <div class="icon-current">🔊</div>
+      <div><div class="icon-name">Speaker / Voice — Channel List</div><div class="icon-where">Server channel list, voice channels</div></div>
+    </div>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/></svg></div>
+        <div class="opt-label">A. Speaker + Waves</div>
+        <div class="opt-desc">Classic volume icon with sound waves. Universally "audio."</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></div>
+        <div class="opt-label">B. Microphone</div>
+        <div class="opt-desc">Mic icon — "you speak here." More interactive feel.</div>
+      </div>
+      <div class="opt">
+        <div class="opt-icon"><svg width="28" height="28" viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="21"/><path d="M16.5 7.5a5 5 0 010 5"/></svg></div>
+        <div class="opt-label">C. Mic + Wave</div>
+        <div class="opt-desc">Microphone with sound wave. "Voice channel — live audio."</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body></html>

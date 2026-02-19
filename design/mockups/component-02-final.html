@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 2: Search Bar + Filter Pills</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 16px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.partial{background:rgba(123,118,224,0.15);color:#9b96f5}
+.three-up{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;align-items:flex-start;margin-top:12px}
+.comp-box{flex:1;max-width:320px;min-width:260px}
+.comp-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#5d5877;margin-bottom:8px;font-weight:600;text-align:center}
+.comp-card{border-radius:16px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);padding:18px 14px}
+.note{margin-top:14px;padding:14px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);font-size:11px;color:#8e89a8;line-height:1.7}
+.note b{color:#e8e5f2}
+.note h4{font-family:'Playfair Display',serif;font-size:13px;margin-bottom:5px;color:#b8b4f5}
+.search-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.07);margin-bottom:12px}
+.search-bar span{color:#5d5877;font-size:14px}
+.search-bar input{flex:1;background:none;border:none;color:#e8e5f2;font-size:13px;font-family:'General Sans',sans-serif;outline:none}
+.search-bar input::placeholder{color:#5d5877}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid rgba(255,255,255,0.08);color:#8e89a8;background:rgba(255,255,255,0.03)}
+.pill.active{background:rgba(123,118,224,0.1);color:#7b76e0;border-color:rgba(123,118,224,0.2)}
+.phone-box{flex-shrink:0}
+.phone{width:260px;height:560px;border-radius:34px;position:relative;overflow:hidden}
+.phone.dark{background:#0d0b18;border:3px solid rgba(255,255,255,0.12);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+/* Peri V3 Glass Edge — gradient bg, NOT solid */
+.phone.light{background:linear-gradient(135deg,#cdd8f8 0%,#d6daf5 40%,#dee0f6 70%,#e4e0f5 100%);border:3px solid rgba(255,255,255,0.5);box-shadow:0 20px 60px rgba(0,0,0,0.12);position:relative}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:22px;border-radius:0 0 12px 12px;z-index:10}
+.phone.dark::before{background:#08060f}
+.phone.light::before{background:#c4cee8}
+/* Ambient blobs for light mode */
+.phone.light .blob1{position:absolute;top:-10%;left:15%;width:200px;height:200px;background:radial-gradient(circle,rgba(150,170,245,0.16) 0%,transparent 65%);border-radius:50%;pointer-events:none;z-index:0}
+.phone.light .blob2{position:absolute;bottom:-8%;right:10%;width:180px;height:180px;background:radial-gradient(circle,rgba(170,160,240,0.1) 0%,transparent 60%);border-radius:50%;pointer-events:none;z-index:0}
+.phone-screen{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding-top:26px;position:relative;z-index:1}
+.phone-screen::-webkit-scrollbar{display:none}
+/* NIGHT */
+.dk .ph{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(13,11,24,0.75);border-bottom:1px solid rgba(255,255,255,0.04);position:sticky;top:0;z-index:5}
+.dk .ph-logo{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;font-family:'Playfair Display',serif;color:#e8e5f2}
+.dk .ph-icons{display:flex;gap:4px}
+.dk .ph-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .ct{padding:10px 10px 80px;font-family:'General Sans',sans-serif}
+.dk .greet{font-family:'Playfair Display',serif;font-size:14px;font-weight:500;color:#e8e5f2;margin-bottom:2px}
+.dk .greet-sub{font-size:9px;color:#8e89a8;margin-bottom:10px}
+.dk .hl{border:1.5px dashed rgba(123,118,224,0.4);border-radius:10px;padding:8px;margin-bottom:10px;position:relative}
+.dk .hl-tag{position:absolute;top:-7px;left:8px;background:#0d0b18;padding:0 5px;font-size:6.5px;text-transform:uppercase;letter-spacing:1px;color:#7b76e0;font-weight:600}
+.dk .sb{display:flex;align-items:center;gap:5px;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);margin-bottom:6px}
+.dk .sb span{color:#5d5877;font-size:10px}.dk .sb-t{font-size:9px;color:#5d5877}
+.dk .pls{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none}.dk .pls::-webkit-scrollbar{display:none}
+.dk .pl{padding:3px 8px;border-radius:12px;font-size:7.5px;font-weight:500;border:1px solid rgba(255,255,255,0.08);color:#8e89a8;background:rgba(255,255,255,0.03);flex-shrink:0;white-space:nowrap}
+.dk .pl.a{background:rgba(123,118,224,0.1);color:#7b76e0;border-color:rgba(123,118,224,0.2)}
+.dk .sec{font-size:6.5px;text-transform:uppercase;letter-spacing:1.2px;color:#5d5877;font-weight:500;margin:8px 0 5px}
+.dk .trd{border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:3px 0;margin-bottom:8px}
+.dk .tr{display:flex;align-items:center;gap:6px;padding:5px 8px}
+.dk .tr-n{font-size:11px;font-family:'Playfair Display',serif;color:#7b76e0;width:16px}
+.dk .tr-nm{font-size:9px;font-weight:500;color:#e8e5f2}.dk .tr-ct{font-size:7px;color:#5d5877}
+.dk .grd{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
+.dk .gc{border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:10px 8px;text-align:center}
+.dk .gc-e{font-size:18px;margin-bottom:3px}.dk .gc-l{font-size:8px;font-weight:500;color:#e8e5f2}.dk .gc-c{font-size:6.5px;color:#5d5877}
+.dk .ppl{border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);padding:3px 0}
+.dk .pp{display:flex;align-items:center;gap:7px;padding:6px 8px}
+.dk .pp-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'Playfair Display',serif;color:white;flex-shrink:0}
+.dk .pp-nm{font-size:9px;font-weight:600;color:#e8e5f2}.dk .pp-d{font-size:7px;color:#5d5877}
+.dk .fb{padding:3px 9px;border-radius:7px;font-size:7.5px;font-weight:600;background:rgba(123,118,224,0.1);color:#7b76e0;border:none;font-family:'General Sans',sans-serif}
+.dk .nav{position:absolute;bottom:0;left:0;right:0;padding:4px 10px 16px;display:flex;justify-content:space-around;background:rgba(13,11,24,0.85);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.04)}
+.dk .ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:6px;color:#5d5877;letter-spacing:0.5px;text-transform:uppercase;padding:3px 10px;border-radius:8px}
+.dk .ni.a{color:#7b76e0;background:rgba(123,118,224,0.1)}.dk .ni-i{font-size:13px}
+/* DAY — Peri V3 Glass Edge */
+.lt .ph{padding:9px 12px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(205,216,248,0.5);border-bottom:1px solid rgba(150,165,225,0.15);position:sticky;top:0;z-index:5}
+.lt .ph-logo{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;font-family:'Playfair Display',serif;color:#1e2b4a}
+.lt .ph-icons{display:flex;gap:4px}
+.lt .ph-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(12px);color:#4a5e88}
+.lt .ct{padding:10px 10px 80px;font-family:'General Sans',sans-serif}
+.lt .greet{font-family:'Playfair Display',serif;font-size:14px;font-weight:500;color:#1e2b4a;margin-bottom:2px}
+.lt .greet-sub{font-size:9px;color:#4a5e88;margin-bottom:10px}
+.lt .hl{border:1.5px dashed rgba(79,172,254,0.35);border-radius:10px;padding:8px;margin-bottom:10px;position:relative}
+.lt .hl-tag{position:absolute;top:-7px;left:8px;background:#d4dcf4;padding:0 5px;font-size:6.5px;text-transform:uppercase;letter-spacing:1px;color:#4facfe;font-weight:600}
+.lt .sb{display:flex;align-items:center;gap:5px;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(20px);margin-bottom:6px;box-shadow:0 2px 10px rgba(150,165,225,0.07)}
+.lt .sb span{color:#4a5e88;font-size:10px}.lt .sb-t{font-size:9px;color:#8e9ec0}
+.lt .pls{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none}.lt .pls::-webkit-scrollbar{display:none}
+.lt .pl{padding:3px 8px;border-radius:12px;font-size:7.5px;font-weight:500;border:1px solid rgba(150,165,225,0.15);color:#4a5e88;background:rgba(255,255,255,0.5);backdrop-filter:blur(12px);flex-shrink:0;white-space:nowrap}
+.lt .pl.a{background:rgba(79,172,254,0.1);color:#2b6cb0;border-color:rgba(79,172,254,0.2)}
+.lt .sec{font-size:6.5px;text-transform:uppercase;letter-spacing:1.5px;color:#4a5e88;font-weight:500;margin:8px 0 5px}
+.lt .trd{border-radius:10px;background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(20px);padding:3px 0;margin-bottom:8px;box-shadow:0 2px 10px rgba(150,165,225,0.07)}
+.lt .tr{display:flex;align-items:center;gap:6px;padding:5px 8px}
+.lt .tr-n{font-size:11px;font-family:'Playfair Display',serif;color:#4facfe;width:16px}
+.lt .tr-nm{font-size:9px;font-weight:500;color:#1e2b4a}.lt .tr-ct{font-size:7px;color:#8e9ec0}
+.lt .grd{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px}
+.lt .gc{border-radius:9px;background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(20px);padding:10px 8px;text-align:center;box-shadow:0 2px 10px rgba(150,165,225,0.07)}
+.lt .gc-e{font-size:18px;margin-bottom:3px}.lt .gc-l{font-size:8px;font-weight:500;color:#1e2b4a}.lt .gc-c{font-size:6.5px;color:#8e9ec0}
+.lt .ppl{border-radius:10px;background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);backdrop-filter:blur(20px);padding:3px 0;box-shadow:0 2px 10px rgba(150,165,225,0.07)}
+.lt .pp{display:flex;align-items:center;gap:7px;padding:6px 8px}
+.lt .pp-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'Playfair Display',serif;color:white;flex-shrink:0}
+.lt .pp-nm{font-size:9px;font-weight:600;color:#1e2b4a}.lt .pp-d{font-size:7px;color:#8e9ec0}
+.lt .fb{padding:3px 9px;border-radius:7px;font-size:7.5px;font-weight:600;background:rgba(79,172,254,0.1);color:#2b6cb0;border:none;font-family:'General Sans',sans-serif}
+.lt .nav{position:absolute;bottom:0;left:0;right:0;padding:4px 10px 16px;display:flex;justify-content:space-around;background:rgba(205,216,248,0.5);backdrop-filter:blur(20px);border-top:1px solid rgba(150,165,225,0.1)}
+.lt .ni{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:6px;color:#8e9ec0;letter-spacing:0.5px;text-transform:uppercase;padding:3px 10px;border-radius:8px}
+.lt .ni.a{color:#2b6cb0;background:rgba(79,172,254,0.1)}.lt .ni-i{font-size:13px}
+/* Phase */
+.phase-box{max-width:860px;margin:20px auto 0;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.phase-header{padding:12px 16px;display:flex;align-items:center;gap:10px}
+.phase-header.mvp{background:rgba(92,200,138,0.08);border-bottom:1px solid rgba(92,200,138,0.1)}
+.phase-badge{padding:4px 10px;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.phase-badge.mvp{background:rgba(92,200,138,0.15);color:#5cc88a}
+.phase-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500}
+.phase-body{padding:14px 16px;background:rgba(255,255,255,0.015);font-size:11px;color:#8e89a8;line-height:1.8}
+.phase-body b{color:#e8e5f2}
+.phase-split{display:flex;gap:12px;margin-top:8px}
+.phase-col{flex:1;padding:10px;border-radius:10px}
+.phase-col.yes{background:rgba(92,200,138,0.05);border:1px solid rgba(92,200,138,0.08)}
+.phase-col.no{background:rgba(232,184,74,0.05);border:1px solid rgba(232,184,74,0.08)}
+.phase-col-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.phase-col.yes .phase-col-title{color:#5cc88a}
+.phase-col.no .phase-col-title{color:#e8b84a}
+.phase-col li{font-size:10px;margin-bottom:3px;color:#8e89a8;list-style:none;padding-left:12px;position:relative}
+.phase-col li::before{content:'';position:absolute;left:0;top:6px;width:4px;height:4px;border-radius:50%}
+.phase-col.yes li::before{background:#5cc88a}
+.phase-col.no li::before{background:#e8b84a}
+@media(max-width:900px){.three-up{flex-direction:column;align-items:center}.comp-box{max-width:100%}}
+</style></head><body>
+<div class="counter">Component 2 of 15</div>
+<h1>Find Tab — Search Bar + Filter Pills</h1>
+<div class="subtitle"><span class="tag partial">🔄 PARTIAL — Search exists, pills are new</span></div>
+<div class="tab-info">📍 Find Tab &nbsp;|&nbsp; Font: General Sans &nbsp;|&nbsp; Day: Peri V3 Glass Edge &nbsp;|&nbsp; Night: Original mockup</div>
+<div class="three-up">
+  <div class="comp-box">
+    <div class="comp-label">Component</div>
+    <div class="comp-card">
+      <div class="search-bar"><span>🔍</span><input type="text" placeholder="Search testimonies, people, churches..."></div>
+      <div class="pills"><div class="pill active">All</div><div class="pill">Salvation</div><div class="pill">Healing</div><div class="pill">Deliverance</div><div class="pill">Provision</div><div class="pill">Relationships</div></div>
+    </div>
+    <div class="note">
+      <h4>What you have</h4>
+      NearbyTab search bar (people only). No filter pills, no testimony categories.<br><br>
+      <h4>What this adds</h4>
+      <b>Search:</b> Expanded to testimonies + churches<br>
+      <b>Pills:</b> Scrollable category chips that filter the feed<br><br>
+      <h4>Design specs</h4>
+      <b>Font:</b> General Sans (both modes)<br>
+      <b>Night:</b> Card bg rgba(255,255,255,0.04), accent #7b76e0<br>
+      <b>Day (Peri V3):</b> Card bg rgba(255,255,255,0.5) + blur(20px), border rgba(150,165,225,0.15), shadow 0 2px 10px rgba(150,165,225,0.07), accent #4facfe, text #1e2b4a
+    </div>
+  </div>
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">🌙 Night Mode</div>
+    <div class="phone dark">
+      <div class="phone-screen dk">
+        <div class="ph"><div class="ph-logo"><span>⚡</span> Lightning</div><div class="ph-icons"><div class="ph-icon">🔔</div><div class="ph-icon">☰</div></div></div>
+        <div class="ct">
+          <div class="greet">Good evening, Jordyn ✨</div>
+          <div class="greet-sub">See what God is doing in people's lives</div>
+          <div class="hl"><div class="hl-tag">← This component</div>
+            <div class="sb"><span>🔍</span><span class="sb-t">Search testimonies, people, churches...</span></div>
+            <div class="pls"><div class="pl a">All</div><div class="pl">Salvation</div><div class="pl">Healing</div><div class="pl">Deliverance</div><div class="pl">Provision</div></div>
+          </div>
+          <div class="sec">Trending Testimonies</div>
+          <div class="trd"><div class="tr"><div class="tr-n">1</div><div><div class="tr-nm">#GodIsHealer</div><div class="tr-ct">342 testimonies this week</div></div></div><div class="tr"><div class="tr-n">2</div><div><div class="tr-nm">#FreedomInChrist</div><div class="tr-ct">218 testimonies this week</div></div></div><div class="tr"><div class="tr-n">3</div><div><div class="tr-nm">#RestoredMarriage</div><div class="tr-ct">156 testimonies this week</div></div></div></div>
+          <div class="sec">Explore by Category</div>
+          <div class="grd"><div class="gc"><div class="gc-e">✝️</div><div class="gc-l">Salvation</div><div class="gc-c">2.4K stories</div></div><div class="gc"><div class="gc-e">💊</div><div class="gc-l">Healing</div><div class="gc-c">1.8K stories</div></div><div class="gc"><div class="gc-e">⛓️‍💥</div><div class="gc-l">Deliverance</div><div class="gc-c">1.2K stories</div></div><div class="gc"><div class="gc-e">💰</div><div class="gc-l">Provision</div><div class="gc-c">890 stories</div></div></div>
+          <div class="sec">People to Follow</div>
+          <div class="ppl"><div class="pp"><div class="pp-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div><div style="flex:1;min-width:0"><div class="pp-nm">Pastor James Allen</div><div class="pp-d">Lead Pastor · Grace Community</div></div><button class="fb">Follow</button></div><div class="pp"><div class="pp-av" style="background:linear-gradient(135deg,#7b76e0,#5cc88a)">K</div><div style="flex:1;min-width:0"><div class="pp-nm">Kayla Reyes</div><div class="pp-d">Youth Leader · 47 testimonies</div></div><button class="fb">Follow</button></div></div>
+        </div>
+      </div>
+      <div class="dk"><div class="nav"><div class="ni"><div class="ni-i">⚡</div>Home</div><div class="ni a"><div class="ni-i">🔍</div>Find</div><div class="ni"><div class="ni-i">👤</div>You</div></div></div>
+    </div>
+  </div>
+  <div class="phone-box">
+    <div class="comp-label" style="text-align:center">☀️ Day Mode (Peri V3)</div>
+    <div class="phone light">
+      <div class="blob1"></div><div class="blob2"></div>
+      <div class="phone-screen lt">
+        <div class="ph"><div class="ph-logo"><span>⚡</span> Lightning</div><div class="ph-icons"><div class="ph-icon">🔔</div><div class="ph-icon">☰</div></div></div>
+        <div class="ct">
+          <div class="greet">Good evening, Jordyn ✨</div>
+          <div class="greet-sub">See what God is doing in people's lives</div>
+          <div class="hl"><div class="hl-tag">← This component</div>
+            <div class="sb"><span>🔍</span><span class="sb-t">Search testimonies, people, churches...</span></div>
+            <div class="pls"><div class="pl a">All</div><div class="pl">Salvation</div><div class="pl">Healing</div><div class="pl">Deliverance</div><div class="pl">Provision</div></div>
+          </div>
+          <div class="sec">Trending Testimonies</div>
+          <div class="trd"><div class="tr"><div class="tr-n">1</div><div><div class="tr-nm">#GodIsHealer</div><div class="tr-ct">342 testimonies this week</div></div></div><div class="tr"><div class="tr-n">2</div><div><div class="tr-nm">#FreedomInChrist</div><div class="tr-ct">218 testimonies this week</div></div></div><div class="tr"><div class="tr-n">3</div><div><div class="tr-nm">#RestoredMarriage</div><div class="tr-ct">156 testimonies this week</div></div></div></div>
+          <div class="sec">Explore by Category</div>
+          <div class="grd"><div class="gc"><div class="gc-e">✝️</div><div class="gc-l">Salvation</div><div class="gc-c">2.4K stories</div></div><div class="gc"><div class="gc-e">💊</div><div class="gc-l">Healing</div><div class="gc-c">1.8K stories</div></div><div class="gc"><div class="gc-e">⛓️‍💥</div><div class="gc-l">Deliverance</div><div class="gc-c">1.2K stories</div></div><div class="gc"><div class="gc-e">💰</div><div class="gc-l">Provision</div><div class="gc-c">890 stories</div></div></div>
+          <div class="sec">People to Follow</div>
+          <div class="ppl"><div class="pp"><div class="pp-av" style="background:linear-gradient(135deg,#e8b84a,#e05c6c)">P</div><div style="flex:1;min-width:0"><div class="pp-nm">Pastor James Allen</div><div class="pp-d">Lead Pastor · Grace Community</div></div><button class="fb">Follow</button></div><div class="pp"><div class="pp-av" style="background:linear-gradient(135deg,#4facfe,#5cc88a)">K</div><div style="flex:1;min-width:0"><div class="pp-nm">Kayla Reyes</div><div class="pp-d">Youth Leader · 47 testimonies</div></div><button class="fb">Follow</button></div></div>
+        </div>
+      </div>
+      <div class="lt"><div class="nav"><div class="ni"><div class="ni-i">⚡</div>Home</div><div class="ni a"><div class="ni-i">🔍</div>Find</div><div class="ni"><div class="ni-i">👤</div>You</div></div></div>
+    </div>
+  </div>
+</div>
+<div class="phase-box">
+  <div class="phase-header mvp"><div class="phase-badge mvp">MVP ✅</div><div class="phase-title">Search + Pills = Core testimony directory</div></div>
+  <div class="phase-body">
+    A testimony directory without categories is just a wall of text. The pills let someone say "show me healing testimonies."<br><br>
+    <b>Requires:</b> Adding <code>testimony_type</code> to Supabase + updating testimony creation to ask "what type?"<br><br>
+    <div class="phase-split">
+      <div class="phase-col yes"><div class="phase-col-title">MVP ✅</div><li>Restyle search bar (both modes)</li><li>Search testimonies + people</li><li>Category pills (Salvation, Healing, etc.)</li><li>Add testimony_type to schema</li><li>Filter within your church</li></div>
+      <div class="phase-col no"><div class="phase-col-title">Phase 2 🌐</div><li>Global search across all churches</li><li>Search all users worldwide</li><li>AI-powered natural language search</li></div>
+    </div>
+  </div>
+</div>
+</body></html>

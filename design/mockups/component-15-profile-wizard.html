@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 15: Profile Creation Wizard (Final)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 12px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.exists-tag{background:rgba(92,200,138,0.15);color:#5cc88a}
+.step-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.step-col{display:flex;flex-direction:column;gap:8px;align-items:center}
+.step-label{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:#7b76e0;font-weight:600;text-align:center}
+.comp-label{font-size:7px;text-transform:uppercase;letter-spacing:1px;color:#5d5877;font-weight:600;text-align:center;margin-bottom:4px}
+.phone{width:200px;height:420px;border-radius:28px;position:relative;overflow:hidden}
+.phone.dark{background:#0d0b18;border:2.5px solid rgba(255,255,255,0.12);box-shadow:0 14px 40px rgba(0,0,0,0.5)}
+.phone.light{background:linear-gradient(135deg,#cdd8f8 0%,#d6daf5 40%,#dee0f6 70%,#e4e0f5 100%);border:2.5px solid rgba(255,255,255,0.5);box-shadow:0 14px 40px rgba(0,0,0,0.12)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:70px;height:18px;border-radius:0 0 10px 10px;z-index:10}
+.phone.dark::before{background:#08060f}.phone.light::before{background:#c4cee8}
+.phone-screen{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding:28px 10px 14px;position:relative;z-index:1}
+.phone-screen::-webkit-scrollbar{display:none}
+.progress{display:flex;gap:6px;justify-content:center;margin-bottom:12px}
+.dot{width:8px;height:8px;border-radius:50%}.dot.current{width:20px;border-radius:4px}
+.w-hero{text-align:center;margin-bottom:10px}
+.w-hero-icon{margin:0 auto 4px;width:28px;height:28px}
+.w-hero-icon svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.w-title{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;margin-bottom:2px}
+.w-sub{font-size:7px;opacity:0.5}
+.w-sub-verse{font-size:6.5px;font-family:'Playfair Display',serif;font-style:italic;opacity:0.6;line-height:1.4;max-width:160px;margin:0 auto}
+.w-field{margin-bottom:7px}
+.w-label{font-size:7px;font-weight:600;margin-bottom:3px}
+.w-required{color:#ef4444;font-size:6px}
+.w-input{width:100%;padding:6px 8px;border-radius:8px;border:none;outline:none;font-size:7.5px;font-family:'General Sans',sans-serif}
+.w-input-icon{position:relative}
+.w-input-icon .w-input{padding-left:22px}
+.w-input-icon svg{position:absolute;left:6px;top:50%;transform:translateY(-50%);width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:1.8}
+.w-detect{font-size:6px;margin-top:2px;cursor:pointer;display:flex;align-items:center;gap:2px}
+.w-church-opts{display:flex;flex-direction:column;gap:4px}
+.w-church-opt{padding:7px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.w-church-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.w-church-info{flex:1}.w-church-title{font-size:7.5px;font-weight:600}.w-church-desc{font-size:5.5px;opacity:0.4}
+.w-church-arrow{font-size:8px;opacity:0.3}
+.w-review{border-radius:10px;padding:10px;text-align:center}
+.w-review-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-family:'DM Sans',sans-serif;font-weight:700;color:white;margin:0 auto 6px}
+.w-review-name{font-size:10px;font-weight:600;margin-bottom:1px}
+.w-review-loc{font-size:6.5px;opacity:0.5;margin-bottom:4px}
+.w-review-church{font-size:6.5px;padding:3px 8px;border-radius:6px;display:inline-block}
+.w-helper{font-size:6px;opacity:0.4;text-align:center;margin-top:6px;line-height:1.4}
+.w-btn{width:100%;padding:7px;border-radius:8px;border:none;font-size:8px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;color:white;margin-top:5px}
+.w-btn-skip{width:100%;padding:5px;border:none;background:transparent;font-size:6.5px;cursor:pointer;font-family:'General Sans',sans-serif;margin-top:2px}
+.w-nav{display:flex;gap:5px;margin-top:5px}
+.w-nav .w-btn{flex:1}
+.w-btn-back{background:transparent;color:inherit;border:1px solid;opacity:0.4}
+.w-referral{padding:5px 7px;border-radius:7px;font-size:6.5px;display:flex;align-items:center;gap:4px;margin-bottom:7px}
+.dk .dot{background:rgba(255,255,255,0.08)}.dk .dot.done{background:#7b76e0}.dk .dot.current{background:#7b76e0}
+.dk .w-title{color:#e8e5f2}.dk .w-sub{color:#5d5877}.dk .w-sub-verse{color:#9b96f5}
+.dk .w-label{color:rgba(255,255,255,0.5)}
+.dk .w-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#e8e5f2}
+.dk .w-input::placeholder{color:#5d5877}
+.dk .w-input-icon svg{color:#5d5877}
+.dk .w-detect{color:#7b76e0}
+.dk .w-church-opt{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.dk .w-church-title{color:#e8e5f2}.dk .w-church-desc{color:#5d5877}.dk .w-church-icon{color:#8e89a8}
+.dk .w-review{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.dk .w-review-name{color:#e8e5f2}.dk .w-review-loc{color:#5d5877}
+.dk .w-review-church{background:rgba(123,118,224,0.1);color:#9b96f5}
+.dk .w-btn{background:linear-gradient(135deg,#7b76e0,#9b96f5);box-shadow:0 4px 12px rgba(123,118,224,0.25)}
+.dk .w-btn-skip{color:#5d5877}
+.dk .w-btn-back{border-color:rgba(255,255,255,0.08);color:#8e89a8}
+.dk .w-referral{background:rgba(92,200,138,0.08);border:1px solid rgba(92,200,138,0.12);color:#5cc88a}
+.dk .w-hero-icon{color:#8e89a8}
+.lt .dot{background:rgba(150,165,225,0.15)}.lt .dot.done{background:#4facfe}.lt .dot.current{background:#4facfe}
+.lt .w-title{color:#1e2b4a}.lt .w-sub{color:#8e9ec0}.lt .w-sub-verse{color:#4a5e88}
+.lt .w-label{color:rgba(0,0,0,0.5)}
+.lt .w-input{background:rgba(255,255,255,0.6);border:1px solid rgba(150,165,225,0.15);color:#1e2b4a}
+.lt .w-input::placeholder{color:#8e9ec0}
+.lt .w-input-icon svg{color:#8e9ec0}
+.lt .w-detect{color:#2b6cb0}
+.lt .w-church-opt{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15)}
+.lt .w-church-title{color:#1e2b4a}.lt .w-church-desc{color:#8e9ec0}.lt .w-church-icon{color:#4a5e88}
+.lt .w-review{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15)}
+.lt .w-review-name{color:#1e2b4a}.lt .w-review-loc{color:#8e9ec0}
+.lt .w-review-church{background:rgba(79,172,254,0.1);color:#2b6cb0}
+.lt .w-btn{background:linear-gradient(135deg,#4facfe,#3b82f6);box-shadow:0 4px 12px rgba(79,172,254,0.25)}
+.lt .w-btn-skip{color:#8e9ec0}
+.lt .w-btn-back{border-color:rgba(150,165,225,0.15);color:#4a5e88}
+.lt .w-referral{background:rgba(92,200,138,0.06);border:1px solid rgba(92,200,138,0.1);color:#16834a}
+.lt .w-hero-icon{color:#4a5e88}
+</style></head><body>
+<div class="counter">Component 15 of 15</div>
+<h1>Profile Creation Wizard</h1>
+<div class="subtitle"><span class="tag exists-tag">✅ EXISTS — Restyle + copy updates</span></div>
+<div class="tab-info">3 steps: Welcome → Community → Boom</div>
+<div style="margin-bottom:16px">
+<div class="comp-label">🌙 Night Mode</div>
+<div class="step-row">
+  <div class="step-col"><div class="step-label">Step 1</div><div class="phone dark"><div class="phone-screen dk">
+    <div class="progress"><div class="dot current"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="w-hero"><div class="w-hero-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="w-title">Welcome to Lightning</div><div class="w-sub">Let's create your profile</div></div>
+    <div class="w-referral"><span style="color:#5cc88a">✓</span> Referred by @marcus</div>
+    <div class="w-field"><div class="w-label">Full Name <span class="w-required">*</span></div><input class="w-input" value="Jordyn Doanne" readonly></div>
+    <div class="w-field"><div class="w-label">Location <span class="w-required">*</span></div><div class="w-input-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><input class="w-input" value="Las Vegas, NV" readonly></div><div class="w-detect"><svg viewBox="0 0 24 24" width="8" height="8" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 2L19 21 12 17 5 21z"/></svg> Use my location</div></div>
+    <div class="w-field"><div class="w-label">Referral Code <span style="opacity:0.4;font-weight:400">(optional)</span></div><input class="w-input" placeholder="e.g. marcus7291" readonly></div>
+    <button class="w-btn">Next</button>
+  </div></div></div>
+  <div class="step-col"><div class="step-label">Step 2</div><div class="phone dark"><div class="phone-screen dk">
+    <div class="progress"><div class="dot done"></div><div class="dot current"></div><div class="dot"></div></div>
+    <div class="w-hero"><div class="w-hero-icon"><svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M10 4h4"/><path d="M6 12l6-6 6 6"/><path d="M4 22V12h16v10"/><path d="M10 22v-5h4v5"/></svg></div><div class="w-title">Find your Community</div><div class="w-sub">Connect with others</div></div>
+    <div class="w-church-opts">
+      <div class="w-church-opt"><div class="w-church-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7l5-4 5 4v4"/></svg></div><div class="w-church-info"><div class="w-church-title">Join a Server</div><div class="w-church-desc">Enter invite code from your community</div></div><div class="w-church-arrow">›</div></div>
+      <div class="w-church-opt"><div class="w-church-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg></div><div class="w-church-info"><div class="w-church-title">Start a Server</div><div class="w-church-desc">Start your community on Lightning</div></div><div class="w-church-arrow">›</div></div>
+    </div>
+    <div class="w-nav" style="margin-top:10px"><button class="w-btn w-btn-back">Previous</button><button class="w-btn">Next</button></div>
+    <button class="w-btn-skip">Skip for now</button>
+  </div></div></div>
+  <div class="step-col"><div class="step-label">Step 3</div><div class="phone dark"><div class="phone-screen dk">
+    <div class="progress"><div class="dot done"></div><div class="dot done"></div><div class="dot current"></div></div>
+    <div class="w-hero"><div class="w-hero-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="w-title">Boom</div><div class="w-sub-verse">His lightning lights up the world; the earth sees and trembles. - Psalm 97:4</div></div>
+    <div class="w-review"><div class="w-review-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">J</div><div class="w-review-name">Jordyn Doanne</div><div class="w-review-loc">📍 Las Vegas, NV</div><div class="w-review-church">The Crossing Church</div></div>
+    <div class="w-helper">After creating your profile, you'll be guided to share your testimony.</div>
+    <div class="w-nav" style="margin-top:6px"><button class="w-btn w-btn-back">Previous</button><button class="w-btn">Enter Lightning ⚡</button></div>
+  </div></div></div>
+</div></div>
+<div><div class="comp-label">☀️ Day Mode</div>
+<div class="step-row">
+  <div class="step-col"><div class="step-label">Step 1</div><div class="phone light"><div class="phone-screen lt">
+    <div class="progress"><div class="dot current"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="w-hero"><div class="w-hero-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="w-title">Welcome to Lightning</div><div class="w-sub">Let's create your profile</div></div>
+    <div class="w-referral"><span style="color:#16834a">✓</span> Referred by @marcus</div>
+    <div class="w-field"><div class="w-label">Full Name <span class="w-required">*</span></div><input class="w-input" value="Jordyn Doanne" readonly></div>
+    <div class="w-field"><div class="w-label">Location <span class="w-required">*</span></div><div class="w-input-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><input class="w-input" value="Las Vegas, NV" readonly></div><div class="w-detect"><svg viewBox="0 0 24 24" width="8" height="8" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 2L19 21 12 17 5 21z"/></svg> Use my location</div></div>
+    <div class="w-field"><div class="w-label">Referral Code <span style="opacity:0.4;font-weight:400">(optional)</span></div><input class="w-input" placeholder="e.g. marcus7291" readonly></div>
+    <button class="w-btn">Next</button>
+  </div></div></div>
+  <div class="step-col"><div class="step-label">Step 2</div><div class="phone light"><div class="phone-screen lt">
+    <div class="progress"><div class="dot done"></div><div class="dot current"></div><div class="dot"></div></div>
+    <div class="w-hero"><div class="w-hero-icon"><svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M10 4h4"/><path d="M6 12l6-6 6 6"/><path d="M4 22V12h16v10"/><path d="M10 22v-5h4v5"/></svg></div><div class="w-title">Find your Community</div><div class="w-sub">Connect with others</div></div>
+    <div class="w-church-opts">
+      <div class="w-church-opt"><div class="w-church-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7l5-4 5 4v4"/></svg></div><div class="w-church-info"><div class="w-church-title">Join a Server</div><div class="w-church-desc">Enter invite code from your community</div></div><div class="w-church-arrow">›</div></div>
+      <div class="w-church-opt"><div class="w-church-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg></div><div class="w-church-info"><div class="w-church-title">Start a Server</div><div class="w-church-desc">Start your community on Lightning</div></div><div class="w-church-arrow">›</div></div>
+    </div>
+    <div class="w-nav" style="margin-top:10px"><button class="w-btn w-btn-back">Previous</button><button class="w-btn">Next</button></div>
+    <button class="w-btn-skip">Skip for now</button>
+  </div></div></div>
+  <div class="step-col"><div class="step-label">Step 3</div><div class="phone light"><div class="phone-screen lt">
+    <div class="progress"><div class="dot done"></div><div class="dot done"></div><div class="dot current"></div></div>
+    <div class="w-hero"><div class="w-hero-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="w-title">Boom</div><div class="w-sub-verse">His lightning lights up the world; the earth sees and trembles. - Psalm 97:4</div></div>
+    <div class="w-review"><div class="w-review-av" style="background:linear-gradient(135deg,#4facfe,#9b96f5)">J</div><div class="w-review-name">Jordyn Doanne</div><div class="w-review-loc">📍 Las Vegas, NV</div><div class="w-review-church">The Crossing Church</div></div>
+    <div class="w-helper">After creating your profile, you'll be guided to share your testimony.</div>
+    <div class="w-nav" style="margin-top:6px"><button class="w-btn w-btn-back">Previous</button><button class="w-btn">Enter Lightning ⚡</button></div>
+  </div></div></div>
+</div></div>
+</body></html>

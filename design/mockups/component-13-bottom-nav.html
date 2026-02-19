@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component 13: Bottom Navigation Bar</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 12px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:4px}
+.subtitle{text-align:center;font-size:12px;color:#8e89a8;margin-bottom:4px}
+.tab-info{text-align:center;font-size:10px;color:#7b76e0;margin-bottom:16px;font-weight:500}
+.counter{text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#5d5877;margin-bottom:6px}
+.tag{display:inline-block;padding:5px 12px;border-radius:14px;font-size:10px;font-weight:600}
+.exists-tag{background:rgba(92,200,138,0.15);color:#5cc88a}
+.demos{display:flex;flex-direction:column;gap:16px;align-items:center;margin-top:12px}
+.demo-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#5d5877;font-weight:600;text-align:center;margin-bottom:6px}
+.states{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.state-card{border-radius:14px;padding:10px 0;width:320px}
+.state-label{font-size:7px;text-transform:uppercase;letter-spacing:1.2px;font-weight:600;text-align:center;margin-bottom:6px;padding:0 12px}
+.nav-bar{padding:6px 12px 16px;display:flex;justify-content:space-around;align-items:center;border-radius:16px}
+.ni{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 14px;border-radius:10px;cursor:pointer;border:1px solid transparent;position:relative}
+.ni svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ni.a svg{stroke-width:2.2}
+.ni-label{font-size:7.5px;font-weight:500;letter-spacing:0.3px}
+.badge{position:absolute;top:-2px;right:2px;min-width:14px;height:14px;border-radius:7px;font-size:7px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
+/* Night */
+.dk{background:rgba(13,11,24,0.9);border:1px solid rgba(255,255,255,0.04)}
+.dk .ni{color:#5d5877}.dk .ni.a{color:#e8e5f2;background:rgba(123,118,224,0.12);border-color:rgba(123,118,224,0.18)}
+.dk .badge{background:#7b76e0;color:white;border:2px solid #0d0b18}
+.dk .state-label{color:#5d5877}
+/* Day */
+.lt{background:rgba(205,216,248,0.6);border:1px solid rgba(150,165,225,0.1)}
+.lt .ni{color:#8e9ec0}.lt .ni.a{color:#1e2b4a;background:rgba(79,172,254,0.1);border-color:rgba(79,172,254,0.15)}
+.lt .badge{background:#4facfe;color:white;border:2px solid #d6daf5}
+.lt .state-label{color:#4a5e88}
+.phase-box{max-width:700px;margin:20px auto 0;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06)}
+.phase-header{padding:12px 16px;display:flex;align-items:center;gap:10px;background:rgba(92,200,138,0.08);border-bottom:1px solid rgba(92,200,138,0.1)}
+.phase-badge{padding:4px 10px;border-radius:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(92,200,138,0.15);color:#5cc88a}
+.phase-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:500}
+.phase-body{padding:14px 16px;background:rgba(255,255,255,0.015);font-size:11px;color:#8e89a8;line-height:1.8}
+.phase-body b{color:#e8e5f2}
+.phase-body code{font-family:monospace;font-size:10px;color:#9b96f5;background:rgba(123,118,224,0.08);padding:1px 5px;border-radius:4px}
+</style></head><body>
+<div class="counter">Component 13 of 15</div>
+<h1>Bottom Navigation Bar</h1>
+<div class="subtitle"><span class="tag exists-tag">✅ EXISTS — Restyle + icon swap + rename</span></div>
+<div class="tab-info">📍 Persistent bottom bar &nbsp;|&nbsp; Home (🏠+🏢) · Charge (⚡) · You (👤) &nbsp;|&nbsp; Colorless outline SVGs</div>
+
+<div class="demos">
+  <div class="demo-label">🌙 Night Mode — All 3 active states</div>
+  <div class="states">
+    <div class="state-card"><div class="state-label" style="color:#5d5877">Home active (2 unread)</div><div class="nav-bar dk">
+      <div class="ni a"><svg viewBox="0 0 24 24"><path d="M2 13l5-4 5 4v7H2V13z"/><path d="M5 20v-3h4v3"/><rect x="13" y="4" width="9" height="16" rx="1"/><line x1="16" y1="7.5" x2="16" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="7.5" x2="19" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="11" x2="16" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="11" x2="19" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="14.5" x2="16" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="14.5" x2="19" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><path d="M16 20v-2.5h3v2.5"/></svg><span class="badge">2</span><div class="ni-label">Home</div></div>
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><div class="ni-label">Charge</div></div>
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="ni-label">You</div></div>
+    </div></div>
+    <div class="state-card"><div class="state-label" style="color:#5d5877">Charge active</div><div class="nav-bar dk">
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M2 13l5-4 5 4v7H2V13z"/><path d="M5 20v-3h4v3"/><rect x="13" y="4" width="9" height="16" rx="1"/><line x1="16" y1="7.5" x2="16" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="7.5" x2="19" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="11" x2="16" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="11" x2="19" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="14.5" x2="16" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="14.5" x2="19" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><path d="M16 20v-2.5h3v2.5"/></svg><span class="badge">2</span><div class="ni-label">Home</div></div>
+      <div class="ni a"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><div class="ni-label">Charge</div></div>
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="ni-label">You</div></div>
+    </div></div>
+    <div class="state-card"><div class="state-label" style="color:#5d5877">You active</div><div class="nav-bar dk">
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M2 13l5-4 5 4v7H2V13z"/><path d="M5 20v-3h4v3"/><rect x="13" y="4" width="9" height="16" rx="1"/><line x1="16" y1="7.5" x2="16" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="7.5" x2="19" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="11" x2="16" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="11" x2="19" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="14.5" x2="16" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="14.5" x2="19" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><path d="M16 20v-2.5h3v2.5"/></svg><div class="ni-label">Home</div></div>
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><div class="ni-label">Charge</div></div>
+      <div class="ni a"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="ni-label">You</div></div>
+    </div></div>
+  </div>
+
+  <div class="demo-label">☀️ Day Mode — All 3 active states</div>
+  <div class="states">
+    <div class="state-card"><div class="state-label" style="color:#4a5e88">Home active (2 unread)</div><div class="nav-bar lt">
+      <div class="ni a"><svg viewBox="0 0 24 24"><path d="M2 13l5-4 5 4v7H2V13z"/><path d="M5 20v-3h4v3"/><rect x="13" y="4" width="9" height="16" rx="1"/><line x1="16" y1="7.5" x2="16" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="7.5" x2="19" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="11" x2="16" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="11" x2="19" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="14.5" x2="16" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="14.5" x2="19" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><path d="M16 20v-2.5h3v2.5"/></svg><span class="badge">2</span><div class="ni-label">Home</div></div>
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><div class="ni-label">Charge</div></div>
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="ni-label">You</div></div>
+    </div></div>
+    <div class="state-card"><div class="state-label" style="color:#4a5e88">Charge active</div><div class="nav-bar lt">
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M2 13l5-4 5 4v7H2V13z"/><path d="M5 20v-3h4v3"/><rect x="13" y="4" width="9" height="16" rx="1"/><line x1="16" y1="7.5" x2="16" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="7.5" x2="19" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="11" x2="16" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="11" x2="19" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="14.5" x2="16" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="14.5" x2="19" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><path d="M16 20v-2.5h3v2.5"/></svg><span class="badge">2</span><div class="ni-label">Home</div></div>
+      <div class="ni a"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><div class="ni-label">Charge</div></div>
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="ni-label">You</div></div>
+    </div></div>
+    <div class="state-card"><div class="state-label" style="color:#4a5e88">You active</div><div class="nav-bar lt">
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M2 13l5-4 5 4v7H2V13z"/><path d="M5 20v-3h4v3"/><rect x="13" y="4" width="9" height="16" rx="1"/><line x1="16" y1="7.5" x2="16" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="7.5" x2="19" y2="7.5" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="11" x2="16" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="11" x2="19" y2="11" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="14.5" x2="16" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><line x1="19" y1="14.5" x2="19" y2="14.5" stroke-width="2.5" stroke-linecap="round"/><path d="M16 20v-2.5h3v2.5"/></svg><div class="ni-label">Home</div></div>
+      <div class="ni"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><div class="ni-label">Charge</div></div>
+      <div class="ni a"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="ni-label">You</div></div>
+    </div></div>
+  </div>
+</div>
+
+<div class="phase-box">
+  <div class="phase-header"><div class="phase-badge">MVP ✅</div><div class="phase-title">Restyle + icon swap + rename Find → Charge</div></div>
+  <div class="phase-body">
+    <b>Icons (colorless outline SVGs):</b><br>
+    • Home → House+Tower community icon (small house + tall building)<br>
+    • Charge → Bolt (⚡) — "charge your faith by reading testimonies"<br>
+    • You → Person outline<br><br>
+    <b>Rename:</b> "Find" tab → <b>"Charge"</b> throughout app<br><br>
+    <b>Restyle:</b><br>
+    • All icons monochrome, no color emojis<br>
+    • Night active → subtle purple tint + border<br>
+    • Day active → subtle blue tint + border<br>
+    • Badge → accent colored pill with nav bg border<br>
+    • Frosted glass bar background
+  </div>
+</div>
+</body></html>

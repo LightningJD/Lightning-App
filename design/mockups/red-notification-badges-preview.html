@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Red Notification Badges — All Contexts</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#08060f;color:#e8e5f2;padding:20px 12px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:20px;text-align:center;margin-bottom:4px}
+.sub{text-align:center;font-size:10px;color:#8e89a8;margin-bottom:18px}
+.grid{display:flex;flex-direction:column;gap:14px;align-items:center}
+.context{width:380px}
+.ctx-label{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:#7b76e0;font-weight:600;margin-bottom:3px;padding-left:4px}
+.ctx-desc{font-size:7px;color:#5d5877;margin-bottom:6px;padding-left:4px}
+.row{display:flex;gap:8px}
+.box{flex:1;border-radius:12px;padding:10px;min-height:50px}
+.box.dk{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06)}
+.box.lt{background:rgba(205,216,248,0.3);border:1px solid rgba(150,165,225,0.15)}
+.box-label{font-size:5.5px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600}
+.dk .box-label{color:#5d5877}.lt .box-label{color:#8e9ec0}
+
+/* Red badge styles */
+.badge-red{background:#ef4444;color:white;font-size:7px;font-weight:700;border-radius:7px;min-width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;padding:0 3px}
+.dot-red{width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block}
+
+/* 1. Bottom nav */
+.nav-bar{display:flex;justify-content:space-around;align-items:center;padding:4px 8px 8px;border-radius:12px}
+.nav-bar.dk-bg{background:rgba(13,11,24,0.9);border:1px solid rgba(255,255,255,0.04)}
+.nav-bar.lt-bg{background:rgba(205,216,248,0.6);border:1px solid rgba(150,165,225,0.1)}
+.ni{display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 12px;border-radius:8px;position:relative;border:1px solid transparent}
+.dk-bg .ni{color:#5d5877}.dk-bg .ni.a{color:#e8e5f2;background:rgba(123,118,224,0.12);border-color:rgba(123,118,224,0.18)}
+.lt-bg .ni{color:#8e9ec0}.lt-bg .ni.a{color:#1e2b4a;background:rgba(79,172,254,0.1);border-color:rgba(79,172,254,0.15)}
+.ni svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ni-label{font-size:6px;font-weight:500}
+.ni .badge-red{position:absolute;top:-3px;right:0;border:2px solid}
+.dk-bg .ni .badge-red{border-color:#0d0b18}
+.lt-bg .ni .badge-red{border-color:#d6daf5}
+
+/* 2. DM list item */
+.dm-item{display:flex;align-items:center;gap:6px;padding:6px;border-radius:8px}
+.dm-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-family:'Playfair Display',serif;flex-shrink:0;position:relative}
+.dm-online{position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:#5cc88a}
+.dm-info{flex:1;min-width:0}.dm-name{font-size:8px;font-weight:600}.dm-msg{font-size:6.5px;opacity:0.4}
+.dm-badge{margin-left:auto}
+
+/* 3. Server rail icons */
+.rail{display:flex;gap:4px;align-items:center}
+.srv-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;position:relative}
+.srv-icon .dot-red{position:absolute;top:-1px;right:-1px}
+.dk .srv-icon{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06)}
+.lt .srv-icon{background:rgba(255,255,255,0.4);border:1px solid rgba(150,165,225,0.1)}
+
+/* 4. Notification item */
+.nf{display:flex;align-items:flex-start;gap:5px;padding:5px 6px;border-radius:6px}
+.nf-av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;color:white;font-family:'Playfair Display',serif;flex-shrink:0}
+.nf-text{font-size:7px;line-height:1.3;flex:1}.nf-text b{font-weight:600}
+.nf-dot{margin-top:3px;flex-shrink:0}
+.dk .nf.unread{background:rgba(255,255,255,0.02)}
+.lt .nf.unread{background:rgba(255,255,255,0.3)}
+.dk .nf-text{color:#b8b4c8}.lt .nf-text{color:#3a4d6e}
+.dk .nf-text b{color:#e8e5f2}.lt .nf-text b{color:#1e2b4a}
+
+/* 5. Bell icon */
+.bell-wrap{display:inline-flex;position:relative;font-size:16px}
+.bell-wrap .badge-red{position:absolute;top:-4px;right:-6px;font-size:6px;min-width:12px;height:12px;border:2px solid}
+.dk .bell-wrap{color:#8e89a8}.dk .bell-wrap .badge-red{border-color:#0d0b18}
+.lt .bell-wrap{color:#4a5e88}.lt .bell-wrap .badge-red{border-color:#d6daf5}
+
+/* 6. Channel list */
+.ch{display:flex;align-items:center;gap:4px;padding:4px 6px;border-radius:6px;font-size:8px}
+.ch-name{flex:1;font-weight:500}
+.ch-prefix{opacity:0.4;font-size:7px}
+.dk .ch{color:#8e89a8}.dk .ch.unread{color:#e8e5f2;background:rgba(255,255,255,0.02)}
+.lt .ch{color:#4a5e88}.lt .ch.unread{color:#1e2b4a;background:rgba(255,255,255,0.3)}
+
+.divider{width:380px;height:1px;background:rgba(255,255,255,0.04);margin:2px 0}
+.mode-label{font-size:5.5px;text-transform:uppercase;letter-spacing:1px;font-weight:600;text-align:center;margin-bottom:2px}
+.dk-ml{color:#5d5877}.lt-ml{color:#8e9ec0}
+</style></head><body>
+<h1>Red Notification Badges</h1>
+<div class="sub">All 6 contexts where unread/active notifications appear — night & day</div>
+<div class="grid">
+
+  <!-- 1. BOTTOM NAV -->
+  <div class="context">
+    <div class="ctx-label">1. Bottom Nav Badge</div>
+    <div class="ctx-desc">Unread count on Home icon</div>
+    <div class="row">
+      <div>
+        <div class="mode-label dk-ml">Night</div>
+        <div class="nav-bar dk-bg">
+          <div class="ni a"><svg viewBox="0 0 24 24"><path d="M2 13l5-4 5 4v7H2V13z"/><path d="M5 20v-3h4v3"/><rect x="13" y="4" width="9" height="16" rx="1"/></svg><span class="badge-red">3</span><div class="ni-label">Home</div></div>
+          <div class="ni"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><div class="ni-label">Charge</div></div>
+          <div class="ni"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="ni-label">You</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="mode-label lt-ml">Day</div>
+        <div class="nav-bar lt-bg">
+          <div class="ni a"><svg viewBox="0 0 24 24"><path d="M2 13l5-4 5 4v7H2V13z"/><path d="M5 20v-3h4v3"/><rect x="13" y="4" width="9" height="16" rx="1"/></svg><span class="badge-red">3</span><div class="ni-label">Home</div></div>
+          <div class="ni"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><div class="ni-label">Charge</div></div>
+          <div class="ni"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><div class="ni-label">You</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 2. DM LIST -->
+  <div class="context">
+    <div class="ctx-label">2. DM List — Unread Messages</div>
+    <div class="ctx-desc">Badge on individual conversations in Home tab</div>
+    <div class="row">
+      <div class="box dk">
+        <div class="box-label">Night</div>
+        <div class="dm-item">
+          <div class="dm-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)"><div class="dm-online" style="border:2px solid #0d0b18"></div>M</div>
+          <div class="dm-info"><div class="dm-name" style="color:#e8e5f2">Marcus Johnson</div><div class="dm-msg">That testimony was incredible 🔥</div></div>
+          <div class="dm-badge"><span class="badge-red">2</span></div>
+        </div>
+        <div class="dm-item" style="opacity:0.5">
+          <div class="dm-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div>
+          <div class="dm-info"><div class="dm-name" style="color:#e8e5f2">Aaliyah Williams</div><div class="dm-msg">See you at bible study!</div></div>
+        </div>
+      </div>
+      <div class="box lt">
+        <div class="box-label">Day</div>
+        <div class="dm-item">
+          <div class="dm-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)"><div class="dm-online" style="border:2px solid #d6daf5"></div>M</div>
+          <div class="dm-info"><div class="dm-name" style="color:#1e2b4a">Marcus Johnson</div><div class="dm-msg">That testimony was incredible 🔥</div></div>
+          <div class="dm-badge"><span class="badge-red">2</span></div>
+        </div>
+        <div class="dm-item" style="opacity:0.5">
+          <div class="dm-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div>
+          <div class="dm-info"><div class="dm-name" style="color:#1e2b4a">Aaliyah Williams</div><div class="dm-msg">See you at bible study!</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 3. SERVER RAIL -->
+  <div class="context">
+    <div class="ctx-label">3. Server Rail — Unread Activity</div>
+    <div class="ctx-desc">Red dot on server icons with unread messages</div>
+    <div class="row">
+      <div class="box dk">
+        <div class="box-label">Night</div>
+        <div class="rail">
+          <div class="srv-icon" style="background:rgba(79,172,254,0.15);color:#4facfe">💬</div>
+          <div class="srv-icon"><div class="dot-red"></div>⛪</div>
+          <div class="srv-icon">🙏</div>
+          <div class="srv-icon"><div class="dot-red"></div>📖</div>
+          <div class="srv-icon" style="opacity:0.4">+</div>
+        </div>
+      </div>
+      <div class="box lt">
+        <div class="box-label">Day</div>
+        <div class="rail">
+          <div class="srv-icon" style="background:rgba(79,172,254,0.15);color:#2b6cb0">💬</div>
+          <div class="srv-icon"><div class="dot-red"></div>⛪</div>
+          <div class="srv-icon">🙏</div>
+          <div class="srv-icon"><div class="dot-red"></div>📖</div>
+          <div class="srv-icon" style="opacity:0.4">+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 4. NOTIFICATION ITEMS -->
+  <div class="context">
+    <div class="ctx-label">4. Notification Feed — Unread Dot</div>
+    <div class="ctx-desc">Red dot next to each unread notification</div>
+    <div class="row">
+      <div class="box dk">
+        <div class="box-label">Night</div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)">M</div>
+          <div class="nf-text"><b>Marcus</b> liked your testimony</div>
+          <div class="nf-dot"><span class="dot-red"></span></div>
+        </div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div>
+          <div class="nf-text"><b>Aaliyah</b> commented: "🙏"</div>
+          <div class="nf-dot"><span class="dot-red"></span></div>
+        </div>
+      </div>
+      <div class="box lt">
+        <div class="box-label">Day</div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#e05c6c,#e8b84a)">M</div>
+          <div class="nf-text"><b>Marcus</b> liked your testimony</div>
+          <div class="nf-dot"><span class="dot-red"></span></div>
+        </div>
+        <div class="nf unread">
+          <div class="nf-av" style="background:linear-gradient(135deg,#5cc88a,#4ab8c4)">A</div>
+          <div class="nf-text"><b>Aaliyah</b> commented: "🙏"</div>
+          <div class="nf-dot"><span class="dot-red"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 5. BELL ICON -->
+  <div class="context">
+    <div class="ctx-label">5. Bell Icon Badge</div>
+    <div class="ctx-desc">Notification count on 🔔 in header bar</div>
+    <div class="row">
+      <div class="box dk" style="display:flex;align-items:center;justify-content:center;gap:20px">
+        <div class="bell-wrap" style="color:#8e89a8">🔔<span class="badge-red" style="border-color:#0d0b18">5</span></div>
+        <div style="font-size:7px;color:#5d5877">← in header bar</div>
+      </div>
+      <div class="box lt" style="display:flex;align-items:center;justify-content:center;gap:20px">
+        <div class="bell-wrap" style="color:#4a5e88">🔔<span class="badge-red" style="border-color:#d6daf5">5</span></div>
+        <div style="font-size:7px;color:#8e9ec0">← in header bar</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 6. CHANNEL LIST -->
+  <div class="context">
+    <div class="ctx-label">6. Channel List — Unread Channels</div>
+    <div class="ctx-desc">Badge count on channels with new messages</div>
+    <div class="row">
+      <div class="box dk">
+        <div class="box-label">Night</div>
+        <div class="ch unread"><span class="ch-prefix">—</span><span class="ch-name" style="color:#e8e5f2">share-testimonies</span><span class="badge-red">4</span></div>
+        <div class="ch"><span class="ch-prefix">—</span><span class="ch-name">prayer-requests</span></div>
+        <div class="ch unread"><span class="ch-prefix">—</span><span class="ch-name" style="color:#e8e5f2">general-chat</span><span class="badge-red">12</span></div>
+      </div>
+      <div class="box lt">
+        <div class="box-label">Day</div>
+        <div class="ch unread"><span class="ch-prefix">—</span><span class="ch-name" style="color:#1e2b4a">share-testimonies</span><span class="badge-red">4</span></div>
+        <div class="ch"><span class="ch-prefix">—</span><span class="ch-name">prayer-requests</span></div>
+        <div class="ch unread"><span class="ch-prefix">—</span><span class="ch-name" style="color:#1e2b4a">general-chat</span><span class="badge-red">12</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body></html>
