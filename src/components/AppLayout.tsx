@@ -256,7 +256,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               }
         }
       >
-        <div className="px-2 sm:px-6 lg:px-8 flex justify-around items-center" style={{ padding: "6px 12px 16px" }}>
+        <div className="flex justify-around items-center" style={{ padding: "6px 16px calc(env(safe-area-inset-bottom, 8px) + 8px)" }}>
           <NavButton
             tab="home"
             label="Home"
@@ -264,7 +264,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             nightMode={nightMode}
             badge={notificationCounts.messages}
             onClick={() => setCurrentTab("home")}
-            icon={<HomeIcon className="w-[18px] h-[18px]" strokeWidth={currentTab === "home" ? 2.2 : 1.8} />}
+            icon={<HomeIcon className="w-5 h-5" strokeWidth={currentTab === "home" ? 2.2 : 1.8} />}
           />
           <NavButton
             tab="charge"
@@ -273,7 +273,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             nightMode={nightMode}
             badge={notificationCounts.charge}
             onClick={() => setCurrentTab("charge")}
-            icon={<BoltIcon className="w-[18px] h-[18px]" strokeWidth={currentTab === "charge" ? 2.2 : 1.8} />}
+            icon={<BoltIcon className="w-5 h-5" strokeWidth={currentTab === "charge" ? 2.2 : 1.8} />}
           />
           <NavButton
             tab="you"
@@ -281,7 +281,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             currentTab={currentTab}
             nightMode={nightMode}
             onClick={() => setCurrentTab("you")}
-            icon={<PersonIcon className="w-[18px] h-[18px]" strokeWidth={currentTab === "you" ? 2.2 : 1.8} />}
+            icon={<PersonIcon className="w-5 h-5" strokeWidth={currentTab === "you" ? 2.2 : 1.8} />}
           />
         </div>
       </div>
@@ -362,9 +362,9 @@ const NavButton: React.FC<NavButtonProps> = ({
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center gap-0.5 rounded-[10px] cursor-pointer transition-all"
+      className="flex flex-col items-center gap-0.5 rounded-xl cursor-pointer transition-all"
       style={{
-        padding: "5px 14px",
+        padding: "6px 16px",
         color: style.color,
         background: style.background,
         border: style.border,
@@ -377,12 +377,12 @@ const NavButton: React.FC<NavButtonProps> = ({
           <div
             className="absolute flex items-center justify-center badge-pulse"
             style={{
-              top: "-2px",
-              right: "2px",
-              minWidth: "14px",
-              height: "14px",
-              borderRadius: "7px",
-              fontSize: "7px",
+              top: "-4px",
+              right: "-6px",
+              minWidth: "16px",
+              height: "16px",
+              borderRadius: "8px",
+              fontSize: "9px",
               fontWeight: 700,
               padding: "0 3px",
               background: "#ef4444",
@@ -395,9 +395,8 @@ const NavButton: React.FC<NavButtonProps> = ({
         )}
       </div>
       <span
+        className="text-[10px] font-medium"
         style={{
-          fontSize: "7.5px",
-          fontWeight: 500,
           letterSpacing: "0.3px",
           color: style.color,
         }}

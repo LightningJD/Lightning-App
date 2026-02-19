@@ -139,9 +139,9 @@ const MenuItem: React.FC<MenuItemProps> = ({
           }}
           className="flex-shrink-0 relative transition-colors cursor-pointer"
           style={{
-            width: "28px",
-            height: "16px",
-            borderRadius: "8px",
+            width: "36px",
+            height: "20px",
+            borderRadius: "10px",
             background: isOn
               ? nightMode ? "rgba(123,118,224,0.3)" : "rgba(79,172,254,0.25)"
               : nightMode ? "rgba(255,255,255,0.08)" : "rgba(150,165,225,0.15)",
@@ -150,11 +150,11 @@ const MenuItem: React.FC<MenuItemProps> = ({
           <div
             className="absolute transition-all"
             style={{
-              width: "12px",
-              height: "12px",
+              width: "16px",
+              height: "16px",
               borderRadius: "50%",
               top: "2px",
-              left: isOn ? "14px" : "2px",
+              left: isOn ? "18px" : "2px",
               background: isOn
                 ? nightMode ? "#7b76e0" : "#4facfe"
                 : nightMode ? "#5d5877" : "#8e9ec0",

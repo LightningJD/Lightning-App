@@ -57,11 +57,11 @@ const GroupLabel: React.FC<{ nightMode: boolean; children: React.ReactNode }> = 
 }) => (
   <div
     style={{
-      fontSize: "6.5px",
+      fontSize: "10px",
       textTransform: "uppercase",
       letterSpacing: "1.2px",
       fontWeight: 600,
-      margin: "0 4px 4px",
+      margin: "0 4px 6px",
       color: nightMode ? "#5d5877" : "#4a5e88",
     }}
   >
@@ -100,6 +100,15 @@ const SettingsMenu: React.FC = () => {
     setShowLogoutConfirm,
   } = useAppContext();
 
+  // Close on Escape key
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowMenu(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [setShowMenu]);
+
   // Avatar initial letter
   const initial = (profile.displayName || profile.username || "U").charAt(0).toUpperCase();
 
@@ -112,17 +121,17 @@ const SettingsMenu: React.FC = () => {
           : "linear-gradient(135deg, #cdd8f8 0%, #d6daf5 40%, #dee0f6 70%, #e4e0f5 100%)",
       }}
     >
-      <div style={{ padding: "24px 8px 20px", maxWidth: "400px", margin: "0 auto" }}>
+      <div style={{ padding: "24px 16px 20px", maxWidth: "400px", margin: "0 auto" }}>
         {/* Header: back arrow + title */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 2px 8px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 4px 12px" }}>
           <button
             onClick={() => setShowMenu(false)}
             style={{
               background: "none",
               border: "none",
-              fontSize: "14px",
+              fontSize: "20px",
               cursor: "pointer",
-              width: "20px",
+              width: "28px",
               color: nightMode ? "#8e89a8" : "#4a5e88",
               padding: 0,
             }}
@@ -133,7 +142,7 @@ const SettingsMenu: React.FC = () => {
           <span
             style={{
               fontFamily: "'DM Sans', sans-serif",
-              fontSize: "16px",
+              fontSize: "18px",
               fontWeight: 600,
               color: nightMode ? "#e8e5f2" : "#1e2b4a",
             }}
@@ -141,7 +150,7 @@ const SettingsMenu: React.FC = () => {
             Settings
           </span>
           {/* Spacer to balance the back arrow */}
-          <div style={{ width: "20px" }} />
+          <div style={{ width: "28px" }} />
         </div>
 
         {/* Profile summary card */}
@@ -161,10 +170,10 @@ const SettingsMenu: React.FC = () => {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "8px",
-            padding: "10px",
-            borderRadius: "12px",
-            marginBottom: "10px",
+            gap: "12px",
+            padding: "12px",
+            borderRadius: "14px",
+            marginBottom: "12px",
             cursor: "pointer",
             background: nightMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.5)",
             border: nightMode
@@ -185,8 +194,8 @@ const SettingsMenu: React.FC = () => {
               src={profile.avatarImage}
               alt={profile.displayName}
               style={{
-                width: "38px",
-                height: "38px",
+                width: "44px",
+                height: "44px",
                 borderRadius: "50%",
                 objectFit: "cover",
                 flexShrink: 0,
@@ -195,13 +204,13 @@ const SettingsMenu: React.FC = () => {
           ) : (
             <div
               style={{
-                width: "38px",
-                height: "38px",
+                width: "44px",
+                height: "44px",
                 borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "15px",
+                fontSize: "18px",
                 fontFamily: "'Playfair Display', serif",
                 color: "white",
                 flexShrink: 0,
@@ -216,7 +225,7 @@ const SettingsMenu: React.FC = () => {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                fontSize: "10px",
+                fontSize: "14px",
                 fontWeight: 600,
                 color: nightMode ? "#e8e5f2" : "#1e2b4a",
               }}
@@ -225,20 +234,20 @@ const SettingsMenu: React.FC = () => {
             </div>
             <div
               style={{
-                fontSize: "7.5px",
+                fontSize: "12px",
                 color: nightMode ? "#5d5877" : "#8e9ec0",
               }}
             >
               @{profile.username}
             </div>
           </div>
-          <span style={{ fontSize: "10px", opacity: 0.3, color: nightMode ? "#e8e5f2" : "#1e2b4a" }}>
+          <span style={{ fontSize: "16px", opacity: 0.3, color: nightMode ? "#e8e5f2" : "#1e2b4a" }}>
             &rsaquo;
           </span>
         </div>
 
         {/* Account */}
-        <div style={{ marginBottom: "8px" }}>
+        <div style={{ marginBottom: "12px" }}>
           <GroupLabel nightMode={nightMode}>Account</GroupLabel>
           <GlassCard nightMode={nightMode}>
             <MenuItem
@@ -273,10 +282,10 @@ const SettingsMenu: React.FC = () => {
         </div>
 
         {/* Lightning Pro */}
-        <div style={{ marginBottom: "8px" }}>
+        <div style={{ marginBottom: "12px" }}>
           <GroupLabel nightMode={nightMode}>Lightning Pro</GroupLabel>
           <GlassCard nightMode={nightMode}>
-            <div style={{ padding: "8px 10px" }}>
+            <div style={{ padding: "10px 12px" }}>
               <ProSettings
                 nightMode={nightMode}
                 userEmail={userProfile?.email || ""}
@@ -287,7 +296,7 @@ const SettingsMenu: React.FC = () => {
         </div>
 
         {/* Privacy & Safety */}
-        <div style={{ marginBottom: "8px" }}>
+        <div style={{ marginBottom: "12px" }}>
           <GroupLabel nightMode={nightMode}>Privacy & Safety</GroupLabel>
           <GlassCard nightMode={nightMode}>
             <MenuItem
@@ -329,7 +338,7 @@ const SettingsMenu: React.FC = () => {
         </div>
 
         {/* Notifications */}
-        <div style={{ marginBottom: "8px" }}>
+        <div style={{ marginBottom: "12px" }}>
           <GroupLabel nightMode={nightMode}>Notifications</GroupLabel>
           <GlassCard nightMode={nightMode}>
             <MenuItem
@@ -379,7 +388,7 @@ const SettingsMenu: React.FC = () => {
         </div>
 
         {/* Appearance */}
-        <div style={{ marginBottom: "8px" }}>
+        <div style={{ marginBottom: "12px" }}>
           <GroupLabel nightMode={nightMode}>Appearance</GroupLabel>
           <GlassCard nightMode={nightMode}>
             {/* Night Mode Toggle */}
@@ -388,16 +397,16 @@ const SettingsMenu: React.FC = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "8px 10px",
+                padding: "10px 12px",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
-                <span style={{ fontSize: "11px", width: "16px", textAlign: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "16px", width: "20px", textAlign: "center" }}>
                   {nightMode ? "\u{1F319}" : "\u{2600}\u{FE0F}"}
                 </span>
                 <span
                   style={{
-                    fontSize: "8.5px",
+                    fontSize: "13px",
                     fontWeight: 500,
                     color: nightMode ? "#e8e5f2" : "#1e2b4a",
                   }}
@@ -417,9 +426,9 @@ const SettingsMenu: React.FC = () => {
                   }
                 }}
                 style={{
-                  width: "28px",
-                  height: "16px",
-                  borderRadius: "8px",
+                  width: "36px",
+                  height: "20px",
+                  borderRadius: "10px",
                   position: "relative",
                   cursor: "pointer",
                   transition: "background 0.2s",
@@ -431,11 +440,11 @@ const SettingsMenu: React.FC = () => {
                 <div
                   style={{
                     position: "absolute",
-                    width: "12px",
-                    height: "12px",
+                    width: "16px",
+                    height: "16px",
                     borderRadius: "50%",
                     top: "2px",
-                    left: nightMode ? "14px" : "2px",
+                    left: nightMode ? "18px" : "2px",
                     transition: "all 0.2s",
                     background: nightMode ? "#7b76e0" : "#8e9ec0",
                   }}
@@ -446,24 +455,24 @@ const SettingsMenu: React.FC = () => {
             {/* Search Radius */}
             <div
               style={{
-                padding: "8px 10px",
+                padding: "10px 12px",
                 borderTop: nightMode
                   ? "1px solid rgba(255,255,255,0.04)"
                   : "1px solid rgba(150,165,225,0.1)",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
                 <MapPin
                   style={{
-                    width: "16px",
-                    height: "16px",
+                    width: "20px",
+                    height: "20px",
                     color: nightMode ? "#8e89a8" : "#4a5e88",
                   }}
                 />
                 <div>
                   <span
                     style={{
-                      fontSize: "8.5px",
+                      fontSize: "13px",
                       fontWeight: 500,
                       color: nightMode ? "#e8e5f2" : "#1e2b4a",
                     }}
@@ -472,16 +481,16 @@ const SettingsMenu: React.FC = () => {
                   </span>
                   <span
                     style={{
-                      fontSize: "7px",
+                      fontSize: "11px",
                       color: nightMode ? "#5d5877" : "#8e9ec0",
-                      marginLeft: "4px",
+                      marginLeft: "6px",
                     }}
                   >
                     5-100 miles
                   </span>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <input
                   type="number"
                   min="5"
@@ -497,10 +506,10 @@ const SettingsMenu: React.FC = () => {
                   }}
                   style={{
                     flex: 1,
-                    padding: "4px 8px",
+                    padding: "6px 10px",
                     borderRadius: "8px",
                     textAlign: "center",
-                    fontSize: "8.5px",
+                    fontSize: "13px",
                     background: nightMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.5)",
                     border: nightMode
                       ? "1px solid rgba(255,255,255,0.06)"
@@ -513,9 +522,9 @@ const SettingsMenu: React.FC = () => {
                 <button
                   onClick={handleSaveSearchRadius}
                   style={{
-                    padding: "4px 8px",
+                    padding: "6px 12px",
                     borderRadius: "8px",
-                    fontSize: "7px",
+                    fontSize: "11px",
                     fontWeight: 600,
                     cursor: "pointer",
                     border: "none",
@@ -539,7 +548,7 @@ const SettingsMenu: React.FC = () => {
         </div>
 
         {/* About & Support */}
-        <div style={{ marginBottom: "8px" }}>
+        <div style={{ marginBottom: "12px" }}>
           <GroupLabel nightMode={nightMode}>About & Support</GroupLabel>
           <GlassCard nightMode={nightMode}>
             <MenuItem
@@ -611,9 +620,9 @@ const SettingsMenu: React.FC = () => {
           }}
           style={{
             textAlign: "center",
-            padding: "10px",
-            borderRadius: "10px",
-            fontSize: "9px",
+            padding: "12px",
+            borderRadius: "12px",
+            fontSize: "14px",
             fontWeight: 500,
             cursor: "pointer",
             marginTop: "4px",
@@ -637,8 +646,8 @@ const SettingsMenu: React.FC = () => {
         <div
           style={{
             textAlign: "center",
-            fontSize: "7px",
-            marginTop: "8px",
+            fontSize: "11px",
+            marginTop: "12px",
             color: nightMode ? "#5d5877" : "#8e9ec0",
             opacity: 0.5,
           }}
