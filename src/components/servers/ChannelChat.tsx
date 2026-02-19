@@ -32,6 +32,8 @@ interface ChannelChatProps {
   serverId?: string;
   members?: Array<{
     user_id: string;
+    role_id?: string;
+    role?: { name: string; color: string };
     user?: {
       id: string;
       display_name: string;
@@ -77,16 +79,38 @@ const REACTION_EMOJIS = [
   "\u{1F4AF}",
 ];
 
-// Map common channel names to emoji
-const getChannelEmoji = (name: string): string => {
-  const lower = name.toLowerCase();
-  if (lower.includes("general")) return "\u{1F4AC}";
-  if (lower.includes("prayer")) return "\u{1F64F}";
-  if (lower.includes("bible") || lower.includes("study")) return "\u{1F4D6}";
-  if (lower.includes("worship") || lower.includes("music")) return "\u{1F3B5}";
-  if (lower.includes("announcements")) return "\u{1F4E2}";
-  if (lower.includes("welcome")) return "\u{1F44B}";
-  return "\u{1F4AC}";
+// ── Gradient palette for avatars ──────────────────────────────
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg, #e05c6c, #e8b84a)',
+  'linear-gradient(135deg, #5cc88a, #4ab8c4)',
+  'linear-gradient(135deg, #e8b84a, #e05c6c)',
+  'linear-gradient(135deg, #7b76e0, #9b96f5)',
+  'linear-gradient(135deg, #6b9ed6, #4a7ab8)',
+  'linear-gradient(135deg, #f6c744, #e8a020)',
+  'linear-gradient(135deg, #5cc88a, #2a9d5c)',
+  'linear-gradient(135deg, #4facfe, #e05c6c)',
+];
+
+const getGradient = (id: string): string => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+    hash |= 0;
+  }
+  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+};
+
+const getInitials = (name: string): string => {
+  return name.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase();
+};
+
+// Role badge color map (night / day)
+const ROLE_COLORS: Record<string, { nightBg: string; nightText: string; dayBg: string; dayText: string }> = {
+  'owner':  { nightBg: 'rgba(232,184,74,0.15)', nightText: '#e8b84a', dayBg: 'rgba(232,184,74,0.1)', dayText: '#b47a10' },
+  'pastor': { nightBg: 'rgba(232,184,74,0.15)', nightText: '#e8b84a', dayBg: 'rgba(232,184,74,0.1)', dayText: '#b47a10' },
+  'admin':  { nightBg: 'rgba(123,118,224,0.15)', nightText: '#7b76e0', dayBg: 'rgba(79,172,254,0.1)', dayText: '#2b6cb0' },
+  'leader': { nightBg: 'rgba(92,200,138,0.15)', nightText: '#5cc88a', dayBg: 'rgba(92,200,138,0.1)', dayText: '#16834a' },
+  'moderator': { nightBg: 'rgba(92,200,138,0.15)', nightText: '#5cc88a', dayBg: 'rgba(92,200,138,0.1)', dayText: '#16834a' },
 };
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -122,6 +146,15 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     members,
     permissions,
   });
+
+  // Look up a sender's role from the members prop
+  const getSenderRole = (senderId: string) => {
+    const member = members?.find(m => m.user_id === senderId);
+    if (!member?.role?.name) return null;
+    const roleName = member.role.name.toLowerCase();
+    if (roleName === 'member' || roleName === 'no role' || roleName === '@everyone') return null;
+    return { name: member.role.name, color: member.role.color, key: roleName };
+  };
 
   // Slowmode tracking (UI-only, wraps around the hook)
   const [slowmodeCooldown, setSlowmodeCooldown] = useState(0);
@@ -166,9 +199,8 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     const parts = content.split(/(@[^\s@]+(?:\s[^\s@]+)*)(?=\s|$)/g);
     return (
       <p
-        className={`text-[15px] break-words whitespace-pre-wrap mt-0.5 leading-relaxed ${
-          nightMode ? "text-white/80" : "text-black/80"
-        }`}
+        className="text-[15px] break-words whitespace-pre-wrap mt-0.5 leading-relaxed"
+        style={{ color: nightMode ? '#b8b4c8' : '#3a4d6e' }}
       >
         {parts.map((part, i) => {
           if (part.startsWith("@") && part.length > 1) {
@@ -232,41 +264,27 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           <button
             key={emoji}
             onClick={() => ch.handleReaction(messageId, emoji)}
-            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all hover:scale-105 active:scale-95 ${
-              data.hasReacted
-                ? nightMode
-                  ? "border border-blue-500/40"
-                  : "border border-blue-400/50"
-                : nightMode
-                  ? "border border-white/10 hover:border-white/20"
-                  : "border border-black/10 hover:border-black/20"
-            }`}
-            style={
-              data.hasReacted
-                ? {
-                    background: nightMode
-                      ? "rgba(79, 150, 255, 0.15)"
-                      : "rgba(79, 150, 255, 0.1)",
-                  }
-                : {
-                    background: nightMode
-                      ? "rgba(255,255,255,0.04)"
-                      : "rgba(0,0,0,0.03)",
-                  }
-            }
+            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all hover:scale-105 active:scale-95"
+            style={{
+              background: data.hasReacted
+                ? nightMode ? 'rgba(123,118,224,0.1)' : 'rgba(79,172,254,0.1)'
+                : nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
+              border: `1px solid ${data.hasReacted
+                ? nightMode ? 'rgba(123,118,224,0.3)' : 'rgba(79,172,254,0.25)'
+                : nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.1)'}`,
+              backdropFilter: nightMode ? undefined : 'blur(8px)',
+              WebkitBackdropFilter: nightMode ? undefined : 'blur(8px)',
+            }}
             title={data.users.join(", ")}
           >
             <span className="text-sm leading-none">{emoji}</span>
             <span
-              className={`text-[11px] font-semibold leading-none ${
-                data.hasReacted
-                  ? nightMode
-                    ? "text-blue-300"
-                    : "text-blue-600"
-                  : nightMode
-                    ? "text-white/50"
-                    : "text-black/50"
-              }`}
+              className="text-[11px] font-semibold leading-none"
+              style={{
+                color: data.hasReacted
+                  ? nightMode ? '#9b96f5' : '#2b6cb0'
+                  : nightMode ? '#8e89a8' : '#4a5e88',
+              }}
             >
               {data.count}
             </span>
@@ -281,15 +299,11 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
                 [messageId]: true,
               }))
             }
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs transition-all hover:scale-105 ${
-              nightMode
-                ? "border border-white/10 hover:border-white/20 text-white/40"
-                : "border border-black/10 hover:border-black/20 text-black/40"
-            }`}
+            className="inline-flex items-center px-2 py-1 rounded-full text-xs transition-all hover:scale-105"
             style={{
-              background: nightMode
-                ? "rgba(255,255,255,0.04)"
-                : "rgba(0,0,0,0.03)",
+              background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
+              border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.1)'}`,
+              color: nightMode ? '#8e89a8' : '#4a5e88',
             }}
           >
             <span className="text-[11px] font-semibold">+{hiddenCount}</span>
@@ -304,15 +318,11 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
                 [messageId]: false,
               }))
             }
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs transition-all hover:scale-105 ${
-              nightMode
-                ? "border border-white/10 hover:border-white/20 text-white/40"
-                : "border border-black/10 hover:border-black/20 text-black/40"
-            }`}
+            className="inline-flex items-center px-2 py-1 rounded-full text-xs transition-all hover:scale-105"
             style={{
-              background: nightMode
-                ? "rgba(255,255,255,0.04)"
-                : "rgba(0,0,0,0.03)",
+              background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
+              border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.1)'}`,
+              color: nightMode ? '#8e89a8' : '#4a5e88',
             }}
           >
             <span className="text-[11px] font-semibold">{"\u2212"}</span>
@@ -439,9 +449,8 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         {/* Reply reference */}
         {replyToMsg && (
           <div
-            className={`flex items-center gap-2 ml-14 mb-1 text-xs ${
-              nightMode ? "text-white/40" : "text-black/40"
-            }`}
+            className="flex items-center gap-2 ml-14 mb-1 text-xs"
+            style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
           >
             <CornerUpRight className="w-3 h-3 flex-shrink-0" />
             <span className="font-semibold truncate">
@@ -452,61 +461,69 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         )}
 
         <div
-          className={`flex items-start gap-3 px-4 py-3 rounded-2xl transition-all ${
-            nightMode ? "hover:bg-white/[0.02]" : "hover:bg-black/[0.02]"
-          }`}
+          className="flex items-start gap-3 px-4 py-3 rounded-2xl transition-all hover:brightness-105"
           style={{
-            background: isOwnMessage
-              ? nightMode
-                ? "rgba(79, 150, 255, 0.06)"
-                : "rgba(79, 150, 255, 0.04)"
-              : nightMode
-                ? "rgba(255, 255, 255, 0.03)"
-                : "rgba(255, 255, 255, 0.5)",
-            border: `1px solid ${
-              isOwnMessage
-                ? nightMode
-                  ? "rgba(79, 150, 255, 0.1)"
-                  : "rgba(79, 150, 255, 0.08)"
-                : nightMode
-                  ? "rgba(255, 255, 255, 0.04)"
-                  : "rgba(0, 0, 0, 0.04)"
-            }`,
+            background: nightMode
+              ? "rgba(255,255,255,0.03)"
+              : "rgba(255,255,255,0.5)",
+            border: `1px solid ${nightMode ? "rgba(255,255,255,0.04)" : "rgba(150,165,225,0.1)"}`,
+            backdropFilter: nightMode ? undefined : 'blur(8px)',
+            WebkitBackdropFilter: nightMode ? undefined : 'blur(8px)',
           }}
         >
-          {/* Avatar */}
+          {/* Avatar — gradient circle with letter initial */}
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
             style={{
-              background: isOwnMessage
-                ? "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)"
-                : nightMode
-                  ? "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))"
-                  : "linear-gradient(135deg, rgba(0,0,0,0.06), rgba(0,0,0,0.03))",
-              boxShadow: isOwnMessage
-                ? "0 2px 8px rgba(59, 130, 246, 0.2)"
-                : "none",
+              background: getGradient(msg.sender_id || 'unknown'),
+              color: 'white',
+              fontSize: '14px',
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 500,
             }}
           >
-            {msg.sender?.avatar_emoji || "\u{1F464}"}
+            {getInitials(msg.sender?.display_name || 'U')}
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span
-                className={`font-semibold text-sm ${nightMode ? "text-white" : "text-black"}`}
+                className="font-semibold text-sm"
+                style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
               >
                 {msg.sender?.display_name}
               </span>
+              {/* Role badge */}
+              {(() => {
+                const role = getSenderRole(msg.sender_id);
+                if (!role) return null;
+                const colors = ROLE_COLORS[role.key] || {
+                  nightBg: `${role.color}20`, nightText: role.color,
+                  dayBg: `${role.color}18`, dayText: role.color,
+                };
+                return (
+                  <span
+                    className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                    style={{
+                      background: nightMode ? colors.nightBg : colors.dayBg,
+                      color: nightMode ? colors.nightText : colors.dayText,
+                    }}
+                  >
+                    {role.name}
+                  </span>
+                );
+              })()}
               <span
-                className={`text-xs ${nightMode ? "text-white/30" : "text-black/30"}`}
+                className="text-[11px]"
+                style={{ color: nightMode ? '#5d5877' : '#8e9ec0', opacity: 0.7 }}
               >
                 {formatTime(msg.created_at)}
               </span>
               {msg.is_edited && (
                 <span
-                  className={`text-[10px] ${nightMode ? "text-white/20" : "text-black/20"}`}
+                  className="text-[10px]"
+                  style={{ color: nightMode ? '#5d5877' : '#8e9ec0', opacity: 0.5 }}
                 >
                   (edited)
                 </span>
@@ -739,28 +756,28 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
       <div
         className="px-5 py-3 flex items-center justify-between flex-shrink-0"
         style={{
-          borderBottom: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-          background: nightMode ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.3)",
-          backdropFilter: "blur(30px)",
-          WebkitBackdropFilter: "blur(30px)",
+          borderBottom: `1px solid ${nightMode ? "rgba(255,255,255,0.04)" : "rgba(150,165,225,0.15)"}`,
+          background: nightMode ? "rgba(13,11,24,0.8)" : "rgba(205,216,248,0.6)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
         }}
       >
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <span className="text-lg flex-shrink-0">
-            {getChannelEmoji(channelName)}
-          </span>
           <h3
-            className={`font-bold text-base truncate ${nightMode ? "text-white" : "text-black"}`}
+            className="font-semibold text-sm truncate"
+            style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
           >
-            {channelName}
+            — {channelName}
           </h3>
           {channelTopic && (
             <>
               <div
-                className={`w-px h-4 ${nightMode ? "bg-white/10" : "bg-black/10"}`}
+                className="w-px h-4"
+                style={{ background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)' }}
               />
               <p
-                className={`text-xs truncate ${nightMode ? "text-white/40" : "text-black/40"}`}
+                className="text-xs truncate"
+                style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
               >
                 {channelTopic}
               </p>
@@ -910,9 +927,10 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
                       {result.sender?.display_name || "Unknown"}
                     </span>
                     <span
-                      className={`text-[10px] ${nightMode ? "text-white/20" : "text-black/20"}`}
+                      className="text-[10px]"
+                      style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
                     >
-                      in #{result.channel?.name || "unknown"}
+                      in — {result.channel?.name || "unknown"}
                     </span>
                     <span
                       className={`text-[10px] ${nightMode ? "text-white/20" : "text-black/20"}`}
@@ -978,9 +996,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         ref={ch.messagesContainerRef}
         className="flex-1 overflow-y-auto py-3"
         style={{
-          background: nightMode ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.15)",
-          backdropFilter: "blur(30px)",
-          WebkitBackdropFilter: "blur(30px)",
+          background: 'transparent',
         }}
         role="presentation"
         onClick={() => {
@@ -990,27 +1006,31 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
       >
         {ch.loading ? (
           <div
-            className={`text-center py-12 ${nightMode ? "text-white/40" : "text-black/40"}`}
+            className="text-center py-12 text-sm"
+            style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
           >
-            <div className="text-3xl mb-3">{getChannelEmoji(channelName)}</div>
             Loading messages...
           </div>
         ) : ch.messages.length === 0 ? (
-          <div
-            className={`flex flex-col items-center justify-center h-full px-4 ${
-              nightMode ? "text-white" : "text-black"
-            }`}
-          >
-            <div className="text-5xl mb-4">{getChannelEmoji(channelName)}</div>
-            <h3 className="font-bold text-lg mb-1 opacity-70">
-              Welcome to {channelName}!
+          <div className="flex flex-col items-center justify-center h-full px-4">
+            <h3
+              className="font-semibold text-lg mb-1"
+              style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a', opacity: 0.7 }}
+            >
+              Welcome to — {channelName}!
             </h3>
             {channelTopic && (
-              <p className="text-sm opacity-40 text-center max-w-sm mb-4">
+              <p
+                className="text-sm text-center max-w-sm mb-4"
+                style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
+              >
                 {channelTopic}
               </p>
             )}
-            <p className="text-sm opacity-30">
+            <p
+              className="text-sm"
+              style={{ color: nightMode ? '#5d5877' : '#8e9ec0', opacity: 0.6 }}
+            >
               This is the beginning of the channel. Start the conversation!
             </p>
           </div>
@@ -1028,12 +1048,13 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           className="px-5 py-1.5 flex-shrink-0"
           style={{
             background: nightMode
-              ? "rgba(0,0,0,0.08)"
-              : "rgba(255,255,255,0.2)",
+              ? "rgba(13,11,24,0.6)"
+              : "rgba(205,216,248,0.4)",
           }}
         >
           <p
-            className={`text-xs ${nightMode ? "text-white/40" : "text-black/40"}`}
+            className="text-xs"
+            style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
           >
             <span className="font-semibold">
               {ch.typingUsers.map((t) => t.display_name).join(", ")}
@@ -1068,23 +1089,26 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         <div
           className="px-4 py-2.5 flex items-center gap-3 flex-shrink-0"
           style={{
-            borderTop: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+            borderTop: `1px solid ${nightMode ? "rgba(255,255,255,0.04)" : "rgba(150,165,225,0.15)"}`,
             background: nightMode
-              ? "rgba(79,150,255,0.06)"
-              : "rgba(79,150,255,0.04)",
+              ? "rgba(123,118,224,0.06)"
+              : "rgba(79,172,254,0.04)",
           }}
         >
           <Reply
-            className={`w-4 h-4 flex-shrink-0 ${nightMode ? "text-blue-400" : "text-blue-500"}`}
+            className="w-4 h-4 flex-shrink-0"
+            style={{ color: nightMode ? '#7b76e0' : '#4facfe' }}
           />
           <div className="flex-1 min-w-0">
             <span
-              className={`text-xs font-semibold ${nightMode ? "text-blue-300" : "text-blue-600"}`}
+              className="text-xs font-semibold"
+              style={{ color: nightMode ? '#9b96f5' : '#2b6cb0' }}
             >
               Replying to {ch.replyingTo.sender?.display_name}
             </span>
             <p
-              className={`text-xs truncate ${nightMode ? "text-white/40" : "text-black/40"}`}
+              className="text-xs truncate"
+              style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
             >
               {ch.replyingTo.content}
             </p>
@@ -1215,12 +1239,12 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           onSubmit={ch.handleSendMessage}
           className="px-4 py-3 flex gap-3 items-end flex-shrink-0"
           style={{
-            borderTop: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+            borderTop: `1px solid ${nightMode ? "rgba(255,255,255,0.04)" : "rgba(150,165,225,0.15)"}`,
             background: nightMode
-              ? "rgba(0,0,0,0.15)"
-              : "rgba(255,255,255,0.3)",
-            backdropFilter: "blur(30px)",
-            WebkitBackdropFilter: "blur(30px)",
+              ? "rgba(13,11,24,0.8)"
+              : "rgba(205,216,248,0.6)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
           }}
         >
           {/* Hidden file input */}
@@ -1235,11 +1259,8 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
           <button
             type="button"
             onClick={() => ch.imageInputRef.current?.click()}
-            className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${
-              nightMode
-                ? "text-white/40 hover:text-white/70 hover:bg-white/10"
-                : "text-black/40 hover:text-black/70 hover:bg-black/5"
-            }`}
+            className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
+            style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
             title="Attach image"
           >
             <ImageIcon className="w-5 h-5" />
@@ -1259,24 +1280,20 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
                 ? `Reply to ${ch.replyingTo.sender?.display_name}...`
                 : ch.pendingImage
                   ? "Add a caption..."
-                  : `Message ${channelName}...`
+                  : `Message — ${channelName}`
             }
             rows={1}
-            className={`flex-1 px-4 py-2.5 rounded-full focus:outline-none resize-none min-h-[42px] max-h-[100px] overflow-y-auto text-[15px] transition-all ${
-              nightMode
-                ? "text-white placeholder-white/30"
-                : "text-black placeholder-black/40"
-            }`}
+            className="flex-1 px-4 py-2.5 rounded-full focus:outline-none resize-none min-h-[42px] max-h-[100px] overflow-y-auto text-[15px] transition-all"
             style={{
               height: "auto",
               minHeight: "42px",
+              color: nightMode ? '#e8e5f2' : '#1e2b4a',
               background: nightMode
-                ? "rgba(255, 255, 255, 0.06)"
-                : "rgba(255, 255, 255, 0.5)",
-              border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-              boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.05)",
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(255,255,255,0.5)",
+              border: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)"}`,
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = "rgba(79, 150, 255, 0.4)";
@@ -1307,13 +1324,13 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
             style={{
               background:
                 ch.newMessage.trim() || ch.pendingImage
-                  ? "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)"
+                  ? nightMode ? '#7b76e0' : '#4facfe'
                   : nightMode
                     ? "rgba(255,255,255,0.08)"
                     : "rgba(0,0,0,0.06)",
               boxShadow:
                 ch.newMessage.trim() || ch.pendingImage
-                  ? "0 4px 12px rgba(59, 130, 246, 0.3)"
+                  ? nightMode ? "0 4px 12px rgba(123,118,224,0.3)" : "0 4px 12px rgba(79,172,254,0.3)"
                   : "none",
             }}
           >
@@ -1326,13 +1343,13 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         <div
           className="px-4 py-3 text-center text-sm flex-shrink-0"
           style={{
-            borderTop: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+            borderTop: `1px solid ${nightMode ? "rgba(255,255,255,0.04)" : "rgba(150,165,225,0.15)"}`,
             background: nightMode
-              ? "rgba(0,0,0,0.15)"
-              : "rgba(255,255,255,0.3)",
-            backdropFilter: "blur(30px)",
-            WebkitBackdropFilter: "blur(30px)",
-            color: nightMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)",
+              ? "rgba(13,11,24,0.8)"
+              : "rgba(205,216,248,0.6)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            color: nightMode ? '#5d5877' : '#8e9ec0',
           }}
         >
           {isTimedOut
