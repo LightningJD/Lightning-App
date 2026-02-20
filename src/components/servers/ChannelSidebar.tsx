@@ -1951,9 +1951,7 @@ const ChannelItem: React.FC<{
             }
       }
     >
-      <span className="text-base flex-shrink-0">
-        {channel.emoji_icon || getChannelEmoji(channel.name)}
-      </span>
+      <span className="flex-shrink-0" style={{ fontSize: '10px', opacity: 0.4 }}>—</span>
       <span className="truncate flex-1 text-left">{channel.name}</span>
 
       {/* Private indicator */}

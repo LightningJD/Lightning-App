@@ -477,17 +477,17 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         <div
           className="rounded-full flex items-center justify-center flex-shrink-0 mb-3 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95"
           style={{
-            width: '100px',
-            height: '100px',
-            fontSize: '38px',
+            width: '70px',
+            height: '70px',
+            fontSize: '26px',
             fontFamily: "'Playfair Display', serif",
             color: 'white',
             background: nightMode
               ? 'linear-gradient(135deg, #7b76e0, #9b96f5)'
               : 'linear-gradient(135deg, #4facfe, #9b96f5)',
             boxShadow: nightMode
-              ? '0 0 0 3px rgba(123,118,224,0.5), 0 0 20px rgba(123,118,224,0.25)'
-              : '0 0 0 3px rgba(79,172,254,0.4), 0 0 20px rgba(79,172,254,0.2)',
+              ? '0 0 0 3px rgba(123,118,224,0.3)'
+              : '0 0 0 3px rgba(79,172,254,0.25)',
           }}
           onClick={handleAvatarTap}
           role="presentation"
@@ -1506,13 +1506,12 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         {/* View counter */}
         {profile?.story?.viewCount != null && profile.story.viewCount > 0 && (
           <div
-            className="text-center text-[11px] mt-2 tracking-wide"
+            className="text-center mt-1"
             style={{
-              color: nightMode ? '#8e89a8' : '#4a5e88',
-              opacity: nightMode ? 0.65 : 0.45,
+              fontSize: '11px',
+              color: nightMode ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
             }}
           >
-            <span style={{ fontSize: '12px', opacity: 0.7, fontStyle: 'normal' }}>&#x29BF;</span>{' '}
             {profile.story.viewCount} views
           </div>
         )}

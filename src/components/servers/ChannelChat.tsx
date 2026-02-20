@@ -200,7 +200,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
     return (
       <p
         className="text-[15px] break-words whitespace-pre-wrap mt-0.5 leading-relaxed"
-        style={{ color: nightMode ? '#b8b4c8' : '#3a4d6e' }}
+        style={{ color: nightMode ? '#b8b4c8' : '#1e2b4a' }}
       >
         {parts.map((part, i) => {
           if (part.startsWith("@") && part.length > 1) {

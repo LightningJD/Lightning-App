@@ -1,5 +1,5 @@
 import React from "react";
-import { Zap, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useAppContext } from "../contexts/AppContext";
 
 // ============================================
@@ -118,11 +118,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   }}
                   title="Click me 10 times quickly..."
                 >
-                  <Zap
-                    className="w-5 h-5 text-yellow-400 fill-yellow-400"
-                    style={{ filter: "brightness(0)" }}
-                  />
-                  <span className="font-semibold text-black">Lightning</span>
+                  <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, color: '#8e9ec0' }}>Lightning Profile</span>
                 </div>
               )}
               {currentTab === "home" && (
@@ -225,8 +221,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   }}
                   title="Click me 10 times quickly..."
                 >
-                  <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  <span className="font-semibold text-white">Lightning</span>
+                  <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, color: '#5d5877' }}>Lightning Profile</span>
                 </div>
               )}
               {currentTab === "home" && (

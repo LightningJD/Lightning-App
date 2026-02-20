@@ -85,13 +85,13 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
         style={{
           background: nightMode
             ? "rgba(15, 15, 25, 0.95)"
-            : "rgba(255, 255, 255, 0.92)",
-          backdropFilter: "blur(30px)",
-          WebkitBackdropFilter: "blur(30px)",
-          border: `1px solid ${nightMode ? "rgba(255,255,255,0.08)" : "rgba(150,165,225,0.15)"}`,
+            : "rgba(255, 255, 255, 0.85)",
+          backdropFilter: nightMode ? undefined : "blur(20px)",
+          WebkitBackdropFilter: nightMode ? undefined : "blur(20px)",
+          border: `1px solid ${nightMode ? "rgba(255,255,255,0.08)" : "rgba(150,165,225,0.2)"}`,
           boxShadow: nightMode
-            ? "0 24px 48px rgba(0,0,0,0.4)"
-            : "0 24px 48px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)",
+            ? "0 20px 40px rgba(0,0,0,0.4)"
+            : "0 20px 40px rgba(0,0,0,0.08)",
         }}
       >
         {/* Header */}

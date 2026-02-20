@@ -281,7 +281,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                             background: nightMode
                               ? "rgba(123,118,224,0.2)"
                               : "rgba(79,172,254,0.15)",
-                            border: `1px solid ${nightMode ? "rgba(123,118,224,0.3)" : "rgba(79,172,254,0.25)"}`,
+                            border: `1px solid ${nightMode ? "rgba(123,118,224,0.3)" : "rgba(79,172,254,0.2)"}`,
                             color: nightMode ? "#9b96f5" : "#2b6cb0",
                           }}
                         >
@@ -293,11 +293,11 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                           className="px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all disabled:opacity-50"
                           style={{
                             background: "transparent",
-                            border: `1px solid ${nightMode ? "rgba(255,255,255,0.04)" : "rgba(150,165,225,0.08)"}`,
+                            border: `1px solid ${nightMode ? "rgba(255,255,255,0.04)" : "rgba(150,165,225,0.12)"}`,
                             color: nightMode ? "#5d5877" : "#8e9ec0",
                           }}
                         >
-                          Decline
+                          ✕
                         </button>
                       </div>
                     </div>

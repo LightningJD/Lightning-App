@@ -630,7 +630,7 @@ const SettingsMenu: React.FC = () => {
             border: nightMode
               ? "1px solid rgba(255,255,255,0.04)"
               : "1px solid rgba(150,165,225,0.1)",
-            color: nightMode ? "#e05c6c" : "#c43a4e",
+            color: "#e05c6c",
             ...(nightMode
               ? {}
               : {

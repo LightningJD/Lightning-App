@@ -316,10 +316,10 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
         >
           <button
             onClick={() => (onBack ? onBack() : setActiveChat(null))}
-            className="text-sm font-semibold mr-2"
+            className="mr-2 flex items-center"
             style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
           >
-            ← Back
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </button>
           <button
             className="flex items-center gap-2 active:opacity-70 transition-opacity flex-1 min-w-0"
@@ -336,11 +336,13 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
           >
             <div className="relative flex-shrink-0">
               <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white overflow-hidden"
+                className="rounded-full flex items-center justify-center text-white overflow-hidden"
                 style={{
+                  width: '22px',
+                  height: '22px',
                   background: conversation.avatarImage ? undefined : getGradient(conversation.userId || conversation.name),
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: '14px',
+                  fontSize: '8px',
                   fontWeight: 600,
                 }}
               >
@@ -356,10 +358,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
               </div>
               {conversation.online && (
                 <div
-                  className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full"
+                  className="absolute rounded-full"
                   style={{
+                    width: '6px',
+                    height: '6px',
+                    bottom: '-1px',
+                    right: '-1px',
                     background: '#5cc88a',
-                    border: `2px solid ${nightMode ? '#0d0b18' : '#d6daf5'}`,
+                    border: `1.5px solid ${nightMode ? '#0d0b18' : '#d6daf5'}`,
                   }}
                 />
               )}
@@ -639,14 +645,14 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                               ? {
                                   background: nightMode ? 'rgba(123,118,224,0.12)' : 'rgba(79,172,254,0.12)',
                                   border: `1px solid ${nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.15)'}`,
-                                  borderRadius: '14px 14px 4px 14px',
+                                  borderRadius: '14px 14px 3px 14px',
                                   color: nightMode ? '#e8e5f2' : '#1e2b4a',
                                 }
                               : {
-                                  background: nightMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.5)',
-                                  border: `1px solid ${nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(150,165,225,0.1)'}`,
-                                  borderRadius: '14px 14px 14px 4px',
-                                  color: nightMode ? '#b8b4c8' : '#3a4d6e',
+                                  background: nightMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.55)',
+                                  border: `1px solid ${nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(150,165,225,0.12)'}`,
+                                  borderRadius: '14px 14px 14px 3px',
+                                  color: nightMode ? '#b8b4c8' : '#1e2b4a',
                                   ...(nightMode ? {} : { backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }),
                                 }
                             }

@@ -638,8 +638,11 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
       >
         {/* Letter + gradient avatar */}
         <div
-          className="w-14 h-14 rounded-full flex items-center justify-center text-xl text-white mx-auto mb-3"
+          className="rounded-full flex items-center justify-center text-white mx-auto mb-3"
           style={{
+            width: '38px',
+            height: '38px',
+            fontSize: '15px',
             background: getGradient(),
             fontFamily: "'DM Sans', sans-serif",
             fontWeight: 700,
