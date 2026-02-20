@@ -22,7 +22,7 @@ const RATE_LIMITS = {
 
   // Content Creation
   create_testimony: { maxAttempts: 1, windowMs: 3600000, cooldownMs: 60000 }, // 1 testimony per hour, 1min cooldown
-  generate_testimony: { maxAttempts: 3, windowMs: 3600000, cooldownMs: 30000 }, // 3 AI generations per hour, 30s cooldown
+  generate_testimony: { maxAttempts: 3, windowMs: 3600000, cooldownMs: 30000 }, // 3 Lightning generations per hour, 30s cooldown
   update_profile: { maxAttempts: 5, windowMs: 300000, cooldownMs: 5000 }, // 5 updates per 5 min, 5s cooldown
 
   // Reactions & Interactions

@@ -103,7 +103,7 @@ function getEmailHtml(template: string, data: Record<string, any>): string {
             </p>
           </div>
           <p style="color: #94a3b8; font-size: 14px; margin-bottom: 24px;">
-            Upgrade back to Premium and unlock custom branding, AI insights, and more.
+            Upgrade back to Premium and unlock custom branding, Lightning insights, and more.
           </p>
           <a href="${data.upgradeUrl || '#'}" style="${buttonStyle}">Reactivate Premium</a>
         </div>

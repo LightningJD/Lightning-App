@@ -535,7 +535,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                                 className="text-xs mt-1"
                                 style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
                             >
-                                AI will help you craft your story. Just answer 4 simple questions.
+                                Lightning will help you craft your story. Just answer 4 simple questions.
                             </p>
                         </div>
 
@@ -679,7 +679,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                                         </>
                                     ) : isLastQuestion ? (
                                         <>
-                                            ⚡ Generate with AI
+                                            ⚡ Generate with Lightning
                                         </>
                                     ) : (
                                         <>

@@ -215,7 +215,7 @@ const ProSettings: React.FC<ProSettingsProps> = ({
     { icon: '✨', label: 'Profile glow effect' },
     { icon: '🎭', label: 'Animated avatar' },
     { icon: '🎨', label: 'Custom testimony design' },
-    { icon: '🤖', label: 'Extended AI generation' },
+    { icon: '🤖', label: 'Extended Lightning generation' },
     { icon: '⚡', label: 'Pro badge on profile' },
     { icon: '🎨', label: 'Custom accent color' },
   ];

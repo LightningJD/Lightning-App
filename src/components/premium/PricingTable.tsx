@@ -18,7 +18,7 @@ const PREMIUM_FEATURES = [
   'Custom accent colors',
   'Custom invite link (lightning.app/your-church)',
   'Branded testimony cards',
-  'AI Congregation Insights',
+  'Lightning Congregation Insights',
   'Advanced analytics dashboard',
   'Communication automation',
   'Staff roles & permissions',

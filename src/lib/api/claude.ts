@@ -1,10 +1,10 @@
 /**
- * Claude AI Service for Testimony Generation
+ * Lightning Service for Testimony Generation
  *
  * Uses Anthropic Claude API (Sonnet 4) to generate authentic Christian
  * testimonies based on user answers to 4 questions.
  *
- * Authenticity-first approach: the AI rephrases and polishes the user's
+ * Authenticity-first approach: Lightning rephrases and polishes the user's
  * own words into narrative prose, but NEVER invents details, emotions,
  * or experiences they didn't describe.
  *
@@ -63,7 +63,7 @@ function containsProfanity(text: string): boolean {
 
 
 /**
- * Generate a testimony story from user answers using Claude AI.
+ * Generate a testimony story from user answers using Lightning.
  *
  * All requests go through the Cloudflare Pages Function proxy.
  * The API key never touches the browser.
