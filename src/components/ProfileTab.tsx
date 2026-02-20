@@ -476,9 +476,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         <div
           className="rounded-full flex items-center justify-center flex-shrink-0 mb-3 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95"
           style={{
-            width: '100px',
-            height: '100px',
-            fontSize: '38px',
+            width: '130px',
+            height: '130px',
+            fontSize: '46px',
             fontFamily: "'Playfair Display', serif",
             color: 'white',
             background: nightMode
@@ -535,6 +535,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
           )}
         </div>
       </div>
+
+      {/* Bio — between avatar area and profile card */}
+      {profile.bio && profile.bio !== 'Welcome to Lightning! Share your testimony to inspire others.' && (
+        <p className="text-center text-sm leading-relaxed px-8 mt-1" style={{
+          color: nightMode ? '#8e89a8' : '#4a5e88',
+        }}>
+          {profile.bio}
+        </p>
+      )}
 
       {/* Social Action Buttons — shown when viewing another user's profile */}
       {isViewingOther && (

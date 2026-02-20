@@ -93,7 +93,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
 
   return (
     <div
-      className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+      className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl"
       style={{
         background: nightMode ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.45)',
         border: nightMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(150,165,225,0.12)',
@@ -102,7 +102,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
       {/* Play/Pause circle */}
       <button
         onClick={handlePlayPause}
-        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
+        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
         style={{
           background: nightMode ? 'rgba(123,118,224,0.12)' : 'rgba(79,172,254,0.12)',
           color: accentColor,
@@ -120,13 +120,13 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
       {/* Song info + progress bar */}
       <div className="flex-1 min-w-0">
         <p
-          className="text-[13px] font-semibold truncate"
+          className="text-[12px] font-semibold truncate"
           style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
         >
           {trackName || "My Song"}
         </p>
         <p
-          className="text-[11px] truncate"
+          className="text-[10px] truncate"
           style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
         >
           {artist || "YouTube"}

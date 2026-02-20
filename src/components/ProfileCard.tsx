@@ -77,10 +77,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           boxShadow: '0 2px 10px rgba(150,165,225,0.07)',
         }}
       >
-        <div className="p-4 flex flex-col gap-3">
+        <div className="px-3.5 py-3 flex flex-col gap-2">
 
           {/* Card Header */}
-          <div className="flex items-center gap-2 pb-1">
+          <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-widest" style={{
               color: nightMode ? '#7b76e0' : '#4facfe',
             }}>
@@ -91,37 +91,28 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             }} />
           </div>
 
-          {/* Bio — centered */}
-          {hasBio && (
-            <p className="text-sm leading-relaxed text-center" style={{
-              color: nightMode ? '#8e89a8' : '#4a5e88',
-            }}>
-              {profile.bio}
-            </p>
-          )}
-
           {/* Favorite Verse */}
           {hasVerse && (
             <div
-              className="rounded-lg p-3"
+              className="rounded-lg px-2.5 py-2"
               style={{
-                background: nightMode ? 'rgba(123,118,224,0.05)' : 'rgba(79,172,254,0.05)',
+                background: nightMode ? 'rgba(123,118,224,0.05)' : 'rgba(79,172,254,0.04)',
                 borderLeft: nightMode ? '3px solid #7b76e0' : '3px solid #4facfe',
               }}
             >
-              <div className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{
+              <div className="text-[9px] font-bold uppercase tracking-wide mb-1" style={{
                 color: nightMode ? '#5d5877' : '#8e9ec0',
               }}>
                 Favorite Verse
               </div>
-              <div className="text-[13px] italic leading-relaxed" style={{
+              <div className="text-[12px] italic leading-snug" style={{
                 fontFamily: "'Playfair Display', serif",
                 color: nightMode ? '#b8b4c8' : '#3a4d6e',
               }}>
                 &ldquo;{profile.favoriteVerse}&rdquo;
               </div>
-              <div className="text-[11px] font-semibold mt-2" style={{
-                color: nightMode ? '#7b76e0' : '#2b6cb0',
+              <div className="text-[10px] font-semibold mt-1" style={{
+                color: nightMode ? '#7b76e0' : '#4facfe',
               }}>
                 — {profile.favoriteVerseRef}
               </div>
@@ -144,7 +135,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               {profile.story?.id && onShareTestimony && (
                 <button
                   onClick={onShareTestimony}
-                  className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold text-center transition-colors"
+                  className="flex-1 py-2 rounded-xl text-[12px] font-semibold text-center transition-colors"
                   style={{
                     background: nightMode ? 'rgba(123,118,224,0.12)' : 'rgba(79,172,254,0.12)',
                     border: nightMode ? '1px solid rgba(123,118,224,0.2)' : '1px solid rgba(79,172,254,0.2)',
@@ -157,7 +148,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               {onEditProfile && (
                 <button
                   onClick={onEditProfile}
-                  className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold text-center transition-colors"
+                  className="flex-1 py-2 rounded-xl text-[12px] font-semibold text-center transition-colors"
                   style={nightMode ? {
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid rgba(255,255,255,0.06)',
