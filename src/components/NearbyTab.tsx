@@ -486,6 +486,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
             style={{
               background: nightMode ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.4)",
+              border: nightMode ? "1px solid rgba(255,255,255,0.04)" : "1px solid rgba(150,165,225,0.12)",
               color: nightMode ? "#8e89a8" : "#4a5e88",
               ...(nightMode ? {} : { backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }),
             }}
