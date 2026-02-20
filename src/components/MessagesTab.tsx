@@ -1427,7 +1427,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                 <p
                   className={`text-xs font-medium ${nightMode ? "text-slate-100" : "text-slate-700"}`}
                 >
-                  💡 Tip: Visit the <span className="font-bold">Find</span> tab
+                  💡 Tip: Visit the <span className="font-bold">Charge</span> tab
                   to find nearby believers
                 </p>
               </div>

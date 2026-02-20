@@ -8,6 +8,7 @@ import ServersTab from './servers/ServersTab';
 import CreateServerDialog from './servers/CreateServerDialog';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
 import { ConversationSkeleton } from './SkeletonLoader';
+import SwipeablePageWrapper from './SwipeablePageWrapper';
 
 // ============================================
 // TYPES
@@ -304,25 +305,29 @@ const ChatTab: React.FC<ChatTabProps> = ({
   const renderMainPanel = () => {
     if (view === 'dm') {
       return (
-        <MessagesTab
-          nightMode={nightMode}
-          onConversationsCountChange={onConversationsCountChange}
-          startChatWith={dmStartChatWith}
-          initialConversation={selectedConversation}
-          onBack={handleBackFromDm}
-        />
+        <SwipeablePageWrapper onBack={handleBackFromDm}>
+          <MessagesTab
+            nightMode={nightMode}
+            onConversationsCountChange={onConversationsCountChange}
+            startChatWith={dmStartChatWith}
+            initialConversation={selectedConversation}
+            onBack={handleBackFromDm}
+          />
+        </SwipeablePageWrapper>
       );
     }
 
     if (view === 'server' && selectedServerId) {
       return (
-        <ServersTab
-          nightMode={nightMode}
-          initialServerId={selectedServerId}
-          onBack={handleBackFromServer}
-          onActiveServerChange={onActiveServerChange}
-          hideServerRail
-        />
+        <SwipeablePageWrapper onBack={handleBackFromServer}>
+          <ServersTab
+            nightMode={nightMode}
+            initialServerId={selectedServerId}
+            onBack={handleBackFromServer}
+            onActiveServerChange={onActiveServerChange}
+            hideServerRail
+          />
+        </SwipeablePageWrapper>
       );
     }
 

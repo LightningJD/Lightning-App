@@ -95,7 +95,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({
         {
           question: "How do I find Christians near me?",
           answer:
-            "The Find tab automatically shows Christians in your area (within 25 miles by default). Make sure location services are enabled for the app to see nearby users. You can also type your city name and we'll find people near you.",
+            "The Charge tab automatically shows Christians in your area (within 25 miles by default). Make sure location services are enabled for the app to see nearby users. You can also type your city name and we'll find people near you.",
         },
       ],
     },
