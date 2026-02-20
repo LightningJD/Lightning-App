@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, Camera } from "lucide-react";
 import { validateGroup, sanitizeInput } from "../../lib/inputValidation";
 import { showError } from "../../lib/toast";
 
@@ -10,19 +10,15 @@ interface CreateServerDialogProps {
   onCreate: (name: string, description: string, iconEmoji: string) => Promise<boolean>;
 }
 
-const SERVER_EMOJIS = [
-  "\u{26EA}",
-  "\u{271D}\u{FE0F}",
-  "\u{1F54A}\u{FE0F}",
-  "\u{1F64F}",
-  "\u{2B50}",
-  "\u{1F525}",
-  "\u{1F492}",
-  "\u{1F4D6}",
-  "\u{1F31F}",
-  "\u{1F49C}",
-  "\u{1F3E0}",
-  "\u{1F3B5}",
+const SERVER_GRADIENTS = [
+  "linear-gradient(135deg, #7b76e0, #9b96f5)",
+  "linear-gradient(135deg, #4facfe, #6b9ed6)",
+  "linear-gradient(135deg, #5cc88a, #4ab8c4)",
+  "linear-gradient(135deg, #e05c6c, #e8b84a)",
+  "linear-gradient(135deg, #e8b84a, #e05c6c)",
+  "linear-gradient(135deg, #9b96f5, #e05c6c)",
+  "linear-gradient(135deg, #4ab8c4, #7b76e0)",
+  "linear-gradient(135deg, #6b9ed6, #5cc88a)",
 ];
 
 const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
@@ -33,10 +29,12 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
 }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [iconEmoji, setIconEmoji] = useState("\u{26EA}");
+  const [selectedGradient, setSelectedGradient] = useState(SERVER_GRADIENTS[0]);
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
+
+  const previewInitial = name.trim() ? name.trim().charAt(0).toUpperCase() : "S";
 
   const handleCreate = async () => {
     const sanitizedName = sanitizeInput(name.trim());
@@ -51,12 +49,13 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
       return;
     }
     setLoading(true);
-    const success = await onCreate(sanitizedName, description.trim(), iconEmoji);
+    // Pass the gradient string as iconEmoji — stored in DB as icon_emoji
+    const success = await onCreate(sanitizedName, description.trim(), selectedGradient);
     setLoading(false);
     if (success) {
       setName("");
       setDescription("");
-      setIconEmoji("\u{26EA}");
+      setSelectedGradient(SERVER_GRADIENTS[0]);
       onClose();
     }
   };
@@ -69,8 +68,8 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{
         background: "rgba(0, 0, 0, 0.5)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -82,93 +81,141 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
       }}
     >
       <div
-        className="w-full max-w-md rounded-3xl shadow-2xl overflow-hidden transition-all"
+        className="w-full max-w-md overflow-hidden transition-all"
         style={{
+          borderRadius: "12px",
           background: nightMode
             ? "rgba(15, 15, 25, 0.95)"
-            : "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(30px)",
-          WebkitBackdropFilter: "blur(30px)",
-          border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
+            : "rgba(255, 255, 255, 0.85)",
+          backdropFilter: nightMode ? undefined : "blur(20px)",
+          WebkitBackdropFilter: nightMode ? undefined : "blur(20px)",
+          border: `1px solid ${nightMode ? "rgba(255,255,255,0.08)" : "rgba(150,165,225,0.2)"}`,
           boxShadow: nightMode
-            ? "0 24px 48px rgba(0,0,0,0.4)"
-            : "0 24px 48px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)",
+            ? "0 20px 40px rgba(0,0,0,0.4)"
+            : "0 20px 40px rgba(0,0,0,0.08)",
         }}
       >
-        {/* Header with gradient */}
+        {/* Header */}
         <div
-          className="p-6 pb-5"
+          className="px-5 pt-5 pb-3 flex items-start justify-between"
           style={{
-            background:
-              "linear-gradient(135deg, rgba(79, 150, 255, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)",
+            background: nightMode
+              ? "linear-gradient(135deg, rgba(123,118,224,0.1) 0%, rgba(123,118,224,0.02) 100%)"
+              : "linear-gradient(135deg, rgba(79,172,254,0.08) 0%, rgba(79,172,254,0.02) 100%)",
           }}
         >
-          <div className="flex items-center justify-between">
+          <div>
             <h2
-              className={`text-xl font-bold ${nightMode ? "text-white" : "text-black"}`}
+              className="text-base font-semibold"
+              style={{
+                fontFamily: "'DM Sans', sans-serif",
+                color: nightMode ? "#e8e5f2" : "#1e2b4a",
+              }}
             >
               Create Server
             </h2>
-            <button
-              onClick={onClose}
-              className={`p-1.5 rounded-xl transition-all hover:scale-110 active:scale-95 ${
-                nightMode
-                  ? "hover:bg-white/10 text-white/50"
-                  : "hover:bg-black/5 text-black/50"
-              }`}
+            <p
+              className="text-xs mt-1"
+              style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}
             >
-              <X className="w-5 h-5" />
-            </button>
+              Create a new server for your church or community
+            </p>
           </div>
-          <p
-            className={`text-sm mt-1 ${nightMode ? "text-white/50" : "text-black/50"}`}
+          <button
+            onClick={onClose}
+            className="w-7 h-7 flex items-center justify-center rounded-full transition-colors flex-shrink-0"
+            style={{
+              background: nightMode
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(150,165,225,0.1)",
+              color: nightMode ? "#8e89a8" : "#4a5e88",
+            }}
           >
-            Create a new server for your church or community
-          </p>
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
 
-        <div className="p-6 space-y-5">
-          {/* Icon picker */}
+        {/* Live Preview */}
+        <div className="flex items-center gap-3 px-5 pb-4">
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{
+              background: selectedGradient,
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: "18px",
+              color: "white",
+            }}
+          >
+            {previewInitial}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div
+              className="text-sm font-semibold truncate"
+              style={{ color: nightMode ? "#e8e5f2" : "#1e2b4a" }}
+            >
+              {name.trim() || "Server Name"}
+            </div>
+            <div
+              className="text-[11px]"
+              style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}
+            >
+              Live preview
+            </div>
+          </div>
+        </div>
+
+        <div className="px-5 pb-5 space-y-4">
+          {/* Gradient color picker */}
           <div>
             <span
-              className={`block text-sm font-semibold mb-3 ${nightMode ? "text-white/70" : "text-black/70"}`}
+              className="block text-xs font-semibold mb-2"
+              style={{ color: nightMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)" }}
             >
-              Server Icon
+              Server Color
             </span>
-            <div className="flex flex-wrap gap-2.5">
-              {SERVER_EMOJIS.map((emoji) => (
+            <div className="flex gap-2 flex-wrap">
+              {SERVER_GRADIENTS.map((grad) => (
                 <button
-                  key={emoji}
-                  onClick={() => setIconEmoji(emoji)}
-                  className="w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all duration-300 hover:scale-110 active:scale-95"
+                  key={grad}
+                  onClick={() => setSelectedGradient(grad)}
+                  className="w-8 h-8 rounded-full transition-all hover:scale-110 active:scale-95"
                   style={{
-                    background:
-                      iconEmoji === emoji
-                        ? "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)"
-                        : nightMode
-                          ? "rgba(255,255,255,0.06)"
-                          : "rgba(0,0,0,0.04)",
-                    boxShadow:
-                      iconEmoji === emoji
-                        ? "0 0 16px rgba(79, 150, 255, 0.35)"
-                        : "none",
-                    border:
-                      iconEmoji === emoji
-                        ? "2px solid rgba(79, 150, 255, 0.5)"
-                        : `2px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
+                    background: grad,
+                    border: selectedGradient === grad
+                      ? "2px solid white"
+                      : "2px solid transparent",
+                    transform: selectedGradient === grad ? "scale(1.1)" : undefined,
                   }}
-                >
-                  {emoji}
-                </button>
+                  aria-label="Select server color"
+                />
               ))}
             </div>
+            {/* Upload option */}
+            <button
+              className="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg text-xs transition-colors w-full"
+              style={{
+                background: nightMode
+                  ? "rgba(255,255,255,0.03)"
+                  : "rgba(79,172,254,0.04)",
+                border: `1px dashed ${nightMode ? "rgba(255,255,255,0.08)" : "rgba(150,165,225,0.2)"}`,
+                color: nightMode ? "#5d5877" : "#8e9ec0",
+              }}
+              onClick={() => {
+                // Placeholder for future image upload
+              }}
+            >
+              <Camera className="w-3.5 h-3.5" style={{ opacity: 0.5 }} />
+              Upload custom image instead
+            </button>
           </div>
 
           {/* Server name */}
           <div>
             <label
               htmlFor="server-name"
-              className={`block text-sm font-semibold mb-2 ${nightMode ? "text-white/70" : "text-black/70"}`}
+              className="block text-xs font-semibold mb-1.5"
+              style={{ color: nightMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)" }}
             >
               Server Name
             </label>
@@ -179,16 +226,14 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
               onChange={(e) => setName(e.target.value)}
               placeholder="My Church Community"
               maxLength={50}
-              className={`w-full px-4 py-3 rounded-xl text-sm transition-all ${
-                nightMode
-                  ? "text-white placeholder-white/30"
-                  : "text-black placeholder-black/40"
-              }`}
+              className="w-full px-3.5 py-2.5 rounded-xl text-sm transition-all outline-none"
               style={{
+                fontFamily: "'General Sans', sans-serif",
                 background: nightMode
                   ? "rgba(255,255,255,0.06)"
-                  : "rgba(255,255,255,0.5)",
-                border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
+                  : "rgba(255,255,255,0.6)",
+                border: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)"}`,
+                color: nightMode ? "#e8e5f2" : "#1e2b4a",
               }}
             />
           </div>
@@ -196,33 +241,28 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
           {/* Description */}
           <div>
             <label
-              htmlFor="description"
-              className={`block text-sm font-semibold mb-2 ${nightMode ? "text-white/70" : "text-black/70"}`}
+              htmlFor="server-description"
+              className="block text-xs font-semibold mb-1.5"
+              style={{ color: nightMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)" }}
             >
               Description{" "}
-              <span
-                className={`font-normal ${nightMode ? "text-white/30" : "text-black/30"}`}
-              >
-                (optional)
-              </span>
+              <span style={{ opacity: 0.4, fontWeight: 400 }}>(optional)</span>
             </label>
             <textarea
-              id="description"
+              id="server-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What's your server about?"
-              rows={3}
+              rows={2}
               maxLength={200}
-              className={`w-full px-4 py-3 rounded-xl text-sm resize-none transition-all ${
-                nightMode
-                  ? "text-white placeholder-white/30"
-                  : "text-black placeholder-black/40"
-              }`}
+              className="w-full px-3.5 py-2.5 rounded-xl text-sm resize-none transition-all outline-none"
               style={{
+                fontFamily: "'General Sans', sans-serif",
                 background: nightMode
                   ? "rgba(255,255,255,0.06)"
-                  : "rgba(255,255,255,0.5)",
-                border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
+                  : "rgba(255,255,255,0.6)",
+                border: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)"}`,
+                color: nightMode ? "#e8e5f2" : "#1e2b4a",
               }}
             />
           </div>
@@ -231,12 +271,16 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
           <button
             onClick={handleCreate}
             disabled={loading || !name.trim()}
-            className="w-full py-3.5 rounded-xl text-white font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 hover:scale-[1.02]"
+            className="w-full py-3 rounded-xl text-white font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 hover:scale-[1.02]"
             style={{
-              background:
-                "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)",
+              fontFamily: "'General Sans', sans-serif",
+              background: nightMode
+                ? "linear-gradient(135deg, #7b76e0, #9b96f5)"
+                : "linear-gradient(135deg, #4facfe, #3b82f6)",
               boxShadow: name.trim()
-                ? "0 4px 16px rgba(59, 130, 246, 0.35)"
+                ? nightMode
+                  ? "0 4px 16px rgba(123,118,224,0.3)"
+                  : "0 4px 16px rgba(79,172,254,0.3)"
                 : "none",
             }}
           >

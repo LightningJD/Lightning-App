@@ -68,6 +68,13 @@ const ServerSidebar: React.FC<ServerSidebarProps> = ({
             >
               {server.icon_url ? (
                 <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-full object-cover" />
+              ) : server.icon_emoji?.startsWith('linear-gradient') ? (
+                <div
+                  className="w-full h-full rounded-full flex items-center justify-center text-white font-bold"
+                  style={{ background: server.icon_emoji, fontFamily: "'DM Sans', sans-serif" }}
+                >
+                  {server.name?.charAt(0).toUpperCase() || 'S'}
+                </div>
               ) : (
                 server.icon_emoji
               )}

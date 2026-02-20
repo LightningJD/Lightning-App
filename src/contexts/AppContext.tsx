@@ -104,7 +104,7 @@ export interface AppContextType {
   setActiveServerEmoji: (emoji: string | null) => void;
 
   // Notification counts
-  notificationCounts: { messages: number; find: number };
+  notificationCounts: { messages: number; charge: number };
   handleConversationsCountChange: (count: number) => void;
 
   // Settings state
@@ -173,6 +173,10 @@ export interface AppContextType {
   // Menu
   showMenu: boolean;
   setShowMenu: (v: boolean) => void;
+
+  // Notifications panel
+  showNotifications: boolean;
+  setShowNotifications: (v: boolean) => void;
 
   // Misc dialogs
   showLogoutConfirm: boolean;
@@ -277,6 +281,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [currentTab, setCurrentTab] = useState("home");
   const [showMenu, setShowMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [sortBy, setSortBy] = useState("recommended");
   const [activeDiscoverTab, setActiveDiscoverTab] = useState("home");
   const selectedTheme = localStorage.getItem("lightningTheme") || "periwinkle";
@@ -292,7 +297,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     useState(false);
   const [notificationCounts, setNotificationCounts] = React.useState({
     messages: 0,
-    find: 0,
+    charge: 0,
   });
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSaveTestimonyModal, setShowSaveTestimonyModal] = useState(false);
@@ -437,7 +442,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const pending = await getPendingFriendRequests(userProfile.supabaseId);
         if (isMounted) {
-          setNotificationCounts((prev) => ({ ...prev, find: pending.length }));
+          setNotificationCounts((prev) => ({ ...prev, charge: pending.length }));
         }
       } catch {
         // Silently fail
@@ -479,10 +484,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [userProfile?.supabaseId]);
 
-  // Clear find badge when user opens Find tab
+  // Clear charge badge when user opens Charge tab
   React.useEffect(() => {
-    if (currentTab === "find") {
-      setNotificationCounts((prev) => ({ ...prev, find: 0 }));
+    if (currentTab === "charge") {
+      setNotificationCounts((prev) => ({ ...prev, charge: 0 }));
     }
   }, [currentTab]);
 
@@ -1261,6 +1266,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     handleProfileEdit,
     showMenu,
     setShowMenu,
+    showNotifications,
+    setShowNotifications,
     showLogoutConfirm,
     setShowLogoutConfirm,
     showSaveTestimonyModal,

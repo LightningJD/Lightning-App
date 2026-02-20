@@ -137,14 +137,28 @@ const MenuItem: React.FC<MenuItemProps> = ({
               handleToggle();
             }
           }}
-          className={`w-11 h-6 rounded-full transition-colors cursor-pointer flex-shrink-0 ${
-            isOn ? "bg-blue-600" : nightMode ? "bg-white/10" : "bg-slate-300"
-          }`}
+          className="flex-shrink-0 relative transition-colors cursor-pointer"
+          style={{
+            width: "36px",
+            height: "20px",
+            borderRadius: "10px",
+            background: isOn
+              ? nightMode ? "rgba(123,118,224,0.3)" : "rgba(79,172,254,0.25)"
+              : nightMode ? "rgba(255,255,255,0.08)" : "rgba(150,165,225,0.15)",
+          }}
         >
           <div
-            className={`w-5 h-5 bg-white rounded-full m-0.5 transition-transform shadow-sm ${
-              isOn ? "translate-x-5" : "translate-x-0"
-            }`}
+            className="absolute transition-all"
+            style={{
+              width: "16px",
+              height: "16px",
+              borderRadius: "50%",
+              top: "2px",
+              left: isOn ? "18px" : "2px",
+              background: isOn
+                ? nightMode ? "#7b76e0" : "#4facfe"
+                : nightMode ? "#5d5877" : "#8e9ec0",
+            }}
           />
         </div>
       )}

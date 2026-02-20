@@ -8,6 +8,7 @@ import ServersTab from './servers/ServersTab';
 import CreateServerDialog from './servers/CreateServerDialog';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
 import { ConversationSkeleton } from './SkeletonLoader';
+import SwipeablePageWrapper from './SwipeablePageWrapper';
 
 // ============================================
 // TYPES
@@ -63,6 +64,41 @@ const formatTimestamp = (timestamp: any): string => {
   if (diffDays < 7) return `${diffDays}d`;
   return messageDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 };
+
+// ============================================
+// GRADIENT PALETTE & HELPERS
+// ============================================
+
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg, #e05c6c, #e8b84a)',
+  'linear-gradient(135deg, #5cc88a, #4ab8c4)',
+  'linear-gradient(135deg, #e8b84a, #e05c6c)',
+  'linear-gradient(135deg, #7b76e0, #9b96f5)',
+  'linear-gradient(135deg, #6b9ed6, #4a7ab8)',
+  'linear-gradient(135deg, #f6c744, #e8a020)',
+  'linear-gradient(135deg, #5cc88a, #2a9d5c)',
+  'linear-gradient(135deg, #4facfe, #e05c6c)',
+];
+
+const getGradient = (id: string): string => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+    hash |= 0;
+  }
+  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+};
+
+const getInitials = (name: string): string => {
+  return name.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase();
+};
+
+// DM bubble SVG for rail button (single chat bubble per mockup)
+const DmBubbleIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+  </svg>
+);
 
 // ============================================
 // COMPONENT
@@ -181,7 +217,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
     };
   }, [profile?.supabaseId, loadData]);
 
-  // ── Handle startChatWith from Find tab ───────────────────
+  // ── Handle startChatWith from Charge tab ───────────────────
 
   useEffect(() => {
     if (startChatWith?.id && startChatWith?.name) {
@@ -268,25 +304,29 @@ const ChatTab: React.FC<ChatTabProps> = ({
   const renderMainPanel = () => {
     if (view === 'dm') {
       return (
-        <MessagesTab
-          nightMode={nightMode}
-          onConversationsCountChange={onConversationsCountChange}
-          startChatWith={dmStartChatWith}
-          initialConversation={selectedConversation}
-          onBack={handleBackFromDm}
-        />
+        <SwipeablePageWrapper onBack={handleBackFromDm}>
+          <MessagesTab
+            nightMode={nightMode}
+            onConversationsCountChange={onConversationsCountChange}
+            startChatWith={dmStartChatWith}
+            initialConversation={selectedConversation}
+            onBack={handleBackFromDm}
+          />
+        </SwipeablePageWrapper>
       );
     }
 
     if (view === 'server' && selectedServerId) {
       return (
-        <ServersTab
-          nightMode={nightMode}
-          initialServerId={selectedServerId}
-          onBack={handleBackFromServer}
-          onActiveServerChange={onActiveServerChange}
-          hideServerRail
-        />
+        <SwipeablePageWrapper onBack={handleBackFromServer}>
+          <ServersTab
+            nightMode={nightMode}
+            initialServerId={selectedServerId}
+            onBack={handleBackFromServer}
+            onActiveServerChange={onActiveServerChange}
+            hideServerRail
+          />
+        </SwipeablePageWrapper>
       );
     }
 
@@ -296,16 +336,19 @@ const ChatTab: React.FC<ChatTabProps> = ({
         <div className="px-4 py-3">
           {/* Direct Messages Header */}
           <div className="flex items-center justify-between mb-3">
-            <p className={`text-sm font-semibold ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
+            <div className="text-[10px] uppercase tracking-widest font-medium" style={{
+              color: nightMode ? '#5d5877' : '#4a5e88',
+            }}>
               Direct Messages
-            </p>
+            </div>
             <button
               onClick={() => {
                 setDmStartChatWith(null);
                 setSelectedConversation(null);
                 setView('dm');
               }}
-              className={`p-1.5 rounded-lg transition-colors ${nightMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-black/5 text-slate-500'}`}
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ color: nightMode ? '#7b76e0' : '#4facfe' }}
               title="New message"
             >
               <Plus className="w-4 h-4" />
@@ -334,7 +377,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
                 No conversations yet
               </p>
               <p className={`text-xs ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                Connect with others in the Find tab to start messaging!
+                Connect with others in the Charge tab to start messaging!
               </p>
             </div>
           ) : (
@@ -343,17 +386,21 @@ const ChatTab: React.FC<ChatTabProps> = ({
               {dmConversations.map((convo) => (
                 <div
                   key={convo.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                    nightMode
-                      ? 'hover:bg-white/5'
-                      : 'hover:bg-white/30'
-                  }`}
-                  style={nightMode ? {} : {
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
+                  className="flex items-center gap-3 p-2.5 rounded-lg transition-all cursor-pointer hover:brightness-110"
+                  style={nightMode ? {
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.04)',
+                    marginBottom: '3px',
+                  } : {
+                    background: 'rgba(255,255,255,0.45)',
+                    border: '1px solid rgba(150,165,225,0.12)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    boxShadow: '0 1px 4px rgba(150,165,225,0.05)',
+                    marginBottom: '3px',
                   }}
                 >
-                  {/* Avatar - tappable to view profile */}
+                  {/* Avatar - gradient circle with letter initial */}
                   <button
                     className="relative flex-shrink-0"
                     onClick={(e) => {
@@ -368,20 +415,29 @@ const ChatTab: React.FC<ChatTabProps> = ({
                     }}
                     aria-label={`View ${convo.name}'s profile`}
                   >
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl overflow-hidden ${
-                      nightMode ? 'bg-white/10' : 'bg-white/50'
-                    }`}
-                    style={{ boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }}
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
+                      style={{
+                        background: convo.avatarImage ? undefined : getGradient(String(convo.userId || convo.id)),
+                        color: 'white',
+                        fontSize: '14px',
+                        fontFamily: "'Playfair Display', serif",
+                        fontWeight: 500,
+                      }}
                     >
                       {convo.avatarImage ? (
                         <img src={convo.avatarImage} alt={convo.name} className="w-full h-full rounded-full object-cover" />
                       ) : (
-                        convo.avatar || '👤'
+                        getInitials(convo.name || 'U')
                       )}
                     </div>
                     {convo.online && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2"
-                           style={{ borderColor: nightMode ? '#1a1a2e' : '#f0f4ff' }}
+                      <div
+                        className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full"
+                        style={{
+                          background: '#5cc88a',
+                          border: `2px solid ${nightMode ? '#0d0b18' : '#d6daf5'}`,
+                        }}
                       />
                     )}
                   </button>
@@ -396,20 +452,29 @@ const ChatTab: React.FC<ChatTabProps> = ({
                     }}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className={`font-semibold text-sm truncate ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                      <p className="font-semibold text-[13px] truncate" style={{
+                        color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                      }}>
                         {convo.name}
                       </p>
-                      <span className={`text-[10px] flex-shrink-0 ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                      <span className="text-[10px] flex-shrink-0" style={{
+                        color: nightMode ? '#5d5877' : '#8e9ec0',
+                      }}>
                         {convo.timestamp ? formatTimestamp(convo.timestamp) : ''}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <p className={`text-xs truncate ${nightMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <div className="flex items-center justify-between gap-2 mt-0.5">
+                      <p className="text-[11px] truncate" style={{
+                        color: nightMode ? '#5d5877' : '#8e9ec0',
+                      }}>
                         {convo.lastMessage || 'No messages yet'}
                       </p>
                       {(convo.unreadCount || 0) > 0 && (
-                        <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                          <span className="text-[9px] font-bold text-white">{convo.unreadCount}</span>
+                        <div
+                          className="flex-shrink-0 min-w-[20px] h-5 rounded-full flex items-center justify-center px-1.5"
+                          style={{ background: '#ef4444', color: 'white', fontSize: '10px', fontWeight: 700 }}
+                        >
+                          {convo.unreadCount}
                         </div>
                       )}
                     </div>
@@ -420,23 +485,31 @@ const ChatTab: React.FC<ChatTabProps> = ({
               {/* Friends without conversations */}
               {friendsWithoutConvos.length > 0 && (
                 <>
-                  <div className={`px-1 pt-3 pb-1`}>
-                    <p className={`text-xs font-semibold uppercase tracking-wider ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <div className="px-1 pt-3 pb-1">
+                    <div className="text-[10px] uppercase tracking-widest font-medium" style={{
+                      color: nightMode ? '#5d5877' : '#4a5e88',
+                    }}>
                       Friends
-                    </p>
+                    </div>
                   </div>
                   {friendsWithoutConvos.map((friend) => (
                     <div
                       key={friend.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer ${
-                        nightMode ? 'hover:bg-white/5' : 'hover:bg-white/30'
-                      }`}
-                      style={nightMode ? {} : {
-                        backdropFilter: 'blur(10px)',
-                        WebkitBackdropFilter: 'blur(10px)',
+                      className="flex items-center gap-3 p-2.5 rounded-lg transition-all cursor-pointer hover:brightness-110"
+                      style={nightMode ? {
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.04)',
+                        marginBottom: '3px',
+                      } : {
+                        background: 'rgba(255,255,255,0.45)',
+                        border: '1px solid rgba(150,165,225,0.12)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        boxShadow: '0 1px 4px rgba(150,165,225,0.05)',
+                        marginBottom: '3px',
                       }}
                     >
-                      {/* Avatar */}
+                      {/* Avatar - gradient circle with initial */}
                       <button
                         className="relative flex-shrink-0"
                         onClick={(e) => {
@@ -451,20 +524,29 @@ const ChatTab: React.FC<ChatTabProps> = ({
                         }}
                         aria-label={`View ${friend.name}'s profile`}
                       >
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl overflow-hidden ${
-                          nightMode ? 'bg-white/10' : 'bg-white/50'
-                        }`}
-                        style={{ boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }}
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
+                          style={{
+                            background: friend.avatarImage ? undefined : getGradient(String(friend.id)),
+                            color: 'white',
+                            fontSize: '14px',
+                            fontFamily: "'Playfair Display', serif",
+                            fontWeight: 500,
+                          }}
                         >
                           {friend.avatarImage ? (
                             <img src={friend.avatarImage} alt={friend.name} className="w-full h-full rounded-full object-cover" />
                           ) : (
-                            friend.avatar || '👤'
+                            getInitials(friend.name || 'U')
                           )}
                         </div>
                         {friend.online && (
-                          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2"
-                               style={{ borderColor: nightMode ? '#1a1a2e' : '#f0f4ff' }}
+                          <div
+                            className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full"
+                            style={{
+                              background: '#5cc88a',
+                              border: `2px solid ${nightMode ? '#0d0b18' : '#d6daf5'}`,
+                            }}
                           />
                         )}
                       </button>
@@ -478,10 +560,14 @@ const ChatTab: React.FC<ChatTabProps> = ({
                           setView('dm');
                         }}
                       >
-                        <p className={`font-semibold text-sm truncate ${nightMode ? 'text-slate-100' : 'text-slate-900'}`}>
+                        <p className="font-semibold text-[13px] truncate" style={{
+                          color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                        }}>
                           {friend.name}
                         </p>
-                        <p className={`text-xs ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                        <p className="text-[11px]" style={{
+                          color: nightMode ? '#5d5877' : '#8e9ec0',
+                        }}>
                           Tap to message
                         </p>
                       </button>
@@ -502,87 +588,97 @@ const ChatTab: React.FC<ChatTabProps> = ({
   const showRail = !isMobile || view === 'list';
 
   return (
-    <div className="flex" style={{ height: 'calc(100vh - 7.5rem)' }}>
-      {/* Server Rail (hidden on mobile when in DM/server chat) */}
-      {showRail && <div
-        className={`w-[72px] flex-shrink-0 flex flex-col items-center py-3 gap-1.5 overflow-y-auto border-r ${
-          nightMode ? 'border-white/10' : 'border-white/20'
-        }`}
-        style={nightMode ? {
-          background: 'rgba(0, 0, 0, 0.3)',
-        } : {
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-        }}
-      >
-        {/* DM Button */}
-        <button
-          onClick={handleSwitchToDms}
-          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${
-            isDmActive
-              ? nightMode
-                ? 'bg-blue-500/30 text-blue-300'
-                : 'bg-blue-500/20 text-blue-600'
-              : nightMode
-                ? 'bg-white/10 hover:bg-white/15 text-slate-400 hover:text-slate-200 hover:rounded-xl'
-                : 'bg-white/30 hover:bg-white/50 text-slate-500 hover:text-slate-700 hover:rounded-xl'
-          }`}
-          style={isDmActive ? {
-            boxShadow: nightMode ? '0 0 12px rgba(59, 130, 246, 0.2)' : '0 0 12px rgba(59, 130, 246, 0.15)',
-          } : {}}
-          title="Direct Messages"
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 7.5rem)' }}>
+      {/* Horizontal Rail (hidden on mobile when in DM/server chat) */}
+      {showRail && (
+        <div
+          className="flex items-center gap-2 px-3 py-2 overflow-x-auto flex-shrink-0 hide-scrollbar"
+          style={{
+            borderBottom: nightMode ? '1px solid rgba(255,255,255,0.04)' : '1px solid rgba(150,165,225,0.1)',
+          }}
         >
-          <MessageCircle className="w-5 h-5" />
-        </button>
-
-        {/* Divider */}
-        {servers.length > 0 && (
-          <div className={`w-8 h-[2px] rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
-        )}
-
-        {/* Server Icons */}
-        {servers.map((server) => (
+          {/* DM Button */}
           <button
-            key={server.id}
-            onClick={() => handleSelectServer(server)}
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg transition-all active:scale-95 hover:rounded-xl ${
-              view === 'server' && selectedServerId === server.id
-                ? nightMode
-                  ? 'bg-blue-500/30 text-blue-300'
-                  : 'bg-blue-500/20 text-blue-600'
-                : nightMode
-                  ? 'bg-white/10 hover:bg-white/15'
-                  : 'bg-white/30 hover:bg-white/50'
-            }`}
-            style={view === 'server' && selectedServerId === server.id
-              ? { boxShadow: nightMode ? '0 0 12px rgba(59, 130, 246, 0.2)' : '0 0 12px rgba(59, 130, 246, 0.15)' }
-              : { boxShadow: nightMode ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }
-            }
-            title={server.name}
+            onClick={handleSwitchToDms}
+            className="flex-shrink-0 flex items-center justify-center transition-all active:scale-95"
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: isDmActive ? '12px' : '50%',
+              background: isDmActive
+                ? nightMode ? 'rgba(123,118,224,0.12)' : 'rgba(79,172,254,0.1)'
+                : nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+              border: isDmActive
+                ? nightMode ? '1px solid rgba(123,118,224,0.18)' : '1px solid rgba(79,172,254,0.15)'
+                : nightMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(150,165,225,0.15)',
+              boxShadow: isDmActive
+                ? nightMode ? '0 0 10px rgba(123,118,224,0.15)' : '0 0 10px rgba(79,172,254,0.12)'
+                : nightMode ? 'none' : '0 2px 6px rgba(150,165,225,0.07)',
+              color: isDmActive
+                ? nightMode ? '#9b96f5' : '#4facfe'
+                : nightMode ? '#8e89a8' : '#4a5e88',
+            }}
+            title="Direct Messages"
           >
-            {server.icon_url ? (
-              <img src={server.icon_url} alt={server.name} className="w-full h-full rounded-2xl object-cover" />
-            ) : (
-              server.icon_emoji || '⛪'
-            )}
+            <DmBubbleIcon className="w-5 h-5" />
           </button>
-        ))}
 
-        {/* Divider before + button */}
-        <div className={`w-8 h-[2px] rounded-full my-1 ${nightMode ? 'bg-white/10' : 'bg-black/10'}`} />
+          {/* Server Icons — gradient circle with letter initials */}
+          {servers.map((server) => {
+            const isActive = view === 'server' && selectedServerId === server.id;
+            const gradient = getGradient(server.id);
+            const initials = getInitials(server.name);
+            return (
+              <button
+                key={server.id}
+                onClick={() => handleSelectServer(server)}
+                className="flex-shrink-0 flex items-center justify-center transition-all active:scale-95 relative"
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: isActive ? '12px' : '50%',
+                  background: server.icon_url ? undefined : gradient,
+                  border: isActive
+                    ? nightMode ? '1.5px solid rgba(123,118,224,0.3)' : '1.5px solid rgba(79,172,254,0.25)'
+                    : '1.5px solid transparent',
+                  boxShadow: isActive
+                    ? nightMode ? '0 0 10px rgba(123,118,224,0.15)' : '0 0 10px rgba(79,172,254,0.12)'
+                    : 'none',
+                  color: 'white',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  overflow: 'hidden',
+                }}
+                title={server.name}
+              >
+                {server.icon_url ? (
+                  <img src={server.icon_url} alt={server.name} className="w-full h-full object-cover" />
+                ) : (
+                  initials
+                )}
+              </button>
+            );
+          })}
 
-        {/* Add a Server button */}
-        <button
-          onClick={() => setShowCreateServer(true)}
-          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all active:scale-95 hover:rounded-xl ${
-            nightMode ? 'bg-white/10 hover:bg-green-500/30 text-green-400 hover:text-green-300' : 'bg-white/30 hover:bg-green-500/20 text-green-600 hover:text-green-700'
-          }`}
-          title="Add a Server"
-        >
-          <Plus className="w-5 h-5" />
-        </button>
-      </div>}
+          {/* Create Server Button */}
+          <button
+            onClick={() => setShowCreateServer(true)}
+            className="flex-shrink-0 flex items-center justify-center transition-all active:scale-95"
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              background: nightMode ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.3)',
+              border: nightMode ? '1.5px dashed rgba(123,118,224,0.3)' : '1.5px dashed rgba(79,172,254,0.3)',
+              color: nightMode ? '#7b76e0' : '#4facfe',
+              fontSize: '18px',
+            }}
+            title="Create Server"
+          >
+            +
+          </button>
+        </div>
+      )}
 
       {/* Main Panel (changes based on view) */}
       <div className="flex-1 overflow-hidden flex flex-col">

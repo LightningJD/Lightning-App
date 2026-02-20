@@ -435,6 +435,13 @@ const ServersTab: React.FC<ServersTabProps> = ({
                           alt={server.name}
                           className="w-full h-full rounded-full object-cover"
                         />
+                      ) : (server.icon_emoji || "").startsWith("linear-gradient") ? (
+                        <div
+                          className="w-full h-full rounded-full flex items-center justify-center text-white font-bold text-sm"
+                          style={{ background: server.icon_emoji, fontFamily: "'DM Sans', sans-serif" }}
+                        >
+                          {server.name?.charAt(0).toUpperCase() || "S"}
+                        </div>
                       ) : (
                         server.icon_emoji || "\u{26EA}"
                       )}

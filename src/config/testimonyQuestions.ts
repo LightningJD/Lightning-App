@@ -17,33 +17,33 @@ export interface TestimonyQuestion {
 export const TESTIMONY_QUESTIONS: TestimonyQuestion[] = [
     {
         id: 'question1',
-        question: 'What was your life like before God stepped in? What were you chasing, how were you living, and what did a normal day look like?',
-        placeholder: 'Paint a picture of who you were. What defined you? What were you living for? What did your day-to-day look like? The more specific you are, the stronger your story will be.',
-        hint: 'Think about what someone would have seen if they watched your life back then.',
+        question: 'How was your life like before you were saved?',
+        placeholder: 'Describe your life before salvation — what you were going through, your background, what a normal day looked like...',
+        hint: 'What were you going through? Were you raised in a Christian home? What was your background like?',
         minLength: 70,
         suggestedLength: 200
     },
     {
         id: 'question2',
-        question: 'What was the lowest point? What moment or season made you realize you needed to make a change?',
-        placeholder: 'Describe the struggle that brought you to the end of yourself. Was there a specific moment you hit rock bottom \u2014 a night, a conversation, a realization? What were you feeling?',
-        hint: 'Don\'t just list struggles \u2014 take us to the moment. What were you doing? What were you feeling?',
+        question: 'What led you to salvation or your own personal relationship with God?',
+        placeholder: 'Share what led you to God — a person, event, moment of realization...',
+        hint: 'Was there a person, event, realization, or a series of circumstances that started it?',
         minLength: 70,
         suggestedLength: 200
     },
     {
         id: 'question3',
-        question: 'How did God show up? What did He do \u2014 did He speak to you, show you something, heal something, send someone? Describe that moment.',
-        placeholder: 'This is the most important part of your story. What did God do? Did you hear Him, feel Him, see something change? Was there a specific moment, a prayer, a word, a dream? Describe exactly what happened \u2014 don\'t hold back.',
-        hint: 'Be specific about what GOD did. If He spoke, what did He say? If He sent someone, who? This is the heart of your testimony.',
+        question: 'Was there a specific moment that was the turning point in your relationship with God? Or did you have a specific experience with God in some way?',
+        placeholder: 'Describe the turning point or specific experience — take us to that moment in detail...',
+        hint: 'Describe in detail this moment or experience for others.',
         minLength: 70,
         suggestedLength: 200
     },
     {
         id: 'question4',
-        question: 'What\'s different now? How do you see God in your everyday life, and what does He have you doing?',
-        placeholder: 'How has your life changed since that moment? What\'s different about how you think, live, or see the world? You don\'t have to be in ministry \u2014 just tell us what God is doing in your life right now.',
-        hint: 'Think about the contrast \u2014 who you were in Q1 vs. who you are now.',
+        question: 'Where are you now in your walk with God?',
+        placeholder: 'Share where you are now — your relationship with God, what He\'s doing in your life, what you\'re being called to...',
+        hint: 'What is your current relationship with Him like? Are you being called to something today? How is your life now?',
         minLength: 70,
         suggestedLength: 200
     }

@@ -1,6 +1,72 @@
 import React from "react";
-import { Home, Search, User, Zap } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useAppContext } from "../contexts/AppContext";
+
+// ============================================
+// CUSTOM SVG NAV ICONS — colorless outlines
+// ============================================
+
+const HomeIcon: React.FC<{ className?: string; strokeWidth?: number }> = ({
+  className,
+  strokeWidth = 1.8,
+}) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    {/* Small house */}
+    <path d="M2 13l5-4 5 4v7H2V13z" />
+    <path d="M5 20v-3h4v3" />
+    {/* Tall building */}
+    <rect x="13" y="4" width="9" height="16" rx="1" />
+    {/* Window dots */}
+    <line x1="16" y1="7.5" x2="16" y2="7.5" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="19" y1="7.5" x2="19" y2="7.5" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="16" y1="11" x2="16" y2="11" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="19" y1="11" x2="19" y2="11" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M16 20v-2.5h3v2.5" />
+  </svg>
+);
+
+const BoltIcon: React.FC<{ className?: string; strokeWidth?: number }> = ({
+  className,
+  strokeWidth = 1.8,
+}) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+  </svg>
+);
+
+const PersonIcon: React.FC<{ className?: string; strokeWidth?: number }> = ({
+  className,
+  strokeWidth = 1.8,
+}) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -14,6 +80,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     currentTab,
     setCurrentTab,
     setShowMenu,
+    setShowNotifications,
     activeServerName,
     activeServerEmoji,
     notificationCounts,
@@ -33,6 +100,36 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         }}
       />
 
+      {/* Day mode glow blobs */}
+      {!nightMode && (
+        <>
+          <div
+            className="fixed pointer-events-none"
+            style={{
+              top: '-10%',
+              left: '15%',
+              width: '320px',
+              height: '320px',
+              background: 'radial-gradient(circle, rgba(150,170,245,0.16) 0%, transparent 65%)',
+              borderRadius: '50%',
+              zIndex: 0,
+            }}
+          />
+          <div
+            className="fixed pointer-events-none"
+            style={{
+              bottom: '-8%',
+              right: '10%',
+              width: '280px',
+              height: '280px',
+              background: 'radial-gradient(circle, rgba(170,160,240,0.1) 0%, transparent 60%)',
+              borderRadius: '50%',
+              zIndex: 0,
+            }}
+          />
+        </>
+      )}
+
       {/* Header */}
       {!nightMode && (
         <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20">
@@ -49,11 +146,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   }}
                   title="Click me 10 times quickly..."
                 >
-                  <Zap
-                    className="w-5 h-5 text-yellow-400 fill-yellow-400"
-                    style={{ filter: "brightness(0)" }}
-                  />
-                  <span className="font-semibold text-black">Lightning</span>
+                  <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, color: '#8e9ec0' }}>Lightning Profile</span>
                 </div>
               )}
               {currentTab === "home" && (
@@ -61,9 +154,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   {activeServerName ? (
                     <>
                       {activeServerEmoji && (
-                        <span className="text-lg flex-shrink-0">
-                          {activeServerEmoji}
-                        </span>
+                        activeServerEmoji.startsWith("linear-gradient") ? (
+                          <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                            style={{ background: activeServerEmoji, fontFamily: "'DM Sans', sans-serif" }}
+                          >
+                            {activeServerName.charAt(0).toUpperCase()}
+                          </div>
+                        ) : (
+                          <span className="text-lg flex-shrink-0">
+                            {activeServerEmoji}
+                          </span>
+                        )
                       )}
                       <span className="truncate">{activeServerName}</span>
                     </>
@@ -72,28 +174,57 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   )}
                 </div>
               )}
-              {currentTab === "find" && (
-                <div className="font-semibold text-black text-xl">Find</div>
+              {currentTab === "charge" && (
+                <div className="font-semibold text-black text-xl">Charge</div>
               )}
-              <button
-                onClick={() => setShowMenu(true)}
-                className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
-                aria-label="Open settings menu"
-              >
-                <svg
-                  className="w-4 h-4 text-black"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowNotifications(true)}
+                  className="relative w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
+                  aria-label="Open notifications"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
+                  <Bell className="w-4 h-4 text-black" />
+                  {(notificationCounts.charge ?? 0) > 0 && (
+                    <div
+                      className="absolute flex items-center justify-center badge-pulse"
+                      style={{
+                        top: "-2px",
+                        right: "-2px",
+                        minWidth: "14px",
+                        height: "14px",
+                        borderRadius: "7px",
+                        fontSize: "8px",
+                        fontWeight: 700,
+                        padding: "0 3px",
+                        background: "#ef4444",
+                        color: "white",
+                        border: "2px solid #d6daf5",
+                      }}
+                    >
+                      {notificationCounts.charge}
+                    </div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowMenu(true)}
+                  className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
+                  aria-label="Open settings menu"
+                >
+                  <svg
+                    className="w-4 h-4 text-black"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -118,8 +249,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   }}
                   title="Click me 10 times quickly..."
                 >
-                  <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                  <span className="font-semibold text-white">Lightning</span>
+                  <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, color: '#5d5877' }}>Lightning Profile</span>
                 </div>
               )}
               {currentTab === "home" && (
@@ -127,9 +257,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   {activeServerName ? (
                     <>
                       {activeServerEmoji && (
-                        <span className="text-lg flex-shrink-0">
-                          {activeServerEmoji}
-                        </span>
+                        activeServerEmoji.startsWith("linear-gradient") ? (
+                          <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                            style={{ background: activeServerEmoji, fontFamily: "'DM Sans', sans-serif" }}
+                          >
+                            {activeServerName.charAt(0).toUpperCase()}
+                          </div>
+                        ) : (
+                          <span className="text-lg flex-shrink-0">
+                            {activeServerEmoji}
+                          </span>
+                        )
                       )}
                       <span className="truncate">{activeServerName}</span>
                     </>
@@ -138,28 +277,57 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   )}
                 </div>
               )}
-              {currentTab === "find" && (
-                <div className="font-semibold text-slate-100 text-xl">Find</div>
+              {currentTab === "charge" && (
+                <div className="font-semibold text-slate-100 text-xl">Charge</div>
               )}
-              <button
-                onClick={() => setShowMenu(true)}
-                className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
-                aria-label="Open settings menu"
-              >
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowNotifications(true)}
+                  className="relative w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
+                  aria-label="Open notifications"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
+                  <Bell className="w-4 h-4 text-white" />
+                  {(notificationCounts.charge ?? 0) > 0 && (
+                    <div
+                      className="absolute flex items-center justify-center badge-pulse"
+                      style={{
+                        top: "-2px",
+                        right: "-2px",
+                        minWidth: "14px",
+                        height: "14px",
+                        borderRadius: "7px",
+                        fontSize: "8px",
+                        fontWeight: 700,
+                        padding: "0 3px",
+                        background: "#ef4444",
+                        color: "white",
+                        border: "2px solid #0d0b18",
+                      }}
+                    >
+                      {notificationCounts.charge}
+                    </div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowMenu(true)}
+                  className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
+                  aria-label="Open settings menu"
+                >
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -169,52 +337,51 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           dialogs in a stacking context */}
       <div className="relative">{children}</div>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation — Frosted glass */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-40 border-t ${nightMode ? "border-white/10" : "border-white/15"}`}
+        className="fixed bottom-0 left-0 right-0 z-40"
         style={
           nightMode
             ? {
-                background: "rgba(10, 10, 10, 0.9)",
+                background: "rgba(13, 11, 24, 0.9)",
+                borderTop: "1px solid rgba(255, 255, 255, 0.04)",
                 backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
-                boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.3)",
               }
             : {
-                background: "rgba(255, 255, 255, 0.15)",
-                backdropFilter: "blur(40px)",
-                WebkitBackdropFilter: "blur(40px)",
-                boxShadow:
-                  "0 -2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.3)",
+                background: "rgba(205, 216, 248, 0.6)",
+                borderTop: "1px solid rgba(150, 165, 225, 0.1)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
               }
         }
       >
-        <div className="px-2 sm:px-6 lg:px-8 flex justify-around items-center h-14">
+        <div className="flex justify-around items-center" style={{ padding: "6px 16px calc(env(safe-area-inset-bottom, 8px) + 8px)" }}>
           <NavButton
             tab="home"
-            icon={Home}
             label="Home"
             currentTab={currentTab}
             nightMode={nightMode}
             badge={notificationCounts.messages}
             onClick={() => setCurrentTab("home")}
+            icon={<HomeIcon className="w-5 h-5" strokeWidth={currentTab === "home" ? 2.2 : 1.8} />}
           />
           <NavButton
-            tab="find"
-            icon={Search}
-            label="Find"
+            tab="charge"
+            label="Charge"
             currentTab={currentTab}
             nightMode={nightMode}
-            badge={notificationCounts.find}
-            onClick={() => setCurrentTab("find")}
+            badge={notificationCounts.charge}
+            onClick={() => setCurrentTab("charge")}
+            icon={<BoltIcon className="w-5 h-5" strokeWidth={currentTab === "charge" ? 2.2 : 1.8} />}
           />
           <NavButton
             tab="you"
-            icon={User}
             label="You"
             currentTab={currentTab}
             nightMode={nightMode}
             onClick={() => setCurrentTab("you")}
+            icon={<PersonIcon className="w-5 h-5" strokeWidth={currentTab === "you" ? 2.2 : 1.8} />}
           />
         </div>
       </div>
@@ -242,7 +409,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
 interface NavButtonProps {
   tab: string;
-  icon: React.FC<any>;
+  icon: React.ReactNode;
   label: string;
   currentTab: string;
   nightMode: boolean;
@@ -252,7 +419,7 @@ interface NavButtonProps {
 
 const NavButton: React.FC<NavButtonProps> = ({
   tab,
-  icon: Icon,
+  icon,
   label,
   currentTab,
   nightMode,
@@ -260,38 +427,82 @@ const NavButton: React.FC<NavButtonProps> = ({
   onClick,
 }) => {
   const isActive = currentTab === tab;
+
+  // Night mode colors
+  const nightActive = {
+    color: "#e8e5f2",
+    background: "rgba(123, 118, 224, 0.12)",
+    border: "1px solid rgba(123, 118, 224, 0.18)",
+  };
+  const nightInactive = {
+    color: "#5d5877",
+    background: "transparent",
+    border: "1px solid transparent",
+  };
+
+  // Day mode colors
+  const dayActive = {
+    color: "#1e2b4a",
+    background: "rgba(79, 172, 254, 0.1)",
+    border: "1px solid rgba(79, 172, 254, 0.15)",
+  };
+  const dayInactive = {
+    color: "#8e9ec0",
+    background: "transparent",
+    border: "1px solid transparent",
+  };
+
+  const style = nightMode
+    ? isActive ? nightActive : nightInactive
+    : isActive ? dayActive : dayInactive;
+
+  // Badge border color matches nav background
+  const badgeBorderColor = nightMode ? "#0d0b18" : "#d6daf5";
+
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-xl transition-all border ${
-        isActive
-          ? nightMode
-            ? "text-slate-100 border-white/20"
-            : "text-slate-100 border-white/30"
-          : nightMode
-            ? "text-white/40 border-transparent hover:bg-white/5"
-            : "text-black/40 border-transparent hover:bg-white/10"
-      }`}
-      style={
-        isActive
-          ? {
-              background: "rgba(79, 150, 255, 0.85)",
-              backdropFilter: "blur(30px)",
-              WebkitBackdropFilter: "blur(30px)",
-            }
-          : {}
-      }
+      className="flex flex-col items-center gap-0.5 rounded-xl cursor-pointer transition-all"
+      style={{
+        padding: "6px 16px",
+        color: style.color,
+        background: style.background,
+        border: style.border,
+      }}
       aria-label={`${label}${badge && badge > 0 ? ` (${badge} ${tab === "home" ? "unread" : "new"})` : ""}`}
     >
-      <div className="relative">
-        <Icon className="w-5 h-5" />
+      <div className="relative" style={{ color: style.color }}>
+        {icon}
         {badge !== undefined && badge > 0 && (
-          <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center border border-white/20 badge-pulse">
-            <span className="text-[9px] font-bold text-white">{badge}</span>
+          <div
+            className="absolute flex items-center justify-center badge-pulse"
+            style={{
+              top: "-4px",
+              right: "-6px",
+              minWidth: "16px",
+              height: "16px",
+              borderRadius: "8px",
+              fontSize: "9px",
+              fontWeight: 700,
+              padding: "0 3px",
+              background: "#ef4444",
+              color: "white",
+              border: `2px solid ${badgeBorderColor}`,
+            }}
+          >
+            {badge}
           </div>
         )}
       </div>
-      <span className="text-[10px] font-medium">{label}</span>
+      <span
+        className="text-[10px] font-medium"
+        style={{
+          letterSpacing: "0.3px",
+          color: style.color,
+        }}
+      >
+        {label}
+      </span>
     </button>
   );
 };

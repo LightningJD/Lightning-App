@@ -43,6 +43,7 @@ import {
 import { useGroupManagement } from "../hooks/useGroupManagement";
 import { useGroupChat } from "../hooks/useGroupChat";
 import { useGroupMembers } from "../hooks/useGroupMembers";
+import SwipeablePageWrapper from "./SwipeablePageWrapper";
 
 interface GroupsTabProps {
   nightMode: boolean;
@@ -501,7 +502,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
                           : "text-sm text-slate-700"
                       }
                     >
-                      No friends to invite yet. Add friends from the Find tab
+                      No friends to invite yet. Add friends from the Charge tab
                       first.
                     </p>
                   </div>
@@ -638,13 +639,15 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
     const myRole = getUserRole(group);
 
     return (
-      <EventsView
-        nightMode={nightMode}
-        groupId={activeGroup}
-        userId={profile!.supabaseId}
-        userRole={myRole}
-        onBack={() => setActiveView("chat")}
-      />
+      <SwipeablePageWrapper onBack={() => setActiveView("chat")}>
+        <EventsView
+          nightMode={nightMode}
+          groupId={activeGroup}
+          userId={profile!.supabaseId}
+          userRole={myRole}
+          onBack={() => setActiveView("chat")}
+        />
+      </SwipeablePageWrapper>
     );
   }
 
@@ -655,13 +658,15 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
     const myRole = getUserRole(group);
 
     return (
-      <AnnouncementsView
-        nightMode={nightMode}
-        groupId={activeGroup}
-        userId={profile!.supabaseId}
-        userRole={myRole}
-        onBack={() => setActiveView("chat")}
-      />
+      <SwipeablePageWrapper onBack={() => setActiveView("chat")}>
+        <AnnouncementsView
+          nightMode={nightMode}
+          groupId={activeGroup}
+          userId={profile!.supabaseId}
+          userRole={myRole}
+          onBack={() => setActiveView("chat")}
+        />
+      </SwipeablePageWrapper>
     );
   }
 
@@ -674,6 +679,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
     const isLeader = hasPermission(myRole, "canManageGroup");
 
     return (
+      <SwipeablePageWrapper onBack={() => setActiveView("chat")}>
       <div className="py-4 px-4 space-y-4">
         <div className="flex items-center justify-between mb-4">
           <button
@@ -870,6 +876,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
           </div>
         )}
       </div>
+      </SwipeablePageWrapper>
     );
   }
 
@@ -883,6 +890,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
     const canManageRoles = hasPermission(myRole, "canManageRoles");
 
     return (
+      <SwipeablePageWrapper onBack={() => setActiveView("chat")}>
       <div className="py-4 px-4 space-y-4 pb-24">
         <div className="flex items-center justify-between mb-4">
           <button
@@ -1055,6 +1063,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
           })}
         </div>
       </div>
+      </SwipeablePageWrapper>
     );
   }
 
@@ -1068,6 +1077,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
     const canPin = hasPermission(myRole, "canPinMessages");
 
     return (
+      <SwipeablePageWrapper onBack={() => { setActiveGroup(null); setActiveView("list"); }}>
       <div className="flex flex-col h-[calc(100vh-140px)]">
         {/* Header */}
         <div
@@ -2344,12 +2354,14 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
           </button>
         </form>
       </div>
+      </SwipeablePageWrapper>
     );
   }
 
   // Notification Settings View
   if (activeView === "notifications") {
     return (
+      <SwipeablePageWrapper onBack={() => setActiveView("list")}>
       <NotificationSettings
         nightMode={nightMode}
         groups={myGroups.map((g) => ({
@@ -2359,6 +2371,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
         }))}
         onBack={() => setActiveView("list")}
       />
+      </SwipeablePageWrapper>
     );
   }
 
