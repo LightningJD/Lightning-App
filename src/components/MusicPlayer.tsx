@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { ExternalLink, Play, Pause, Loader2 } from "lucide-react";
+import { Play, Pause, Loader2 } from "lucide-react";
 import { getYouTubeVideoId } from "../lib/musicUtils";
 
 interface MusicPlayerProps {
@@ -46,7 +46,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  // Replaced '*' with YOUTUBE_ORIGIN to prevent cross site scripting attacks
   const sendCommand = (func: string) => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
@@ -90,77 +89,86 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
 
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}&controls=0&modestbranding=1&rel=0`;
 
+  const accentColor = nightMode ? '#7b76e0' : '#4facfe';
+
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
-        nightMode
-          ? "bg-white/[0.03] border-white/[0.06]"
-          : "bg-white/30 border-white/40"
-      }`}
-      style={
-        !nightMode ? { boxShadow: "inset 0 1px 2px rgba(255,255,255,0.4)" } : {}
-      }
+      className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+      style={{
+        background: nightMode ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.45)',
+        border: nightMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(150,165,225,0.12)',
+      }}
     >
-      {/* Play/Pause */}
+      {/* Play/Pause circle */}
       <button
         onClick={handlePlayPause}
-        className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-          isPlaying
-            ? nightMode
-              ? "bg-blue-500/20 text-blue-400"
-              : "bg-blue-500/15 text-blue-600"
-            : nightMode
-              ? "bg-white/10 text-slate-300 hover:bg-white/15"
-              : "bg-black/5 text-slate-600 hover:bg-black/10"
-        }`}
+        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
+        style={{
+          background: nightMode ? 'rgba(123,118,224,0.12)' : 'rgba(79,172,254,0.12)',
+          color: accentColor,
+        }}
       >
         {isLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
         ) : isPlaying ? (
-          <Pause className="w-4 h-4" />
+          <Pause className="w-3.5 h-3.5" />
         ) : (
-          <Play className="w-4 h-4 ml-0.5" />
+          <Play className="w-3.5 h-3.5 ml-0.5" />
         )}
       </button>
 
-      {/* Song info */}
+      {/* Song info + progress bar */}
       <div className="flex-1 min-w-0">
         <p
-          className={`text-sm font-medium truncate ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+          className="text-[13px] font-semibold truncate"
+          style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
         >
           {trackName || "My Song"}
         </p>
         <p
-          className={`text-xs truncate ${nightMode ? "text-slate-500" : "text-slate-400"}`}
+          className="text-[11px] truncate"
+          style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
         >
           {artist || "YouTube"}
         </p>
+        {/* Progress bar */}
+        <div
+          className="h-[2px] rounded-full mt-1.5 overflow-hidden"
+          style={{ background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)' }}
+        >
+          <div
+            className="h-full rounded-full transition-all duration-300"
+            style={{
+              width: isPlaying ? '35%' : '0%',
+              background: accentColor,
+            }}
+          />
+        </div>
       </div>
 
-      {/* YouTube icon + external link */}
-      <div className="flex items-center gap-2.5 flex-shrink-0">
-        <svg
-          className="w-4 h-4 text-red-500"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-        </svg>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`p-1.5 rounded-lg transition-colors ${
-            nightMode
-              ? "text-slate-600 hover:text-slate-400 hover:bg-white/5"
-              : "text-slate-300 hover:text-slate-500 hover:bg-black/5"
-          }`}
-          onClick={(e) => e.stopPropagation()}
-          title="Open in YouTube"
-        >
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+      {/* Wave animation */}
+      <div className="flex items-end gap-[2px] h-4 flex-shrink-0">
+        {[7, 12, 5, 14, 8].map((height, i) => (
+          <span
+            key={i}
+            className="block w-[2.5px] rounded-sm"
+            style={{
+              height: `${height}px`,
+              background: accentColor,
+              opacity: isPlaying ? 1 : 0.3,
+              animation: isPlaying ? `musicWave 0.8s ease-in-out ${i * 0.08 + 0.05}s infinite` : 'none',
+            }}
+          />
+        ))}
       </div>
+
+      {/* CSS animation keyframes */}
+      <style>{`
+        @keyframes musicWave {
+          0%, 100% { transform: scaleY(1); }
+          50% { transform: scaleY(0.4); }
+        }
+      `}</style>
 
       {/* Hidden YouTube iframe — only mounted when playing */}
       {isPlaying && (

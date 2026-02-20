@@ -476,9 +476,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         <div
           className="rounded-full flex items-center justify-center flex-shrink-0 mb-3 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95"
           style={{
-            width: '140px',
-            height: '140px',
-            fontSize: '48px',
+            width: '100px',
+            height: '100px',
+            fontSize: '38px',
             fontFamily: "'Playfair Display', serif",
             color: 'white',
             background: nightMode
@@ -759,27 +759,17 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
       )}
 
-      {/* Profile Card (Pokédex-style V15+V11) */}
+      {/* Profile Card */}
       {(profile.bio ||
-        profile.churchName ||
         profile.favoriteVerse ||
-        (profile.faithInterests && profile.faithInterests.length > 0) ||
-        profile.yearSaved ||
         (profile.music && profile.music.spotifyUrl)) && (
         <div className="px-4">
           <ProfileCard
             nightMode={nightMode}
             profile={{
               bio: profile.bio,
-              churchName: profile.churchName,
-              churchLocation: profile.churchLocation,
-              denomination: profile.denomination,
-              yearSaved: profile.yearSaved,
-              isBaptized: profile.isBaptized,
-              yearBaptized: profile.yearBaptized,
               favoriteVerse: profile.favoriteVerse,
               favoriteVerseRef: profile.favoriteVerseRef,
-              faithInterests: profile.faithInterests,
               music: profile.music,
               story: profile.story
                 ? {
@@ -789,6 +779,30 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                     commentCount: profile.story.commentCount,
                   }
                 : null,
+            }}
+            isOwnProfile={!isViewingOther}
+            onShareTestimony={() => {
+              try {
+                const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
+                const shareData = {
+                  title: `${profile?.name || profile?.displayName || "Someone"}'s Testimony on Lightning`,
+                  text: "Be encouraged by this testimony on Lightning",
+                  url: testimonyUrl,
+                };
+                // @ts-ignore
+                if (navigator?.share && typeof navigator.share === "function") {
+                  // @ts-ignore
+                  navigator.share(shareData);
+                } else {
+                  setShowShareModal(true);
+                }
+              } catch {
+                setShowShareModal(true);
+              }
+            }}
+            onEditProfile={() => {
+              // Dispatch event to open profile editing
+              window.dispatchEvent(new CustomEvent("openProfileEdit"));
             }}
           />
         </div>
@@ -827,37 +841,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
 
       {/* Ambassador section moved to Charge tab */}
 
-      {/* Dot connector between Faith Profile and Testimony */}
-      {(profile.bio ||
-        profile.churchName ||
-        profile.favoriteVerse ||
-        (profile.faithInterests && profile.faithInterests.length > 0) ||
-        profile.yearSaved ||
-        (profile.music && profile.music.spotifyUrl)) &&
-        profile?.story?.id && (
-          <div className="flex flex-col items-center py-1">
-            <div
-              className="w-px h-2.5"
-              style={{ background: nightMode ? 'rgba(123,118,224,0.25)' : 'rgba(79,172,254,0.2)' }}
-            />
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{
-                background: nightMode
-                  ? "rgba(123,118,224,0.5)"
-                  : "rgba(79,172,254,0.45)",
-                boxShadow: nightMode
-                  ? "0 0 8px rgba(123,118,224,0.4)"
-                  : "0 0 6px rgba(79,172,254,0.3)",
-              }}
-            />
-            <div
-              className="w-px h-2.5"
-              style={{ background: nightMode ? 'rgba(123,118,224,0.25)' : 'rgba(79,172,254,0.2)' }}
-            />
-          </div>
-        )}
-
       {/* Testimony Share Modal */}
       <TestimonyShareModal
         nightMode={nightMode}
@@ -868,17 +851,19 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         profileName={profile?.name || profile?.displayName || "Someone"}
       />
 
-      {/* Testimony Section - Only show when testimony exists */}
+      {/* Salvation Testimony Section */}
       {profile?.story?.id && (
         <div className="px-4">
           {/* Section label */}
-          <div className="text-[11px] uppercase tracking-widest font-medium mb-2 ml-1" style={{
-            color: nightMode ? '#5d5877' : '#4a5e88',
+          <div className="text-[11px] uppercase tracking-[1.5px] font-semibold mb-2 ml-1" style={{
+            color: nightMode ? '#5d5877' : '#8e9ec0',
           }}>
             Salvation Testimony
           </div>
+
+          {/* Testimony Card */}
           <div
-            className="p-5 rounded-xl relative overflow-hidden"
+            className="p-4 rounded-xl relative overflow-hidden"
             style={
               nightMode
                 ? {
@@ -886,320 +871,240 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                     border: '1px solid rgba(255,255,255,0.06)',
                   }
                 : {
-                    background: "rgba(255, 255, 255, 0.5)",
-                    border: '1px solid rgba(150,165,225,0.15)',
-                    backdropFilter: "blur(12px)",
-                    WebkitBackdropFilter: "blur(12px)",
-                    boxShadow: '0 1px 6px rgba(150,165,225,0.05)',
+                    background: 'rgba(255,255,255,0.45)',
+                    border: '1px solid rgba(150,165,225,0.12)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
                   }
             }
           >
-            {/* 3px gradient left accent bar */}
+            {/* Gradient left accent bar */}
             <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-sm" style={{
               background: nightMode
                 ? 'linear-gradient(180deg, #7b76e0, #9b96f5)'
                 : 'linear-gradient(180deg, #4facfe, #9b96f5)',
             }} />
+
             {/* Tag */}
-            <div className="text-[10px] uppercase tracking-wide font-semibold mb-2 ml-1" style={{
+            <div className="text-[10px] uppercase tracking-wide font-semibold mb-1 ml-1" style={{
               color: nightMode ? '#7b76e0' : '#4facfe',
             }}>
               Salvation Testimony
             </div>
-            <div className="flex items-center justify-between mb-4">
-              <h2
-                className="text-base font-medium flex items-center gap-2 leading-tight"
-                style={{
-                  fontFamily: "'Playfair Display', serif",
-                  color: nightMode ? '#e8e5f2' : '#1e2b4a',
-                }}
-              >
-                {profile?.story?.title || "My Testimony"}
-              </h2>
-              <div className="flex items-center gap-2">
-                {/* Like Button - Top Right - Only show when testimony exists */}
-                {profile?.story?.id && (
-                  <button
-                    onClick={handleLike}
-                    className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${isLiked ? "border-red-500" : nightMode ? "border-white/20" : "border-white/30"}`}
-                    style={
-                      isLiked
-                        ? {
-                            background:
-                              "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
-                            boxShadow:
-                              "0 2px 6px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)",
-                          }
-                        : nightMode
-                          ? {
-                              background:
-                                "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)",
-                              boxShadow:
-                                "0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                              backdropFilter: "blur(10px)",
-                              WebkitBackdropFilter: "blur(10px)",
-                            }
-                          : {
-                              background: "rgba(255, 255, 255, 0.25)",
-                              backdropFilter: "blur(30px)",
-                              WebkitBackdropFilter: "blur(30px)",
-                              boxShadow:
-                                "0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
-                            }
-                    }
-                    title={isLiked ? "Unlike testimony" : "Like testimony"}
+
+            {/* Title */}
+            <h2
+              className="text-base font-medium leading-tight mb-2"
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                color: nightMode ? '#e8e5f2' : '#1e2b4a',
+              }}
+            >
+              {profile?.story?.title || "My Testimony"}
+            </h2>
+
+            {/* Privacy Protected Content */}
+            {canView ? (
+              <>
+                {/* Pull quote in glass callout */}
+                {profile?.story?.lesson && (
+                  <div
+                    className="text-[13px] italic leading-relaxed p-2.5 rounded-lg mb-2"
+                    style={{
+                      fontFamily: "'Playfair Display', serif",
+                      color: nightMode ? '#b8b4c8' : '#4a5e88',
+                      borderLeft: nightMode ? '2px solid rgba(123,118,224,0.2)' : '2px solid rgba(79,172,254,0.2)',
+                      background: nightMode ? 'rgba(123,118,224,0.04)' : 'rgba(79,172,254,0.04)',
+                    }}
                   >
-                    <Heart
-                      className={`w-4 h-4 ${isLiked ? "fill-red-500 text-slate-100" : nightMode ? "text-slate-100" : "text-black"}`}
-                    />
-                    <span
-                      className={`text-xs font-medium ${isLiked ? "text-slate-100" : nightMode ? "text-slate-100" : "text-black"}`}
-                    >
-                      {likeCount}
-                    </span>
-                  </button>
+                    &ldquo;{profile.story.lesson.slice(0, 120)}{profile.story.lesson.length > 120 ? '...' : ''}&rdquo;
+                  </div>
                 )}
 
-                {/* Edit / Delete Buttons (owner only) */}
-                {onEditTestimony &&
-                  profile?.story?.content &&
-                  currentUserProfile?.supabaseId === profile?.supabaseId && (
-                    <button
-                      onClick={onEditTestimony}
-                      className={`p-2 rounded-lg border transition-all duration-200 flex items-center gap-1.5 ${
-                        nightMode
-                          ? "border-white/20 hover:bg-white/10"
-                          : "border-white/30 hover:bg-white/20"
-                      }`}
-                      style={
-                        nightMode
-                          ? {
-                              background:
-                                "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)",
-                              boxShadow:
-                                "0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                              backdropFilter: "blur(10px)",
-                              WebkitBackdropFilter: "blur(10px)",
-                            }
-                          : {
-                              background: "rgba(255, 255, 255, 0.25)",
-                              backdropFilter: "blur(30px)",
-                              WebkitBackdropFilter: "blur(30px)",
-                              boxShadow:
-                                "0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
-                            }
-                      }
-                      title="Edit Testimony"
-                    >
-                      <Edit3
-                        className={`w-4 h-4 ${nightMode ? "text-slate-100" : "text-black"}`}
-                      />
-                      <span
-                        className={`text-xs font-medium ${nightMode ? "text-slate-100" : "text-black"}`}
-                      >
-                        Edit
-                      </span>
-                    </button>
-                  )}
-
-                {/* More menu (owner only) */}
-                {profile?.story?.id &&
-                  currentUserProfile?.supabaseId === profile?.supabaseId && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowTestimonyMenu(!showTestimonyMenu)}
-                        className={`p-2 rounded-lg border transition-all duration-200 ${
-                          nightMode
-                            ? "border-white/20 hover:bg-white/10"
-                            : "border-white/30 hover:bg-white/20"
-                        }`}
-                        style={
-                          nightMode
-                            ? {
-                                background:
-                                  "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)",
-                                boxShadow:
-                                  "0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                                backdropFilter: "blur(10px)",
-                                WebkitBackdropFilter: "blur(10px)",
-                              }
-                            : {
-                                background: "rgba(255, 255, 255, 0.25)",
-                                backdropFilter: "blur(30px)",
-                                WebkitBackdropFilter: "blur(30px)",
-                                boxShadow:
-                                  "0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
-                              }
-                        }
-                        title="More options"
-                      >
-                        <MoreHorizontal
-                          className={`w-4 h-4 ${nightMode ? "text-slate-100" : "text-black"}`}
-                        />
-                      </button>
-
-                      {showTestimonyMenu && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-40"
-                            onClick={() => setShowTestimonyMenu(false)}
-                            role="presentation"
-                          />
-                          <div
-                            className={`absolute right-0 top-full mt-1 z-50 rounded-xl overflow-hidden shadow-xl border ${nightMode ? "border-white/10" : "border-white/30"}`}
-                            style={
-                              nightMode
-                                ? {
-                                    background: "rgba(20, 20, 20, 0.95)",
-                                    backdropFilter: "blur(20px)",
-                                    WebkitBackdropFilter: "blur(20px)",
-                                  }
-                                : {
-                                    background: "rgba(255, 255, 255, 0.9)",
-                                    backdropFilter: "blur(20px)",
-                                    WebkitBackdropFilter: "blur(20px)",
-                                  }
-                            }
-                          >
-                            <button
-                              onClick={async () => {
-                                setShowTestimonyMenu(false);
-                                if (!profile?.story?.id || !profile?.supabaseId)
-                                  return;
-                                if (
-                                  !window.confirm(
-                                    "Delete your testimony? This cannot be undone.",
-                                  )
-                                )
-                                  return;
-                                const { success } = await deleteTestimony(
-                                  profile.story.id,
-                                  profile.supabaseId,
-                                );
-                                if (success) {
-                                  window.location.reload();
-                                } else {
-                                  alert(
-                                    "Failed to delete testimony. Please try again.",
-                                  );
-                                }
-                              }}
-                              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium w-full text-left whitespace-nowrap transition-colors ${nightMode ? "text-red-400 hover:bg-white/5" : "text-red-600 hover:bg-red-50"}`}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Delete Testimony
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-              </div>
-            </div>
-
-            {/* Testimony Content - Privacy Protected */}
-            {profile?.story?.id && canView ? (
-              <>
-                <p
-                  className="text-[13px] leading-relaxed whitespace-pre-wrap"
-                  style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
+                {/* Body preview — 2 line clamp */}
+                <div
+                  className="text-[13px] leading-relaxed mb-2"
+                  style={{
+                    color: nightMode ? '#8e89a8' : '#4a5e88',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical' as any,
+                    overflow: 'hidden',
+                  }}
                   dangerouslySetInnerHTML={{
                     __html: sanitizeUserContent(profile?.story?.content || ""),
                   }}
                 />
 
-                {/* Lesson Learned - Inline with preview/expand */}
-                {profile?.story?.lesson && (
-                  <div
-                    className="mt-5 pt-5"
-                    style={{ borderTop: nightMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(150,165,225,0.15)' }}
+                {/* Engagement row */}
+                <div className="flex items-center gap-3 text-[12px]" style={{
+                  color: nightMode ? '#5d5877' : '#8e9ec0',
+                }}>
+                  <button
+                    onClick={handleLike}
+                    className="flex items-center gap-1 transition-colors hover:opacity-80"
+                    style={{ color: isLiked ? '#ef4444' : (nightMode ? '#5d5877' : '#8e9ec0') }}
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-base">📖</span>
-                      <h3
-                        className="text-sm font-semibold"
-                        style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
-                      >
-                        A Lesson Learned
-                      </h3>
+                    {isLiked ? '♥' : '♡'} {likeCount}
+                  </button>
+                  <span className="flex items-center gap-1">
+                    💬 {comments.length}
+                  </span>
+                  <button
+                    onClick={() => {
+                      try {
+                        const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
+                        // @ts-ignore
+                        if (navigator?.share && typeof navigator.share === "function") {
+                          // @ts-ignore
+                          navigator.share({
+                            title: `${profile?.name || profile?.displayName || "Someone"}'s Testimony`,
+                            text: "Be encouraged by this testimony on Lightning",
+                            url: testimonyUrl,
+                          });
+                        } else {
+                          setShowShareModal(true);
+                        }
+                      } catch {
+                        setShowShareModal(true);
+                      }
+                    }}
+                    className="flex items-center gap-1 transition-colors hover:opacity-80"
+                  >
+                    ↗ Share
+                  </button>
+
+                  {/* Owner actions — edit / delete */}
+                  {currentUserProfile?.supabaseId === profile?.supabaseId && (
+                    <div className="ml-auto flex items-center gap-2">
+                      {onEditTestimony && profile?.story?.content && (
+                        <button
+                          onClick={onEditTestimony}
+                          className="flex items-center gap-1 transition-colors hover:opacity-80"
+                        >
+                          <Edit3 className="w-3 h-3" /> Edit
+                        </button>
+                      )}
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowTestimonyMenu(!showTestimonyMenu)}
+                          className="transition-colors hover:opacity-80"
+                        >
+                          <MoreHorizontal className="w-3.5 h-3.5" />
+                        </button>
+                        {showTestimonyMenu && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-40"
+                              onClick={() => setShowTestimonyMenu(false)}
+                              role="presentation"
+                            />
+                            <div
+                              className={`absolute right-0 top-full mt-1 z-50 rounded-xl overflow-hidden shadow-xl border ${nightMode ? "border-white/10" : "border-white/30"}`}
+                              style={
+                                nightMode
+                                  ? { background: "rgba(20,20,20,0.95)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }
+                                  : { background: "rgba(255,255,255,0.9)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }
+                              }
+                            >
+                              <button
+                                onClick={async () => {
+                                  setShowTestimonyMenu(false);
+                                  if (!profile?.story?.id || !profile?.supabaseId) return;
+                                  if (!window.confirm("Delete your testimony? This cannot be undone.")) return;
+                                  const { success } = await deleteTestimony(profile.story.id, profile.supabaseId);
+                                  if (success) { window.location.reload(); } else { alert("Failed to delete testimony. Please try again."); }
+                                }}
+                                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium w-full text-left whitespace-nowrap transition-colors ${nightMode ? "text-red-400 hover:bg-white/5" : "text-red-600 hover:bg-red-50"}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete Testimony
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
-
-                    {/* Preview (first 150 characters) */}
-                    <p
-                      className="text-sm italic leading-relaxed"
-                      style={{
-                        fontFamily: "'Playfair Display', serif",
-                        color: nightMode ? '#b8b4c8' : '#3a4d6e',
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: sanitizeUserContent(
-                          showLesson
-                            ? profile?.story?.lesson || ""
-                            : `${(profile?.story?.lesson || "").slice(0, 150)}${(profile?.story?.lesson?.length || 0) > 150 ? "..." : ""}`,
-                        ),
-                      }}
-                    />
-
-                    {/* Read More button if lesson is long */}
-                    {(profile?.story?.lesson?.length || 0) > 150 && (
-                      <button
-                        onClick={() => setShowLesson(!showLesson)}
-                        className="mt-2 text-sm font-medium transition-colors"
-                        style={{ color: nightMode ? '#7b76e0' : '#2b6cb0' }}
-                      >
-                        {showLesson ? "Read less" : "Read more"}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : profile?.story?.id && !canView ? (
-              <div
-                className={`text-center py-8 ${nightMode ? "bg-white/5" : "bg-slate-50"} rounded-lg`}
-              >
-                <div className="flex flex-col items-center gap-3">
-                  <div
-                    className={`p-3 rounded-full ${nightMode ? "bg-white/10" : "bg-white/50"}`}
-                  >
-                    <svg
-                      className={`w-6 h-6 ${nightMode ? "text-slate-400" : "text-slate-500"}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <p
-                      className={`text-sm font-medium ${nightMode ? "text-slate-100" : "text-slate-900"}`}
-                    >
-                      This testimony is private
-                    </p>
-                    <p
-                      className={`text-xs mt-1 ${nightMode ? "text-slate-400" : "text-slate-500"}`}
-                    >
-                      Only friends can view this testimony
-                    </p>
-                  </div>
+                  )}
                 </div>
-              </div>
-            ) : (
-              <div
-                className={`text-center py-8 ${nightMode ? "bg-white/5" : "bg-slate-50"} rounded-lg`}
-              >
-                <p
-                  className={`text-sm ${nightMode ? "text-slate-400" : "text-gray-600"}`}
-                >
-                  No testimony yet. Click the + button to add your testimony.
+              </>
+            ) : !canView ? (
+              <div className={`text-center py-6 ${nightMode ? "bg-white/5" : "bg-slate-50"} rounded-lg`}>
+                <p className={`text-sm font-medium ${nightMode ? "text-slate-100" : "text-slate-900"}`}>
+                  This testimony is private
+                </p>
+                <p className={`text-xs mt-1 ${nightMode ? "text-slate-400" : "text-slate-500"}`}>
+                  Only friends can view this testimony
                 </p>
               </div>
-            )}
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Life Testimonies Section — placeholder for future multi-testimony support */}
+      {profile?.story?.id && canView && profile?.story?.lesson && (
+        <div className="px-4 mt-2">
+          <div className="text-[11px] uppercase tracking-[1.5px] font-semibold mb-2 ml-1" style={{
+            color: nightMode ? '#5d5877' : '#8e9ec0',
+          }}>
+            Life Testimonies
+          </div>
+          <div
+            className="p-4 rounded-xl"
+            style={{
+              opacity: 0.85,
+              ...(nightMode
+                ? {
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                  }
+                : {
+                    background: 'rgba(255,255,255,0.45)',
+                    border: '1px solid rgba(150,165,225,0.12)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                  }),
+            }}
+          >
+            <div className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{
+              color: nightMode ? '#7b76e0' : '#4facfe',
+            }}>
+              Life Testimony
+            </div>
+            <h3
+              className="text-sm font-medium leading-tight mb-2"
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                color: nightMode ? '#e8e5f2' : '#1e2b4a',
+              }}
+            >
+              A Lesson Learned
+            </h3>
+            <div
+              className="text-[13px] italic leading-relaxed p-2.5 rounded-lg mb-2"
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                color: nightMode ? '#b8b4c8' : '#4a5e88',
+                borderLeft: nightMode ? '2px solid rgba(123,118,224,0.2)' : '2px solid rgba(79,172,254,0.2)',
+                background: nightMode ? 'rgba(123,118,224,0.04)' : 'rgba(79,172,254,0.04)',
+              }}
+            >
+              &ldquo;{profile.story.lesson.slice(0, 100)}{profile.story.lesson.length > 100 ? '...' : ''}&rdquo;
+            </div>
+            <div
+              className="text-[13px] leading-relaxed"
+              style={{
+                color: nightMode ? '#8e89a8' : '#4a5e88',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical' as any,
+                overflow: 'hidden',
+              }}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeUserContent(profile.story.lesson),
+              }}
+            />
           </div>
         </div>
       )}
@@ -1425,55 +1330,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
           </div>
         )}
 
-        {/* Share Button - Only show when testimony exists */}
-        {profile?.story?.id && (
-          <button
-            onClick={async () => {
-              try {
-                const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
-                const shareData = {
-                  title: `${profile?.name || "Someone"}'s Testimony on Lightning`,
-                  text: "Be encouraged by this testimony on Lightning ✨",
-                  url: testimonyUrl,
-                };
-                // Prefer Web Share API if available
-                // @ts-ignore - navigator.share types vary across environments
-                if (navigator?.share && typeof navigator.share === "function") {
-                  // @ts-ignore
-                  await navigator.share(shareData);
-                } else {
-                  // Fallback to share modal
-                  setShowShareModal(true);
-                }
-              } catch {
-                // If user cancels or share fails, show share modal
-                setShowShareModal(true);
-              }
-            }}
-            className="w-full mt-3 px-4 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm transition-all duration-200 cursor-pointer text-white border-none"
-            style={{
-              background: nightMode
-                ? "linear-gradient(135deg, #7b76e0, #9b96f5)"
-                : "linear-gradient(135deg, #4facfe, #3b82f6)",
-            }}
-            aria-label="Share your testimony"
-          >
-            ⚡ Share Testimony
-          </button>
-        )}
-
-        {/* View counter */}
-        {profile?.story?.viewCount != null && profile.story.viewCount > 0 && (
-          <div
-            className="text-center mt-1"
-            style={{
-              fontSize: '11px',
-              color: nightMode ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
-            }}
-          >
-            {profile.story.viewCount} views
-          </div>
-        )}
       </div>
 
       {/* Floating Action Button (FAB) for Add Testimony - Only show if user doesn't have testimony */}

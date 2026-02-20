@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import React from 'react';
 import MusicPlayer from './MusicPlayer';
 
 interface ProfileCardProps {
@@ -29,47 +28,22 @@ interface ProfileCardProps {
   };
   compact?: boolean;
   hideStats?: boolean;
+  onShareTestimony?: () => void;
+  onEditProfile?: () => void;
+  isOwnProfile?: boolean;
 }
-
-// Map of faith interest labels to emojis
-const INTEREST_EMOJIS: Record<string, string> = {
-  'Worship': '🎵',
-  'Bible Study': '📖',
-  'Prayer': '🙏',
-  'Missions': '✈️',
-  'Youth Ministry': '👥',
-  'Apologetics': '🎙️',
-  'Evangelism': '📣',
-  'Discipleship': '🌱',
-  'Serving': '🧱',
-  'Community': '🤝',
-  'Teaching': '🎓',
-  'Creative Arts': '🎨',
-  'Music': '🎶',
-  'Small Groups': '🏠',
-  'Leadership': '⭐',
-};
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
   nightMode,
   profile,
-  compact = false,
-  hideStats = false,
+  onShareTestimony,
+  onEditProfile,
+  isOwnProfile = false,
 }) => {
-  const [expanded, setExpanded] = useState(false);
-  const currentYear = new Date().getFullYear();
-  const yearsWalking = profile.yearSaved ? currentYear - profile.yearSaved : null;
-
-  const hasChurchInfo = profile.churchName;
   const hasVerse = profile.favoriteVerse && profile.favoriteVerseRef;
-  const hasInterests = profile.faithInterests && profile.faithInterests.length > 0;
-  const hasJourney = profile.yearSaved || profile.isBaptized;
-  const hasStats = profile.story?.id && !hideStats;
   const hasBio = profile.bio && profile.bio !== 'Welcome to Lightning! Share your testimony to inspire others.';
   const hasMusic = profile.music && profile.music.spotifyUrl;
-
-  // Expandable sections: church, interests, journey
-  const hasExpandable = hasChurchInfo || hasInterests || hasJourney;
+  const viewCount = profile.story?.viewCount || 0;
 
   return (
     <div className="relative">
@@ -117,22 +91,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             }} />
           </div>
 
-          {/* Bio — Always visible */}
+          {/* Bio — centered */}
           {hasBio && (
-            <p className="text-sm leading-relaxed" style={{
+            <p className="text-sm leading-relaxed text-center" style={{
               color: nightMode ? '#8e89a8' : '#4a5e88',
             }}>
               {profile.bio}
             </p>
           )}
 
-          {/* Favorite Verse — Always visible */}
+          {/* Favorite Verse */}
           {hasVerse && (
             <div
               className="rounded-lg p-3"
               style={{
                 background: nightMode ? 'rgba(123,118,224,0.05)' : 'rgba(79,172,254,0.05)',
-                borderLeft: nightMode ? '2px solid #7b76e0' : '2px solid #4facfe',
+                borderLeft: nightMode ? '3px solid #7b76e0' : '3px solid #4facfe',
               }}
             >
               <div className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{
@@ -154,7 +128,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
           )}
 
-          {/* Music Player — Always visible */}
+          {/* Music Player */}
           {hasMusic && (
             <MusicPlayer
               url={profile.music!.spotifyUrl!}
@@ -164,147 +138,55 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             />
           )}
 
-          {/* Expand/Collapse trigger for church, interests, journey */}
-          {hasExpandable && (
-            <>
-              {/* Expand button when collapsed */}
-              {!expanded && (
+          {/* Action Buttons — Share Testimony + Edit Profile */}
+          {isOwnProfile && (
+            <div className="flex gap-2">
+              {profile.story?.id && onShareTestimony && (
                 <button
-                  onClick={() => setExpanded(true)}
-                  className={`flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium rounded-lg transition-colors ${
-                    nightMode
-                      ? 'text-slate-500 hover:text-slate-400'
-                      : 'text-slate-400 hover:text-slate-500'
-                  }`}
+                  onClick={onShareTestimony}
+                  className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold text-center transition-colors"
+                  style={{
+                    background: nightMode ? 'rgba(123,118,224,0.12)' : 'rgba(79,172,254,0.12)',
+                    border: nightMode ? '1px solid rgba(123,118,224,0.2)' : '1px solid rgba(79,172,254,0.2)',
+                    color: nightMode ? '#9b96f5' : '#2b6cb0',
+                  }}
                 >
-                  {hasChurchInfo && <span>⛪ Church</span>}
-                  {hasChurchInfo && (hasInterests || hasJourney) && <span>·</span>}
-                  {hasInterests && <span>🙏 Interests</span>}
-                  {hasInterests && hasJourney && <span>·</span>}
-                  {hasJourney && <span>📅 Journey</span>}
-                  <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
+                  ⚡ Share Testimony
                 </button>
               )}
-
-              {/* Expanded sections — V4 Compact Rows */}
-              {expanded && (
-                <>
-                  {/* Divider */}
-                  <div className="h-px" style={{ background: nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.1)' }} />
-
-                  <div className="flex flex-col">
-                    {/* Church Row */}
-                    {hasChurchInfo && (
-                      <div className={`flex items-start gap-2.5 py-2.5 ${
-                        (hasInterests || hasJourney) ? `border-b ${nightMode ? 'border-white/[0.04]' : 'border-black/[0.04]'}` : ''
-                      }`}>
-                        <span className="text-base leading-5 mt-px">⛪</span>
-                        <div className="flex-1 min-w-0">
-                          <div className={`text-[13px] font-medium ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                            {profile.churchName}
-                          </div>
-                          {profile.denomination && (
-                            <div className={`text-[11px] mt-0.5 ${nightMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                              ✝️ {profile.denomination}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Faith Interests Row */}
-                    {hasInterests && (
-                      <div className={`flex items-start gap-2.5 py-2.5 ${
-                        hasJourney ? `border-b ${nightMode ? 'border-white/[0.04]' : 'border-black/[0.04]'}` : ''
-                      }`}>
-                        <span className="text-base leading-5 mt-px">✨</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap gap-1.5 mt-0.5">
-                            {profile.faithInterests!.map((interest, i) => (
-                              <span
-                                key={i}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border"
-                                style={nightMode ? {
-                                  background: 'rgba(123,118,224,0.1)',
-                                  borderColor: 'rgba(123,118,224,0.2)',
-                                  color: '#9b96f5',
-                                } : {
-                                  background: 'rgba(79,172,254,0.08)',
-                                  borderColor: 'rgba(79,172,254,0.2)',
-                                  color: '#2b6cb0',
-                                }}
-                              >
-                                {INTEREST_EMOJIS[interest] || '✨'} {interest}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Journey Row */}
-                    {hasJourney && (
-                      <div className="flex items-start gap-2.5 py-2.5">
-                        <span className="text-base leading-5 mt-px">📖</span>
-                        <div className="flex-1 min-w-0">
-                          <div className={`text-[13px] font-medium ${nightMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                            {profile.yearSaved && `Saved ${profile.yearSaved}`}
-                            {profile.yearSaved && profile.isBaptized && ' · '}
-                            {profile.isBaptized && `Baptized${profile.yearBaptized ? ` ${profile.yearBaptized}` : ''}`}
-                          </div>
-                          {yearsWalking !== null && yearsWalking > 0 && (
-                            <div className="mt-2">
-                              <div className="flex justify-between items-center text-[11px] mb-1">
-                                <span className={nightMode ? 'text-slate-400' : 'text-slate-500'}>Saved for</span>
-                                <span className="font-semibold" style={{ color: nightMode ? '#7b76e0' : '#2b6cb0' }}>
-                                  {yearsWalking} {yearsWalking === 1 ? 'year' : 'years'}
-                                </span>
-                              </div>
-                              <div className={`h-1 rounded-full overflow-hidden ${
-                                nightMode ? 'bg-white/[0.06]' : 'bg-black/[0.06]'
-                              }`}>
-                                <div
-                                  className="h-full rounded-full"
-                                  style={{
-                                    width: `${Math.min(100, (yearsWalking / 50) * 100)}%`,
-                                    background: nightMode
-                                      ? 'linear-gradient(90deg, #7b76e0, #9b96f5)'
-                                      : 'linear-gradient(90deg, #4facfe, #2b6cb0)',
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Collapse button */}
-                  <button
-                    onClick={() => setExpanded(false)}
-                    className="flex items-center justify-center gap-1 py-1 text-[11px] font-medium rounded-lg transition-colors"
-                    style={{ color: nightMode ? '#7b76e0' : '#2b6cb0' }}
-                  >
-                    Less <ChevronUp className="w-3.5 h-3.5" />
-                  </button>
-                </>
+              {onEditProfile && (
+                <button
+                  onClick={onEditProfile}
+                  className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold text-center transition-colors"
+                  style={nightMode ? {
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    color: '#8e89a8',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                  } : {
+                    background: 'rgba(255,255,255,0.5)',
+                    border: '1px solid rgba(150,165,225,0.15)',
+                    color: '#4a5e88',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                  }}
+                >
+                  Edit Profile
+                </button>
               )}
-            </>
+            </div>
           )}
 
-          {/* Stats - compact inline style */}
-          {hasStats && (
-            <div className="flex items-center justify-center gap-4 py-2 px-3 rounded-xl" style={{
-              background: nightMode ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.4)',
-              backdropFilter: nightMode ? undefined : 'blur(8px)',
-              WebkitBackdropFilter: nightMode ? undefined : 'blur(8px)',
+          {/* Subtle views */}
+          {viewCount > 0 && (
+            <div className="text-center" style={{
+              fontSize: '11px',
+              color: nightMode ? '#8e89a8' : '#4a5e88',
+              opacity: 0.45,
+              letterSpacing: '0.3px',
             }}>
-              <StatItem nightMode={nightMode} value={profile.story?.viewCount || 0} label="Views" />
-              <div className="w-px h-4" style={{ background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)' }} />
-              <StatItem nightMode={nightMode} value={profile.story?.likeCount || 0} label="Likes" />
-              <div className="w-px h-4" style={{ background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)' }} />
-              <StatItem nightMode={nightMode} value={profile.story?.commentCount || 0} label="Comments" />
+              ⦿ {viewCount} views
             </div>
           )}
 
@@ -313,23 +195,5 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     </div>
   );
 };
-
-const StatItem: React.FC<{
-  nightMode: boolean;
-  value: number;
-  label: string;
-}> = ({ nightMode, value, label }) => (
-  <div className="flex items-center gap-1.5">
-    <span className="text-sm font-bold" style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>
-      {value}
-    </span>
-    <span className="text-[10px] font-medium uppercase tracking-wide" style={{
-      color: nightMode ? '#5d5877' : '#8e9ec0',
-      opacity: 0.5,
-    }}>
-      {label}
-    </span>
-  </div>
-);
 
 export default ProfileCard;
