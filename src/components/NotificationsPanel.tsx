@@ -31,7 +31,7 @@ const getAvatarGradient = (str: string): string => {
     "linear-gradient(135deg, #f093fb, #f5576c)",
     "linear-gradient(135deg, #4facfe, #00f2fe)",
     "linear-gradient(135deg, #43e97b, #38f9d7)",
-    "linear-gradient(135deg, #6b9ed6, #7b76e0)",
+    "linear-gradient(135deg, #fa709a, #fee140)",
   ];
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
