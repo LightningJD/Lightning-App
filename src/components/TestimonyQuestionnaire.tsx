@@ -505,38 +505,38 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
             {/* Wizard Modal */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div
-                    className="w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                    className="w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col relative"
                     style={{
                         background: nightMode ? '#0d0b18' : 'linear-gradient(135deg, #cdd8f8 0%, #d6daf5 40%, #dee0f6 70%, #e4e0f5 100%)',
                         border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)'}`,
                         animation: 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                     }}
                 >
+                    {/* Cancel button */}
+                    <button
+                        onClick={onCancel}
+                        className="absolute top-4 right-4 text-sm font-medium z-10"
+                        style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
+                    >
+                        Cancel
+                    </button>
+
                     {/* Hero + Header */}
                     <div className="px-6 pt-6 pb-3">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="text-center flex-1">
-                                <div className="text-2xl mb-1">⚡</div>
-                                <h2
-                                    className="text-xl font-semibold"
-                                    style={{ fontFamily: "'Playfair Display', serif", color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
-                                >
-                                    Share Your Testimony
-                                </h2>
-                                <p
-                                    className="text-xs mt-1"
-                                    style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
-                                >
-                                    AI will help you craft your story. Just answer 4 simple questions.
-                                </p>
-                            </div>
-                            <button
-                                onClick={onCancel}
-                                className="absolute top-4 right-4 text-sm font-medium"
-                                style={{ color: nightMode ? '#5d5877' : '#8e9ec0', position: 'absolute' }}
+                        <div className="text-center mb-3">
+                            <div className="text-2xl mb-1">⚡</div>
+                            <h2
+                                className="text-xl font-semibold"
+                                style={{ fontFamily: "'Playfair Display', serif", color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
                             >
-                                Cancel
-                            </button>
+                                Share Your Testimony
+                            </h2>
+                            <p
+                                className="text-xs mt-1"
+                                style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
+                            >
+                                AI will help you craft your story. Just answer 4 simple questions.
+                            </p>
                         </div>
 
                         {/* Progress Dots */}
