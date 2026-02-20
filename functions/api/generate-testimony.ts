@@ -428,30 +428,59 @@ Detail level of their answers: ${detailLevel} (${totalWords} total words). ${det
 
 Remember: rephrase their words into polished prose, but never add experiences or emotions they didn't describe.`;
 
-  // Call Claude API
-  try {
-    const claudeResponse = await fetch(
-      "https://api.anthropic.com/v1/messages",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": env.CLAUDE_API_KEY,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: TESTIMONY_MODEL,
-          max_tokens: 1500,
-          temperature: 0.6,
-          system: TESTIMONY_PROMPT,
-          messages: [{ role: "user", content: userMessage }],
-        }),
-      },
-    );
+  // Call Claude API with retry logic for transient errors (429/529)
+  const MAX_RETRIES = 3;
+  const claudeRequestBody = JSON.stringify({
+    model: TESTIMONY_MODEL,
+    max_tokens: 1500,
+    temperature: 0.6,
+    system: TESTIMONY_PROMPT,
+    messages: [{ role: "user", content: userMessage }],
+  });
 
-    if (!claudeResponse.ok) {
-      const errorText = await claudeResponse.text();
-      console.error("Claude API error:", claudeResponse.status, errorText);
+  try {
+    let claudeResponse: Response | null = null;
+    let lastStatus = 0;
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      claudeResponse = await fetch(
+        "https://api.anthropic.com/v1/messages",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": env.CLAUDE_API_KEY,
+            "anthropic-version": "2023-06-01",
+          },
+          body: claudeRequestBody,
+        },
+      );
+
+      lastStatus = claudeResponse.status;
+
+      // Retry on overloaded (529) or rate-limited (429)
+      if (
+        (lastStatus === 529 || lastStatus === 429) &&
+        attempt < MAX_RETRIES
+      ) {
+        // Exponential backoff: 1s, 2s, 4s
+        const delayMs = 1000 * Math.pow(2, attempt);
+        console.warn(
+          `Claude API returned ${lastStatus}, retrying in ${delayMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue;
+      }
+
+      // Success or non-retryable error — stop retrying
+      break;
+    }
+
+    if (!claudeResponse || !claudeResponse.ok) {
+      const errorText = claudeResponse
+        ? await claudeResponse.text()
+        : "No response";
+      console.error("Claude API error:", lastStatus, errorText);
 
       // Log the failed attempt
       if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -462,11 +491,11 @@ Remember: rephrase their words into polished prose, but never add experiences or
           inputWordCount: totalWords,
           outputWordCount: null,
           success: false,
-          errorType: `api_${claudeResponse.status}`,
+          errorType: `api_${lastStatus}`,
         });
       }
 
-      if (claudeResponse.status === 429) {
+      if (lastStatus === 429) {
         return Response.json(
           {
             success: false,
@@ -476,7 +505,7 @@ Remember: rephrase their words into polished prose, but never add experiences or
         );
       }
 
-      if (claudeResponse.status === 529) {
+      if (lastStatus === 529) {
         return Response.json(
           {
             success: false,
