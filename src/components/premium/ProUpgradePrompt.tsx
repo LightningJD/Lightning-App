@@ -12,7 +12,7 @@ const ProUpgradePrompt: React.FC<ProUpgradePromptProps> = ({
   nightMode,
   onUpgrade,
   onDismiss,
-  reason = 'Unlock unlimited AI testimony generation',
+  reason = 'Unlock unlimited Lightning testimony generation',
 }) => {
   const nm = nightMode;
 

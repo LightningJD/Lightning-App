@@ -127,7 +127,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({
                   <li>Provide and improve the Lightning service</li>
                   <li>Connect you with other Christians in your area</li>
                   <li>Enable messaging and group features</li>
-                  <li>Generate AI-assisted testimonies (with your consent)</li>
+                  <li>Generate Lightning-assisted testimonies (with your consent)</li>
                   <li>Send notifications about app activity</li>
                   <li>Ensure safety and prevent abuse</li>
                   <li>Comply with legal obligations</li>
@@ -277,7 +277,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({
                     processing
                   </li>
                   <li>
-                    <strong>OpenAI:</strong> For AI-powered testimony generation
+                    <strong>Anthropic:</strong> For Lightning-powered testimony generation
                   </li>
                   <li>
                     <strong>Sentry:</strong> For error monitoring and app

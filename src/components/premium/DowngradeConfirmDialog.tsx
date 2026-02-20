@@ -34,7 +34,7 @@ const DowngradeConfirmDialog: React.FC<DowngradeConfirmDialogProps> = ({
   const FEATURES_LOST = [
     { icon: Sparkles, label: "Custom banner & animated icon" },
     { icon: Shield, label: "Verified church badge" },
-    { icon: BarChart3, label: "AI insights & advanced analytics" },
+    { icon: BarChart3, label: "Lightning insights & advanced analytics" },
     { icon: TrendingDown, label: "Custom branding & accent colors" },
   ];
 

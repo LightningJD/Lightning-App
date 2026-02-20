@@ -106,7 +106,7 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({
                     Facilitates sharing of testimonies and faith experiences
                   </li>
                   <li>Enables messaging and group communications</li>
-                  <li>Uses AI to help users articulate their faith journey</li>
+                  <li>Uses Lightning to help users articulate their faith journey</li>
                 </ul>
               </section>
 
@@ -178,13 +178,13 @@ const TermsOfService: React.FC<TermsOfServiceProps> = ({
                 <h3
                   className={`text-lg font-semibold mb-3 ${nightMode ? "text-white" : "text-slate-900"}`}
                 >
-                  6. AI-Generated Content
+                  6. Lightning-Generated Content
                 </h3>
                 <p className="leading-relaxed">
-                  Lightning uses AI to help users generate testimonies. By using
-                  this feature, you acknowledge that: AI-generated content is a
+                  Lightning helps users generate testimonies. By using
+                  this feature, you acknowledge that: Lightning-generated content is a
                   starting point for your personal story, you are responsible
-                  for reviewing and editing AI-generated content, and the final
+                  for reviewing and editing Lightning-generated content, and the final
                   testimony should accurately reflect your faith journey.
                 </p>
               </section>

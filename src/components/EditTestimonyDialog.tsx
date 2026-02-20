@@ -361,7 +361,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
                   ? "bg-white/5 text-white/60 hover:bg-white/10"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               } disabled:opacity-50`}
-              title="Regenerate with AI"
+              title="Regenerate with Lightning"
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 ${isGenerating ? "animate-spin" : ""}`}
@@ -607,7 +607,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
                     className={`text-sm ${nightMode ? "text-white/90" : "text-slate-600"}`}
                   >
                     {isPreviewStep
-                      ? "Review your AI-generated draft"
+                      ? "Review your Lightning-generated draft"
                       : "Update your story and testimony"}
                   </p>
                 </div>

@@ -2,7 +2,7 @@
 /**
  * Server-Side Testimony Generation Rate Limiting
  *
- * Tracks and enforces rate limits for AI testimony generation via Supabase.
+ * Tracks and enforces rate limits for Lightning testimony generation via Supabase.
  * This is Layer 2 of the 3-layer rate limiting system:
  *   Layer 1: Client-side localStorage (rateLimiter.ts) — 3 generations/hour
  *   Layer 2: Supabase testimony_generations table — 5 generations/24hr per user

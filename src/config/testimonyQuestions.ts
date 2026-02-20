@@ -2,7 +2,7 @@
  * Testimony Questionnaire Configuration
  * 
  * These 4 questions guide users through sharing their faith journey,
- * which will then be used to generate a compelling testimony story via Claude AI.
+ * which will then be used to generate a compelling testimony story via Lightning.
  */
 
 export interface TestimonyQuestion {

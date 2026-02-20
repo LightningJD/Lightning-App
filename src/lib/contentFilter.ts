@@ -7,7 +7,7 @@
  * - Pre-send checking: blocks HIGH severity, warns on MEDIUM, allows LOW
  *
  * Uses pattern-based detection for profanity, hate speech, harassment,
- * and spam. For production, pair with a server-side AI moderation API.
+ * and spam. For production, pair with a server-side moderation API.
  */
 
 // ============================================

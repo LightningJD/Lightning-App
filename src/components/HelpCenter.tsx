@@ -38,7 +38,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({
         {
           question: "How do I create my testimony?",
           answer:
-            'Go to the You tab and tap "Add Testimony". You can either write your own testimony or use our AI assistant to help you articulate your faith journey. The AI will ask you questions about your faith experience and help create a meaningful testimony.',
+            'Go to the You tab and tap "Add Testimony". You can either write your own testimony or use Lightning to help you articulate your faith journey. Lightning will ask you questions about your faith experience and help create a meaningful testimony.',
         },
         {
           question: "What is Lightning?",
@@ -140,9 +140,9 @@ const HelpCenter: React.FC<HelpCenterProps> = ({
             "Yes! Go to the You tab and tap the edit button on your testimony. You can update it anytime as your faith journey continues to evolve.",
         },
         {
-          question: "What is AI testimony generation?",
+          question: "What is Lightning testimony generation?",
           answer:
-            "Our AI assistant helps you articulate your faith story by asking thoughtful questions about your journey. It then helps create a well-written testimony that you can edit and personalize.",
+            "Lightning helps you articulate your faith story by asking thoughtful questions about your journey. It then helps create a well-written testimony that you can edit and personalize.",
         },
         {
           question: "Can others comment on my testimony?",
