@@ -34,7 +34,7 @@ interface TestimonyRequest {
   userId?: string; // Supabase user UUID (if authenticated)
 }
 
-const TESTIMONY_MODEL = "claude-sonnet-4-20250514";
+const TESTIMONY_MODEL = "claude-sonnet-4-5-20250929";
 const MAX_GENERATIONS_PER_DAY = 5;
 const MAX_GENERATIONS_PER_HOUR_GUEST = 3;
 
@@ -306,10 +306,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
   // Rate limit: 10 requests per minute per IP (Layer 3 supplement)
-  const { checkRateLimit, getClientIP, rateLimitResponse } =
+  const { checkRateLimit: checkIpRateLimit, getClientIP, rateLimitResponse } =
     await import("./_rateLimit");
   const ip = getClientIP(request);
-  const rl = checkRateLimit(ip, "generate-testimony", 10, 60_000);
+  const rl = checkIpRateLimit(ip, "generate-testimony", 10, 60_000);
   if (!rl.allowed) {
     return rateLimitResponse(rl.retryAfterMs, CORS_HEADERS);
   }
