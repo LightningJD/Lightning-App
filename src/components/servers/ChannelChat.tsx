@@ -108,7 +108,7 @@ const getInitials = (name: string): string => {
 const ROLE_COLORS: Record<string, { nightBg: string; nightText: string; dayBg: string; dayText: string }> = {
   'owner':  { nightBg: 'rgba(232,184,74,0.15)', nightText: '#e8b84a', dayBg: 'rgba(232,184,74,0.1)', dayText: '#b47a10' },
   'pastor': { nightBg: 'rgba(232,184,74,0.15)', nightText: '#e8b84a', dayBg: 'rgba(232,184,74,0.1)', dayText: '#b47a10' },
-  'admin':  { nightBg: 'rgba(123,118,224,0.15)', nightText: '#7b76e0', dayBg: 'rgba(79,172,254,0.1)', dayText: '#2b6cb0' },
+  'admin':  { nightBg: 'rgba(123,118,224,0.15)', nightText: '#9b96f5', dayBg: 'rgba(79,172,254,0.1)', dayText: '#2b6cb0' },
   'leader': { nightBg: 'rgba(92,200,138,0.15)', nightText: '#5cc88a', dayBg: 'rgba(92,200,138,0.1)', dayText: '#16834a' },
   'moderator': { nightBg: 'rgba(92,200,138,0.15)', nightText: '#5cc88a', dayBg: 'rgba(92,200,138,0.1)', dayText: '#16834a' },
 };

@@ -176,16 +176,16 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                 activeFilter === f.key
                   ? {
                       background: nightMode
-                        ? "rgba(123,118,224,0.15)"
-                        : "rgba(79,172,254,0.12)",
-                      border: `1px solid ${nightMode ? "rgba(123,118,224,0.25)" : "rgba(79,172,254,0.2)"}`,
-                      color: nightMode ? "#7b76e0" : "#2b6cb0",
+                        ? "rgba(123,118,224,0.12)"
+                        : "rgba(79,172,254,0.1)",
+                      border: `1px solid ${nightMode ? "rgba(123,118,224,0.18)" : "rgba(79,172,254,0.15)"}`,
+                      color: nightMode ? "#e8e5f2" : "#1e2b4a",
                     }
                   : {
                       background: nightMode
                         ? "rgba(255,255,255,0.04)"
-                        : "rgba(255,255,255,0.4)",
-                      border: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.1)"}`,
+                        : "rgba(255,255,255,0.5)",
+                      border: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)"}`,
                       color: nightMode ? "#8e89a8" : "#4a5e88",
                       ...(nightMode
                         ? {}
@@ -207,7 +207,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
           {showFriendRequests && (
             <div className="mb-3">
               <div
-                className="text-[10px] uppercase tracking-widest font-medium py-2"
+                className="text-[10px] uppercase tracking-widest font-semibold py-2"
                 style={{ color: nightMode ? "#5d5877" : "#4a5e88" }}
               >
                 Friend Requests
@@ -226,12 +226,12 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
                   return (
                     <div
                       key={req.id}
-                      className="rounded-xl p-3"
+                      className="rounded-lg p-3"
                       style={{
                         background: nightMode
-                          ? "rgba(123,118,224,0.06)"
-                          : "rgba(79,172,254,0.06)",
-                        border: `1px solid ${nightMode ? "rgba(123,118,224,0.12)" : "rgba(79,172,254,0.12)"}`,
+                          ? "rgba(255,255,255,0.03)"
+                          : "rgba(255,255,255,0.45)",
+                        border: `1px solid ${nightMode ? "rgba(255,255,255,0.04)" : "rgba(150,165,225,0.12)"}`,
                         ...(nightMode
                           ? {}
                           : {
@@ -310,7 +310,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
           {/* Notification Feed — placeholder for future backend */}
           <div>
             <div
-              className="text-[10px] uppercase tracking-widest font-medium py-2"
+              className="text-[10px] uppercase tracking-widest font-semibold py-2"
               style={{ color: nightMode ? "#5d5877" : "#4a5e88" }}
             >
               Recent

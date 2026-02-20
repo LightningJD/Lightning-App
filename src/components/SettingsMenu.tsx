@@ -29,7 +29,7 @@ const GlassCard: React.FC<{ nightMode: boolean; children: React.ReactNode }> = (
 }) => (
   <div
     style={{
-      borderRadius: "10px",
+      borderRadius: "7px",
       overflow: "hidden",
       background: nightMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.5)",
       border: nightMode
@@ -59,7 +59,7 @@ const GroupLabel: React.FC<{ nightMode: boolean; children: React.ReactNode }> = 
     style={{
       fontSize: "10px",
       textTransform: "uppercase",
-      letterSpacing: "1.2px",
+      letterSpacing: "1px",
       fontWeight: 600,
       margin: "0 4px 6px",
       color: nightMode ? "#5d5877" : "#4a5e88",
@@ -172,7 +172,7 @@ const SettingsMenu: React.FC = () => {
             alignItems: "center",
             gap: "12px",
             padding: "12px",
-            borderRadius: "14px",
+            borderRadius: "8px",
             marginBottom: "12px",
             cursor: "pointer",
             background: nightMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.5)",
@@ -241,7 +241,7 @@ const SettingsMenu: React.FC = () => {
               @{profile.username}
             </div>
           </div>
-          <span style={{ fontSize: "16px", opacity: 0.3, color: nightMode ? "#e8e5f2" : "#1e2b4a" }}>
+          <span style={{ fontSize: "16px", color: nightMode ? "#5d5877" : "#8e9ec0" }}>
             &rsaquo;
           </span>
         </div>
@@ -434,7 +434,7 @@ const SettingsMenu: React.FC = () => {
                   transition: "background 0.2s",
                   background: nightMode
                     ? "rgba(123,118,224,0.3)"
-                    : "rgba(150,165,225,0.15)",
+                    : "rgba(150,165,225,0.2)",
                 }}
               >
                 <div
@@ -621,7 +621,7 @@ const SettingsMenu: React.FC = () => {
           style={{
             textAlign: "center",
             padding: "12px",
-            borderRadius: "12px",
+            borderRadius: "7px",
             fontSize: "14px",
             fontWeight: 500,
             cursor: "pointer",

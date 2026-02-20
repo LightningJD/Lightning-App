@@ -1930,24 +1930,21 @@ const ChannelItem: React.FC<{
         isActive
           ? "font-semibold"
           : hasUnread
-            ? nightMode
-              ? "text-white font-semibold"
-              : "text-black font-semibold"
-            : nightMode
-              ? "text-white/50 hover:text-white/80"
-              : "text-black/50 hover:text-black/80"
+            ? "font-semibold"
+            : ""
       }`}
       style={
         isActive
           ? {
               background: nightMode
-                ? "linear-gradient(90deg, rgba(79, 150, 255, 0.15), rgba(59, 130, 246, 0.05))"
-                : "linear-gradient(90deg, rgba(79, 150, 255, 0.12), rgba(59, 130, 246, 0.03))",
-              color: nightMode ? "#93bbff" : "#2563eb",
-              borderLeft: "3px solid rgba(79, 150, 255, 0.7)",
+                ? "rgba(255,255,255,0.03)"
+                : "rgba(255,255,255,0.35)",
+              color: nightMode ? "#e8e5f2" : "#1e2b4a",
             }
           : {
-              borderLeft: "3px solid transparent",
+              color: hasUnread
+                ? (nightMode ? "#e8e5f2" : "#1e2b4a")
+                : (nightMode ? "#8e89a8" : "#4a5e88"),
             }
       }
     >

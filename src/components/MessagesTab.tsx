@@ -1132,7 +1132,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                       minHeight: "40px",
                       maxHeight: "100px",
                       overflowY: "auto",
-                      background: 'rgba(255,255,255,0.5)',
+                      background: 'rgba(255,255,255,0.6)',
                       border: '1px solid rgba(150,165,225,0.15)',
                       color: '#1e2b4a',
                       backdropFilter: 'blur(12px)',

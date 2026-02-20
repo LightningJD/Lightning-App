@@ -93,11 +93,10 @@ const getInitials = (name: string): string => {
   return name.split(' ').filter(Boolean).map(w => w[0]).join('').substring(0, 2).toUpperCase();
 };
 
-// Double-bubble SVG for DM rail button
-const DoubleBubbleIcon: React.FC<{ className?: string }> = ({ className }) => (
+// DM bubble SVG for rail button (single chat bubble per mockup)
+const DmBubbleIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 8h2a2 2 0 0 1 2 2v6l-3-3h-5a2 2 0 0 1-2-2v-1" />
-    <path d="M3 5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7l-4 4V5z" />
+    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
   </svg>
 );
 
@@ -389,12 +388,12 @@ const ChatTab: React.FC<ChatTabProps> = ({
                   key={convo.id}
                   className="flex items-center gap-3 p-2.5 rounded-lg transition-all cursor-pointer hover:brightness-110"
                   style={nightMode ? {
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.06)',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.04)',
                     marginBottom: '3px',
                   } : {
-                    background: 'rgba(255,255,255,0.35)',
-                    border: '1px solid rgba(150,165,225,0.1)',
+                    background: 'rgba(255,255,255,0.45)',
+                    border: '1px solid rgba(150,165,225,0.12)',
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
                     boxShadow: '0 1px 4px rgba(150,165,225,0.05)',
@@ -498,12 +497,12 @@ const ChatTab: React.FC<ChatTabProps> = ({
                       key={friend.id}
                       className="flex items-center gap-3 p-2.5 rounded-lg transition-all cursor-pointer hover:brightness-110"
                       style={nightMode ? {
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.06)',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.04)',
                         marginBottom: '3px',
                       } : {
-                        background: 'rgba(255,255,255,0.35)',
-                        border: '1px solid rgba(150,165,225,0.1)',
+                        background: 'rgba(255,255,255,0.45)',
+                        border: '1px solid rgba(150,165,225,0.12)',
                         backdropFilter: 'blur(12px)',
                         WebkitBackdropFilter: 'blur(12px)',
                         boxShadow: '0 1px 4px rgba(150,165,225,0.05)',
@@ -607,21 +606,21 @@ const ChatTab: React.FC<ChatTabProps> = ({
               height: '44px',
               borderRadius: isDmActive ? '12px' : '50%',
               background: isDmActive
-                ? nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.12)'
-                : nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.5)',
+                ? nightMode ? 'rgba(123,118,224,0.12)' : 'rgba(79,172,254,0.1)'
+                : nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
               border: isDmActive
-                ? nightMode ? '1.5px solid rgba(123,118,224,0.3)' : '1.5px solid rgba(79,172,254,0.25)'
-                : nightMode ? '1.5px solid rgba(255,255,255,0.08)' : '1.5px solid rgba(150,165,225,0.15)',
+                ? nightMode ? '1px solid rgba(123,118,224,0.18)' : '1px solid rgba(79,172,254,0.15)'
+                : nightMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(150,165,225,0.15)',
               boxShadow: isDmActive
                 ? nightMode ? '0 0 10px rgba(123,118,224,0.15)' : '0 0 10px rgba(79,172,254,0.12)'
                 : nightMode ? 'none' : '0 2px 6px rgba(150,165,225,0.07)',
               color: isDmActive
-                ? nightMode ? '#9b96f5' : '#2b6cb0'
+                ? nightMode ? '#9b96f5' : '#4facfe'
                 : nightMode ? '#8e89a8' : '#4a5e88',
             }}
             title="Direct Messages"
           >
-            <DoubleBubbleIcon className="w-5 h-5" />
+            <DmBubbleIcon className="w-5 h-5" />
           </button>
 
           {/* Server Icons — gradient circle with letter initials */}

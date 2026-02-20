@@ -81,8 +81,9 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
       }}
     >
       <div
-        className="w-full max-w-md rounded-2xl overflow-hidden transition-all"
+        className="w-full max-w-md overflow-hidden transition-all"
         style={{
+          borderRadius: "12px",
           background: nightMode
             ? "rgba(15, 15, 25, 0.95)"
             : "rgba(255, 255, 255, 0.85)",
@@ -115,7 +116,7 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
             </h2>
             <p
               className="text-xs mt-1"
-              style={{ color: nightMode ? "#8e89a8" : "#4a5e88" }}
+              style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}
             >
               Create a new server for your church or community
             </p>
