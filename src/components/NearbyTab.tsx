@@ -337,7 +337,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
           {testimony.title || "My Testimony"}
         </h3>
 
-        {/* Pull quote */}
+        {/* Pull quote — always a short excerpt */}
         {testimony.content && (
           <div
             className="rounded-lg px-2.5 py-2 my-2"
@@ -351,15 +351,13 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
               borderLeft: `2px solid ${nightMode ? "rgba(123,118,224,0.2)" : "rgba(79,172,254,0.2)"}`,
             }}
           >
-            "{isExpanded
-              ? testimony.content
-              : testimony.content.length > 120
-                ? testimony.content.substring(0, 120) + "..."
-                : testimony.content}"
+            "{testimony.content.length > 120
+              ? testimony.content.substring(0, 120) + "..."
+              : testimony.content}"
           </div>
         )}
 
-        {/* Body text (longer view) */}
+        {/* Full body text (expanded view) */}
         {isExpanded && testimony.content?.length > 120 && (
           <p
             className="text-sm leading-relaxed mb-2"
@@ -443,7 +441,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
           className="text-lg font-medium"
           style={{ fontFamily: "'Playfair Display', serif", color: nightMode ? "#e8e5f2" : "#1e2b4a" }}
         >
-          {getTimeGreeting()}, {firstName} ✨
+          {getTimeGreeting()}{firstName ? `, ${firstName}` : ""} ✨
         </h1>
         <p
           className="text-xs mt-0.5"
