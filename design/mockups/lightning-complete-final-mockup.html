@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚡ Lightning App — Complete Final Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'General Sans',system-ui,sans-serif;background:#06050c;color:#e8e5f2;padding:16px 8px;min-height:100vh}
+h1{font-family:'Playfair Display',serif;font-size:24px;text-align:center;margin:8px 0 2px;color:#e8e5f2}
+.master-sub{text-align:center;font-size:11px;color:#5d5877;margin-bottom:20px}
+.section{margin-bottom:28px}
+.section-title{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#9b96f5;text-transform:uppercase;letter-spacing:2px;text-align:center;margin-bottom:4px}
+.section-sub{text-align:center;font-size:9px;color:#5d5877;margin-bottom:10px}
+.phones{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.phone-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+.phone-label{font-size:7px;text-transform:uppercase;letter-spacing:1.2px;color:#7b76e0;font-weight:600}
+.phone{width:220px;height:460px;border-radius:30px;position:relative;overflow:hidden}
+.phone.dk{background:#0d0b18;border:2.5px solid rgba(255,255,255,0.1);box-shadow:0 16px 48px rgba(0,0,0,0.5)}
+.phone.lt{background:linear-gradient(135deg,#cdd8f8 0%,#d6daf5 40%,#dee0f6 70%,#e4e0f5 100%);border:2.5px solid rgba(255,255,255,0.45);box-shadow:0 16px 48px rgba(0,0,0,0.1)}
+.phone::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:76px;height:20px;border-radius:0 0 11px 11px;z-index:10}
+.phone.dk::before{background:#08060f}.phone.lt::before{background:#c4cee8}
+.s{width:100%;height:100%;overflow-y:auto;scrollbar-width:none;padding:26px 8px 8px;display:flex;flex-direction:column}
+.s::-webkit-scrollbar{display:none}
+
+/* === COMMON DARK ELEMENTS === */
+.glass-dk{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:10px}
+.glass-lt{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);border-radius:10px;backdrop-filter:blur(12px)}
+.accent-dk{background:rgba(123,118,224,0.12);border:1px solid rgba(123,118,224,0.18)}
+.accent-lt{background:rgba(79,172,254,0.1);border:1px solid rgba(79,172,254,0.15)}
+
+/* SVG icons */
+svg.i{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* -- Header -- */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:0 2px 6px}
+.hdr-left{display:flex;align-items:center;gap:4px}
+.hdr-back{color:#8e89a8;cursor:pointer}
+.hdr-title{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600}
+.dk .hdr-title{color:#e8e5f2}.lt .hdr-title{color:#1e2b4a}
+.hdr-right{display:flex;align-items:center;gap:6px;color:#8e89a8}
+.badge-r{position:absolute;top:-3px;right:-4px;min-width:10px;height:10px;border-radius:5px;background:#ef4444;color:white;font-size:5px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 2px}
+
+/* -- Bottom Nav -- */
+.nav{display:flex;justify-content:space-around;align-items:center;padding:5px 6px 12px;margin-top:auto;border-top:1px solid rgba(255,255,255,0.04);backdrop-filter:blur(20px)}
+.nav-i{display:flex;flex-direction:column;align-items:center;gap:1px;padding:3px 12px;border-radius:7px;cursor:pointer;position:relative}
+.nav-i svg{width:14px;height:14px}
+.nav-l{font-size:5.5px;font-weight:500}
+.dk .nav-i{color:#5d5877}.dk .nav-i.act{color:#e8e5f2;background:rgba(123,118,224,0.12);border:1px solid rgba(123,118,224,0.18)}
+.lt .nav-i{color:#8e9ec0}.lt .nav-i.act{color:#1e2b4a;background:rgba(79,172,254,0.1);border:1px solid rgba(79,172,254,0.15)}
+.dk .nav-i.act svg{stroke-width:2.2}.lt .nav-i.act svg{stroke-width:2.2}
+.nav-badge{position:absolute;top:-2px;right:1px;min-width:10px;height:10px;border-radius:5px;background:#ef4444;color:white;font-size:5px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 2px}
+.dk .nav-badge{border:1.5px solid #0d0b18}.lt .nav-badge{border:1.5px solid #d6daf5}
+
+/* -- Greeting -- */
+.greet{font-family:'Playfair Display',serif;font-style:italic;font-size:14px;padding:2px 4px 6px}
+.dk .greet{color:#e8e5f2}.lt .greet{color:#1e2b4a}
+.greet-sub{font-size:7px;padding:0 4px 6px}
+.dk .greet-sub{color:#5d5877}.lt .greet-sub{color:#8e9ec0}
+
+/* -- Search -- */
+.srch{position:relative;margin-bottom:8px}
+.srch input{width:100%;padding:7px 7px 7px 24px;border-radius:16px;border:none;outline:none;font-size:7px;font-family:'General Sans',sans-serif}
+.dk .srch input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#e8e5f2}
+.dk .srch input::placeholder{color:#5d5877}
+.lt .srch input{background:rgba(255,255,255,0.6);border:1px solid rgba(150,165,225,0.15);color:#1e2b4a}
+.lt .srch input::placeholder{color:#8e9ec0}
+.srch svg{position:absolute;left:7px;top:50%;transform:translateY(-50%);width:10px;height:10px}
+.dk .srch svg{color:#5d5877}.lt .srch svg{color:#8e9ec0}
+
+/* -- Rail -- */
+.rail{display:flex;gap:5px;padding:0 2px 6px;overflow-x:auto;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.rail-item{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:white;position:relative;cursor:pointer}
+.dk .rail-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.lt .rail-item{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15)}
+.rail-dm{color:#9b96f5}
+.dk .rail-dm{background:rgba(123,118,224,0.12);border:1px solid rgba(123,118,224,0.18)}
+.lt .rail-dm{color:#4facfe;background:rgba(79,172,254,0.1);border:1px solid rgba(79,172,254,0.15)}
+.rail-add{font-size:12px;border-style:dashed}
+.dk .rail-add{color:#5d5877;border-color:rgba(255,255,255,0.08)}
+.lt .rail-add{color:#8e9ec0;border-color:rgba(150,165,225,0.15)}
+.dot-r{position:absolute;top:-2px;right:-2px;width:6px;height:6px;border-radius:50%;background:#ef4444}
+
+/* -- DM List -- */
+.dm{display:flex;align-items:center;gap:5px;padding:6px;border-radius:8px;margin-bottom:4px;cursor:pointer}
+.dk .dm{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04)}
+.lt .dm{background:rgba(255,255,255,0.45);border:1px solid rgba(150,165,225,0.12)}
+.dm-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'Playfair Display',serif;color:white;flex-shrink:0;position:relative}
+.dm-online{position:absolute;bottom:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:#5cc88a}
+.dk .dm-online{border:1.5px solid #0d0b18}.lt .dm-online{border:1.5px solid #d6daf5}
+.dm-info{flex:1;min-width:0}
+.dm-name{font-size:7.5px;font-weight:600}
+.dk .dm-name{color:#e8e5f2}.lt .dm-name{color:#1e2b4a}
+.dm-msg{font-size:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk .dm-msg{color:#5d5877}.lt .dm-msg{color:#8e9ec0}
+.dm-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.dm-time{font-size:5px}.dk .dm-time{color:#5d5877}.lt .dm-time{color:#8e9ec0}
+.badge-sm{min-width:12px;height:12px;border-radius:6px;background:#ef4444;color:white;font-size:6px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 2px}
+
+/* -- Chat Bubbles -- */
+.msgs{flex:1;padding:4px 0;overflow-y:auto}
+.msg{display:flex;gap:4px;margin-bottom:6px}
+.msg.own{flex-direction:row-reverse}
+.msg-av{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-family:'Playfair Display',serif;color:white;flex-shrink:0;margin-top:2px}
+.msg-body{max-width:72%}
+.msg-name{font-size:5px;font-weight:600;margin-bottom:1px;display:flex;align-items:center;gap:2px}
+.dk .msg-name{color:#8e89a8}.lt .msg-name{color:#4a5e88}
+.msg-role{font-size:4px;padding:1px 3px;border-radius:2px;font-weight:700}
+.msg-role.admin{background:rgba(123,118,224,0.15);color:#9b96f5}
+.msg-role.mod{background:rgba(92,200,138,0.15);color:#5cc88a}
+.bub{padding:5px 7px;border-radius:10px;font-size:7px;line-height:1.4}
+.dk .bub{background:rgba(255,255,255,0.05);color:#b8b4c8;border:1px solid rgba(255,255,255,0.04)}
+.lt .bub{background:rgba(255,255,255,0.55);color:#1e2b4a;border:1px solid rgba(150,165,225,0.12)}
+.dk .msg.own .bub{background:rgba(123,118,224,0.12);color:#e8e5f2;border-color:rgba(123,118,224,0.15);border-bottom-right-radius:3px}
+.lt .msg.own .bub{background:rgba(79,172,254,0.12);color:#1e2b4a;border-color:rgba(79,172,254,0.15);border-bottom-right-radius:3px}
+.msg:not(.own) .bub{border-bottom-left-radius:3px}
+.msg-ts{font-size:4.5px;margin-top:1px;padding:0 3px}
+.dk .msg-ts{color:#5d5877}.lt .msg-ts{color:#8e9ec0}
+.msg.own .msg-ts{text-align:right}
+
+/* -- Chat Input -- */
+.chat-in{display:flex;align-items:center;gap:4px;padding:4px 2px;margin-top:auto}
+.chat-plus{font-size:12px;cursor:pointer}.dk .chat-plus{color:#5d5877}.lt .chat-plus{color:#8e9ec0}
+.chat-field{flex:1;padding:5px 8px;border-radius:14px;border:none;outline:none;font-size:7px;font-family:'General Sans',sans-serif}
+.dk .chat-field{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#e8e5f2}
+.dk .chat-field::placeholder{color:#5d5877}
+.lt .chat-field{background:rgba(255,255,255,0.6);border:1px solid rgba(150,165,225,0.15);color:#1e2b4a}
+.lt .chat-field::placeholder{color:#8e9ec0}
+.chat-send{width:18px;height:18px;border-radius:50%;border:none;color:white;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dk .chat-send{background:#7b76e0}.lt .chat-send{background:#4facfe}
+
+/* -- Channel List -- */
+.ch{display:flex;align-items:center;gap:4px;padding:4px 5px;border-radius:5px;font-size:7px;cursor:pointer}
+.dk .ch{color:#8e89a8}.lt .ch{color:#4a5e88}
+.dk .ch.act{color:#e8e5f2;background:rgba(255,255,255,0.03)}.lt .ch.act{color:#1e2b4a;background:rgba(255,255,255,0.35)}
+.ch-pre{font-size:6px;opacity:0.4}
+
+/* -- Profile -- */
+.prof{text-align:center;padding:4px 0}
+.prof-av{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-family:'Playfair Display',serif;color:white;margin:0 auto 4px}
+.dk .prof-av{box-shadow:0 0 0 3px rgba(123,118,224,0.3)}.lt .prof-av{box-shadow:0 0 0 3px rgba(79,172,254,0.25)}
+.prof-name{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600}
+.dk .prof-name{color:#e8e5f2}.lt .prof-name{color:#1e2b4a}
+.prof-handle{font-size:6px;margin-bottom:4px}
+.dk .prof-handle{color:#5d5877}.lt .prof-handle{color:#8e9ec0}
+.prof-btns{display:flex;gap:4px;justify-content:center;margin:4px 0}
+.prof-btn{padding:4px 10px;border-radius:6px;font-size:6px;font-weight:600;cursor:pointer;border:none;font-family:'General Sans',sans-serif}
+.prof-btn.pri{color:white}.dk .prof-btn.pri{background:linear-gradient(135deg,#7b76e0,#9b96f5)}.lt .prof-btn.pri{background:linear-gradient(135deg,#4facfe,#3b82f6)}
+.dk .prof-btn.sec{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.lt .prof-btn.sec{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);color:#4a5e88}
+
+/* -- Testimony Cards -- */
+.tst{padding:6px;border-radius:8px;margin:3px 4px;text-align:left;border-left:3px solid}
+.dk .tst{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.04)}
+.lt .tst{background:rgba(255,255,255,0.45);border-color:rgba(150,165,225,0.12)}
+.tst.sal{}.dk .tst.sal{border-left-color:#7b76e0}.lt .tst.sal{border-left-color:#4facfe}
+.tst.life{opacity:0.85}.tst.life .tst-title{font-size:8px}
+.tst-label{font-size:5px;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:2px}
+.dk .tst-label{color:#5d5877}.lt .tst-label{color:#8e9ec0}
+.tst-title{font-family:'Playfair Display',serif;font-size:9px;margin-bottom:2px}
+.dk .tst-title{color:#e8e5f2}.lt .tst-title{color:#1e2b4a}
+.tst-quote{font-family:'Playfair Display',serif;font-style:italic;font-size:6.5px;line-height:1.4}
+.dk .tst-quote{color:#8e89a8}.lt .tst-quote{color:#4a5e88}
+
+/* -- Verse Card -- */
+.verse{padding:6px;border-radius:8px;margin:3px 4px}
+.dk .verse{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04)}
+.lt .verse{background:rgba(255,255,255,0.45);border:1px solid rgba(150,165,225,0.12)}
+.verse-label{font-size:5px;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:2px}
+.dk .verse-label{color:#5d5877}.lt .verse-label{color:#8e9ec0}
+.verse-text{font-family:'Playfair Display',serif;font-style:italic;font-size:7px;line-height:1.4}
+.dk .verse-text{color:#9b96f5}.lt .verse-text{color:#4a5e88}
+
+/* -- Notifications -- */
+.nf-pills{display:flex;gap:3px;margin-bottom:6px;overflow-x:auto}
+.nf-pill{padding:3px 8px;border-radius:10px;font-size:6px;font-weight:500;cursor:pointer;white-space:nowrap}
+.dk .nf-pill{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:#8e89a8}
+.dk .nf-pill.sel{background:rgba(123,118,224,0.12);border-color:rgba(123,118,224,0.18);color:#e8e5f2}
+.lt .nf-pill{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15);color:#4a5e88}
+.lt .nf-pill.sel{background:rgba(79,172,254,0.1);border-color:rgba(79,172,254,0.15);color:#1e2b4a}
+.nf-fr{display:flex;align-items:center;gap:5px;padding:5px;border-radius:8px;margin-bottom:4px;cursor:pointer}
+.dk .nf-fr{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04)}
+.lt .nf-fr{background:rgba(255,255,255,0.45);border:1px solid rgba(150,165,225,0.12)}
+.nf-av{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-family:'Playfair Display',serif;color:white;flex-shrink:0}
+.nf-info{flex:1}.nf-name{font-size:7px;font-weight:600}.nf-sub{font-size:5px}
+.dk .nf-name{color:#e8e5f2}.dk .nf-sub{color:#5d5877}
+.lt .nf-name{color:#1e2b4a}.lt .nf-sub{color:#8e9ec0}
+.nf-btns{display:flex;gap:3px}
+.nf-accept{padding:3px 8px;border-radius:5px;font-size:6px;font-weight:600;border:none;cursor:pointer;font-family:'General Sans',sans-serif}
+.dk .nf-accept{background:rgba(123,118,224,0.2);border:1px solid rgba(123,118,224,0.3);color:#9b96f5}
+.lt .nf-accept{background:rgba(79,172,254,0.15);border:1px solid rgba(79,172,254,0.2);color:#2b6cb0}
+.nf-decline{padding:3px 6px;border-radius:5px;font-size:5px;border:none;cursor:pointer;font-family:'General Sans',sans-serif}
+.dk .nf-decline{background:transparent;border:1px solid rgba(255,255,255,0.04);color:#5d5877}
+.lt .nf-decline{background:transparent;border:1px solid rgba(150,165,225,0.12);color:#8e9ec0}
+.nf-item{display:flex;align-items:flex-start;gap:4px;padding:3px 4px;border-radius:5px;margin-bottom:2px}
+.dk .nf-item.unread{background:rgba(255,255,255,0.02)}.lt .nf-item.unread{background:rgba(255,255,255,0.3)}
+.nf-item-text{font-size:6px;flex:1;line-height:1.3}
+.dk .nf-item-text{color:#b8b4c8}.lt .nf-item-text{color:#4a5e88}
+.nf-item-text b{}.dk .nf-item-text b{color:#e8e5f2}.lt .nf-item-text b{color:#1e2b4a}
+.nf-dot{margin-top:2px;flex-shrink:0;width:5px;height:5px;border-radius:50%;background:#ef4444}
+.nf-group{font-size:5px;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin:4px 0 2px 2px}
+.dk .nf-group{color:#5d5877}.lt .nf-group{color:#8e9ec0}
+
+/* -- Settings -- */
+.s-prof{display:flex;align-items:center;gap:5px;padding:6px;border-radius:8px;margin-bottom:6px;cursor:pointer}
+.dk .s-prof{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.lt .s-prof{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15)}
+.s-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'Playfair Display',serif;color:white;flex-shrink:0}
+.s-name{font-size:8px;font-weight:600}.dk .s-name{color:#e8e5f2}.lt .s-name{color:#1e2b4a}
+.s-handle{font-size:5.5px}.dk .s-handle{color:#5d5877}.lt .s-handle{color:#8e9ec0}
+.s-arrow{font-size:8px;margin-left:auto}.dk .s-arrow{color:#5d5877}.lt .s-arrow{color:#8e9ec0}
+.s-group-label{font-size:5px;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin:4px 0 2px 2px}
+.dk .s-group-label{color:#5d5877}.lt .s-group-label{color:#8e9ec0}
+.s-card{border-radius:7px;overflow:hidden;margin-bottom:5px}
+.dk .s-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.lt .s-card{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15)}
+.s-item{display:flex;align-items:center;gap:4px;padding:5px 6px;font-size:7px;cursor:pointer}
+.dk .s-item{color:#e8e5f2}.lt .s-item{color:#1e2b4a}
+.s-item+.s-item{border-top:1px solid}.dk .s-item+.s-item{border-color:rgba(255,255,255,0.04)}.lt .s-item+.s-item{border-color:rgba(150,165,225,0.08)}
+.s-item-icon{font-size:8px;width:12px;text-align:center;flex-shrink:0}
+.s-item-label{flex:1;font-weight:500}
+.s-chev{font-size:7px}.dk .s-chev{color:#5d5877}.lt .s-chev{color:#8e9ec0}
+.s-toggle{width:20px;height:12px;border-radius:6px;position:relative;cursor:pointer}
+.dk .s-toggle{background:rgba(255,255,255,0.08)}.lt .s-toggle{background:rgba(150,165,225,0.2)}
+.s-toggle::after{content:'';position:absolute;width:8px;height:8px;border-radius:50%;top:2px;left:2px}
+.dk .s-toggle::after{background:#5d5877}.lt .s-toggle::after{background:#8e9ec0}
+.s-toggle.on::after{left:10px}
+.dk .s-toggle.on{background:rgba(123,118,224,0.3)}.dk .s-toggle.on::after{background:#7b76e0}
+.lt .s-toggle.on{background:rgba(79,172,254,0.3)}.lt .s-toggle.on::after{background:#4facfe}
+.s-signout{text-align:center;padding:6px;border-radius:7px;font-size:7px;font-weight:500;color:#e05c6c;cursor:pointer;margin-top:4px}
+.dk .s-signout{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04)}
+.lt .s-signout{background:rgba(255,255,255,0.4);border:1px solid rgba(150,165,225,0.1)}
+
+/* -- Wizard -- */
+.wz-progress{display:flex;gap:4px;justify-content:center;margin-bottom:8px}
+.wz-dot{width:6px;height:6px;border-radius:50%}
+.dk .wz-dot{background:rgba(255,255,255,0.08)}.dk .wz-dot.done{background:#7b76e0}.dk .wz-dot.cur{width:16px;border-radius:3px;background:#7b76e0}
+.lt .wz-dot{background:rgba(150,165,225,0.15)}.lt .wz-dot.done{background:#4facfe}.lt .wz-dot.cur{width:16px;border-radius:3px;background:#4facfe}
+.wz-hero{text-align:center;margin-bottom:6px}
+.wz-icon{margin:0 auto 3px;width:24px;height:24px}
+.wz-icon svg{width:24px;height:24px}
+.dk .wz-icon{color:#8e89a8}.lt .wz-icon{color:#4a5e88}
+.wz-title{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600}
+.dk .wz-title{color:#e8e5f2}.lt .wz-title{color:#1e2b4a}
+.wz-sub{font-size:6px}.dk .wz-sub{color:#5d5877}.lt .wz-sub{color:#8e9ec0}
+.wz-verse{font-family:'Playfair Display',serif;font-style:italic;font-size:5.5px;line-height:1.4;max-width:150px;margin:2px auto 0}
+.dk .wz-verse{color:#9b96f5}.lt .wz-verse{color:#4a5e88}
+.wz-field{margin-bottom:5px}
+.wz-label{font-size:6px;font-weight:600;margin-bottom:2px}
+.dk .wz-label{color:rgba(255,255,255,0.5)}.lt .wz-label{color:rgba(0,0,0,0.5)}
+.wz-req{color:#ef4444;font-size:5px}
+.wz-input{width:100%;padding:5px 6px;border-radius:6px;border:none;outline:none;font-size:6.5px;font-family:'General Sans',sans-serif}
+.dk .wz-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#e8e5f2}
+.lt .wz-input{background:rgba(255,255,255,0.6);border:1px solid rgba(150,165,225,0.15);color:#1e2b4a}
+.wz-btn{width:100%;padding:6px;border-radius:7px;border:none;font-size:7px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;color:white;margin-top:3px}
+.dk .wz-btn{background:linear-gradient(135deg,#7b76e0,#9b96f5)}.lt .wz-btn{background:linear-gradient(135deg,#4facfe,#3b82f6)}
+.wz-btn-back{background:transparent;border:1px solid;opacity:0.4;color:inherit}
+.wz-btn-skip{width:100%;padding:4px;border:none;background:transparent;font-size:5.5px;cursor:pointer;font-family:'General Sans',sans-serif}
+.dk .wz-btn-skip{color:#5d5877}.lt .wz-btn-skip{color:#8e9ec0}
+.wz-opt{padding:6px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.dk .wz-opt{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.lt .wz-opt{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15)}
+.wz-opt-icon{width:10px;height:10px}.wz-opt-icon svg{width:10px;height:10px}
+.dk .wz-opt-icon{color:#8e89a8}.lt .wz-opt-icon{color:#4a5e88}
+.wz-opt-title{font-size:7px;font-weight:600}.dk .wz-opt-title{color:#e8e5f2}.lt .wz-opt-title{color:#1e2b4a}
+.wz-opt-desc{font-size:5px}.dk .wz-opt-desc{color:#5d5877}.lt .wz-opt-desc{color:#8e9ec0}
+.wz-opt-arrow{font-size:7px;margin-left:auto}.dk .wz-opt-arrow{color:#5d5877}.lt .wz-opt-arrow{color:#8e9ec0}
+.wz-review{border-radius:8px;padding:8px;text-align:center}
+.dk .wz-review{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)}
+.lt .wz-review{background:rgba(255,255,255,0.5);border:1px solid rgba(150,165,225,0.15)}
+.wz-review-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-family:'DM Sans',sans-serif;font-weight:700;color:white;margin:0 auto 4px}
+.wz-review-name{font-size:9px;font-weight:600}.dk .wz-review-name{color:#e8e5f2}.lt .wz-review-name{color:#1e2b4a}
+.wz-review-loc{font-size:5.5px;margin-bottom:3px}.dk .wz-review-loc{color:#5d5877}.lt .wz-review-loc{color:#8e9ec0}
+.wz-review-church{font-size:5.5px;padding:2px 6px;border-radius:5px;display:inline-block}
+.dk .wz-review-church{background:rgba(123,118,224,0.1);color:#9b96f5}.lt .wz-review-church{background:rgba(79,172,254,0.1);color:#2b6cb0}
+.wz-helper{font-size:5px;opacity:0.4;text-align:center;margin-top:4px;line-height:1.4}
+
+/* -- Create Server -- */
+.cs-dialog{border-radius:12px;overflow:hidden;margin:auto 4px}
+.dk .cs-dialog{background:rgba(15,15,25,0.95);border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.4)}
+.lt .cs-dialog{background:rgba(255,255,255,0.85);border:1px solid rgba(150,165,225,0.2);box-shadow:0 20px 40px rgba(0,0,0,0.08);backdrop-filter:blur(20px)}
+.cs-hdr{padding:8px 8px 4px;display:flex;justify-content:space-between;align-items:flex-start}
+.dk .cs-hdr{background:linear-gradient(135deg,rgba(123,118,224,0.1),rgba(123,118,224,0.02))}
+.lt .cs-hdr{background:linear-gradient(135deg,rgba(79,172,254,0.08),rgba(79,172,254,0.02))}
+.cs-title{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600}
+.dk .cs-title{color:#e8e5f2}.lt .cs-title{color:#1e2b4a}
+.cs-sub{font-size:5px;margin-top:1px}.dk .cs-sub{color:#5d5877}.lt .cs-sub{color:#8e9ec0}
+.cs-close{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;cursor:pointer}
+.dk .cs-close{background:rgba(255,255,255,0.06);color:#8e89a8}.lt .cs-close{background:rgba(0,0,0,0.05);color:#4a5e88}
+.cs-preview{display:flex;align-items:center;gap:5px;padding:5px 8px}
+.cs-preview-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:700;color:white}
+.cs-preview-name{font-size:8px;font-weight:600}.dk .cs-preview-name{color:#e8e5f2}.lt .cs-preview-name{color:#1e2b4a}
+.cs-section{padding:0 8px 5px}
+.cs-label{font-size:5px;font-weight:600;margin-bottom:2px}
+.dk .cs-label{color:rgba(255,255,255,0.5)}.lt .cs-label{color:rgba(0,0,0,0.4)}
+.cs-grads{display:flex;gap:3px;flex-wrap:wrap}
+.cs-grad{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent}
+.cs-grad.sel{border-color:white;transform:scale(1.1)}
+.cs-input{width:100%;padding:5px 6px;border-radius:6px;border:none;outline:none;font-size:6.5px;font-family:'General Sans',sans-serif}
+.dk .cs-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#e8e5f2}
+.lt .cs-input{background:rgba(255,255,255,0.6);border:1px solid rgba(150,165,225,0.15);color:#1e2b4a}
+.cs-btn{width:100%;padding:6px;border-radius:7px;border:none;font-size:7px;font-weight:700;font-family:'General Sans',sans-serif;cursor:pointer;color:white;margin:3px 0 6px}
+.dk .cs-btn{background:linear-gradient(135deg,#7b76e0,#9b96f5)}.lt .cs-btn{background:linear-gradient(135deg,#4facfe,#3b82f6)}
+
+/* -- Divider -- */
+.divider{width:100%;max-width:700px;margin:8px auto;border-top:1px solid rgba(123,118,224,0.1)}
+</style></head>
+<body>
+<h1>⚡ Lightning App</h1>
+<div class="master-sub">Complete Final Mockup — All 12 MVP Components, Night + Day</div>
+
+<!-- ============== SECTION 1: HOME TAB ============== -->
+<div class="section"><div class="section-title">Home Tab</div>
+<div class="section-sub">Rail + DM List → Component 6 &nbsp;|&nbsp; File: ChatTab.tsx</div>
+<div class="phones">
+  <div class="phone-col"><div class="phone-label">🌙 Night</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-title">Home</div></div><div class="hdr-right" style="position:relative"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><div class="badge-r">3</div></div></div>
+    <div class="rail">
+      <div class="rail-item rail-dm"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/><path d="M14 10.5a5 5 0 01-2.8 4.5L8 17l1.5-2.3A5 5 0 0114 10.5z" opacity="0.3"/></svg></div>
+      <div class="rail-item" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">T<div class="dot-r"></div></div>
+      <div class="rail-item" style="background:linear-gradient(135deg,#f472b6,#ec4899)">G</div>
+      <div class="rail-item" style="background:linear-gradient(135deg,#34d399,#10b981)">F</div>
+      <div class="rail-item" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">Y</div>
+      <div class="rail-item rail-add">+</div>
+    </div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">S<div class="dm-online"></div></div><div class="dm-info"><div class="dm-name">Sarah M.</div><div class="dm-msg">That testimony was amazing!</div></div><div class="dm-meta"><div class="dm-time">2m</div><div class="badge-sm">3</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#34d399,#10b981)">M</div><div class="dm-info"><div class="dm-name">Marcus T.</div><div class="dm-msg">See you at Bible study tonight</div></div><div class="dm-meta"><div class="dm-time">15m</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">R</div><div class="dm-info"><div class="dm-name">Rachel K.</div><div class="dm-msg">Thanks for the prayer 🙌</div></div><div class="dm-meta"><div class="dm-time">1h</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#60a5fa,#3b82f6)">D<div class="dm-online"></div></div><div class="dm-info"><div class="dm-name">David W.</div><div class="dm-msg">Can you lead worship Sunday?</div></div><div class="dm-meta"><div class="dm-time">3h</div><div class="badge-sm">1</div></div></div>
+    <div class="nav">
+      <div class="nav-i act"><svg class="i" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21H3z"/><path d="M14 21V14h4v7"/></svg><span class="nav-l">Home</span><div class="nav-badge">4</div></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="nav-l">Charge</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-l">You</span></div>
+    </div>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">☀️ Day</div>
+  <div class="phone lt"><div class="s lt">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-title">Home</div></div><div class="hdr-right" style="position:relative"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><div class="badge-r">3</div></div></div>
+    <div class="rail">
+      <div class="rail-item rail-dm"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/><path d="M14 10.5a5 5 0 01-2.8 4.5L8 17l1.5-2.3A5 5 0 0114 10.5z" opacity="0.3"/></svg></div>
+      <div class="rail-item" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">T<div class="dot-r"></div></div>
+      <div class="rail-item" style="background:linear-gradient(135deg,#f472b6,#ec4899)">G</div>
+      <div class="rail-item" style="background:linear-gradient(135deg,#34d399,#10b981)">F</div>
+      <div class="rail-item" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">Y</div>
+      <div class="rail-item rail-add">+</div>
+    </div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">S<div class="dm-online"></div></div><div class="dm-info"><div class="dm-name">Sarah M.</div><div class="dm-msg">That testimony was amazing!</div></div><div class="dm-meta"><div class="dm-time">2m</div><div class="badge-sm">3</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#34d399,#10b981)">M</div><div class="dm-info"><div class="dm-name">Marcus T.</div><div class="dm-msg">See you at Bible study tonight</div></div><div class="dm-meta"><div class="dm-time">15m</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">R</div><div class="dm-info"><div class="dm-name">Rachel K.</div><div class="dm-msg">Thanks for the prayer 🙌</div></div><div class="dm-meta"><div class="dm-time">1h</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#60a5fa,#3b82f6)">D<div class="dm-online"></div></div><div class="dm-info"><div class="dm-name">David W.</div><div class="dm-msg">Can you lead worship Sunday?</div></div><div class="dm-meta"><div class="dm-time">3h</div><div class="badge-sm">1</div></div></div>
+    <div class="nav">
+      <div class="nav-i act"><svg class="i" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21H3z"/><path d="M14 21V14h4v7"/></svg><span class="nav-l">Home</span><div class="nav-badge">4</div></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="nav-l">Charge</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-l">You</span></div>
+    </div>
+  </div></div></div>
+</div></div>
+<div class="divider"></div>
+
+<!-- ============== SECTION 2: CHANNEL CHAT ============== -->
+<div class="section"><div class="section-title">Channel Chat</div>
+<div class="section-sub">Server view with channels + messages → Component 7 &nbsp;|&nbsp; Files: ChannelChat.tsx, ChannelSidebar.tsx, ServersTab.tsx</div>
+<div class="phones">
+  <div class="phone-col"><div class="phone-label">🌙 Night</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-back"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="hdr-title">The Crossing</div></div></div>
+    <div style="display:flex;flex:1;gap:4px">
+      <div style="width:70px;flex-shrink:0;padding-top:2px">
+        <div style="font-size:5px;text-transform:uppercase;letter-spacing:0.8px;color:#5d5877;font-weight:600;margin:0 0 3px 4px">Text</div>
+        <div class="ch act"><span class="ch-pre">—</span> general</div>
+        <div class="ch"><span class="ch-pre">—</span> prayer</div>
+        <div class="ch"><span class="ch-pre">—</span> worship</div>
+        <div style="font-size:5px;text-transform:uppercase;letter-spacing:0.8px;color:#5d5877;font-weight:600;margin:6px 0 3px 4px">Voice</div>
+        <div class="ch"><svg class="i" width="8" height="8" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg> <span style="font-size:6.5px">Lounge</span></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div class="msgs">
+          <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">S</div><div class="msg-body"><div class="msg-name">Sarah <span class="msg-role admin">Admin</span></div><div class="bub">Good morning church fam! 🌅</div><div class="msg-ts">9:15 AM</div></div></div>
+          <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#34d399,#10b981)">M</div><div class="msg-body"><div class="msg-name">Marcus <span class="msg-role mod">Mod</span></div><div class="bub">Don't forget about Bible study tonight at 7!</div><div class="msg-ts">9:18 AM</div></div></div>
+          <div class="msg own"><div class="msg-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">J</div><div class="msg-body"><div class="bub">I'll be there! Can I bring a friend?</div><div class="msg-ts">9:20 AM</div></div></div>
+          <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#34d399,#10b981)">M</div><div class="msg-body"><div class="msg-name">Marcus <span class="msg-role mod">Mod</span></div><div class="bub">Absolutely! The more the merrier 🙏</div><div class="msg-ts">9:21 AM</div></div></div>
+        </div>
+        <div class="chat-in"><div class="chat-plus">+</div><input class="chat-field" placeholder="Message #general" readonly><div class="chat-send">↑</div></div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21H3z"/><path d="M14 21V14h4v7"/></svg><span class="nav-l">Home</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="nav-l">Charge</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-l">You</span></div>
+    </div>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">☀️ Day</div>
+  <div class="phone lt"><div class="s lt">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-back"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="hdr-title">The Crossing</div></div></div>
+    <div style="display:flex;flex:1;gap:4px">
+      <div style="width:70px;flex-shrink:0;padding-top:2px">
+        <div style="font-size:5px;text-transform:uppercase;letter-spacing:0.8px;color:#8e9ec0;font-weight:600;margin:0 0 3px 4px">Text</div>
+        <div class="ch act"><span class="ch-pre">—</span> general</div>
+        <div class="ch"><span class="ch-pre">—</span> prayer</div>
+        <div class="ch"><span class="ch-pre">—</span> worship</div>
+        <div style="font-size:5px;text-transform:uppercase;letter-spacing:0.8px;color:#8e9ec0;font-weight:600;margin:6px 0 3px 4px">Voice</div>
+        <div class="ch"><svg class="i" width="8" height="8" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg> <span style="font-size:6.5px">Lounge</span></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column">
+        <div class="msgs">
+          <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">S</div><div class="msg-body"><div class="msg-name">Sarah <span class="msg-role admin">Admin</span></div><div class="bub">Good morning church fam! 🌅</div><div class="msg-ts">9:15 AM</div></div></div>
+          <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#34d399,#10b981)">M</div><div class="msg-body"><div class="msg-name">Marcus <span class="msg-role mod">Mod</span></div><div class="bub">Don't forget about Bible study tonight at 7!</div><div class="msg-ts">9:18 AM</div></div></div>
+          <div class="msg own"><div class="msg-av" style="background:linear-gradient(135deg,#4facfe,#3b82f6)">J</div><div class="msg-body"><div class="bub">I'll be there! Can I bring a friend?</div><div class="msg-ts">9:20 AM</div></div></div>
+          <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#34d399,#10b981)">M</div><div class="msg-body"><div class="msg-name">Marcus <span class="msg-role mod">Mod</span></div><div class="bub">Absolutely! The more the merrier 🙏</div><div class="msg-ts">9:21 AM</div></div></div>
+        </div>
+        <div class="chat-in"><div class="chat-plus">+</div><input class="chat-field" placeholder="Message #general" readonly><div class="chat-send">↑</div></div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21H3z"/><path d="M14 21V14h4v7"/></svg><span class="nav-l">Home</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="nav-l">Charge</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-l">You</span></div>
+    </div>
+  </div></div></div>
+</div></div>
+<div class="divider"></div>
+
+<!-- ============== SECTION 3: CHARGE TAB ============== -->
+<div class="section"><div class="section-title">Charge Tab</div>
+<div class="section-sub">Greeting + Search + Directory → Components 1, 2, 5 &nbsp;|&nbsp; File: NearbyTab.tsx</div>
+<div class="phones">
+  <div class="phone-col"><div class="phone-label">🌙 Night</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="greet">Good evening, Jordyn</div>
+    <div class="greet-sub">Charge your faith</div>
+    <div class="srch"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Search testimonies, people..." readonly></div>
+    <div style="font-size:6px;font-weight:600;margin:6px 0 4px 2px"><span class="dk" style="color:#8e89a8">People near you</span></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">A</div><div class="dm-info"><div class="dm-name">Alyssa R.</div><div class="dm-msg" style="font-style:italic;color:#8e89a8">From Darkness to Light</div></div><div class="dm-meta"><div style="font-size:5.5px;color:#5d5877">2.1 mi</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#34d399,#10b981)">J</div><div class="dm-info"><div class="dm-name">James L.</div><div class="dm-msg" style="font-style:italic;color:#8e89a8">Healed by Grace</div></div><div class="dm-meta"><div style="font-size:5.5px;color:#5d5877">3.4 mi</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">T</div><div class="dm-info"><div class="dm-name">Tasha M.</div><div class="dm-msg" style="font-style:italic;color:#8e89a8">My Prodigal Journey</div></div><div class="dm-meta"><div style="font-size:5.5px;color:#5d5877">5.8 mi</div></div></div>
+    <div class="nav">
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21H3z"/><path d="M14 21V14h4v7"/></svg><span class="nav-l">Home</span></div>
+      <div class="nav-i act"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="nav-l">Charge</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-l">You</span></div>
+    </div>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">☀️ Day</div>
+  <div class="phone lt"><div class="s lt">
+    <div class="greet">Good evening, Jordyn</div>
+    <div class="greet-sub">Charge your faith</div>
+    <div class="srch"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input placeholder="Search testimonies, people..." readonly></div>
+    <div style="font-size:6px;font-weight:600;margin:6px 0 4px 2px"><span class="lt" style="color:#4a5e88">People near you</span></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">A</div><div class="dm-info"><div class="dm-name">Alyssa R.</div><div class="dm-msg" style="font-style:italic">From Darkness to Light</div></div><div class="dm-meta"><div style="font-size:5.5px;color:#8e9ec0">2.1 mi</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#34d399,#10b981)">J</div><div class="dm-info"><div class="dm-name">James L.</div><div class="dm-msg" style="font-style:italic">Healed by Grace</div></div><div class="dm-meta"><div style="font-size:5.5px;color:#8e9ec0">3.4 mi</div></div></div>
+    <div class="dm"><div class="dm-av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">T</div><div class="dm-info"><div class="dm-name">Tasha M.</div><div class="dm-msg" style="font-style:italic">My Prodigal Journey</div></div><div class="dm-meta"><div style="font-size:5.5px;color:#8e9ec0">5.8 mi</div></div></div>
+    <div class="nav">
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21H3z"/><path d="M14 21V14h4v7"/></svg><span class="nav-l">Home</span></div>
+      <div class="nav-i act"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="nav-l">Charge</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-l">You</span></div>
+    </div>
+  </div></div></div>
+</div></div>
+<div class="divider"></div>
+
+<!-- ============== SECTION 4: PROFILE ============== -->
+<div class="section"><div class="section-title">You Tab — Profile</div>
+<div class="section-sub">Avatar + Testimonies + Verse → Component 9 &nbsp;|&nbsp; Files: ProfileCard.tsx, ProfileTab.tsx</div>
+<div class="phones">
+  <div class="phone-col"><div class="phone-label">🌙 Night</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-title" style="font-size:7px;text-transform:uppercase;letter-spacing:1.5px;color:#5d5877">Lightning Profile</div></div><div class="hdr-right"><svg class="i" width="12" height="12" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg></div></div>
+    <div class="prof">
+      <div class="prof-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">J</div>
+      <div class="prof-name">Jordyn Doanne</div>
+      <div class="prof-handle">@jordynlightning</div>
+      <div class="prof-btns"><button class="prof-btn pri">Share Profile</button><button class="prof-btn sec">Edit</button></div>
+      <div style="font-size:5px;color:rgba(255,255,255,0.35);margin-top:2px">147 views</div>
+    </div>
+    <div class="verse"><div class="verse-label">Favorite Verse</div><div class="verse-text">"For I know the plans I have for you, declares the LORD..." — Jeremiah 29:11</div></div>
+    <div class="tst sal"><div class="tst-label">Salvation Testimony</div><div class="tst-title">From Broken to Reborn</div><div class="tst-quote">"I was lost in darkness, chasing everything the world offered, until one night..."</div></div>
+    <div class="tst life"><div class="tst-label">Life Testimonies</div><div class="tst-title">Healed Through Prayer</div><div class="tst-quote">"When the doctors said there was nothing more they could do..."</div></div>
+    <div class="nav">
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21H3z"/><path d="M14 21V14h4v7"/></svg><span class="nav-l">Home</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="nav-l">Charge</span></div>
+      <div class="nav-i act"><svg class="i" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-l">You</span></div>
+    </div>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">☀️ Day</div>
+  <div class="phone lt"><div class="s lt">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-title" style="font-size:7px;text-transform:uppercase;letter-spacing:1.5px;color:#8e9ec0">Lightning Profile</div></div><div class="hdr-right"><svg class="i" width="12" height="12" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg></div></div>
+    <div class="prof">
+      <div class="prof-av" style="background:linear-gradient(135deg,#4facfe,#9b96f5)">J</div>
+      <div class="prof-name">Jordyn Doanne</div>
+      <div class="prof-handle">@jordynlightning</div>
+      <div class="prof-btns"><button class="prof-btn pri">Share Profile</button><button class="prof-btn sec">Edit</button></div>
+      <div style="font-size:5px;color:rgba(0,0,0,0.35);margin-top:2px">147 views</div>
+    </div>
+    <div class="verse"><div class="verse-label">Favorite Verse</div><div class="verse-text">"For I know the plans I have for you, declares the LORD..." — Jeremiah 29:11</div></div>
+    <div class="tst sal"><div class="tst-label">Salvation Testimony</div><div class="tst-title">From Broken to Reborn</div><div class="tst-quote">"I was lost in darkness, chasing everything the world offered, until one night..."</div></div>
+    <div class="tst life"><div class="tst-label">Life Testimonies</div><div class="tst-title">Healed Through Prayer</div><div class="tst-quote">"When the doctors said there was nothing more they could do..."</div></div>
+    <div class="nav">
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V21H3z"/><path d="M14 21V14h4v7"/></svg><span class="nav-l">Home</span></div>
+      <div class="nav-i"><svg class="i" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span class="nav-l">Charge</span></div>
+      <div class="nav-i act"><svg class="i" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-l">You</span></div>
+    </div>
+  </div></div></div>
+</div></div>
+<div class="divider"></div>
+
+<!-- ============== SECTION 5: DM CHAT ============== -->
+<div class="section"><div class="section-title">DM Chat</div>
+<div class="section-sub">1-on-1 messaging → Component 12 &nbsp;|&nbsp; File: MessagesTab.tsx</div>
+<div class="phones">
+  <div class="phone-col"><div class="phone-label">🌙 Night</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-back"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="dm-av" style="background:linear-gradient(135deg,#f472b6,#ec4899);width:22px;height:22px;font-size:8px">S<div class="dm-online" style="width:6px;height:6px"></div></div><div class="hdr-title" style="margin-left:2px">Sarah M.</div></div></div>
+    <div class="msgs" style="flex:1">
+      <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">S</div><div class="msg-body"><div class="bub">Hey! Did you see the new testimony from Marcus?</div><div class="msg-ts">2:15 PM</div></div></div>
+      <div class="msg own"><div class="msg-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">J</div><div class="msg-body"><div class="bub">Yes!! It was so powerful. I literally cried 😭</div><div class="msg-ts">2:17 PM</div></div></div>
+      <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">S</div><div class="msg-body"><div class="bub">Same! God is so good. We should pray for him tonight at Bible study</div><div class="msg-ts">2:18 PM</div></div></div>
+      <div class="msg own"><div class="msg-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">J</div><div class="msg-body"><div class="bub">Absolutely! I'll be there at 7 🙏</div><div class="msg-ts">2:20 PM</div></div></div>
+    </div>
+    <div class="chat-in"><div class="chat-plus">+</div><input class="chat-field" placeholder="Message Sarah..." readonly><div class="chat-send">↑</div></div>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">☀️ Day</div>
+  <div class="phone lt"><div class="s lt">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-back"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="dm-av" style="background:linear-gradient(135deg,#f472b6,#ec4899);width:22px;height:22px;font-size:8px">S<div class="dm-online" style="width:6px;height:6px"></div></div><div class="hdr-title" style="margin-left:2px">Sarah M.</div></div></div>
+    <div class="msgs" style="flex:1">
+      <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">S</div><div class="msg-body"><div class="bub">Hey! Did you see the new testimony from Marcus?</div><div class="msg-ts">2:15 PM</div></div></div>
+      <div class="msg own"><div class="msg-av" style="background:linear-gradient(135deg,#4facfe,#3b82f6)">J</div><div class="msg-body"><div class="bub">Yes!! It was so powerful. I literally cried 😭</div><div class="msg-ts">2:17 PM</div></div></div>
+      <div class="msg"><div class="msg-av" style="background:linear-gradient(135deg,#f472b6,#ec4899)">S</div><div class="msg-body"><div class="bub">Same! God is so good. We should pray for him tonight at Bible study</div><div class="msg-ts">2:18 PM</div></div></div>
+      <div class="msg own"><div class="msg-av" style="background:linear-gradient(135deg,#4facfe,#3b82f6)">J</div><div class="msg-body"><div class="bub">Absolutely! I'll be there at 7 🙏</div><div class="msg-ts">2:20 PM</div></div></div>
+    </div>
+    <div class="chat-in"><div class="chat-plus">+</div><input class="chat-field" placeholder="Message Sarah..." readonly><div class="chat-send">↑</div></div>
+  </div></div></div>
+</div></div>
+<div class="divider"></div>
+
+<!-- ============== SECTION 6: NOTIFICATIONS ============== -->
+<div class="section"><div class="section-title">Notifications</div>
+<div class="section-sub">New component → Component 10 &nbsp;|&nbsp; File: NotificationsPanel.tsx (create new)</div>
+<div class="phones">
+  <div class="phone-col"><div class="phone-label">🌙 Night</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-back"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="hdr-title">Notifications</div></div></div>
+    <div class="nf-pills"><div class="nf-pill sel">All</div><div class="nf-pill">Testimonies</div><div class="nf-pill">Friends</div><div class="nf-pill">Church</div></div>
+    <div class="nf-fr"><div class="nf-av" style="background:linear-gradient(135deg,#60a5fa,#3b82f6)">E</div><div class="nf-info"><div class="nf-name">Emily R.</div><div class="nf-sub">wants to be your friend</div></div><div class="nf-btns"><button class="nf-accept">Accept</button><button class="nf-decline">✕</button></div></div>
+    <div class="nf-group">Today</div>
+    <div class="nf-item unread"><div class="nf-av" style="background:linear-gradient(135deg,#f472b6,#ec4899);width:18px;height:18px;font-size:7px">S</div><div class="nf-item-text"><b>Sarah M.</b> reacted ❤️ to your testimony</div><div class="nf-dot"></div></div>
+    <div class="nf-item unread"><div class="nf-av" style="background:linear-gradient(135deg,#34d399,#10b981);width:18px;height:18px;font-size:7px">M</div><div class="nf-item-text"><b>Marcus T.</b> shared your testimony</div><div class="nf-dot"></div></div>
+    <div class="nf-group">Earlier</div>
+    <div class="nf-item"><div class="nf-av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);width:18px;height:18px;font-size:7px">R</div><div class="nf-item-text"><b>Rachel K.</b> commented on your post</div></div>
+    <div class="nf-item"><div class="nf-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5);width:18px;height:18px;font-size:7px">T</div><div class="nf-item-text"><b>The Crossing</b> posted an announcement</div></div>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">☀️ Day</div>
+  <div class="phone lt"><div class="s lt">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-back"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="hdr-title">Notifications</div></div></div>
+    <div class="nf-pills"><div class="nf-pill sel">All</div><div class="nf-pill">Testimonies</div><div class="nf-pill">Friends</div><div class="nf-pill">Church</div></div>
+    <div class="nf-fr"><div class="nf-av" style="background:linear-gradient(135deg,#60a5fa,#3b82f6)">E</div><div class="nf-info"><div class="nf-name">Emily R.</div><div class="nf-sub">wants to be your friend</div></div><div class="nf-btns"><button class="nf-accept">Accept</button><button class="nf-decline">✕</button></div></div>
+    <div class="nf-group">Today</div>
+    <div class="nf-item unread"><div class="nf-av" style="background:linear-gradient(135deg,#f472b6,#ec4899);width:18px;height:18px;font-size:7px">S</div><div class="nf-item-text"><b>Sarah M.</b> reacted ❤️ to your testimony</div><div class="nf-dot"></div></div>
+    <div class="nf-item unread"><div class="nf-av" style="background:linear-gradient(135deg,#34d399,#10b981);width:18px;height:18px;font-size:7px">M</div><div class="nf-item-text"><b>Marcus T.</b> shared your testimony</div><div class="nf-dot"></div></div>
+    <div class="nf-group">Earlier</div>
+    <div class="nf-item"><div class="nf-av" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);width:18px;height:18px;font-size:7px">R</div><div class="nf-item-text"><b>Rachel K.</b> commented on your post</div></div>
+    <div class="nf-item"><div class="nf-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5);width:18px;height:18px;font-size:7px">T</div><div class="nf-item-text"><b>The Crossing</b> posted an announcement</div></div>
+  </div></div></div>
+</div></div>
+<div class="divider"></div>
+
+<!-- ============== SECTION 7: SETTINGS ============== -->
+<div class="section"><div class="section-title">Settings</div>
+<div class="section-sub">Component 11 &nbsp;|&nbsp; File: SettingsMenu.tsx</div>
+<div class="phones">
+  <div class="phone-col"><div class="phone-label">🌙 Night</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-back"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="hdr-title">Settings</div></div></div>
+    <div class="s-prof"><div class="s-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">J</div><div><div class="s-name">Jordyn Doanne</div><div class="s-handle">@jordynlightning</div></div><div class="s-arrow">›</div></div>
+    <div class="s-group-label">Account</div>
+    <div class="s-card"><div class="s-item"><div class="s-item-icon">👤</div><div class="s-item-label">Edit Profile</div><div class="s-chev">›</div></div><div class="s-item"><div class="s-item-icon">🔒</div><div class="s-item-label">Change Password</div><div class="s-chev">›</div></div></div>
+    <div class="s-group-label">Lightning Pro</div>
+    <div class="s-card"><div class="s-item"><div class="s-item-icon">⚡</div><div class="s-item-label">Upgrade to Pro</div><span style="font-size:5.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(123,118,224,0.15);color:#9b96f5">PRO</span></div></div>
+    <div class="s-group-label">Preferences</div>
+    <div class="s-card"><div class="s-item"><div class="s-item-icon">🌙</div><div class="s-item-label">Night Mode</div><div class="s-toggle on"></div></div><div class="s-item"><div class="s-item-icon">🔔</div><div class="s-item-label">Notifications</div><div class="s-toggle on"></div></div></div>
+    <div class="s-group-label">Support</div>
+    <div class="s-card"><div class="s-item"><div class="s-item-icon">❓</div><div class="s-item-label">Help Center</div><div class="s-chev">›</div></div><div class="s-item"><div class="s-item-icon">📋</div><div class="s-item-label">Privacy Policy</div><div class="s-chev">›</div></div></div>
+    <div class="s-signout">Sign Out</div>
+    <div style="text-align:center;font-size:5px;color:#5d5877;margin-top:4px">Lightning v1.0.0</div>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">☀️ Day</div>
+  <div class="phone lt"><div class="s lt">
+    <div class="hdr"><div class="hdr-left"><div class="hdr-back"><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div><div class="hdr-title">Settings</div></div></div>
+    <div class="s-prof"><div class="s-av" style="background:linear-gradient(135deg,#4facfe,#9b96f5)">J</div><div><div class="s-name">Jordyn Doanne</div><div class="s-handle">@jordynlightning</div></div><div class="s-arrow">›</div></div>
+    <div class="s-group-label">Account</div>
+    <div class="s-card"><div class="s-item"><div class="s-item-icon">👤</div><div class="s-item-label">Edit Profile</div><div class="s-chev">›</div></div><div class="s-item"><div class="s-item-icon">🔒</div><div class="s-item-label">Change Password</div><div class="s-chev">›</div></div></div>
+    <div class="s-group-label">Lightning Pro</div>
+    <div class="s-card"><div class="s-item"><div class="s-item-icon">⚡</div><div class="s-item-label">Upgrade to Pro</div><span style="font-size:5.5px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(79,172,254,0.15);color:#2b6cb0">PRO</span></div></div>
+    <div class="s-group-label">Preferences</div>
+    <div class="s-card"><div class="s-item"><div class="s-item-icon">🌙</div><div class="s-item-label">Night Mode</div><div class="s-toggle"></div></div><div class="s-item"><div class="s-item-icon">🔔</div><div class="s-item-label">Notifications</div><div class="s-toggle on"></div></div></div>
+    <div class="s-group-label">Support</div>
+    <div class="s-card"><div class="s-item"><div class="s-item-icon">❓</div><div class="s-item-label">Help Center</div><div class="s-chev">›</div></div><div class="s-item"><div class="s-item-icon">📋</div><div class="s-item-label">Privacy Policy</div><div class="s-chev">›</div></div></div>
+    <div class="s-signout">Sign Out</div>
+    <div style="text-align:center;font-size:5px;color:#8e9ec0;margin-top:4px">Lightning v1.0.0</div>
+  </div></div></div>
+</div></div>
+<div class="divider"></div>
+
+<!-- ============== SECTION 8: WIZARD ============== -->
+<div class="section"><div class="section-title">Profile Creation Wizard</div>
+<div class="section-sub">3 steps: Welcome → Community → Boom → Component 15 &nbsp;|&nbsp; File: ProfileCreationWizard.tsx</div>
+<div class="phones">
+  <div class="phone-col"><div class="phone-label">Step 1</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="wz-progress"><div class="wz-dot cur"></div><div class="wz-dot"></div><div class="wz-dot"></div></div>
+    <div class="wz-hero"><div class="wz-icon"><svg class="i" width="24" height="24" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="wz-title">Welcome to Lightning</div><div class="wz-sub">Let's create your profile</div></div>
+    <div class="wz-field"><div class="wz-label">Full Name <span class="wz-req">*</span></div><input class="wz-input" value="Jordyn Doanne" readonly></div>
+    <div class="wz-field"><div class="wz-label">Location <span class="wz-req">*</span></div><input class="wz-input" value="Las Vegas, NV" readonly></div>
+    <div class="wz-field"><div class="wz-label">Referral Code <span style="opacity:0.4;font-weight:400">(optional)</span></div><input class="wz-input" placeholder="e.g. marcus7291" readonly></div>
+    <button class="wz-btn">Next</button>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">Step 2</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="wz-progress"><div class="wz-dot done"></div><div class="wz-dot cur"></div><div class="wz-dot"></div></div>
+    <div class="wz-hero"><div class="wz-icon"><svg class="i" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M10 4h4"/><path d="M6 12l6-6 6 6"/><path d="M4 22V12h16v10"/><path d="M10 22v-5h4v5"/></svg></div><div class="wz-title">Find your Community</div><div class="wz-sub">Connect with others</div></div>
+    <div class="wz-opt"><div class="wz-opt-icon"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7l5-4 5 4v4"/></svg></div><div><div class="wz-opt-title">Join a Server</div><div class="wz-opt-desc">Enter invite code from your community</div></div><div class="wz-opt-arrow">›</div></div>
+    <div class="wz-opt"><div class="wz-opt-icon"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg></div><div><div class="wz-opt-title">Start a Server</div><div class="wz-opt-desc">Start your community on Lightning</div></div><div class="wz-opt-arrow">›</div></div>
+    <div style="display:flex;gap:4px;margin-top:6px"><button class="wz-btn wz-btn-back" style="flex:1">Previous</button><button class="wz-btn" style="flex:1">Next</button></div>
+    <button class="wz-btn-skip">Skip for now</button>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">Step 3</div>
+  <div class="phone dk"><div class="s dk">
+    <div class="wz-progress"><div class="wz-dot done"></div><div class="wz-dot done"></div><div class="wz-dot cur"></div></div>
+    <div class="wz-hero"><div class="wz-icon"><svg class="i" width="24" height="24" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="wz-title">Boom</div><div class="wz-verse">His lightning lights up the world; the earth sees and trembles. — Psalm 97:4</div></div>
+    <div class="wz-review"><div class="wz-review-av" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">J</div><div class="wz-review-name">Jordyn Doanne</div><div class="wz-review-loc">📍 Las Vegas, NV</div><div class="wz-review-church">The Crossing Church</div></div>
+    <div class="wz-helper">After creating your profile, you'll be guided to share your testimony.</div>
+    <div style="display:flex;gap:4px;margin-top:4px"><button class="wz-btn wz-btn-back" style="flex:1">Previous</button><button class="wz-btn" style="flex:1">Enter Lightning ⚡</button></div>
+  </div></div></div>
+</div></div>
+<div class="divider"></div>
+
+<!-- ============== SECTION 9: CREATE SERVER ============== -->
+<div class="section"><div class="section-title">Create Server Dialog</div>
+<div class="section-sub">Gradient picker + live preview → Component 14 &nbsp;|&nbsp; File: CreateServerDialog.tsx</div>
+<div class="phones">
+  <div class="phone-col"><div class="phone-label">🌙 Night</div>
+  <div class="phone dk"><div class="s dk" style="justify-content:center">
+    <div class="cs-dialog">
+      <div class="cs-hdr"><div><div class="cs-title">Create a Server</div><div class="cs-sub">Start your community on Lightning</div></div><div class="cs-close">✕</div></div>
+      <div class="cs-preview"><div class="cs-preview-icon" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)">Y</div><div><div class="cs-preview-name">Youth Group</div><div style="font-size:5px;color:#5d5877">Live preview</div></div></div>
+      <div class="cs-section"><div class="cs-label">Choose a color</div><div class="cs-grads"><div class="cs-grad sel" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#f472b6,#ec4899)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#34d399,#10b981)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#60a5fa,#3b82f6)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#f87171,#ef4444)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#38bdf8,#0ea5e9)"></div></div><div style="font-size:5px;color:#5d5877;margin-top:2px;cursor:pointer">📷 Upload custom image instead</div></div>
+      <div class="cs-section"><div class="cs-label">Server Name</div><input class="cs-input" value="Youth Group" readonly></div>
+      <div class="cs-section"><div class="cs-label">Description (optional)</div><input class="cs-input" placeholder="What's this server about?" readonly></div>
+      <div class="cs-section"><button class="cs-btn">Create Server</button></div>
+    </div>
+  </div></div></div>
+  <div class="phone-col"><div class="phone-label">☀️ Day</div>
+  <div class="phone lt"><div class="s lt" style="justify-content:center">
+    <div class="cs-dialog">
+      <div class="cs-hdr"><div><div class="cs-title">Create a Server</div><div class="cs-sub">Start your community on Lightning</div></div><div class="cs-close">✕</div></div>
+      <div class="cs-preview"><div class="cs-preview-icon" style="background:linear-gradient(135deg,#4facfe,#3b82f6)">Y</div><div><div class="cs-preview-name">Youth Group</div><div style="font-size:5px;color:#8e9ec0">Live preview</div></div></div>
+      <div class="cs-section"><div class="cs-label">Choose a color</div><div class="cs-grads"><div class="cs-grad" style="background:linear-gradient(135deg,#7b76e0,#9b96f5)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#f472b6,#ec4899)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#34d399,#10b981)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)"></div><div class="cs-grad sel" style="background:linear-gradient(135deg,#60a5fa,#3b82f6)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#f87171,#ef4444)"></div><div class="cs-grad" style="background:linear-gradient(135deg,#38bdf8,#0ea5e9)"></div></div><div style="font-size:5px;color:#8e9ec0;margin-top:2px;cursor:pointer">📷 Upload custom image instead</div></div>
+      <div class="cs-section"><div class="cs-label">Server Name</div><input class="cs-input" value="Youth Group" readonly></div>
+      <div class="cs-section"><div class="cs-label">Description (optional)</div><input class="cs-input" placeholder="What's this server about?" readonly></div>
+      <div class="cs-section"><button class="cs-btn">Create Server</button></div>
+    </div>
+  </div></div></div>
+</div></div>
+
+<div style="text-align:center;padding:20px 0;font-size:10px;color:#5d5877">
+  ⚡ Lightning App — Complete Final Mockup<br>
+  <span style="font-size:8px">12 MVP Components • Night + Day modes • Design System: Peri V3 Glass Edge</span>
+</div>
+</body></html>
