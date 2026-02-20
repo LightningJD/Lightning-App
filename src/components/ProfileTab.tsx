@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Heart,
-  Share2,
   Plus,
   Edit3,
   MapPin,
@@ -477,9 +476,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         <div
           className="rounded-full flex items-center justify-center flex-shrink-0 mb-3 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95"
           style={{
-            width: '70px',
-            height: '70px',
-            fontSize: '26px',
+            width: '100px',
+            height: '100px',
+            fontSize: '38px',
             fontFamily: "'Playfair Display', serif",
             color: 'white',
             background: nightMode
@@ -1451,55 +1450,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                 setShowShareModal(true);
               }
             }}
-            className={`w-full mt-3 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 text-sm transition-all duration-200 border cursor-pointer ${nightMode ? "text-slate-100 border-white/20" : "text-black border-white/30"}`}
-            style={
-              nightMode
-                ? {
-                    background:
-                      "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)",
-                    boxShadow:
-                      "0 1px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                    backdropFilter: "blur(10px)",
-                    WebkitBackdropFilter: "blur(10px)",
-                  }
-                : {
-                    background: "rgba(255, 255, 255, 0.25)",
-                    backdropFilter: "blur(30px)",
-                    WebkitBackdropFilter: "blur(30px)",
-                    boxShadow:
-                      "0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
-                  }
-            }
-            onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-              if (nightMode) {
-                e.currentTarget.style.background =
-                  "linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%)";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              } else {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.35)";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }
-            }}
-            onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-              if (nightMode) {
-                e.currentTarget.style.background =
-                  "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)";
-                e.currentTarget.style.transform = "translateY(0)";
-              } else {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.25)";
-                e.currentTarget.style.transform = "translateY(0)";
-              }
-            }}
-            onMouseDown={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.currentTarget.style.transform = "translateY(1px) scale(0.98)";
-            }}
-            onMouseUp={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.currentTarget.style.transform = "translateY(-1px) scale(1)";
+            className="w-full mt-3 px-4 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm transition-all duration-200 cursor-pointer text-white border-none"
+            style={{
+              background: nightMode
+                ? "linear-gradient(135deg, #7b76e0, #9b96f5)"
+                : "linear-gradient(135deg, #4facfe, #3b82f6)",
             }}
             aria-label="Share your testimony"
           >
-            <Share2 className="w-4 h-4" />
-            Share Testimony
+            ⚡ Share Testimony
           </button>
         )}
 

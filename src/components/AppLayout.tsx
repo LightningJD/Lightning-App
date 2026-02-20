@@ -29,8 +29,6 @@ const HomeIcon: React.FC<{ className?: string; strokeWidth?: number }> = ({
     <line x1="19" y1="7.5" x2="19" y2="7.5" strokeWidth="2.5" strokeLinecap="round" />
     <line x1="16" y1="11" x2="16" y2="11" strokeWidth="2.5" strokeLinecap="round" />
     <line x1="19" y1="11" x2="19" y2="11" strokeWidth="2.5" strokeLinecap="round" />
-    <line x1="16" y1="14.5" x2="16" y2="14.5" strokeWidth="2.5" strokeLinecap="round" />
-    <line x1="19" y1="14.5" x2="19" y2="14.5" strokeWidth="2.5" strokeLinecap="round" />
     <path d="M16 20v-2.5h3v2.5" />
   </svg>
 );
@@ -101,6 +99,36 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             : themes[selectedTheme].lightGradient,
         }}
       />
+
+      {/* Day mode glow blobs */}
+      {!nightMode && (
+        <>
+          <div
+            className="fixed pointer-events-none"
+            style={{
+              top: '-10%',
+              left: '15%',
+              width: '320px',
+              height: '320px',
+              background: 'radial-gradient(circle, rgba(150,170,245,0.16) 0%, transparent 65%)',
+              borderRadius: '50%',
+              zIndex: 0,
+            }}
+          />
+          <div
+            className="fixed pointer-events-none"
+            style={{
+              bottom: '-8%',
+              right: '10%',
+              width: '280px',
+              height: '280px',
+              background: 'radial-gradient(circle, rgba(170,160,240,0.1) 0%, transparent 60%)',
+              borderRadius: '50%',
+              zIndex: 0,
+            }}
+          />
+        </>
+      )}
 
       {/* Header */}
       {!nightMode && (

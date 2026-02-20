@@ -438,7 +438,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
       {/* Greeting */}
       <div className="px-4 pt-3 pb-1">
         <h1
-          className="text-lg font-medium"
+          className="text-lg font-medium italic"
           style={{ fontFamily: "'Playfair Display', serif", color: nightMode ? "#e8e5f2" : "#1e2b4a" }}
         >
           {getTimeGreeting()}{firstName ? `, ${firstName}` : ""} ✨
