@@ -78,6 +78,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
   const [showShareModal, setShowShareModal] = useState(false);
   const [showTestimonyMenu, setShowTestimonyMenu] = useState(false);
   const [showLesson, setShowLesson] = useState(false);
+  const [expandedTestimony, setExpandedTestimony] = useState(false);
   const { isGuest, checkAndShowModal } = useGuestModalContext() as {
     isGuest: boolean;
     checkAndShowModal: () => void;
@@ -870,9 +871,14 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             Salvation Testimony
           </div>
 
-          {/* Testimony Card */}
+          {/* Testimony Card — tap to expand */}
           <div
-            className="p-4 rounded-xl relative overflow-hidden"
+            className="p-4 rounded-xl relative overflow-hidden cursor-pointer transition-all duration-200 active:scale-[0.99]"
+            onClick={(e) => {
+              // Don't expand if clicking a button/link inside
+              if ((e.target as HTMLElement).closest('button')) return;
+              if (canView) setExpandedTestimony(!expandedTestimony);
+            }}
             style={
               nightMode
                 ? {
@@ -930,20 +936,52 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                   </div>
                 )}
 
-                {/* Body preview — 2 line clamp */}
+                {/* Body — 2 line clamp when collapsed, full when expanded */}
                 <div
-                  className="text-[13px] leading-relaxed mb-2"
+                  className="text-[13px] leading-relaxed mb-2 whitespace-pre-wrap"
                   style={{
                     color: nightMode ? '#8e89a8' : '#4a5e88',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical' as any,
-                    overflow: 'hidden',
+                    ...(!expandedTestimony ? {
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical' as any,
+                      overflow: 'hidden',
+                    } : {}),
                   }}
                   dangerouslySetInnerHTML={{
                     __html: sanitizeUserContent(profile?.story?.content || ""),
                   }}
                 />
+
+                {/* Lesson Learned — only visible when expanded */}
+                {expandedTestimony && profile?.story?.lesson && (
+                  <div
+                    className="mt-3 pt-3 mb-2"
+                    style={{ borderTop: nightMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(150,165,225,0.1)' }}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="text-sm">📖</span>
+                      <h3 className="text-[13px] font-semibold" style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>
+                        A Lesson Learned
+                      </h3>
+                    </div>
+                    <p
+                      className="text-[13px] italic leading-relaxed whitespace-pre-wrap"
+                      style={{
+                        fontFamily: "'Playfair Display', serif",
+                        color: nightMode ? '#b8b4c8' : '#3a4d6e',
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeUserContent(profile.story.lesson),
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Read more / less hint */}
+                <div className="text-[11px] font-medium" style={{ color: nightMode ? '#7b76e0' : '#4facfe' }}>
+                  {expandedTestimony ? 'Tap to collapse' : 'Tap to read more'}
+                </div>
 
                 {/* Engagement row */}
                 <div className="flex items-center gap-3 text-[12px]" style={{
@@ -1060,7 +1098,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             Life Testimonies
           </div>
           <div
-            className="p-4 rounded-xl"
+            className="p-4 rounded-xl cursor-pointer transition-all duration-200 active:scale-[0.99]"
+            onClick={() => setShowLesson(!showLesson)}
             style={{
               opacity: 0.85,
               ...(nightMode
@@ -1099,21 +1138,29 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                 background: nightMode ? 'rgba(123,118,224,0.04)' : 'rgba(79,172,254,0.04)',
               }}
             >
-              &ldquo;{profile.story.lesson.slice(0, 100)}{profile.story.lesson.length > 100 ? '...' : ''}&rdquo;
+              {showLesson
+                ? <>&ldquo;{profile.story.lesson}&rdquo;</>
+                : <>&ldquo;{profile.story.lesson.slice(0, 100)}{profile.story.lesson.length > 100 ? '...' : ''}&rdquo;</>
+              }
             </div>
-            <div
-              className="text-[13px] leading-relaxed"
-              style={{
-                color: nightMode ? '#8e89a8' : '#4a5e88',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical' as any,
-                overflow: 'hidden',
-              }}
-              dangerouslySetInnerHTML={{
-                __html: sanitizeUserContent(profile.story.lesson),
-              }}
-            />
+            {!showLesson && (
+              <div
+                className="text-[13px] leading-relaxed"
+                style={{
+                  color: nightMode ? '#8e89a8' : '#4a5e88',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical' as any,
+                  overflow: 'hidden',
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeUserContent(profile.story.lesson),
+                }}
+              />
+            )}
+            <div className="text-[11px] font-medium mt-1.5" style={{ color: nightMode ? '#7b76e0' : '#4facfe' }}>
+              {showLesson ? 'Tap to collapse' : 'Tap to read more'}
+            </div>
           </div>
         </div>
       )}
