@@ -53,19 +53,15 @@ interface ServerSettingsProps {
   onRejectRequest?: (requestId: string) => Promise<void>;
 }
 
-const SERVER_EMOJIS = [
-  "\u{26EA}",
-  "\u{271D}\u{FE0F}",
-  "\u{1F54A}\u{FE0F}",
-  "\u{1F64F}",
-  "\u{2B50}",
-  "\u{1F525}",
-  "\u{1F492}",
-  "\u{1F4D6}",
-  "\u{1F31F}",
-  "\u{1F49C}",
-  "\u{1F3E0}",
-  "\u{1F3B5}",
+const SERVER_GRADIENTS = [
+  "linear-gradient(135deg, #7b76e0, #9b96f5)",
+  "linear-gradient(135deg, #4facfe, #6b9ed6)",
+  "linear-gradient(135deg, #5cc88a, #4ab8c4)",
+  "linear-gradient(135deg, #e05c6c, #e8b84a)",
+  "linear-gradient(135deg, #e8b84a, #e05c6c)",
+  "linear-gradient(135deg, #9b96f5, #e05c6c)",
+  "linear-gradient(135deg, #4ab8c4, #7b76e0)",
+  "linear-gradient(135deg, #6b9ed6, #5cc88a)",
 ];
 
 const ServerSettings: React.FC<ServerSettingsProps> = ({
@@ -230,35 +226,48 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
         {/* Server Icon */}
         <div className="rounded-2xl p-5" style={cardStyle}>
           <span
-            className={`block text-sm font-semibold mb-3 ${nm ? "text-white/70" : "text-black/70"}`}
+            className={`block text-xs font-semibold mb-2 ${nm ? "text-white/50" : "text-black/50"}`}
           >
-            Server Icon
+            Server Color
           </span>
-          <div className="flex flex-wrap gap-2.5">
-            {SERVER_EMOJIS.map((emoji) => (
+          {/* Live preview */}
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{
+                background: iconEmoji?.startsWith("linear-gradient") ? iconEmoji : SERVER_GRADIENTS[0],
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: "16px",
+                color: "white",
+              }}
+            >
+              {name?.charAt(0).toUpperCase() || "S"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold truncate" style={{ color: nm ? "#e8e5f2" : "#1e2b4a" }}>
+                {name || "Server Name"}
+              </div>
+              <div className="text-[11px]" style={{ color: nm ? "#5d5877" : "#8e9ec0" }}>
+                Live preview
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {SERVER_GRADIENTS.map((grad) => (
               <button
-                key={emoji}
-                onClick={() => setIconEmoji(emoji)}
-                className="w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all duration-300 hover:scale-110 active:scale-95"
+                key={grad}
+                onClick={() => setIconEmoji(grad)}
+                className="w-8 h-8 rounded-full transition-all hover:scale-110 active:scale-95"
                 style={{
-                  background:
-                    iconEmoji === emoji
-                      ? "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)"
-                      : nm
-                        ? "rgba(255,255,255,0.06)"
-                        : "rgba(0,0,0,0.04)",
-                  boxShadow:
-                    iconEmoji === emoji
-                      ? "0 0 16px rgba(79,150,255,0.35)"
-                      : "none",
-                  border:
-                    iconEmoji === emoji
-                      ? "2px solid rgba(79,150,255,0.5)"
-                      : `2px solid ${nm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
+                  background: grad,
+                  border: iconEmoji === grad
+                    ? "2px solid white"
+                    : "2px solid transparent",
+                  transform: iconEmoji === grad ? "scale(1.1)" : undefined,
                 }}
-              >
-                {emoji}
-              </button>
+                aria-label="Select server color"
+              />
             ))}
           </div>
           {/* Custom image upload */}

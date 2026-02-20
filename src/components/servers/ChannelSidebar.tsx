@@ -735,16 +735,21 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         }}
       >
         <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0 text-white font-bold"
           style={{
             background:
               isPremium && premium.cosmetics?.accent_primary
                 ? `linear-gradient(135deg, ${premium.cosmetics.accent_primary} 0%, ${premium.cosmetics.accent_secondary || premium.cosmetics.accent_primary} 100%)`
-                : "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)",
+                : serverEmoji?.startsWith("linear-gradient")
+                  ? serverEmoji
+                  : "linear-gradient(135deg, #4F96FF 0%, #3b82f6 50%, #2563eb 100%)",
             boxShadow: "0 2px 8px rgba(59, 130, 246, 0.25)",
+            fontFamily: serverEmoji?.startsWith("linear-gradient") ? "'DM Sans', sans-serif" : undefined,
           }}
         >
-          {serverEmoji}
+          {serverEmoji?.startsWith("linear-gradient")
+            ? serverName?.charAt(0).toUpperCase() || "S"
+            : serverEmoji}
         </div>
         <h3
           className={`font-bold text-sm truncate flex-1 ${nightMode ? "text-white" : "text-black"}`}

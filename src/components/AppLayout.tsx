@@ -130,9 +130,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   {activeServerName ? (
                     <>
                       {activeServerEmoji && (
-                        <span className="text-lg flex-shrink-0">
-                          {activeServerEmoji}
-                        </span>
+                        activeServerEmoji.startsWith("linear-gradient") ? (
+                          <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                            style={{ background: activeServerEmoji, fontFamily: "'DM Sans', sans-serif" }}
+                          >
+                            {activeServerName.charAt(0).toUpperCase()}
+                          </div>
+                        ) : (
+                          <span className="text-lg flex-shrink-0">
+                            {activeServerEmoji}
+                          </span>
+                        )
                       )}
                       <span className="truncate">{activeServerName}</span>
                     </>
@@ -225,9 +234,18 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   {activeServerName ? (
                     <>
                       {activeServerEmoji && (
-                        <span className="text-lg flex-shrink-0">
-                          {activeServerEmoji}
-                        </span>
+                        activeServerEmoji.startsWith("linear-gradient") ? (
+                          <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                            style={{ background: activeServerEmoji, fontFamily: "'DM Sans', sans-serif" }}
+                          >
+                            {activeServerName.charAt(0).toUpperCase()}
+                          </div>
+                        ) : (
+                          <span className="text-lg flex-shrink-0">
+                            {activeServerEmoji}
+                          </span>
+                        )
                       )}
                       <span className="truncate">{activeServerName}</span>
                     </>
