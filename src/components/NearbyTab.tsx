@@ -255,11 +255,13 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
     return (
       <div
         key={testimony.id}
-        className="rounded-xl p-3.5"
+        className="p-3"
         style={{
-          background: nightMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.5)",
-          border: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)"}`,
-          ...(nightMode ? {} : { backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 2px 10px rgba(150,165,225,0.07)" }),
+          borderRadius: '8px',
+          marginBottom: '5px',
+          background: nightMode ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.45)",
+          border: `1px solid ${nightMode ? "rgba(255,255,255,0.04)" : "rgba(150,165,225,0.12)"}`,
+          ...(nightMode ? {} : { backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }),
         }}
       >
         {/* Trending badge */}
@@ -276,7 +278,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
         )}
 
         {/* User row */}
-        <div className="flex items-center gap-2.5 mb-2.5">
+        <div className="flex items-center gap-1.5 mb-1.5">
           <button
             onClick={() =>
               user.id &&
@@ -293,7 +295,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
                 location: user.location_city,
               } as any)
             }
-            className="w-7 h-7 rounded-full flex items-center justify-center text-xs text-white flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+            className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
             style={{ background: gradient, fontFamily: "'Playfair Display', serif" }}
           >
             {initial}
@@ -340,15 +342,16 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
         {/* Pull quote — always a short excerpt */}
         {testimony.content && (
           <div
-            className="rounded-lg px-2.5 py-2 my-2"
+            className="px-2 py-1.5 my-1.5"
             style={{
               fontFamily: "'Playfair Display', serif",
               fontSize: "13px",
               fontStyle: "italic",
-              lineHeight: "1.5",
-              color: nightMode ? "#7b76e0" : "#2b6cb0",
-              background: nightMode ? "rgba(123,118,224,0.05)" : "rgba(79,172,254,0.06)",
-              borderLeft: `2px solid ${nightMode ? "rgba(123,118,224,0.2)" : "rgba(79,172,254,0.2)"}`,
+              lineHeight: "1.4",
+              borderRadius: '5px',
+              color: nightMode ? "#9b96f5" : "#4a5e88",
+              background: nightMode ? "rgba(123,118,224,0.05)" : "rgba(79,172,254,0.05)",
+              borderLeft: `2px solid ${nightMode ? "#7b76e0" : "#4facfe"}`,
             }}
           >
             "{testimony.content.length > 120
@@ -357,44 +360,32 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
           </div>
         )}
 
-        {/* Full body text (expanded view) */}
-        {isExpanded && testimony.content?.length > 120 && (
+        {/* Body preview — always visible, 2-line clamp */}
+        {testimony.content && (
           <p
-            className="text-sm leading-relaxed mb-2"
-            style={{ color: nightMode ? "#8e89a8" : "#4a5e88" }}
+            className="text-xs leading-relaxed mb-1.5"
+            style={{
+              color: nightMode ? "#8e89a8" : "#4a5e88",
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical' as const,
+              overflow: 'hidden',
+              lineHeight: '1.4',
+            }}
           >
             {testimony.content}
           </p>
         )}
 
-        {/* Read more / less */}
-        {testimony.content?.length > 120 && (
-          <button
-            onClick={() =>
-              setExpandedTestimonies((prev) => {
-                const next = new Set(prev);
-                if (next.has(testimony.id)) {
-                  next.delete(testimony.id);
-                } else {
-                  next.add(testimony.id);
-                }
-                return next;
-              })
-            }
-            className="text-xs font-medium mb-2 transition-colors"
-            style={{ color: nightMode ? "#7b76e0" : "#4facfe" }}
-          >
-            {isExpanded ? "Show Less" : "Read More"}
-          </button>
-        )}
-
         {/* Category tag */}
         {testimony.category && (
           <div
-            className="inline-block px-2 py-0.5 rounded-lg text-[10px] font-medium mt-1 mb-2"
+            className="inline-block text-[10px] font-semibold mb-1"
             style={{
-              background: nightMode ? "rgba(123,118,224,0.08)" : "rgba(79,172,254,0.08)",
-              color: nightMode ? "#7b76e0" : "#2b6cb0",
+              padding: '1px 5px',
+              borderRadius: '3px',
+              background: nightMode ? "rgba(123,118,224,0.1)" : "rgba(79,172,254,0.1)",
+              color: nightMode ? "#9b96f5" : "#2b6cb0",
             }}
           >
             {testimony.category}
@@ -402,13 +393,14 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
         )}
 
         {/* Actions row */}
-        <div className="flex items-center gap-4 mt-1.5">
-          <span className="text-xs flex items-center gap-1" style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}>
-            ♡ {testimony.like_count || 0}
-          </span>
-          <span className="text-xs flex items-center gap-1" style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}>
-            💬 {testimony.comment_count || 0}
-          </span>
+        <div
+          className="flex items-center text-[11px]"
+          style={{ gap: '6px', color: nightMode ? "#5d5877" : "#8e9ec0" }}
+        >
+          <span>♡ {testimony.like_count || 0}</span>
+          <span>·</span>
+          <span>💬 {testimony.comment_count || 0}</span>
+          <span>·</span>
           <button
             onClick={() =>
               user.id &&
@@ -423,7 +415,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
                 online: user.is_online,
               } as any)
             }
-            className="text-xs flex items-center gap-1 transition-colors"
+            className="transition-colors"
             style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}
           >
             ↗ Share
