@@ -476,9 +476,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         <div
           className="rounded-full flex items-center justify-center flex-shrink-0 mb-3 overflow-hidden cursor-pointer select-none transition-transform hover:scale-105 active:scale-95"
           style={{
-            width: '100px',
-            height: '100px',
-            fontSize: '38px',
+            width: '140px',
+            height: '140px',
+            fontSize: '48px',
             fontFamily: "'Playfair Display', serif",
             color: 'white',
             background: nightMode

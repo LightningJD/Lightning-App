@@ -295,7 +295,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
                 location: user.location_city,
               } as any)
             }
-            className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
+            className="w-12 h-12 rounded-full flex items-center justify-center text-lg text-white flex-shrink-0 cursor-pointer hover:scale-105 transition-transform"
             style={{ background: gradient, fontFamily: "'Playfair Display', serif" }}
           >
             {initial}
