@@ -1,5 +1,5 @@
 import React from "react";
-import { Zap } from "lucide-react";
+import { Zap, Bell } from "lucide-react";
 import { useAppContext } from "../contexts/AppContext";
 
 // ============================================
@@ -82,6 +82,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     currentTab,
     setCurrentTab,
     setShowMenu,
+    setShowNotifications,
     activeServerName,
     activeServerEmoji,
     notificationCounts,
@@ -143,25 +144,54 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               {currentTab === "charge" && (
                 <div className="font-semibold text-black text-xl">Charge</div>
               )}
-              <button
-                onClick={() => setShowMenu(true)}
-                className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
-                aria-label="Open settings menu"
-              >
-                <svg
-                  className="w-4 h-4 text-black"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowNotifications(true)}
+                  className="relative w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
+                  aria-label="Open notifications"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
+                  <Bell className="w-4 h-4 text-black" />
+                  {(notificationCounts.charge ?? 0) > 0 && (
+                    <div
+                      className="absolute flex items-center justify-center badge-pulse"
+                      style={{
+                        top: "-2px",
+                        right: "-2px",
+                        minWidth: "14px",
+                        height: "14px",
+                        borderRadius: "7px",
+                        fontSize: "8px",
+                        fontWeight: 700,
+                        padding: "0 3px",
+                        background: "#ef4444",
+                        color: "white",
+                        border: "2px solid #d6daf5",
+                      }}
+                    >
+                      {notificationCounts.charge}
+                    </div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowMenu(true)}
+                  className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
+                  aria-label="Open settings menu"
+                >
+                  <svg
+                    className="w-4 h-4 text-black"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -209,25 +239,54 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               {currentTab === "charge" && (
                 <div className="font-semibold text-slate-100 text-xl">Charge</div>
               )}
-              <button
-                onClick={() => setShowMenu(true)}
-                className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
-                aria-label="Open settings menu"
-              >
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowNotifications(true)}
+                  className="relative w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
+                  aria-label="Open notifications"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
+                  <Bell className="w-4 h-4 text-white" />
+                  {(notificationCounts.charge ?? 0) > 0 && (
+                    <div
+                      className="absolute flex items-center justify-center badge-pulse"
+                      style={{
+                        top: "-2px",
+                        right: "-2px",
+                        minWidth: "14px",
+                        height: "14px",
+                        borderRadius: "7px",
+                        fontSize: "8px",
+                        fontWeight: 700,
+                        padding: "0 3px",
+                        background: "#ef4444",
+                        color: "white",
+                        border: "2px solid #0d0b18",
+                      }}
+                    >
+                      {notificationCounts.charge}
+                    </div>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowMenu(true)}
+                  className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
+                  aria-label="Open settings menu"
+                >
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -24,6 +24,7 @@ import TestimonyQuestionnaire from './components/TestimonyQuestionnaire';
 import ReferralRedirect from './components/ReferralRedirect';
 import AdminDashboard from './components/AdminDashboard';
 import SettingsMenu from './components/SettingsMenu';
+import NotificationsPanel from './components/NotificationsPanel';
 import AppLayout from './components/AppLayout';
 import { GuestModalProvider } from './contexts/GuestModalContext';
 import { PremiumProvider } from './contexts/PremiumContext';
@@ -130,6 +131,14 @@ function AppInner() {
 
             {/* Settings Menu */}
             {ctx.showMenu && <SettingsMenu />}
+
+            {/* Notifications Panel */}
+            {ctx.showNotifications && (
+              <NotificationsPanel
+                nightMode={ctx.nightMode}
+                onClose={() => ctx.setShowNotifications(false)}
+              />
+            )}
 
             {/* Testimony Prompt FAB */}
             {ctx.currentTab === 'you' && !ctx.profile.hasTestimony && !ctx.showTestimonyQuestionnaire && (

@@ -174,6 +174,10 @@ export interface AppContextType {
   showMenu: boolean;
   setShowMenu: (v: boolean) => void;
 
+  // Notifications panel
+  showNotifications: boolean;
+  setShowNotifications: (v: boolean) => void;
+
   // Misc dialogs
   showLogoutConfirm: boolean;
   setShowLogoutConfirm: (v: boolean) => void;
@@ -277,6 +281,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [currentTab, setCurrentTab] = useState("home");
   const [showMenu, setShowMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [sortBy, setSortBy] = useState("recommended");
   const [activeDiscoverTab, setActiveDiscoverTab] = useState("home");
   const selectedTheme = localStorage.getItem("lightningTheme") || "periwinkle";
@@ -1261,6 +1266,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     handleProfileEdit,
     showMenu,
     setShowMenu,
+    showNotifications,
+    setShowNotifications,
     showLogoutConfirm,
     setShowLogoutConfirm,
     showSaveTestimonyModal,
