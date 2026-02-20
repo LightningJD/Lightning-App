@@ -17,6 +17,7 @@ import {
   getUserConversations,
   isUserBlocked,
   isBlockedBy,
+  canSendMessage,
 } from "../lib/database";
 import { useUserProfile } from "./useUserProfile";
 import { showError, showSuccess } from "../lib/toast";
@@ -1418,7 +1419,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                 className="text-sm mb-6"
                 style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
               >
-                Connect with others in the Find tab to start messaging!
+                Connect with others in the Charge tab to start messaging!
               </p>
               <div
                 className={`p-4 rounded-lg ${nightMode ? "bg-white/5" : "bg-blue-50/50"}`}

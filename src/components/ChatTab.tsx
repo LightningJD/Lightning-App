@@ -217,7 +217,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
     };
   }, [profile?.supabaseId, loadData]);
 
-  // ── Handle startChatWith from Find tab ───────────────────
+  // ── Handle startChatWith from Charge tab ───────────────────
 
   useEffect(() => {
     if (startChatWith?.id && startChatWith?.name) {

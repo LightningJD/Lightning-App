@@ -1054,7 +1054,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         >
           <p
             className="text-xs"
-            style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
+            style={{ color: nightMode ? '#9b96f5' : '#4facfe' }}
           >
             <span className="font-semibold">
               {ch.typingUsers.map((t) => t.display_name).join(", ")}

@@ -501,7 +501,7 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
                           : "text-sm text-slate-700"
                       }
                     >
-                      No friends to invite yet. Add friends from the Find tab
+                      No friends to invite yet. Add friends from the Charge tab
                       first.
                     </p>
                   </div>

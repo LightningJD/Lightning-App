@@ -826,7 +826,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
           </div>
         )}
 
-      {/* Ambassador section moved to Find tab */}
+      {/* Ambassador section moved to Charge tab */}
 
       {/* Dot connector between Faith Profile and Testimony */}
       {(profile.bio ||
