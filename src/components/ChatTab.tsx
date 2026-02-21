@@ -271,17 +271,26 @@ const ChatTab: React.FC<ChatTabProps> = ({
     loadData();
   }, [loadData, onActiveServerChange]);
 
+  // Track whether user is in a channel chat on mobile (inside server view)
+  const [inMobileChannelChat, setInMobileChannelChat] = useState(false);
+
+  const handleServerMobileViewChange = useCallback((mobileView: string) => {
+    setInMobileChannelChat(mobileView === 'chat');
+  }, []);
+
   // ── Sync header back button with view state ────────────────
+  // Hide AppLayout back button when inside a channel chat on mobile,
+  // because ChannelChat renders its own back button.
   useEffect(() => {
     if (view === 'dm') {
       setHeaderBackAction(() => () => handleBackFromDm());
-    } else if (view === 'server') {
+    } else if (view === 'server' && !inMobileChannelChat) {
       setHeaderBackAction(() => () => handleBackFromServer());
     } else {
       setHeaderBackAction(null);
     }
     return () => setHeaderBackAction(null);
-  }, [view, handleBackFromDm, handleBackFromServer, setHeaderBackAction]);
+  }, [view, inMobileChannelChat, handleBackFromDm, handleBackFromServer, setHeaderBackAction]);
 
   // ── Create server handler ────────────────────────────────
 
@@ -339,6 +348,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
             onBack={handleBackFromServer}
             onActiveServerChange={onActiveServerChange}
             hideServerRail
+            onMobileViewChange={handleServerMobileViewChange}
           />
         </SwipeablePageWrapper>
       );
