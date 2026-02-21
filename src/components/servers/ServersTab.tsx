@@ -23,6 +23,7 @@ interface ServersTabProps {
   initialServerId?: string;
   onBack?: () => void;
   hideServerRail?: boolean;
+  onMobileViewChange?: (view: string) => void;
 }
 
 type ViewMode = "chat" | "settings" | "roles" | "members" | "audit";
@@ -33,6 +34,7 @@ const ServersTab: React.FC<ServersTabProps> = ({
   initialServerId,
   onBack,
   hideServerRail,
+  onMobileViewChange,
 }) => {
   const { profile } = useUserProfile();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as {
@@ -60,6 +62,10 @@ const ServersTab: React.FC<ServersTabProps> = ({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    onMobileViewChange?.(mobileView);
+  }, [mobileView, onMobileViewChange]);
 
   // Block guests
   useEffect(() => {
