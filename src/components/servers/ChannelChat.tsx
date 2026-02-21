@@ -13,6 +13,7 @@ import {
   Check,
   MoreHorizontal,
   Clock,
+  ArrowLeft,
 } from "lucide-react";
 import { useChannelMessages } from "../../hooks/useChannelMessages";
 import type {
@@ -48,6 +49,7 @@ interface ChannelChatProps {
   };
   slowmodeSeconds?: number;
   isTimedOut?: boolean;
+  onMobileBack?: () => void;
 }
 
 // ── Constants ──────────────────────────────────────────────────
@@ -136,6 +138,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
   permissions,
   slowmodeSeconds = 0,
   isTimedOut = false,
+  onMobileBack,
 }) => {
   // All state + logic from the hook
   const ch = useChannelMessages({
@@ -763,11 +766,19 @@ const ChannelChat: React.FC<ChannelChatProps> = ({
         }}
       >
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          {onMobileBack && (
+            <button
+              onClick={onMobileBack}
+              className={`p-1.5 rounded-lg transition-all active:scale-95 flex-shrink-0 ${nightMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+            >
+              <ArrowLeft className={`w-5 h-5 ${nightMode ? "text-white" : "text-black"}`} />
+            </button>
+          )}
           <h3
             className="font-semibold text-sm truncate"
             style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
           >
-            — {channelName}
+            {channelName}
           </h3>
           {channelTopic && (
             <>

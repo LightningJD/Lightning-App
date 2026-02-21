@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, Hash, Link } from "lucide-react";
+import { Link } from "lucide-react";
 import { useUserProfile } from "../useUserProfile";
 import { useGuestModalContext } from "../../contexts/GuestModalContext";
 import { usePremium } from "../../contexts/PremiumContext";
@@ -334,6 +334,7 @@ const ServersTab: React.FC<ServersTabProps> = ({
           permissions={sv.permissions}
           slowmodeSeconds={(activeChannel as any)?.slowmode_seconds || 0}
           isTimedOut={sv.isTimedOut}
+          onMobileBack={isMobile ? () => setMobileView("channels") : undefined}
         />
       );
     }
@@ -516,45 +517,6 @@ const ServersTab: React.FC<ServersTabProps> = ({
         {/* Mobile: Chat / Settings / Roles / Members view (full screen with back button) */}
         {mobileView === "chat" && (
           <div className="flex flex-col h-full">
-            {/* Mobile header with back button */}
-            {sv.viewMode === "chat" && (
-              <div
-                className="flex items-center gap-2 px-3 py-2.5 flex-shrink-0"
-                style={{
-                  background: nightMode
-                    ? "rgba(0,0,0,0.2)"
-                    : "rgba(255,255,255,0.4)",
-                  borderBottom: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
-                  backdropFilter: "blur(20px)",
-                  WebkitBackdropFilter: "blur(20px)",
-                }}
-              >
-                <button
-                  onClick={() => setMobileView("channels")}
-                  className={`p-1.5 rounded-lg transition-all active:scale-95 ${nightMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
-                >
-                  <ArrowLeft
-                    className={`w-5 h-5 ${nightMode ? "text-white" : "text-black"}`}
-                  />
-                </button>
-                <Hash
-                  className={`w-4 h-4 ${nightMode ? "text-white/50" : "text-black/40"}`}
-                />
-                <span
-                  className={`font-semibold text-sm ${nightMode ? "text-white" : "text-black"}`}
-                >
-                  {activeChannel?.name || "general"}
-                </span>
-                {activeChannel?.topic && (
-                  <span
-                    className={`text-xs truncate ml-1 ${nightMode ? "text-white/30" : "text-black/30"}`}
-                  >
-                    {activeChannel.topic}
-                  </span>
-                )}
-              </div>
-            )}
-
             {/* Content area (full width) */}
             <div className="flex-1 flex flex-col overflow-hidden">
               {renderContent()}
