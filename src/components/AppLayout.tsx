@@ -132,229 +132,116 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       )}
 
       {/* Header */}
-      {!nightMode && (
-        <div className="sticky top-0 z-50 backdrop-blur-xl bg-white/10 border-b border-white/20">
-          <div className="px-5 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              {currentTab === "you" && (
-                <div
-                  role="button"
-                  tabIndex={0}
-                  className="flex items-center gap-2 cursor-pointer select-none"
-                  onClick={handleLogoClick}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") handleLogoClick();
-                  }}
-                  title="Click me 10 times quickly..."
-                >
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, color: '#8e9ec0' }}>Lightning Profile</span>
-                </div>
-              )}
-              {currentTab === "home" && (
-                <div className="font-semibold text-black text-xl flex items-center gap-2 min-w-0 flex-1">
-                  {headerBackAction && (
-                    <button
-                      onClick={headerBackAction}
-                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all"
-                      aria-label="Go back to Home"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    </button>
-                  )}
-                  {activeServerName ? (
-                    <>
-                      {activeServerEmoji && (
-                        activeServerEmoji.startsWith("linear-gradient") ? (
-                          <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                            style={{ background: activeServerEmoji, fontFamily: "'DM Sans', sans-serif" }}
-                          >
-                            {activeServerName.charAt(0).toUpperCase()}
-                          </div>
-                        ) : (
-                          <span className="text-lg flex-shrink-0">
-                            {activeServerEmoji}
-                          </span>
-                        )
-                      )}
-                      <span className="truncate">{activeServerName}</span>
-                    </>
-                  ) : headerBackAction ? (
-                    "Messages"
-                  ) : (
-                    "Home"
-                  )}
-                </div>
-              )}
-              {currentTab === "charge" && (
-                <div className="font-semibold text-black text-xl">Charge</div>
-              )}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowNotifications(true)}
-                  className="relative w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
-                  aria-label="Open notifications"
-                >
-                  <Bell className="w-4 h-4 text-black" />
-                  {(notificationCounts.charge ?? 0) > 0 && (
-                    <div
-                      className="absolute flex items-center justify-center badge-pulse"
-                      style={{
-                        top: "-2px",
-                        right: "-2px",
-                        minWidth: "14px",
-                        height: "14px",
-                        borderRadius: "7px",
-                        fontSize: "8px",
-                        fontWeight: 700,
-                        padding: "0 3px",
-                        background: "#ef4444",
-                        color: "white",
-                        border: "2px solid #d6daf5",
-                      }}
-                    >
-                      {notificationCounts.charge}
-                    </div>
-                  )}
-                </button>
-                <button
-                  onClick={() => setShowMenu(true)}
-                  className="w-8 h-8 flex items-center justify-center bg-white/30 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/40 transition-colors shadow-sm"
-                  aria-label="Open settings menu"
-                >
-                  <svg
-                    className="w-4 h-4 text-black"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  </svg>
-                </button>
+      <div className={`sticky top-0 z-50 backdrop-blur-xl ${nightMode ? "bg-black/10 border-b border-white/10" : "bg-white/10 border-b border-white/20"}`}>
+        <div className="px-5 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between">
+            {currentTab === "you" && (
+              <div
+                role="button"
+                tabIndex={0}
+                className="flex items-center gap-2 cursor-pointer select-none"
+                onClick={handleLogoClick}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleLogoClick();
+                  }
+                }}
+                title="Click me 10 times quickly..."
+              >
+                <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, color: nightMode ? '#5d5877' : '#8e9ec0' }}>Lightning Profile</span>
               </div>
+            )}
+            {currentTab === "home" && (
+              <div className={`font-semibold text-xl flex items-center gap-2 min-w-0 flex-1 ${nightMode ? "text-slate-100" : "text-black"}`}>
+                {headerBackAction && (
+                  <button
+                    onClick={headerBackAction}
+                    className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full active:scale-95 transition-all ${nightMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
+                    aria-label="Go back to Home"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                  </button>
+                )}
+                {activeServerName ? (
+                  <>
+                    {activeServerEmoji && (
+                      activeServerEmoji.startsWith("linear-gradient") ? (
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                          style={{ background: activeServerEmoji, fontFamily: "'DM Sans', sans-serif" }}
+                        >
+                          {activeServerName.charAt(0).toUpperCase()}
+                        </div>
+                      ) : (
+                        <span className="text-lg flex-shrink-0">
+                          {activeServerEmoji}
+                        </span>
+                      )
+                    )}
+                    <span className="truncate">{activeServerName}</span>
+                  </>
+                ) : headerBackAction ? (
+                  "Messages"
+                ) : (
+                  "Home"
+                )}
+              </div>
+            )}
+            {currentTab === "charge" && (
+              <div className={`font-semibold text-xl ${nightMode ? "text-slate-100" : "text-black"}`}>Charge</div>
+            )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowNotifications(true)}
+                className={`relative w-8 h-8 flex items-center justify-center backdrop-blur-sm rounded-full transition-colors shadow-sm ${nightMode ? "bg-white/10 border border-white/10 hover:bg-white/20" : "bg-white/30 border border-white/20 hover:bg-white/40"}`}
+                aria-label="Open notifications"
+              >
+                <Bell className={`w-4 h-4 ${nightMode ? "text-white" : "text-black"}`} />
+                {(notificationCounts.charge ?? 0) > 0 && (
+                  <div
+                    className="absolute flex items-center justify-center badge-pulse"
+                    style={{
+                      top: "-2px",
+                      right: "-2px",
+                      minWidth: "14px",
+                      height: "14px",
+                      borderRadius: "7px",
+                      fontSize: "8px",
+                      fontWeight: 700,
+                      padding: "0 3px",
+                      background: "#ef4444",
+                      color: "white",
+                      border: `2px solid ${nightMode ? "#0d0b18" : "#d6daf5"}`,
+                    }}
+                  >
+                    {notificationCounts.charge}
+                  </div>
+                )}
+              </button>
+              <button
+                onClick={() => setShowMenu(true)}
+                className={`w-8 h-8 flex items-center justify-center backdrop-blur-sm rounded-full transition-colors shadow-sm ${nightMode ? "bg-white/10 border border-white/10 hover:bg-white/20" : "bg-white/30 border border-white/20 hover:bg-white/40"}`}
+                aria-label="Open settings menu"
+              >
+                <svg
+                  className={`w-4 h-4 ${nightMode ? "text-white" : "text-black"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Night Mode Header */}
-      {nightMode && (
-        <div className="sticky top-0 z-50 backdrop-blur-xl bg-black/10 border-b border-white/10">
-          <div className="px-5 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              {currentTab === "you" && (
-                <div
-                  role="button"
-                  tabIndex={0}
-                  className="flex items-center gap-2 cursor-pointer select-none"
-                  onClick={handleLogoClick}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleLogoClick();
-                    }
-                  }}
-                  title="Click me 10 times quickly..."
-                >
-                  <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, color: '#5d5877' }}>Lightning Profile</span>
-                </div>
-              )}
-              {currentTab === "home" && (
-                <div className="font-semibold text-slate-100 text-xl flex items-center gap-2 min-w-0 flex-1">
-                  {headerBackAction && (
-                    <button
-                      onClick={headerBackAction}
-                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-95 transition-all"
-                      aria-label="Go back to Home"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                    </button>
-                  )}
-                  {activeServerName ? (
-                    <>
-                      {activeServerEmoji && (
-                        activeServerEmoji.startsWith("linear-gradient") ? (
-                          <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                            style={{ background: activeServerEmoji, fontFamily: "'DM Sans', sans-serif" }}
-                          >
-                            {activeServerName.charAt(0).toUpperCase()}
-                          </div>
-                        ) : (
-                          <span className="text-lg flex-shrink-0">
-                            {activeServerEmoji}
-                          </span>
-                        )
-                      )}
-                      <span className="truncate">{activeServerName}</span>
-                    </>
-                  ) : headerBackAction ? (
-                    "Messages"
-                  ) : (
-                    "Home"
-                  )}
-                </div>
-              )}
-              {currentTab === "charge" && (
-                <div className="font-semibold text-slate-100 text-xl">Charge</div>
-              )}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowNotifications(true)}
-                  className="relative w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
-                  aria-label="Open notifications"
-                >
-                  <Bell className="w-4 h-4 text-white" />
-                  {(notificationCounts.charge ?? 0) > 0 && (
-                    <div
-                      className="absolute flex items-center justify-center badge-pulse"
-                      style={{
-                        top: "-2px",
-                        right: "-2px",
-                        minWidth: "14px",
-                        height: "14px",
-                        borderRadius: "7px",
-                        fontSize: "8px",
-                        fontWeight: 700,
-                        padding: "0 3px",
-                        background: "#ef4444",
-                        color: "white",
-                        border: "2px solid #0d0b18",
-                      }}
-                    >
-                      {notificationCounts.charge}
-                    </div>
-                  )}
-                </button>
-                <button
-                  onClick={() => setShowMenu(true)}
-                  className="w-8 h-8 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-full border border-white/10 hover:bg-white/20 transition-colors shadow-sm"
-                  aria-label="Open settings menu"
-                >
-                  <svg
-                    className="w-4 h-4 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Main Content — no z-index to avoid trapping fixed-position
           dialogs in a stacking context */}
