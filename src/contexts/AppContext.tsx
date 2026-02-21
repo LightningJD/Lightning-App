@@ -218,6 +218,10 @@ export interface AppContextType {
 
   // Logo easter egg
   handleLogoClick: () => void;
+
+  // Header back navigation (for sub-views like DM chat or server)
+  headerBackAction: (() => void) | null;
+  setHeaderBackAction: (fn: (() => void) | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -322,6 +326,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [activeServerEmoji, setActiveServerEmoji] = useState<string | null>(
     null,
   );
+  const [headerBackAction, setHeaderBackAction] = useState<(() => void) | null>(null);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -1298,6 +1303,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     handleContinueAsGuest,
     handleSaveTestimonyModalClose,
     handleLogoClick,
+    headerBackAction,
+    setHeaderBackAction,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
