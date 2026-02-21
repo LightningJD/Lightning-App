@@ -86,6 +86,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     notificationCounts,
     handleLogoClick,
     headerBackAction,
+    hideHeader,
   } = useAppContext();
 
   return (
@@ -131,7 +132,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </>
       )}
 
-      {/* Header */}
+      {/* Header — hidden when ChannelChat renders its own (mobile channel view) */}
+      {!hideHeader && (
       <div className={`sticky top-0 z-50 backdrop-blur-xl ${nightMode ? "bg-black/10 border-b border-white/10" : "bg-white/10 border-b border-white/20"}`}>
         <div className="px-5 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
@@ -242,6 +244,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Main Content — no z-index to avoid trapping fixed-position
           dialogs in a stacking context */}
