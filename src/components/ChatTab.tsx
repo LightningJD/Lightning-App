@@ -113,7 +113,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
   onActiveServerChange,
 }) => {
   const { profile } = useUserProfile();
-  const { setHeaderBackAction } = useAppContext();
+  const { setHeaderBackAction, setHideHeader } = useAppContext();
 
   // Mobile detection
   const [isMobile, setIsMobile] = useState(() =>
@@ -275,12 +275,14 @@ const ChatTab: React.FC<ChatTabProps> = ({
   const [inMobileChannelChat, setInMobileChannelChat] = useState(false);
 
   const handleServerMobileViewChange = useCallback((mobileView: string) => {
-    setInMobileChannelChat(mobileView === 'chat');
-  }, []);
+    const inChat = mobileView === 'chat';
+    setInMobileChannelChat(inChat);
+    setHideHeader(inChat);
+  }, [setHideHeader]);
 
   // ── Sync header back button with view state ────────────────
-  // Hide AppLayout back button when inside a channel chat on mobile,
-  // because ChannelChat renders its own back button.
+  // Hide AppLayout header entirely when inside a channel chat on mobile,
+  // because ChannelChat renders its own header (like Discord).
   useEffect(() => {
     if (view === 'dm') {
       setHeaderBackAction(() => () => handleBackFromDm());
@@ -289,8 +291,11 @@ const ChatTab: React.FC<ChatTabProps> = ({
     } else {
       setHeaderBackAction(null);
     }
-    return () => setHeaderBackAction(null);
-  }, [view, inMobileChannelChat, handleBackFromDm, handleBackFromServer, setHeaderBackAction]);
+    return () => {
+      setHeaderBackAction(null);
+      setHideHeader(false);
+    };
+  }, [view, inMobileChannelChat, handleBackFromDm, handleBackFromServer, setHeaderBackAction, setHideHeader]);
 
   // ── Create server handler ────────────────────────────────
 
