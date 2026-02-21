@@ -85,6 +85,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     activeServerEmoji,
     notificationCounts,
     handleLogoClick,
+    headerBackAction,
   } = useAppContext();
 
   return (
@@ -151,6 +152,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               )}
               {currentTab === "home" && (
                 <div className="font-semibold text-black text-xl flex items-center gap-2 min-w-0 flex-1">
+                  {headerBackAction && (
+                    <button
+                      onClick={headerBackAction}
+                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 active:scale-95 transition-all"
+                      aria-label="Go back to Home"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    </button>
+                  )}
                   {activeServerName ? (
                     <>
                       {activeServerEmoji && (
@@ -169,6 +179,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                       )}
                       <span className="truncate">{activeServerName}</span>
                     </>
+                  ) : headerBackAction ? (
+                    "Messages"
                   ) : (
                     "Home"
                   )}
@@ -254,6 +266,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               )}
               {currentTab === "home" && (
                 <div className="font-semibold text-slate-100 text-xl flex items-center gap-2 min-w-0 flex-1">
+                  {headerBackAction && (
+                    <button
+                      onClick={headerBackAction}
+                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 active:scale-95 transition-all"
+                      aria-label="Go back to Home"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    </button>
+                  )}
                   {activeServerName ? (
                     <>
                       {activeServerEmoji && (
@@ -272,6 +293,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                       )}
                       <span className="truncate">{activeServerName}</span>
                     </>
+                  ) : headerBackAction ? (
+                    "Messages"
                   ) : (
                     "Home"
                   )}

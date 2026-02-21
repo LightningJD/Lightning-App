@@ -9,6 +9,7 @@ import CreateServerDialog from './servers/CreateServerDialog';
 import OtherUserProfileDialog from './OtherUserProfileDialog';
 import { ConversationSkeleton } from './SkeletonLoader';
 import SwipeablePageWrapper from './SwipeablePageWrapper';
+import { useAppContext } from '../contexts/AppContext';
 
 // ============================================
 // TYPES
@@ -112,6 +113,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
   onActiveServerChange,
 }) => {
   const { profile } = useUserProfile();
+  const { setHeaderBackAction } = useAppContext();
 
   // Mobile detection
   const [isMobile, setIsMobile] = useState(() =>
@@ -268,6 +270,18 @@ const ChatTab: React.FC<ChatTabProps> = ({
     onActiveServerChange?.(null);
     loadData();
   }, [loadData, onActiveServerChange]);
+
+  // ── Sync header back button with view state ────────────────
+  useEffect(() => {
+    if (view === 'dm') {
+      setHeaderBackAction(() => () => handleBackFromDm());
+    } else if (view === 'server') {
+      setHeaderBackAction(() => () => handleBackFromServer());
+    } else {
+      setHeaderBackAction(null);
+    }
+    return () => setHeaderBackAction(null);
+  }, [view, handleBackFromDm, handleBackFromServer, setHeaderBackAction]);
 
   // ── Create server handler ────────────────────────────────
 
