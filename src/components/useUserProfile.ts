@@ -2,6 +2,7 @@ import { useUser, useSession } from '@clerk/clerk-react';
 import { useEffect, useState, useRef } from 'react';
 import { syncUserToSupabase, getTestimonyByUserId, getChurchById } from '../lib/database';
 import { setClerkTokenGetter } from '../lib/supabase';
+import { getCachedProfile, cacheProfile } from '../lib/profileCache';
 
 
 /**
@@ -23,6 +24,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
   const [church, setChurch] = useState<any>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSyncing, setIsSyncing] = useState(true);
+  const [hasCache, setHasCache] = useState(false);
   const tokenGetterSet = useRef(false);
 
   // Register Clerk token getter for native Supabase integration
@@ -36,6 +38,20 @@ export const useUserProfile = (): UseUserProfileReturn => {
     }
   }, [session]);
 
+  // Load cached profile immediately for instant display
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || !user) return;
+
+    const cached = getCachedProfile(user.id);
+    if (cached) {
+      setSupabaseUser(cached.supabaseUser);
+      setTestimony(cached.testimony);
+      setChurch(cached.church);
+      setHasCache(true);
+      setIsSyncing(false); // Show UI immediately with cached data
+    }
+  }, [isLoaded, isSignedIn, user]);
+
   // Sync user to Supabase when they sign in or when refresh is triggered
   useEffect(() => {
     let completed = false;
@@ -45,6 +61,10 @@ export const useUserProfile = (): UseUserProfileReturn => {
       if (!isLoaded) return;
 
       if (isSignedIn && user && session) {
+        // If we have cache, don't show loading state
+        if (!hasCache) {
+          setIsSyncing(true);
+        }
         // Ensure Clerk token getter is registered before any Supabase calls
         // to avoid the race condition where this effect fires before the
         // token registration effect, causing RLS failures.
@@ -59,9 +79,13 @@ export const useUserProfile = (): UseUserProfileReturn => {
           const dbUser = await syncUserToSupabase(user);
           setSupabaseUser(dbUser);
 
-          // Load testimony if user has one
+          // Load testimony and church in parallel for faster loading
           if (dbUser && dbUser.id) {
-            const userTestimony = await getTestimonyByUserId(dbUser.id);
+            const [userTestimony, churchData] = await Promise.all([
+              getTestimonyByUserId(dbUser.id),
+              (dbUser as any).church_id ? getChurchById((dbUser as any).church_id) : Promise.resolve(null)
+            ]);
+
             if (userTestimony) {
               console.log('✅ Testimony loaded:', userTestimony.id);
               setTestimony(userTestimony);
@@ -70,16 +94,19 @@ export const useUserProfile = (): UseUserProfileReturn => {
               setTestimony(null);
             }
 
-            // Load church data if user has a church_id
-            if ((dbUser as any).church_id) {
-              const churchData = await getChurchById((dbUser as any).church_id);
-              if (churchData) {
-                console.log('✅ Church loaded:', churchData.name);
-                setChurch(churchData);
-              }
+            if (churchData) {
+              console.log('✅ Church loaded:', churchData.name);
+              setChurch(churchData);
             } else {
               setChurch(null);
             }
+
+            // Cache the profile for instant load next time
+            cacheProfile(user.id, {
+              supabaseUser: dbUser,
+              testimony: userTestimony,
+              church: churchData
+            });
           } else {
             console.error('❌ Sync failed: No Database User returned from syncUserToSupabase');
           }
@@ -113,7 +140,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isLoaded, isSignedIn, user, session, refreshTrigger]);
+  }, [isLoaded, isSignedIn, user, session, refreshTrigger, hasCache]);
 
   // Listen for profile updates via custom event
   useEffect(() => {

@@ -21,7 +21,7 @@ import {
 } from "../lib/database";
 import { useUserProfile } from "./useUserProfile";
 import { showError, showSuccess } from "../lib/toast";
-import { ConversationSkeleton } from "./SkeletonLoader";
+import { ConversationSkeleton } from "./SkeletonLoaders";
 import { useGuestModalContext } from "../contexts/GuestModalContext";
 import { isSupabaseConfigured } from "../lib/supabase";
 import OtherUserProfileDialog from "./OtherUserProfileDialog";
