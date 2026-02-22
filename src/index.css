@@ -55,6 +55,21 @@ html {
   display: none !important;
 }
 
+/* Shared modal/dialog pop-in animation */
+@keyframes popOut {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* Glassmorphism: Animated Gradient Background */
 @keyframes gradientMove {
   0%, 100% {

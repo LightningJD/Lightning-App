@@ -4,19 +4,7 @@
  */
 
 import { supabase } from '../supabase';
-
-// ============================================
-// INVITE CODE GENERATION
-// ============================================
-
-function generateChurchInviteCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
+import { generateInviteCode } from '../generateInviteCode';
 
 // ============================================
 // CHURCH OPERATIONS
@@ -33,7 +21,7 @@ export const createChurch = async (
 ): Promise<any> => {
   if (!supabase) return null;
 
-  const inviteCode = generateChurchInviteCode();
+  const inviteCode = generateInviteCode();
 
   const { data: church, error } = await (supabase as any)
     .from('churches')
@@ -229,7 +217,7 @@ export const regenerateInviteCode = async (churchId: string, userId: string): Pr
     return null;
   }
 
-  const newCode = generateChurchInviteCode();
+  const newCode = generateInviteCode();
 
   const { error } = await (supabase as any)
     .from('churches')

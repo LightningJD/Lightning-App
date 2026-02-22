@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { addReactionToTable, removeReactionFromTable, getReactionsFromTable } from './messageHelpers';
 
 // ============================================
 // MESSAGE OPERATIONS
@@ -319,73 +320,20 @@ export const markConversationAsRead = async (userId: string, otherUserId: string
 /**
  * Add reaction to message
  */
-export const addReaction = async (messageId: string, userId: string, emoji: string): Promise<any> => {
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from('message_reactions')
-    // @ts-ignore - Supabase generated types are incomplete
-    .insert({
-      message_id: messageId,
-      user_id: userId,
-      emoji
-    })
-    .select()
-    .single();
-
-  if (error) {
-    // If reaction already exists, ignore (unique constraint)
-    if (error.code === '23505') {
-      console.log('Reaction already exists');
-      return null;
-    }
-    console.error('Error adding reaction:', error);
-    return null;
-  }
-
-  return data;
-};
+export const addReaction = (messageId: string, userId: string, emoji: string): Promise<any> =>
+  addReactionToTable('message_reactions', messageId, userId, emoji);
 
 /**
  * Remove reaction from message
  */
-export const removeReaction = async (messageId: string, userId: string, emoji: string): Promise<boolean | null> => {
-  if (!supabase) return null;
-
-  const { error } = await supabase
-    .from('message_reactions')
-    .delete()
-    .eq('message_id', messageId)
-    .eq('user_id', userId)
-    .eq('emoji', emoji);
-
-  if (error) {
-    console.error('Error removing reaction:', error);
-    return null;
-  }
-
-  return true;
-};
+export const removeReaction = (messageId: string, userId: string, emoji: string): Promise<boolean | null> =>
+  removeReactionFromTable('message_reactions', messageId, userId, emoji);
 
 /**
  * Get reactions for a message
  */
-export const getMessageReactions = async (messageId: string): Promise<any[]> => {
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from('message_reactions')
-    // @ts-ignore - Supabase generated types don't handle nested relations
-    .select('*, user:users!user_id(id, display_name, avatar_emoji)')
-    .eq('message_id', messageId);
-
-  if (error) {
-    console.error('Error fetching reactions:', error);
-    return [];
-  }
-
-  return data;
-};
+export const getMessageReactions = (messageId: string): Promise<any[]> =>
+  getReactionsFromTable('message_reactions', messageId);
 
 /**
  * Get reactions for multiple messages in a single query.

@@ -13,15 +13,7 @@ import {
   denyJoinRequest
 } from '../lib/database';
 import { unlockSecret } from '../lib/secrets';
-
-interface GroupData {
-  id: string;
-  name: string;
-  description?: string;
-  avatar_emoji: string;
-  member_count: number;
-  userRole: string;
-}
+import type { GroupDataView as GroupData } from '../types/chat';
 
 interface UseGroupManagementOptions {
   userId: string | undefined;

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Flag, AlertCircle, CheckCircle } from "lucide-react";
 import { showSuccess, showError } from "../lib/toast";
+import ModalOverlay from "./ModalOverlay";
 
 interface BugReportDialogProps {
   onClose: () => void;
@@ -78,29 +79,7 @@ export default function BugReportDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        role="button"
-        tabIndex={0}
-        className={`absolute inset-0 ${nightMode ? "bg-black/80" : "bg-black/50"} backdrop-blur-sm`}
-        onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " " || e.key === "Escape") {
-            e.preventDefault();
-            onClose();
-          }
-        }}
-      />
-
-      {/* Dialog */}
-      <div
-        className={`relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border ${
-          nightMode
-            ? "bg-[#0a0a0a] border-white/10"
-            : "bg-white border-slate-200"
-        } shadow-2xl`}
-      >
+    <ModalOverlay onClose={onClose} nightMode={nightMode} zIndex="z-[200]" maxHeight="max-h-[90vh]">
         {/* Header */}
         <div
           className={`sticky top-0 z-10 px-6 py-4 border-b ${
@@ -323,7 +302,6 @@ export default function BugReportDialog({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </ModalOverlay>
   );
 }

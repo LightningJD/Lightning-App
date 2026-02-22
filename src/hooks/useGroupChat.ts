@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { showError } from '../lib/toast';
-import { validateMessage, sanitizeInput } from '../lib/inputValidation';
+import { sanitizeInput } from '../lib/inputValidation';
 import {
   sendGroupMessage,
   getGroupMessages,
@@ -12,33 +12,12 @@ import {
   unpinMessage,
   unsubscribe
 } from '../lib/database';
-import { analyzeContent, checkBeforeSend } from '../lib/contentFilter';
+import { analyzeContent } from '../lib/contentFilter';
 import type { ContentFlag } from '../lib/contentFilter';
 import { checkMessageSecrets, unlockSecret } from '../lib/secrets';
 import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
-
-interface GroupMessage {
-  id: number | string;
-  sender_id: string;
-  content: string;
-  created_at: string;
-  sender: {
-    display_name: string;
-    avatar_emoji: string;
-  };
-}
-
-interface MessageReaction {
-  id: string;
-  message_id: string | number;
-  user_id: string;
-  emoji: string;
-  user: {
-    id: string;
-    display_name: string;
-    avatar_emoji: string;
-  };
-}
+import { validateAndCheckMessage } from '../lib/messageValidation';
+import type { GroupMessageView as GroupMessage, GroupMessageReactionView as MessageReaction } from '../types/chat';
 
 interface UseGroupChatOptions {
   activeGroup: string | null;
@@ -155,24 +134,7 @@ export function useGroupChat({ activeGroup, activeView, userId, displayName, ava
     e.preventDefault();
     if (!newMessage.trim() || !userId || !activeGroup) return;
 
-    const validation = validateMessage(newMessage, 'message');
-    if (!validation.valid) {
-      showError(validation.errors[0] || 'Invalid message');
-      return;
-    }
-
-    const profanityResult = checkBeforeSend(newMessage);
-    if (!profanityResult.allowed && profanityResult.flag) {
-      if (profanityResult.severity === 'high') {
-        showError('This message contains content that violates community guidelines');
-        return;
-      }
-      if (profanityResult.severity === 'medium') {
-        if (!window.confirm('This message may contain inappropriate content. Send anyway?')) {
-          return;
-        }
-      }
-    }
+    if (!validateAndCheckMessage(newMessage)) return;
 
     const messageContent = sanitizeInput(newMessage);
 

@@ -28,6 +28,7 @@ import OtherUserProfileDialog from "./OtherUserProfileDialog";
 import { useMessages } from "../hooks/useMessages";
 import { useNewChat } from "../hooks/useNewChat";
 import type { Message, Conversation } from "../hooks/useMessages";
+import { REACTION_EMOJIS } from "../lib/reactionEmojis";
 import type { Connection } from "../hooks/useNewChat";
 
 // ── Gradient avatar helpers ──────────────────────────────────────
@@ -232,33 +233,8 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
     if (isGuest) checkAndShowModal();
   }, [isGuest]);
 
-  // Reaction emojis (same as Groups)
-  const reactionEmojis = [
-    "🙏",
-    "❤️",
-    "✝️",
-    "🔥",
-    "✨",
-    "🕊️",
-    "📖",
-    "🌟",
-    "💪",
-    "🛡️",
-    "🙌",
-    "👑",
-    "🤲",
-    "😇",
-    "😊",
-    "😢",
-    "😮",
-    "🎉",
-    "🫂",
-    "✋",
-    "🥰",
-    "😌",
-    "✅",
-    "💯",
-  ];
+  // Reaction emojis (shared constant)
+  const reactionEmojis = REACTION_EMOJIS;
 
   if (activeChat) {
     const conversation =
