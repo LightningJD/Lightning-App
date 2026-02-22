@@ -1994,6 +1994,7 @@ const ChannelItem: React.FC<{
       {onOptionsClick && (
         <button
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             onOptionsClick(e);
           }}
