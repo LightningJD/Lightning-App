@@ -62,6 +62,7 @@ export default function ModalOverlay({
           aria-labelledby={ariaLabelledBy}
           className={`w-full ${maxWidth} ${maxHeight} rounded-2xl shadow-2xl pointer-events-auto overflow-hidden flex flex-col ${bgClass} ${cardClassName || ''}`}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
           {children}
         </dialog>
