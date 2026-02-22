@@ -974,7 +974,7 @@ export const getChannelMessages = async (channelId: string, limit: number = 100)
     // @ts-ignore
     .select('*, sender:users!sender_id(id, username, display_name, avatar_emoji, avatar_url, is_online)')
     .eq('channel_id', channelId)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
     .limit(limit);
 
   if (error) {
@@ -982,7 +982,8 @@ export const getChannelMessages = async (channelId: string, limit: number = 100)
     return [];
   }
 
-  return data;
+  // Reverse so messages display in chronological order (oldest first)
+  return (data || []).reverse();
 };
 
 /**
