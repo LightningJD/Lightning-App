@@ -752,7 +752,6 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                         setShowReactionPicker(null);
                                       }}
                                       className="text-lg hover:scale-110 transition-transform p-1.5 rounded flex items-center justify-center"
-                                      style={{ ...(nightMode ? {} : {}), }}
                                     >
                                       {emoji}
                                     </button>
@@ -833,7 +832,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                                 className="p-1 rounded transition-colors"
                                 style={{
                                   background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.4)',
-                                  border: `1px solid ${nightMode ? 'rgba(239,68,68,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                                  border: '1px solid rgba(239,68,68,0.2)',
                                   color: nightMode ? '#ef4444' : '#dc2626',
                                 }}
                                 title="Delete"

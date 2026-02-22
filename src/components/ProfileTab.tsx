@@ -873,12 +873,15 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
 
           {/* Testimony Card — tap to expand */}
           <div
+            role="button"
+            tabIndex={0}
             className="p-4 rounded-xl relative overflow-hidden cursor-pointer transition-all duration-200 active:scale-[0.99]"
             onClick={(e) => {
               // Don't expand if clicking a button/link inside
               if ((e.target as HTMLElement).closest('button')) return;
               if (canView) setExpandedTestimony(!expandedTestimony);
             }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (canView) setExpandedTestimony(!expandedTestimony); } }}
             style={
               nightMode
                 ? {
@@ -1098,8 +1101,11 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             Life Testimonies
           </div>
           <div
+            role="button"
+            tabIndex={0}
             className="p-4 rounded-xl cursor-pointer transition-all duration-200 active:scale-[0.99]"
             onClick={() => setShowLesson(!showLesson)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowLesson(!showLesson); } }}
             style={{
               opacity: 0.85,
               ...(nightMode
