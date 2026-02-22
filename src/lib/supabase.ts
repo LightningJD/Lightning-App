@@ -34,8 +34,8 @@ const customFetch: typeof fetch = async (input, init) => {
         headers.set('Authorization', `Bearer ${token}`);
         return fetch(input, { ...init, headers });
       }
-    } catch {
-      // Fall through to anon-key request — RLS write operations will fail
+    } catch (err) {
+      console.warn('⚠️ Clerk token fetch failed, falling through to anon-key request:', err);
     }
   }
   return fetch(input, init);
@@ -83,8 +83,8 @@ export const setClerkTokenGetter = async (getter: () => Promise<string | null>) 
           if (freshToken && supabase) {
             supabase.realtime.setAuth(freshToken);
           }
-        } catch {
-          // Non-critical — next interval will retry
+        } catch (err) {
+          console.warn('⚠️ Realtime token refresh failed, will retry:', err);
         }
       }, 50_000);
     }

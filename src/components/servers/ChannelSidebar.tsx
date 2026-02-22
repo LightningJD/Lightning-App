@@ -167,7 +167,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       try {
         const saved = localStorage.getItem(storageKey);
         return saved ? new Set(JSON.parse(saved)) : new Set();
-      } catch {
+      } catch (_e) {
         return new Set();
       }
     },
@@ -211,7 +211,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     try {
       const saved = localStorage.getItem(`lightning_muted_${serverId}`);
       return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
+    } catch (_e) {
       return new Set();
     }
   });
@@ -244,7 +244,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       try {
         const saved = localStorage.getItem(storageKey);
         setCollapsedCategories(saved ? new Set(JSON.parse(saved)) : new Set());
-      } catch {
+      } catch (_e) {
         setCollapsedCategories(new Set());
       }
     } else {
@@ -254,8 +254,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
           storageKey,
           JSON.stringify([...collapsedCategories]),
         );
-      } catch {
-        /* ignore */
+      } catch (_e) {
+        // localStorage may be full or unavailable
       }
     }
   }, [collapsedCategories, storageKey]);
@@ -315,7 +315,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       try {
         const saved = localStorage.getItem(muteStorageKey);
         setMutedChannels(saved ? new Set(JSON.parse(saved)) : new Set());
-      } catch {
+      } catch (_e) {
         setMutedChannels(new Set());
       }
     } else {
@@ -324,8 +324,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
           muteStorageKey,
           JSON.stringify([...mutedChannels]),
         );
-      } catch {
-        /* ignore */
+      } catch (_e) {
+        // localStorage may be full or unavailable
       }
     }
   }, [mutedChannels, muteStorageKey]);
