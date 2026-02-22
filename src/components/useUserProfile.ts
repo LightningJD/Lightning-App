@@ -59,9 +59,13 @@ export const useUserProfile = (): UseUserProfileReturn => {
           const dbUser = await syncUserToSupabase(user);
           setSupabaseUser(dbUser);
 
-          // Load testimony if user has one
+          // Load testimony and church in parallel for faster loading
           if (dbUser && dbUser.id) {
-            const userTestimony = await getTestimonyByUserId(dbUser.id);
+            const [userTestimony, churchData] = await Promise.all([
+              getTestimonyByUserId(dbUser.id),
+              (dbUser as any).church_id ? getChurchById((dbUser as any).church_id) : Promise.resolve(null)
+            ]);
+
             if (userTestimony) {
               console.log('✅ Testimony loaded:', userTestimony.id);
               setTestimony(userTestimony);
@@ -70,13 +74,9 @@ export const useUserProfile = (): UseUserProfileReturn => {
               setTestimony(null);
             }
 
-            // Load church data if user has a church_id
-            if ((dbUser as any).church_id) {
-              const churchData = await getChurchById((dbUser as any).church_id);
-              if (churchData) {
-                console.log('✅ Church loaded:', churchData.name);
-                setChurch(churchData);
-              }
+            if (churchData) {
+              console.log('✅ Church loaded:', churchData.name);
+              setChurch(churchData);
             } else {
               setChurch(null);
             }
