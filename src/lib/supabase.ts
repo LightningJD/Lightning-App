@@ -19,11 +19,16 @@ let _realtimeRefreshInterval: ReturnType<typeof setInterval> | null = null;
 /**
  * Custom fetch that gets a FRESH Clerk JWT on every REST request.
  * Clerk's getToken() is cheap (returns cached token if still valid).
+ * Includes a 5-second timeout on the token fetch to prevent hanging
+ * if Clerk's servers are slow or the session is stale.
  */
 const customFetch: typeof fetch = async (input, init) => {
   if (_getClerkToken) {
     try {
-      const token = await _getClerkToken();
+      const token = await Promise.race([
+        _getClerkToken(),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+      ]);
       if (token && init?.headers) {
         const headers = new Headers(init.headers);
         headers.set('Authorization', `Bearer ${token}`);

@@ -38,6 +38,8 @@ export const useUserProfile = (): UseUserProfileReturn => {
 
   // Sync user to Supabase when they sign in or when refresh is triggered
   useEffect(() => {
+    let completed = false;
+
     const syncUser = async () => {
       // Wait for Clerk to load
       if (!isLoaded) return;
@@ -76,15 +78,30 @@ export const useUserProfile = (): UseUserProfileReturn => {
         } catch (error: any) {
           console.error('❌ Error syncing user profile:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
         } finally {
+          completed = true;
           setIsSyncing(false);
         }
       } else {
         // Not signed in, so we are done "syncing"
+        completed = true;
         setIsSyncing(false);
       }
     };
 
     syncUser();
+
+    // Safety timeout: if sync hangs (network issue, Supabase down, token hang, etc.)
+    // force the loading screen to dismiss after 10 seconds so the app is still usable
+    const timeoutId = setTimeout(() => {
+      if (!completed) {
+        console.warn('⚠️ Profile sync timed out after 10s — loading app without full profile data');
+        setIsSyncing(false);
+      }
+    }, 10_000);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [isLoaded, isSignedIn, user, session, refreshTrigger]);
 
   // Listen for profile updates via custom event
