@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "../useUserProfile";
 import { useGuestModalContext } from "../../contexts/GuestModalContext";
 import { usePremium } from "../../contexts/PremiumContext";
@@ -42,7 +41,6 @@ const ServersTab: React.FC<ServersTabProps> = ({
     checkAndShowModal: () => void;
   };
   const { isServerPremium } = usePremium();
-  const navigate = useNavigate();
 
   // All server state + handlers from the hook
   const sv = useServerState({
@@ -90,18 +88,11 @@ const ServersTab: React.FC<ServersTabProps> = ({
   );
 
   // Channel selection handler (wraps hook + mobile view logic)
-  // On mobile, navigate to full-screen route instead of showing chat inline
   const handleSelectChannel = useCallback(
     (channelId: string) => {
-      if (isMobile && sv.activeServerId) {
-        // Navigate to full-screen channel route (uses FullScreenLayout)
-        navigate(`/server/${sv.activeServerId}/channel/${channelId}`);
-      } else {
-        // Desktop: use inline view with mobileView state
-        sv.handleSelectChannel(channelId, setMobileView);
-      }
+      sv.handleSelectChannel(channelId, setMobileView);
     },
-    [isMobile, sv.activeServerId, sv.handleSelectChannel, navigate],
+    [sv.handleSelectChannel],
   );
 
   const handleBackFromContent = useCallback(() => {
