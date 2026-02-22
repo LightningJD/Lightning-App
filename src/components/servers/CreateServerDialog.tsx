@@ -75,7 +75,7 @@ const CreateServerDialog: React.FC<CreateServerDialogProps> = ({
         if (e.target === e.currentTarget) onClose();
       }}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+        if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
           onClose();
         }
       }}
