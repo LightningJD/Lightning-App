@@ -47,31 +47,24 @@ export default function ModalOverlay({
   return (
     <>
       {/* Backdrop */}
-      <div
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         aria-label="Close dialog"
         onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
-            e.preventDefault();
-            onClose();
-          }
-        }}
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm ${zIndex} animate-in fade-in duration-200`}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm ${zIndex} animate-in fade-in duration-200 w-full cursor-default`}
       />
 
       {/* Dialog container */}
       <div className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4 pointer-events-none`}>
-        <div
-          role="dialog"
+        <dialog
+          open
           aria-modal="true"
           aria-labelledby={ariaLabelledBy}
           className={`w-full ${maxWidth} ${maxHeight} rounded-2xl shadow-2xl pointer-events-auto overflow-hidden flex flex-col ${bgClass} ${cardClassName || ''}`}
           onClick={(e) => e.stopPropagation()}
         >
           {children}
-        </div>
+        </dialog>
       </div>
     </>
   );

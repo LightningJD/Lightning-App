@@ -572,7 +572,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
 
             {/* Progress Bar */}
             <div className="flex gap-1 mt-4">
-              {[...new Array(totalSteps)].map((_, index) => (
+              {Array.from({ length: totalSteps }, (_, index) => (
                 <div
                   key={index}
                   className={`flex-1 h-1 rounded-full transition-all ${
