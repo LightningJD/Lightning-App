@@ -1,6 +1,7 @@
 import { supabase } from '../supabase';
 import type { GroupRole, RolePermissions } from '../../types';
 import { mapLegacyRole } from '../permissions';
+import { pinMessageInTable, unpinMessageInTable, getPinnedMessagesFromTable } from './messageHelpers';
 
 interface GroupData {
   name: string;
@@ -675,73 +676,17 @@ export const denyJoinRequest = async (requestId: string): Promise<boolean | null
 /**
  * Pin a group message (leaders only)
  */
-export const pinMessage = async (messageId: string, userId: string): Promise<any> => {
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from('group_messages')
-    // @ts-ignore - Supabase generated types don't allow update on this table
-    .update({
-      is_pinned: true,
-      pinned_by: userId,
-      pinned_at: new Date().toISOString()
-    })
-    .eq('id', messageId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error pinning message:', error);
-    return null;
-  }
-
-  return data;
-};
+export const pinMessage = (messageId: string, userId: string): Promise<any> =>
+  pinMessageInTable('group_messages', messageId, userId);
 
 /**
  * Unpin a group message
  */
-export const unpinMessage = async (messageId: string): Promise<any> => {
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from('group_messages')
-    // @ts-ignore - Supabase generated types don't allow update on this table
-    .update({
-      is_pinned: false,
-      pinned_by: null,
-      pinned_at: null
-    })
-    .eq('id', messageId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error unpinning message:', error);
-    return null;
-  }
-
-  return data;
-};
+export const unpinMessage = (messageId: string): Promise<any> =>
+  unpinMessageInTable('group_messages', messageId);
 
 /**
  * Get pinned messages for a group
  */
-export const getPinnedMessages = async (groupId: string): Promise<any[]> => {
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from('group_messages')
-    // @ts-ignore - Supabase generated types don't handle nested relations
-    .select('*, sender:users!sender_id(username, display_name, avatar_emoji)')
-    .eq('group_id', groupId)
-    .eq('is_pinned', true)
-    .order('pinned_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching pinned messages:', error);
-    return [];
-  }
-
-  return data;
-};
+export const getPinnedMessages = (groupId: string): Promise<any[]> =>
+  getPinnedMessagesFromTable('group_messages', 'group_id', groupId);

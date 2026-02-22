@@ -7,12 +7,14 @@ import {
   deleteMessage, markConversationAsRead,
 } from '../lib/database';
 import { showError } from '../lib/toast';
-import { checkBeforeSend } from '../lib/contentFilter';
 import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/secrets';
 import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
 import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
-import { validateMessage, sanitizeInput } from '../lib/inputValidation';
+import { sanitizeInput } from '../lib/inputValidation';
 import { uploadMessageImage } from '../lib/cloudinary';
+import { validateAndCheckMessage } from '../lib/messageValidation';
+import { handleImageFileSelect } from '../lib/imageUploadHandler';
+import type { ConversationView as Conversation } from '../types/chat';
 
 // ── Types ────────────────────────────────────────────────
 
@@ -38,18 +40,6 @@ interface Message {
     display_name: string;
     avatar_emoji: string;
   };
-}
-
-interface Conversation {
-  id: number | string;
-  userId: string;
-  name: string;
-  avatar: string;
-  avatarImage?: string;
-  lastMessage: string;
-  timestamp: string;
-  online?: boolean;
-  unreadCount?: number;
 }
 
 interface Reaction {
@@ -377,15 +367,7 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { showError('Please select an image file'); return; }
-    if (file.size > 10 * 1024 * 1024) { showError('Image must be under 10MB'); return; }
-    setPendingImage(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setPendingImagePreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-    e.target.value = '';
+    handleImageFileSelect(e, setPendingImage, setPendingImagePreview);
   };
 
   const clearPendingImage = () => {
@@ -398,18 +380,7 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     if ((!newMessage.trim() && !pendingImage) || !profile) return;
 
     // Validate
-    if (newMessage.trim()) {
-      const validation = validateMessage(newMessage, 'message');
-      if (!validation.valid) { showError(validation.errors[0] || 'Invalid message'); return; }
-
-      const profanityResult = checkBeforeSend(newMessage);
-      if (!profanityResult.allowed && profanityResult.flag) {
-        if (profanityResult.severity === 'high') { showError('This message contains content that violates community guidelines'); return; }
-        if (profanityResult.severity === 'medium') {
-          if (!window.confirm('This message may contain inappropriate content. Send anyway?')) return;
-        }
-      }
-    }
+    if (newMessage.trim() && !validateAndCheckMessage(newMessage)) return;
 
     // @ts-ignore
     if (!checkAndNotify('send_message', showError)) return;

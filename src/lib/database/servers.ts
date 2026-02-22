@@ -3,6 +3,8 @@
 // server_join_requests) are not in the auto-generated Supabase types.
 // TODO: Run `npx supabase gen types` to generate types for these tables, then remove this directive.
 import { supabase } from '../supabase';
+import { generateInviteCode as generateInviteCodeString } from '../generateInviteCode';
+import { pinMessageInTable, unpinMessageInTable, getPinnedMessagesFromTable, addReactionToTable, removeReactionFromTable, getReactionsFromTable } from './messageHelpers';
 import type {
   CreateServerData,
   CreateChannelData,
@@ -176,14 +178,6 @@ export const searchPublicServers = async (searchQuery: string = ''): Promise<any
 // INVITE CODE OPERATIONS
 // ============================================
 
-function generateInviteCodeString(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-}
 
 /**
  * Generate a new invite code for a server
@@ -994,76 +988,25 @@ export const getChannelMessages = async (channelId: string, limit: number = 100)
 /**
  * Pin a channel message
  */
-export const pinChannelMessage = async (messageId: string, userId: string): Promise<any> => {
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from('channel_messages')
-    // @ts-ignore
-    .update({
-      is_pinned: true,
-      pinned_by: userId,
-      pinned_at: new Date().toISOString()
-    })
-    .eq('id', messageId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error pinning message:', error);
-    return null;
-  }
-
-  return data;
-};
+export const pinChannelMessage = (messageId: string, userId: string): Promise<any> =>
+  pinMessageInTable('channel_messages', messageId, userId);
 
 /**
  * Unpin a channel message
  */
-export const unpinChannelMessage = async (messageId: string): Promise<any> => {
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from('channel_messages')
-    // @ts-ignore
-    .update({
-      is_pinned: false,
-      pinned_by: null,
-      pinned_at: null
-    })
-    .eq('id', messageId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error unpinning message:', error);
-    return null;
-  }
-
-  return data;
-};
+export const unpinChannelMessage = (messageId: string): Promise<any> =>
+  unpinMessageInTable('channel_messages', messageId);
 
 /**
  * Get pinned messages for a channel
  */
-export const getPinnedChannelMessages = async (channelId: string): Promise<any[]> => {
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from('channel_messages')
-    // @ts-ignore
-    .select('*, sender:users!sender_id(id, username, display_name, avatar_emoji, avatar_url)')
-    .eq('channel_id', channelId)
-    .eq('is_pinned', true)
-    .order('pinned_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching pinned messages:', error);
-    return [];
-  }
-
-  return data;
-};
+export const getPinnedChannelMessages = (channelId: string): Promise<any[]> =>
+  getPinnedMessagesFromTable(
+    'channel_messages',
+    'channel_id',
+    channelId,
+    '*, sender:users!sender_id(id, username, display_name, avatar_emoji, avatar_url)'
+  );
 
 // ============================================
 // CHANNEL MESSAGE REACTIONS
@@ -1072,68 +1015,20 @@ export const getPinnedChannelMessages = async (channelId: string): Promise<any[]
 /**
  * Add a reaction to a channel message
  */
-export const addChannelReaction = async (messageId: string, userId: string, emoji: string): Promise<any> => {
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from('channel_message_reactions')
-    // @ts-ignore
-    .insert({
-      message_id: messageId,
-      user_id: userId,
-      emoji
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error adding reaction:', error);
-    return null;
-  }
-
-  return data;
-};
+export const addChannelReaction = (messageId: string, userId: string, emoji: string): Promise<any> =>
+  addReactionToTable('channel_message_reactions', messageId, userId, emoji);
 
 /**
  * Remove a reaction from a channel message
  */
-export const removeChannelReaction = async (messageId: string, userId: string, emoji: string): Promise<boolean | null> => {
-  if (!supabase) return null;
-
-  const { error } = await supabase
-    .from('channel_message_reactions')
-    .delete()
-    .eq('message_id', messageId)
-    .eq('user_id', userId)
-    .eq('emoji', emoji);
-
-  if (error) {
-    console.error('Error removing reaction:', error);
-    return null;
-  }
-
-  return true;
-};
+export const removeChannelReaction = (messageId: string, userId: string, emoji: string): Promise<boolean | null> =>
+  removeReactionFromTable('channel_message_reactions', messageId, userId, emoji);
 
 /**
  * Get all reactions for a channel message
  */
-export const getChannelMessageReactions = async (messageId: string): Promise<any[]> => {
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from('channel_message_reactions')
-    // @ts-ignore
-    .select('*, user:users!user_id(id, username, display_name)')
-    .eq('message_id', messageId);
-
-  if (error) {
-    console.error('Error fetching reactions:', error);
-    return [];
-  }
-
-  return data;
-};
+export const getChannelMessageReactions = (messageId: string): Promise<any[]> =>
+  getReactionsFromTable('channel_message_reactions', messageId, '*, user:users!user_id(id, username, display_name)');
 
 // ============================================
 // SERVER JOIN REQUESTS

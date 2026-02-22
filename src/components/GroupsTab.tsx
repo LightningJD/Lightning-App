@@ -44,54 +44,12 @@ import { useGroupManagement } from "../hooks/useGroupManagement";
 import { useGroupChat } from "../hooks/useGroupChat";
 import { useGroupMembers } from "../hooks/useGroupMembers";
 import SwipeablePageWrapper from "./SwipeablePageWrapper";
+import { REACTION_EMOJIS } from "../lib/reactionEmojis";
+import type { GroupMessageView as GroupMessage, GroupMessageReactionView as MessageReaction, GroupMemberView as GroupMember, GroupDataView as GroupData } from "../types/chat";
 
 interface GroupsTabProps {
   nightMode: boolean;
   onGroupsCountChange?: (count: number) => void;
-}
-
-interface GroupMessage {
-  id: number | string;
-  sender_id: string;
-  content: string;
-  created_at: string;
-  sender: {
-    display_name: string;
-    avatar_emoji: string;
-  };
-}
-
-interface GroupData {
-  id: string;
-  name: string;
-  description?: string;
-  avatar_emoji: string;
-  member_count: number;
-  userRole: string;
-}
-
-interface GroupMember {
-  id: string;
-  role: string;
-  user: {
-    id: string;
-    display_name: string;
-    username: string;
-    avatar_emoji: string;
-    is_online: boolean;
-  };
-}
-
-interface MessageReaction {
-  id: string;
-  message_id: string | number;
-  user_id: string;
-  emoji: string;
-  user: {
-    id: string;
-    display_name: string;
-    avatar_emoji: string;
-  };
 }
 
 // Get user's effective role for a group (maps legacy 'leader' to 'pastor')
@@ -312,33 +270,8 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
     return messageMiddle > viewportHeight / 2;
   };
 
-  // Reaction emojis for faith-based groups (22 emojis)
-  const reactionEmojis = [
-    "🙏",
-    "❤️",
-    "✝️",
-    "🔥",
-    "✨",
-    "🕊️", // Row 1: Faith Core
-    "📖",
-    "🌟",
-    "💪",
-    "🛡️",
-    "🙌",
-    "👑", // Row 2: Faith Symbols
-    "🤲",
-    "😇",
-    "😊",
-    "😢",
-    "😮",
-    "🎉", // Row 3: Support & Prayer
-    "🫂",
-    "✋",
-    "🥰",
-    "😌",
-    "✅",
-    "💯", // Row 4: Connection & Agreement
-  ];
+  // Reaction emojis (shared constant)
+  const reactionEmojis = REACTION_EMOJIS;
 
   // Block guests from accessing groups
   useEffect(() => {

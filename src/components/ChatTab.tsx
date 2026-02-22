@@ -10,6 +10,7 @@ import OtherUserProfileDialog from './OtherUserProfileDialog';
 import { ConversationSkeleton } from './SkeletonLoader';
 import SwipeablePageWrapper from './SwipeablePageWrapper';
 import { useAppContext } from '../contexts/AppContext';
+import type { ConversationView as Conversation } from '../types/chat';
 
 // ============================================
 // TYPES
@@ -21,18 +22,6 @@ interface ChatTabProps {
   startChatWith?: { id: string; name: string; avatar?: string } | null;
   onStartChatConsumed?: () => void;
   onActiveServerChange?: (serverName: string | null, serverEmoji?: string) => void;
-}
-
-interface Conversation {
-  id: number | string;
-  userId: string;
-  name: string;
-  avatar: string;
-  avatarImage?: string;
-  lastMessage: string;
-  timestamp: string;
-  online?: boolean;
-  unreadCount?: number;
 }
 
 interface Server {

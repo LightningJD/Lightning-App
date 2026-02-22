@@ -4,6 +4,7 @@ import ImageUploadButton from "./ImageUploadButton";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { showError } from "../lib/toast";
 import { validateProfile, sanitizeInput } from "../lib/inputValidation";
+import ModalOverlay from "./ModalOverlay";
 
 interface FormData {
   displayName: string;
@@ -303,28 +304,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
-        style={{
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-        }}
-        role="presentation"
-        onClick={onClose}
-      />
-
-      {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div
-          className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${nightMode ? "bg-[#0a0a0a]" : "bg-white"}`}
-          style={{
-            animation: "popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-            transformOrigin: "center",
-          }}
-          role="presentation"
-          onClick={(e) => e.stopPropagation()}
-        >
+      <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]">
           {/* Header */}
           <div
             className="p-6"
@@ -1069,25 +1049,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
               </button>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Animation Styles */}
-      <style>{`
-        @keyframes popOut {
-          0% {
-            transform: scale(0.9);
-            opacity: 0;
-          }
-          60% {
-            transform: scale(1.02);
-          }
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-      `}</style>
+      </ModalOverlay>
     </>
   );
 };

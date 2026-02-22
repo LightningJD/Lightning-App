@@ -20,6 +20,7 @@ import type {
   ChannelMessage,
   MessageReaction,
 } from "../../hooks/useChannelMessages";
+import { REACTION_EMOJIS } from "../../lib/reactionEmojis";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -54,32 +55,6 @@ interface ChannelChatProps {
 
 // ── Constants ──────────────────────────────────────────────────
 
-const REACTION_EMOJIS = [
-  "\u{1F64F}",
-  "\u{2764}\u{FE0F}",
-  "\u{271D}\u{FE0F}",
-  "\u{1F525}",
-  "\u{2728}",
-  "\u{1F54A}\u{FE0F}",
-  "\u{1F4D6}",
-  "\u{1F31F}",
-  "\u{1F4AA}",
-  "\u{1F6E1}\u{FE0F}",
-  "\u{1F64C}",
-  "\u{1F451}",
-  "\u{1F932}",
-  "\u{1F607}",
-  "\u{1F60A}",
-  "\u{1F622}",
-  "\u{1F62E}",
-  "\u{1F389}",
-  "\u{1FAC2}",
-  "\u{270B}",
-  "\u{1F970}",
-  "\u{1F60C}",
-  "\u{2705}",
-  "\u{1F4AF}",
-];
 
 // ── Gradient palette for avatars ──────────────────────────────
 const AVATAR_GRADIENTS = [

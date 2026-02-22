@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { showError } from '../lib/toast';
-import { validateMessage, sanitizeInput } from '../lib/inputValidation';
-import { checkBeforeSend } from '../lib/contentFilter';
+import { sanitizeInput } from '../lib/inputValidation';
 import { uploadMessageImage } from '../lib/cloudinary';
+import { validateAndCheckMessage } from '../lib/messageValidation';
+import { handleImageFileSelect } from '../lib/imageUploadHandler';
 import {
   sendChannelMessage,
   getChannelMessages,
@@ -343,23 +344,7 @@ export function useChannelMessages({
   // ── Image Handling ─────────────────────────────────────────
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      showError('Please select an image file');
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      showError('Image must be under 10MB');
-      return;
-    }
-    setPendingImage(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setPendingImagePreview(ev.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
+    handleImageFileSelect(e, setPendingImage, setPendingImagePreview);
   };
 
   const clearPendingImage = () => {
@@ -378,27 +363,7 @@ export function useChannelMessages({
     }
     if (!channelId) return;
 
-    if (newMessage.trim()) {
-      const validation = validateMessage(newMessage, 'message');
-      if (!validation.valid) {
-        showError(validation.errors[0] || 'Invalid message');
-        return;
-      }
-
-      // Profanity check
-      const profanityResult = checkBeforeSend(newMessage);
-      if (!profanityResult.allowed && profanityResult.flag) {
-        if (profanityResult.severity === 'high') {
-          showError('This message contains content that violates community guidelines');
-          return;
-        }
-        if (profanityResult.severity === 'medium') {
-          if (!window.confirm('This message may contain inappropriate content. Send anyway?')) {
-            return;
-          }
-        }
-      }
-    }
+    if (newMessage.trim() && !validateAndCheckMessage(newMessage)) return;
 
     const messageContent = newMessage.trim() ? sanitizeInput(newMessage) : '';
     const imageToUpload = pendingImage;
