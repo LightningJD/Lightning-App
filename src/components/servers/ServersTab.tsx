@@ -87,14 +87,13 @@ const ServersTab: React.FC<ServersTabProps> = ({
   );
 
   // Channel selection handler (wraps hook + mobile view logic)
+  // Always pass setMobileView — harmless on desktop since mobileView isn't used,
+  // and avoids stale-closure issues where isMobile might be outdated.
   const handleSelectChannel = useCallback(
     (channelId: string) => {
-      sv.handleSelectChannel(
-        channelId,
-        isMobile ? setMobileView : undefined,
-      );
+      sv.handleSelectChannel(channelId, setMobileView);
     },
-    [sv.handleSelectChannel, isMobile],
+    [sv.handleSelectChannel],
   );
 
   const handleBackFromContent = useCallback(() => {
