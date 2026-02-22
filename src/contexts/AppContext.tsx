@@ -222,8 +222,6 @@ export interface AppContextType {
   // Header back navigation (for sub-views like DM chat or server)
   headerBackAction: (() => void) | null;
   setHeaderBackAction: (fn: (() => void) | null) => void;
-  hideHeader: boolean;
-  setHideHeader: (v: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -329,7 +327,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     null,
   );
   const [headerBackAction, setHeaderBackAction] = useState<(() => void) | null>(null);
-  const [hideHeader, setHideHeader] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -1308,8 +1305,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     handleLogoClick,
     headerBackAction,
     setHeaderBackAction,
-    hideHeader,
-    setHideHeader,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
