@@ -3,18 +3,7 @@ import { showError, showSuccess } from '../lib/toast';
 import { getGroupMembers, removeMemberFromGroup, setMemberRole } from '../lib/database';
 import type { GroupRole } from '../types';
 import { mapLegacyRole, outranks, getRoleLabel } from '../lib/permissions';
-
-interface GroupMember {
-  id: string;
-  role: string;
-  user: {
-    id: string;
-    display_name: string;
-    username: string;
-    avatar_emoji: string;
-    is_online: boolean;
-  };
-}
+import type { GroupMemberView as GroupMember } from '../types/chat';
 
 interface UseGroupMembersOptions {
   activeGroup: string | null;
