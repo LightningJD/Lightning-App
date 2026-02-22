@@ -167,7 +167,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       try {
         const saved = localStorage.getItem(storageKey);
         return saved ? new Set(JSON.parse(saved)) : new Set();
-      } catch (_e) {
+      } catch (error_) {
+        console.warn('Failed to parse collapsed categories from localStorage:', error_);
         return new Set();
       }
     },
@@ -211,7 +212,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     try {
       const saved = localStorage.getItem(`lightning_muted_${serverId}`);
       return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch (_e) {
+    } catch (error_) {
+      console.warn('Failed to parse muted channels from localStorage:', error_);
       return new Set();
     }
   });
@@ -244,7 +246,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       try {
         const saved = localStorage.getItem(storageKey);
         setCollapsedCategories(saved ? new Set(JSON.parse(saved)) : new Set());
-      } catch (_e) {
+      } catch (error_) {
+        console.warn('Failed to load collapsed categories from localStorage:', error_);
         setCollapsedCategories(new Set());
       }
     } else {
@@ -254,8 +257,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
           storageKey,
           JSON.stringify([...collapsedCategories]),
         );
-      } catch (_e) {
-        // localStorage may be full or unavailable
+      } catch (error_) {
+        console.warn('Failed to save collapsed categories to localStorage:', error_);
       }
     }
   }, [collapsedCategories, storageKey]);
@@ -315,7 +318,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
       try {
         const saved = localStorage.getItem(muteStorageKey);
         setMutedChannels(saved ? new Set(JSON.parse(saved)) : new Set());
-      } catch (_e) {
+      } catch (error_) {
+        console.warn('Failed to load muted channels from localStorage:', error_);
         setMutedChannels(new Set());
       }
     } else {
@@ -324,8 +328,8 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
           muteStorageKey,
           JSON.stringify([...mutedChannels]),
         );
-      } catch (_e) {
-        // localStorage may be full or unavailable
+      } catch (error_) {
+        console.warn('Failed to save muted channels to localStorage:', error_);
       }
     }
   }, [mutedChannels, muteStorageKey]);
