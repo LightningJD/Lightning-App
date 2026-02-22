@@ -45,6 +45,14 @@ export const useUserProfile = (): UseUserProfileReturn => {
       if (!isLoaded) return;
 
       if (isSignedIn && user && session) {
+        // Ensure Clerk token getter is registered before any Supabase calls
+        // to avoid the race condition where this effect fires before the
+        // token registration effect, causing RLS failures.
+        if (!tokenGetterSet.current) {
+          setClerkTokenGetter(() => session.getToken());
+          tokenGetterSet.current = true;
+        }
+
         try {
           // Sync Clerk user to Supabase
           // @ts-ignore - Clerk user type compatibility
@@ -75,17 +83,20 @@ export const useUserProfile = (): UseUserProfileReturn => {
           } else {
             console.error('❌ Sync failed: No Database User returned from syncUserToSupabase');
           }
-        } catch (error: any) {
-          console.error('❌ Error syncing user profile:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : String(error);
+          console.error('❌ Error syncing user profile:', message);
         } finally {
           completed = true;
           setIsSyncing(false);
         }
-      } else {
-        // Not signed in, so we are done "syncing"
+      } else if (!isSignedIn) {
+        // Definitely not signed in — stop loading
         completed = true;
         setIsSyncing(false);
       }
+      // If signed in but session/user not ready yet, keep isSyncing true
+      // and wait for the dependency change to re-trigger, or the safety timeout.
     };
 
     syncUser();

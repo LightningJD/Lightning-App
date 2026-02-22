@@ -20,18 +20,6 @@ function App() {
 
   const renderContent = () => {
     switch (ctx.currentTab) {
-      case 'home':
-        return (
-          <ComponentErrorBoundary name="Home" nightMode={ctx.nightMode}>
-            <ChatTab
-              nightMode={ctx.nightMode}
-              onConversationsCountChange={ctx.handleConversationsCountChange}
-              startChatWith={ctx.startChatWith}
-              onStartChatConsumed={() => ctx.setStartChatWith(null)}
-              onActiveServerChange={(name, emoji) => { ctx.setActiveServerName(name); ctx.setActiveServerEmoji(emoji || null); }}
-            />
-          </ComponentErrorBoundary>
-        );
       case 'charge':
         return (
           <ComponentErrorBoundary name="Charge" nightMode={ctx.nightMode}>
@@ -63,6 +51,7 @@ function App() {
             />
           </ComponentErrorBoundary>
         );
+      case 'home':
       default:
         return (
           <ComponentErrorBoundary name="Home" nightMode={ctx.nightMode}>
