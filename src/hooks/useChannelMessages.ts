@@ -248,6 +248,13 @@ export function useChannelMessages({
     return () => container.removeEventListener('scroll', handleScroll);
   }, [channelId]);
 
+  // Scroll to bottom on initial load (instant, no animation)
+  useEffect(() => {
+    if (!loading && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+    }
+  }, [loading]);
+
   // Auto-scroll to bottom when messages change, only if user is near bottom
   useEffect(() => {
     if (!userIsScrollingRef.current) {
