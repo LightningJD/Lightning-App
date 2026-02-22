@@ -45,7 +45,7 @@ const getGradient = (id: string): string => {
   let hash = 0;
   for (let i = 0; i < id.length; i++) {
     hash = ((hash << 5) - hash) + id.charCodeAt(i);
-    hash |= 0;
+    hash = Math.trunc(hash);
   }
   return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
 };
