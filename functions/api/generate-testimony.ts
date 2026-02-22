@@ -81,7 +81,7 @@ function sanitizeOutput(raw: string): string {
   }
   text = text.replace(/\n---\s*$/, "");
   text = text.replace(/\n#+\s*$/, "");
-  text = text.replace(/\n{3,}/g, "\n\n");
+  text = text.replaceAll(/\n{3,}/g, "\n\n");
   return text.trim();
 }
 

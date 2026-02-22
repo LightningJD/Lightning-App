@@ -115,6 +115,7 @@ const ContactSupport: React.FC<ContactSupportProps> = ({
             nightMode ? "bg-[#0a0a0a]" : "bg-white"
           }`}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div

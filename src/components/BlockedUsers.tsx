@@ -128,6 +128,7 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
               : "bg-white border border-slate-200"
           }`}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
         >

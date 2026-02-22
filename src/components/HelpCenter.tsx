@@ -225,6 +225,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({
             nightMode ? "bg-[#0a0a0a]" : "bg-white"
           }`}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div

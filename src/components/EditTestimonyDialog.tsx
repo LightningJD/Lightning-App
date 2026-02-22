@@ -457,6 +457,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
               animation: "popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
             }}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div
@@ -581,6 +582,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
             transformOrigin: "center",
           }}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div
@@ -626,7 +628,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
 
             {/* Progress Bar */}
             <div className="flex gap-1 mt-4">
-              {[...Array(totalSteps)].map((_, index) => (
+              {[...new Array(totalSteps)].map((_, index) => (
                 <div
                   key={index}
                   className={`flex-1 h-1 rounded-full transition-all ${
