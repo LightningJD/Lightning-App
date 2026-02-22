@@ -186,9 +186,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   const [renameValue, setRenameValue] = useState("");
   const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(
-    null,
-  );
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Channel editing state
   const [editingChannelId, setEditingChannelId] = useState<string | null>(null);
@@ -390,7 +388,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         y: touch.clientY,
       });
     }, 500);
-    setLongPressTimer(timer);
+    longPressTimerRef.current = timer;
   };
 
   const handleChannelLongPress = (channelId: string, e: React.TouchEvent) => {
@@ -405,13 +403,13 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
         y: touch.clientY,
       });
     }, 500);
-    setLongPressTimer(timer);
+    longPressTimerRef.current = timer;
   };
 
   const handleTouchEnd = () => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
     }
   };
 
