@@ -188,6 +188,7 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchedChannelRef = useRef<string | null>(null);
 
   // Channel editing state
   const [editingChannelId, setEditingChannelId] = useState<string | null>(null);
@@ -396,8 +397,10 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
   };
 
   const handleChannelLongPress = (channelId: string, e: React.TouchEvent) => {
+    touchedChannelRef.current = channelId;
     const touch = e.touches[0];
     const timer = setTimeout(() => {
+      touchedChannelRef.current = null;
       setShowMoveSubmenu(false);
       setShowNotifSubmenu(false);
       setContextMenu({
@@ -414,7 +417,14 @@ const ChannelSidebar: React.FC<ChannelSidebarProps> = ({
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
+      // Quick tap — select the channel directly instead of waiting for
+      // the synthetic click event, which may not fire reliably on mobile
+      // (e.g. when SwipeablePageWrapper touch listeners interfere).
+      if (touchedChannelRef.current) {
+        onSelectChannel(touchedChannelRef.current);
+      }
     }
+    touchedChannelRef.current = null;
   };
 
   const handleStartRename = (categoryId: string) => {

@@ -695,7 +695,7 @@ const EventsView: React.FC<EventsViewProps> = ({
                     onChange={(e) => setReminder24h(e.target.checked)}
                     className="rounded"
                   />
-                  24 hours before
+                  <span>24 hours before</span>
                 </label>
                 <label
                   className={`flex items-center gap-2 text-sm ${nightMode ? "text-slate-100" : "text-black"}`}
@@ -706,7 +706,7 @@ const EventsView: React.FC<EventsViewProps> = ({
                     onChange={(e) => setReminder1h(e.target.checked)}
                     className="rounded"
                   />
-                  1 hour before
+                  <span>1 hour before</span>
                 </label>
               </div>
             </div>

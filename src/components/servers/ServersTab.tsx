@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useUserProfile } from "../useUserProfile";
 import { useGuestModalContext } from "../../contexts/GuestModalContext";
 import { usePremium } from "../../contexts/PremiumContext";
@@ -36,7 +35,6 @@ const ServersTab: React.FC<ServersTabProps> = ({
   hideServerRail,
 }) => {
   const { profile } = useUserProfile();
-  const navigate = useNavigate();
   const { isGuest, checkAndShowModal } = useGuestModalContext() as {
     isGuest: boolean;
     checkAndShowModal: () => void;
@@ -89,20 +87,13 @@ const ServersTab: React.FC<ServersTabProps> = ({
   );
 
   // Channel selection handler (wraps hook + mobile view logic)
+  // Always pass setMobileView — harmless on desktop since mobileView isn't used,
+  // and avoids stale-closure issues where isMobile might be outdated.
   const handleSelectChannel = useCallback(
     (channelId: string) => {
-      if (isMobile && sv.activeServerId) {
-        // On mobile, navigate to full-screen ChannelChat route
-        navigate(`/server/${sv.activeServerId}/channel/${channelId}`);
-      } else {
-        // On desktop, render ChannelChat inline (split-pane)
-        sv.handleSelectChannel(
-          channelId,
-          undefined,
-        );
-      }
+      sv.handleSelectChannel(channelId, setMobileView);
     },
-    [sv.handleSelectChannel, sv.activeServerId, isMobile, navigate],
+    [sv.handleSelectChannel],
   );
 
   const handleBackFromContent = useCallback(() => {
@@ -342,7 +333,7 @@ const ServersTab: React.FC<ServersTabProps> = ({
           permissions={sv.permissions}
           slowmodeSeconds={(activeChannel as any)?.slowmode_seconds || 0}
           isTimedOut={sv.isTimedOut}
-          onMobileBack={undefined}
+          onMobileBack={isMobile ? () => setMobileView('channels') : undefined}
         />
       );
     }

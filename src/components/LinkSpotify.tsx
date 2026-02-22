@@ -134,6 +134,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({
               : "bg-white border border-slate-200"
           }`}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div
