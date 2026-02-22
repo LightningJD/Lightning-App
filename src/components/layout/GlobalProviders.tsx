@@ -68,24 +68,8 @@ const GlobalProviders: React.FC = () => {
 function GlobalProvidersInner() {
   const ctx = useAppContext();
 
-  // Loading screen
-  if (ctx.isLoading) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{
-          background: ctx.nightMode
-            ? ctx.themes[ctx.selectedTheme].darkGradient
-            : ctx.themes[ctx.selectedTheme].lightGradient,
-        }}
-      >
-        <div className="text-center">
-          <Zap className="w-16 h-16 text-slate-100 animate-pulse mx-auto mb-4" />
-          <p className="text-slate-100 text-xl font-semibold">Loading Lightning...</p>
-        </div>
-      </div>
-    );
-  }
+  // No blocking loading screen - show app shell immediately
+  // (Individual components will show skeleton loaders while their data loads)
 
   return (
     <ErrorBoundary
