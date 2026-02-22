@@ -1,8 +1,9 @@
 # Claude Session Instructions
 
 ## Before doing ANY work, read:
-1. `docs/REFACTORING_PLAN.md` — the master plan with checkboxes tracking progress
-2. Find the first unchecked `[ ]` step — that's where you resume
+1. `docs/DEV_GUIDELINES.md` — core rules and mode-specific rules for all AI sessions
+2. `docs/REFACTORING_PLAN.md` — the master plan with checkboxes tracking progress
+3. Find the first unchecked `[ ]` step — that's where you resume
 
 ## Project Context
 - **App**: Lightning — faith-based social platform (testimonies, messaging, servers, groups)
