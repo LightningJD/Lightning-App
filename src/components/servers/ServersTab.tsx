@@ -13,6 +13,7 @@ import ServerSettings from "./ServerSettings";
 import RoleManager from "./RoleManager";
 import MemberList from "./MemberList";
 import AuditLog from "./AuditLog";
+import { ServerSkeleton, ChannelSkeleton } from "../SkeletonLoaders";
 
 interface ServersTabProps {
   nightMode: boolean;
@@ -404,9 +405,17 @@ const ServersTab: React.FC<ServersTabProps> = ({
                   borderRight: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
                 }}
               >
-                {sv.servers.map((server) => (
-                  <div key={server.id} className="relative flex-shrink-0">
-                    <button
+                {sv.loading ? (
+                  // Show skeleton loaders while servers are loading
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={`skeleton-${i}`} className="flex-shrink-0 mb-2">
+                      <div className={`w-11 h-11 rounded-full ${nightMode ? 'bg-white/10' : 'bg-black/10'} animate-pulse`} />
+                    </div>
+                  ))
+                ) : (
+                  sv.servers.map((server) => (
+                    <div key={server.id} className="relative flex-shrink-0">
+                      <button
                       onClick={() => handleSelectServer(server.id)}
                       className={`w-11 h-11 flex items-center justify-center text-lg flex-shrink-0 transition-all active:scale-95 ${
                         sv.activeServerId === server.id
@@ -466,7 +475,8 @@ const ServersTab: React.FC<ServersTabProps> = ({
                       </div>
                     )}
                   </div>
-                ))}
+                  ))
+                )}
                 <div
                   className={`w-8 h-px my-1 ${nightMode ? "bg-white/10" : "bg-black/10"}`}
                 />
