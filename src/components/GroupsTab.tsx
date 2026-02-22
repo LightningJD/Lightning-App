@@ -44,6 +44,7 @@ import { useGroupManagement } from "../hooks/useGroupManagement";
 import { useGroupChat } from "../hooks/useGroupChat";
 import { useGroupMembers } from "../hooks/useGroupMembers";
 import SwipeablePageWrapper from "./SwipeablePageWrapper";
+import { REACTION_EMOJIS } from "../lib/reactionEmojis";
 
 interface GroupsTabProps {
   nightMode: boolean;
@@ -312,33 +313,8 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
     return messageMiddle > viewportHeight / 2;
   };
 
-  // Reaction emojis for faith-based groups (22 emojis)
-  const reactionEmojis = [
-    "🙏",
-    "❤️",
-    "✝️",
-    "🔥",
-    "✨",
-    "🕊️", // Row 1: Faith Core
-    "📖",
-    "🌟",
-    "💪",
-    "🛡️",
-    "🙌",
-    "👑", // Row 2: Faith Symbols
-    "🤲",
-    "😇",
-    "😊",
-    "😢",
-    "😮",
-    "🎉", // Row 3: Support & Prayer
-    "🫂",
-    "✋",
-    "🥰",
-    "😌",
-    "✅",
-    "💯", // Row 4: Connection & Agreement
-  ];
+  // Reaction emojis (shared constant)
+  const reactionEmojis = REACTION_EMOJIS;
 
   // Block guests from accessing groups
   useEffect(() => {

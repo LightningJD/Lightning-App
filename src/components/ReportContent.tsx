@@ -8,6 +8,7 @@ import {
   REPORT_REASONS,
 } from "../lib/database";
 import { showSuccess, showError } from "../lib/toast";
+import ModalOverlay from "./ModalOverlay";
 import { validateMessage } from "../lib/inputValidation";
 
 interface ReportContentProps {
@@ -158,25 +159,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity"
-        role="presentation"
-        onClick={onClose}
-      />
-
-      {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div
-          className={`w-full max-w-lg max-h-[85vh] flex flex-col rounded-2xl shadow-2xl pointer-events-auto overflow-hidden ${
-            nightMode
-              ? "bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10"
-              : "bg-white border border-slate-200"
-          }`}
-          role="presentation"
-          onClick={(e) => e.stopPropagation()}
-        >
+    <ModalOverlay onClose={onClose} nightMode={nightMode} maxWidth="max-w-lg" useGradientBg>
           {/* Header */}
           <div
             className={`flex items-center justify-between px-6 py-4 border-b flex-shrink-0 ${
@@ -353,9 +336,7 @@ const ReportContent: React.FC<ReportContentProps> = ({
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    </>
+    </ModalOverlay>
   );
 };
 

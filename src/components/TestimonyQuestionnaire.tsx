@@ -371,13 +371,6 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                     </div>
                 </div>
 
-                <style>{`
-          @keyframes popOut {
-            0% { transform: scale(0.9); opacity: 0; }
-            60% { transform: scale(1.02); }
-            100% { transform: scale(1); opacity: 1; }
-          }
-        `}</style>
             </>
         );
     }
@@ -485,13 +478,6 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                     </div>
                 </div>
 
-                <style>{`
-          @keyframes popOut {
-            0% { transform: scale(0.9); opacity: 0; }
-            60% { transform: scale(1.02); }
-            100% { transform: scale(1); opacity: 1; }
-          }
-        `}</style>
             </>
         );
     }
@@ -693,22 +679,6 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                 </div>
             </div>
 
-            {/* Animation Styles */}
-            <style>{`
-        @keyframes popOut {
-          0% {
-            transform: scale(0.9);
-            opacity: 0;
-          }
-          60% {
-            transform: scale(1.02);
-          }
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-      `}</style>
         </>
     );
 };

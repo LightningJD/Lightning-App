@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, UserX, AlertCircle, Loader } from "lucide-react";
 import { getBlockedUsers, unblockUser } from "../lib/database";
 import { showSuccess, showError } from "../lib/toast";
+import ModalOverlay from "./ModalOverlay";
 
 interface BlockedUser {
   blockId: string;
@@ -104,33 +105,7 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        role="button"
-        tabIndex={0}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity"
-        onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " " || e.key === "Escape") {
-            e.preventDefault();
-            onClose();
-          }
-        }}
-      />
-
-      {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div
-          className={`w-full max-w-lg max-h-[85vh] rounded-2xl shadow-2xl pointer-events-auto overflow-hidden ${
-            nightMode
-              ? "bg-gradient-to-br from-slate-900 to-slate-800 border border-white/10"
-              : "bg-white border border-slate-200"
-          }`}
-          onClick={(e) => e.stopPropagation()}
-          role="dialog"
-          aria-modal="true"
-        >
+    <ModalOverlay onClose={onClose} nightMode={nightMode} maxWidth="max-w-lg" useGradientBg>
           {/* Header */}
           <div
             className={`flex items-center justify-between px-6 py-4 border-b ${
@@ -313,9 +288,7 @@ const BlockedUsers: React.FC<BlockedUsersProps> = ({
               </div>
             )}
           </div>
-        </div>
-      </div>
-    </>
+    </ModalOverlay>
   );
 };
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ModalOverlay from "./ModalOverlay";
 import {
   X,
   HelpCircle,
@@ -200,32 +201,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
-        onClick={onClose}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            onClose();
-          }
-        }}
-        aria-label="Close modal"
-      />
-
-      {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div
-          role="dialog"
-          aria-modal="true"
-          tabIndex={-1}
-          className={`w-full max-w-3xl rounded-2xl shadow-2xl max-h-[85vh] overflow-hidden flex flex-col ${
-            nightMode ? "bg-[#0a0a0a]" : "bg-white"
-          }`}
-          onClick={(e) => e.stopPropagation()}
-        >
+    <ModalOverlay onClose={onClose} nightMode={nightMode} maxWidth="max-w-3xl">
           {/* Header */}
           <div
             className="p-6"
@@ -439,9 +415,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({
               </button>
             </div>
           </div>
-        </div>
-      </div>
-    </>
+    </ModalOverlay>
   );
 };
 

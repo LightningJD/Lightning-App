@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Phone, Mail, Send, CheckCircle } from "lucide-react";
 import { showError, showSuccess } from "../lib/toast";
 import { validateMessage, sanitizeInput } from "../lib/inputValidation";
+import ModalOverlay from "./ModalOverlay";
 
 interface ContactSupportProps {
   isOpen: boolean;
@@ -92,30 +93,7 @@ const ContactSupport: React.FC<ContactSupportProps> = ({
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Close dialog"
-        onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") onClose();
-        }}
-        className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
-      />
-
-      {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="contact-support-title"
-          className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[85vh] overflow-hidden flex flex-col ${
-            nightMode ? "bg-[#0a0a0a]" : "bg-white"
-          }`}
-          onClick={(e) => e.stopPropagation()}
-        >
+    <ModalOverlay onClose={onClose} nightMode={nightMode} ariaLabelledBy="contact-support-title">
           {/* Header */}
           <div
             className="p-6"
@@ -363,9 +341,7 @@ const ContactSupport: React.FC<ContactSupportProps> = ({
               </div>
             </div>
           )}
-        </div>
-      </div>
-    </>
+    </ModalOverlay>
   );
 };
 

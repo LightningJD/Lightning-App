@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import ModalOverlay from "./ModalOverlay";
 import {
   X,
   Save,
@@ -432,32 +433,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
   if (showIntro) {
     return (
       <>
-        {/* Backdrop */}
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label="Close dialog"
-          onClick={onClose}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") onClose();
-          }}
-          className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
-        />
-
-        {/* Intro Modal */}
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-title"
-            className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${
-              nightMode ? "bg-[#0a0a0a]" : "bg-white"
-            }`}
-            style={{
-              animation: "popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+        <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]" ariaLabelledBy="modal-title">
             {/* Header */}
             <div
               className="p-6"
@@ -543,45 +519,15 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-          </div>
-        </div>
+        </ModalOverlay>
 
-        <style>{`
-          @keyframes popOut {
-            0% { transform: scale(0.9); opacity: 0; }
-            60% { transform: scale(1.02); }
-            100% { transform: scale(1); opacity: 1; }
-          }
-        `}</style>
       </>
     );
   }
 
   return (
     <>
-      {/* Backdrop */}
-      <button
-        type="button"
-        aria-label="Close dialog"
-        onClick={onClose}
-        className="fixed inset-0 bg-black/60 z-50 animate-in fade-in duration-200"
-      />
-
-      {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="dialog-title"
-          className={`w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col ${
-            nightMode ? "bg-[#0a0a0a]" : "bg-white"
-          }`}
-          style={{
-            animation: "popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-            transformOrigin: "center",
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
+      <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]" ariaLabelledBy="dialog-title">
           {/* Header */}
           <div
             className="p-6"
@@ -757,25 +703,8 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
               )}
             </div>
           )}
-        </div>
-      </div>
+      </ModalOverlay>
 
-      {/* Animation Styles */}
-      <style>{`
-        @keyframes popOut {
-          0% {
-            transform: scale(0.9);
-            opacity: 0;
-          }
-          60% {
-            transform: scale(1.02);
-          }
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </>
   );
 };
