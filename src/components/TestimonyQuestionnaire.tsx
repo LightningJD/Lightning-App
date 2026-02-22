@@ -316,7 +316,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                                 <div
                                     className="p-3 rounded-xl"
                                     style={{
-                                        background: nightMode ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.08)',
+                                        background: 'rgba(239,68,68,0.08)',
                                         border: '1px solid rgba(239,68,68,0.2)',
                                     }}
                                 >
@@ -630,7 +630,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                                 <div
                                     className="p-3 rounded-xl"
                                     style={{
-                                        background: nightMode ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.08)',
+                                        background: 'rgba(239,68,68,0.08)',
                                         border: '1px solid rgba(239,68,68,0.2)',
                                     }}
                                 >

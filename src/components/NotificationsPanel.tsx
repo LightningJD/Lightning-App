@@ -119,8 +119,12 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
     <>
       {/* Backdrop */}
       <div
+        role="button"
+        tabIndex={0}
         className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
         onClick={onClose}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
+        aria-label="Close notifications"
       />
 
       {/* Panel — slides in from right */}
