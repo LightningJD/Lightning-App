@@ -2,14 +2,15 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
 import SignInPage from './SignInPage';
 import SignUpPage from './SignUpPage';
+import AuthGuard from './layout/AuthGuard';
+import GlobalProviders from './layout/GlobalProviders';
+import FullScreenLayout from './layout/FullScreenLayout';
+import App from '../App';
+import ChannelChatPage from '../pages/ChannelChatPage';
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
-interface AuthWrapperProps {
-  children: React.ReactNode;
-}
-
-const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
+const AuthWrapper: React.FC = () => {
   if (!CLERK_PUBLISHABLE_KEY) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center p-4">
@@ -35,6 +36,7 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
       <BrowserRouter>
         <Routes>
+          {/* Public auth routes */}
           <Route
             path="/sign-in/*"
             element={
@@ -61,19 +63,22 @@ const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
               </>
             }
           />
-          <Route
-            path="/*"
-            element={
-              <>
-                <SignedIn>
-                  {children}
-                </SignedIn>
-                <SignedOut>
-                  <Navigate to="/sign-in" replace />
-                </SignedOut>
-              </>
-            }
-          />
+
+          {/* Protected routes — all require authentication */}
+          <Route element={<AuthGuard />}>
+            {/* Layer 1: GlobalProviders (shared state, modals, toasts) */}
+            <Route element={<GlobalProviders />}>
+
+              {/* Layer 2b: FullScreenLayout (no header, no nav) */}
+              <Route element={<FullScreenLayout />}>
+                <Route path="/server/:serverId/channel/:channelId" element={<ChannelChatPage />} />
+              </Route>
+
+              {/* Layer 2a: AppLayout (header, bottom nav) — catch-all */}
+              <Route path="/*" element={<App />} />
+
+            </Route>
+          </Route>
         </Routes>
       </BrowserRouter>
     </ClerkProvider>
