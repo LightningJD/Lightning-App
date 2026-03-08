@@ -1,6 +1,7 @@
 import React from "react";
-import { Bell } from "lucide-react";
+import { Bell, MessageCircle } from "lucide-react";
 import { useAppContext } from "../contexts/AppContext";
+import { PHASE } from "../lib/phase";
 
 // ============================================
 // CUSTOM SVG NAV ICONS — colorless outlines
@@ -156,18 +157,48 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                   <button
                     onClick={headerBackAction}
                     className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full active:scale-95 transition-all ${nightMode ? "hover:bg-white/10" : "hover:bg-black/5"}`}
-                    aria-label="Go back to Home"
+                    aria-label={PHASE < 2 ? "Go back to Messages" : "Go back to Home"}
                   >
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                   </button>
                 )}
-                Home
+                {PHASE < 2 ? "Messages" : "Home"}
               </div>
             )}
             {currentTab === "charge" && (
               <div className={`font-semibold text-xl ${nightMode ? "text-slate-100" : "text-black"}`}>Charge</div>
             )}
             <div className="flex items-center gap-2">
+              {/* DM icon — Phase 1 only (Phase 2 has Home tab instead) */}
+              {PHASE < 2 && (
+                <button
+                  onClick={() => setCurrentTab("home")}
+                  className={`relative w-8 h-8 flex items-center justify-center backdrop-blur-sm rounded-full transition-colors shadow-sm ${currentTab === "home" ? (nightMode ? "bg-white/20 border border-white/20" : "bg-white/50 border border-white/30") : (nightMode ? "bg-white/10 border border-white/10 hover:bg-white/20" : "bg-white/30 border border-white/20 hover:bg-white/40")}`}
+                  aria-label="Open messages"
+                >
+                  <MessageCircle className={`w-4 h-4 ${nightMode ? "text-white" : "text-black"}`} />
+                  {(notificationCounts.messages ?? 0) > 0 && (
+                    <div
+                      className="absolute flex items-center justify-center badge-pulse"
+                      style={{
+                        top: "-2px",
+                        right: "-2px",
+                        minWidth: "14px",
+                        height: "14px",
+                        borderRadius: "7px",
+                        fontSize: "8px",
+                        fontWeight: 700,
+                        padding: "0 3px",
+                        background: "#ef4444",
+                        color: "white",
+                        border: `2px solid ${nightMode ? "#0d0b18" : "#d6daf5"}`,
+                      }}
+                    >
+                      {notificationCounts.messages}
+                    </div>
+                  )}
+                </button>
+              )}
               <button
                 onClick={() => setShowNotifications(true)}
                 className={`relative w-8 h-8 flex items-center justify-center backdrop-blur-sm rounded-full transition-colors shadow-sm ${nightMode ? "bg-white/10 border border-white/10 hover:bg-white/20" : "bg-white/30 border border-white/20 hover:bg-white/40"}`}
@@ -243,15 +274,17 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         }
       >
         <div className="flex justify-around items-center" style={{ padding: "6px 16px calc(env(safe-area-inset-bottom, 8px) + 8px)" }}>
-          <NavButton
-            tab="home"
-            label="Home"
-            currentTab={currentTab}
-            nightMode={nightMode}
-            badge={notificationCounts.messages}
-            onClick={() => setCurrentTab("home")}
-            icon={<HomeIcon className="w-5 h-5" strokeWidth={currentTab === "home" ? 2.2 : 1.8} />}
-          />
+          {PHASE >= 2 && (
+            <NavButton
+              tab="home"
+              label="Home"
+              currentTab={currentTab}
+              nightMode={nightMode}
+              badge={notificationCounts.messages}
+              onClick={() => setCurrentTab("home")}
+              icon={<HomeIcon className="w-5 h-5" strokeWidth={currentTab === "home" ? 2.2 : 1.8} />}
+            />
+          )}
           <NavButton
             tab="charge"
             label="Charge"
