@@ -169,36 +169,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               <div className={`font-semibold text-xl ${nightMode ? "text-slate-100" : "text-black"}`}>Charge</div>
             )}
             <div className="flex items-center gap-2">
-              {/* DM icon — Phase 1 only (Phase 2 has Home tab instead) */}
-              {PHASE < 2 && (
-                <button
-                  onClick={() => setCurrentTab("home")}
-                  className={`relative w-8 h-8 flex items-center justify-center backdrop-blur-sm rounded-full transition-colors shadow-sm ${currentTab === "home" ? (nightMode ? "bg-white/20 border border-white/20" : "bg-white/50 border border-white/30") : (nightMode ? "bg-white/10 border border-white/10 hover:bg-white/20" : "bg-white/30 border border-white/20 hover:bg-white/40")}`}
-                  aria-label="Open messages"
-                >
-                  <MessageCircle className={`w-4 h-4 ${nightMode ? "text-white" : "text-black"}`} />
-                  {(notificationCounts.messages ?? 0) > 0 && (
-                    <div
-                      className="absolute flex items-center justify-center badge-pulse"
-                      style={{
-                        top: "-2px",
-                        right: "-2px",
-                        minWidth: "14px",
-                        height: "14px",
-                        borderRadius: "7px",
-                        fontSize: "8px",
-                        fontWeight: 700,
-                        padding: "0 3px",
-                        background: "#ef4444",
-                        color: "white",
-                        border: `2px solid ${nightMode ? "#0d0b18" : "#d6daf5"}`,
-                      }}
-                    >
-                      {notificationCounts.messages}
-                    </div>
-                  )}
-                </button>
-              )}
               <button
                 onClick={() => setShowNotifications(true)}
                 className={`relative w-8 h-8 flex items-center justify-center backdrop-blur-sm rounded-full transition-colors shadow-sm ${nightMode ? "bg-white/10 border border-white/10 hover:bg-white/20" : "bg-white/30 border border-white/20 hover:bg-white/40"}`}
@@ -294,6 +264,48 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             onClick={() => setCurrentTab("charge")}
             icon={<BoltIcon className="w-5 h-5" strokeWidth={currentTab === "charge" ? 2.2 : 1.8} />}
           />
+          {/* Floating DM button — Phase 1 center nav */}
+          {PHASE < 2 && (
+            <button
+              onClick={() => setCurrentTab("home")}
+              className="relative flex items-center justify-center rounded-full transition-all active:scale-95"
+              style={{
+                width: "52px",
+                height: "52px",
+                marginTop: "-28px",
+                background: currentTab === "home"
+                  ? (nightMode ? "linear-gradient(135deg, #7b76e0, #5a54d4)" : "linear-gradient(135deg, #6b8cff, #4f6ef7)")
+                  : (nightMode ? "linear-gradient(135deg, #3d3860, #2a2545)" : "linear-gradient(135deg, #8ea4f0, #7b93e8)"),
+                boxShadow: currentTab === "home"
+                  ? "0 4px 20px rgba(90, 84, 212, 0.5)"
+                  : "0 4px 16px rgba(0, 0, 0, 0.15)",
+                border: nightMode ? "2px solid rgba(123, 118, 224, 0.3)" : "2px solid rgba(255, 255, 255, 0.4)",
+              }}
+              aria-label={`Open messages${(notificationCounts.messages ?? 0) > 0 ? ` (${notificationCounts.messages} unread)` : ""}`}
+            >
+              <MessageCircle className="w-5 h-5 text-white" />
+              {(notificationCounts.messages ?? 0) > 0 && (
+                <div
+                  className="absolute flex items-center justify-center badge-pulse"
+                  style={{
+                    top: "-2px",
+                    right: "-2px",
+                    minWidth: "16px",
+                    height: "16px",
+                    borderRadius: "8px",
+                    fontSize: "9px",
+                    fontWeight: 700,
+                    padding: "0 3px",
+                    background: "#ef4444",
+                    color: "white",
+                    border: `2px solid ${nightMode ? "#0d0b18" : "#d6daf5"}`,
+                  }}
+                >
+                  {notificationCounts.messages}
+                </div>
+              )}
+            </button>
+          )}
           <NavButton
             tab="you"
             label="You"
