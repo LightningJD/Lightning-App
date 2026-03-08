@@ -60,6 +60,7 @@ import {
 import { initSentry, setUser as setSentryUser } from "../lib/sentry";
 import type { UserUpdate } from "../types";
 import type { TestimonyAnswers } from "../lib/api/claude";
+import { PHASE } from "../lib/phase";
 
 // ============================================
 // TYPES
@@ -283,7 +284,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   } = useUserProfile();
   const [localProfile, setLocalProfile] = useState<any>(null);
 
-  const [currentTab, setCurrentTab] = useState("home");
+  const [currentTab, setCurrentTab] = useState(PHASE < 2 ? "charge" : "home");
   const [showMenu, setShowMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [sortBy, setSortBy] = useState("recommended");
