@@ -298,11 +298,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 onClick={() => setCurrentTab("home")}
                 className="relative flex flex-col items-center justify-center rounded-full transition-all active:scale-95"
                 style={{
-                  width: "46px",
-                  height: "46px",
+                  width: "50px",
+                  height: "50px",
+                  marginTop: "-14px",
                   color: dmStyle.color,
-                  background: dmStyle.background,
-                  border: dmStyle.border,
+                  background: "transparent",
+                  border: "1px solid transparent",
                 }}
                 aria-label={`Open messages${(notificationCounts.messages ?? 0) > 0 ? ` (${notificationCounts.messages} unread)` : ""}`}
               >
