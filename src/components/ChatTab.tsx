@@ -10,6 +10,7 @@ import OtherUserProfileDialog from './OtherUserProfileDialog';
 import { ConversationSkeleton } from './SkeletonLoader';
 import SwipeablePageWrapper from './SwipeablePageWrapper';
 import { useAppContext } from '../contexts/AppContext';
+import { PHASE } from '../lib/phase';
 import type { ConversationView as Conversation } from '../types/chat';
 
 // ============================================
@@ -628,8 +629,8 @@ const ChatTab: React.FC<ChatTabProps> = ({
             <DmBubbleIcon className="w-5 h-5" />
           </button>
 
-          {/* Server Icons — gradient circle with letter initials */}
-          {servers.map((server) => {
+          {/* Server Icons — gradient circle with letter initials (Phase 2+) */}
+          {PHASE >= 2 && servers.map((server) => {
             const isActive = view === 'server' && selectedServerId === server.id;
             const gradient = getGradient(server.id);
             const initials = getInitials(server.name);
@@ -665,7 +666,8 @@ const ChatTab: React.FC<ChatTabProps> = ({
             );
           })}
 
-          {/* Create Server Button */}
+          {/* Create Server Button (Phase 2+) */}
+          {PHASE >= 2 && (
           <button
             onClick={() => setShowCreateServer(true)}
             className="flex-shrink-0 flex items-center justify-center transition-all active:scale-95"
@@ -682,6 +684,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
           >
             +
           </button>
+          )}
         </div>
       )}
 
