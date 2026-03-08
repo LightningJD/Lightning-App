@@ -365,7 +365,7 @@ const ChatTab: React.FC<ChatTabProps> = ({
           {isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
-                <ConversationSkeleton key={i} nightMode={nightMode} />
+                <ConversationSkeleton key={i} />
               ))}
             </div>
           ) : dmConversations.length === 0 && friendsWithoutConvos.length === 0 ? (

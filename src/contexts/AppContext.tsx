@@ -428,7 +428,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [userProfile?.supabaseId]);
 
-  // Theme-color meta tag
+  // Theme-color meta tag + Tailwind dark class
   React.useEffect(() => {
     const meta = document.querySelector('meta[name="theme-color"]');
     const darkBg = "#0a0a0a";
@@ -438,6 +438,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       ? darkBg
       : lightBg;
     document.body.style.backgroundColor = nightMode ? darkBg : lightBg;
+    // Toggle Tailwind dark mode class on <html>
+    document.documentElement.classList.toggle("dark", nightMode);
   }, [nightMode]);
 
   // Poll for friend request badges
