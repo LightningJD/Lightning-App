@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, MessageCircle } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useAppContext } from "../contexts/AppContext";
 import { PHASE } from "../lib/phase";
 
@@ -66,6 +66,24 @@ const PersonIcon: React.FC<{ className?: string; strokeWidth?: number }> = ({
   >
     <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
     <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const SendIcon: React.FC<{ className?: string; strokeWidth?: number }> = ({
+  className,
+  strokeWidth = 1.8,
+}) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M22 2L11 13" />
+    <path d="M22 2L15 22 11 13 2 9l20-7z" />
   </svg>
 );
 
@@ -265,47 +283,57 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             icon={<BoltIcon className="w-5 h-5" strokeWidth={currentTab === "charge" ? 2.2 : 1.8} />}
           />
           {/* Floating DM button — Phase 1 center nav */}
-          {PHASE < 2 && (
-            <button
-              onClick={() => setCurrentTab("home")}
-              className="relative flex items-center justify-center rounded-full transition-all active:scale-95"
-              style={{
-                width: "52px",
-                height: "52px",
-                marginTop: "-28px",
-                background: currentTab === "home"
-                  ? (nightMode ? "linear-gradient(135deg, #7b76e0, #5a54d4)" : "linear-gradient(135deg, #6b8cff, #4f6ef7)")
-                  : (nightMode ? "linear-gradient(135deg, #3d3860, #2a2545)" : "linear-gradient(135deg, #8ea4f0, #7b93e8)"),
-                boxShadow: currentTab === "home"
-                  ? "0 4px 20px rgba(90, 84, 212, 0.5)"
-                  : "0 4px 16px rgba(0, 0, 0, 0.15)",
-                border: nightMode ? "2px solid rgba(123, 118, 224, 0.3)" : "2px solid rgba(255, 255, 255, 0.4)",
-              }}
-              aria-label={`Open messages${(notificationCounts.messages ?? 0) > 0 ? ` (${notificationCounts.messages} unread)` : ""}`}
-            >
-              <MessageCircle className="w-5 h-5 text-white" />
-              {(notificationCounts.messages ?? 0) > 0 && (
-                <div
-                  className="absolute flex items-center justify-center badge-pulse"
-                  style={{
-                    top: "-2px",
-                    right: "-2px",
-                    minWidth: "16px",
-                    height: "16px",
-                    borderRadius: "8px",
-                    fontSize: "9px",
-                    fontWeight: 700,
-                    padding: "0 3px",
-                    background: "#ef4444",
-                    color: "white",
-                    border: `2px solid ${nightMode ? "#0d0b18" : "#d6daf5"}`,
-                  }}
-                >
-                  {notificationCounts.messages}
-                </div>
-              )}
-            </button>
-          )}
+          {PHASE < 2 && (() => {
+            const dmActive = currentTab === "home";
+            const dmStyle = nightMode
+              ? dmActive
+                ? { color: "#e8e5f2", background: "rgba(123, 118, 224, 0.18)", border: "1px solid rgba(123, 118, 224, 0.25)" }
+                : { color: "#5d5877", background: nightMode ? "rgba(13, 11, 24, 0.95)" : "rgba(205, 216, 248, 0.8)", border: "1px solid rgba(255, 255, 255, 0.06)" }
+              : dmActive
+                ? { color: "#1e2b4a", background: "rgba(79, 172, 254, 0.15)", border: "1px solid rgba(79, 172, 254, 0.2)" }
+                : { color: "#8e9ec0", background: "rgba(205, 216, 248, 0.8)", border: "1px solid rgba(150, 165, 225, 0.15)" };
+            const badgeBorder = nightMode ? "#0d0b18" : "#d6daf5";
+            return (
+              <button
+                onClick={() => setCurrentTab("home")}
+                className="relative flex flex-col items-center justify-center rounded-full transition-all active:scale-95"
+                style={{
+                  width: "58px",
+                  height: "58px",
+                  marginTop: "-22px",
+                  color: dmStyle.color,
+                  background: dmStyle.background,
+                  border: dmStyle.border,
+                  boxShadow: dmActive
+                    ? (nightMode ? "0 2px 12px rgba(123, 118, 224, 0.25)" : "0 2px 12px rgba(79, 172, 254, 0.2)")
+                    : "0 2px 8px rgba(0, 0, 0, 0.08)",
+                }}
+                aria-label={`Open messages${(notificationCounts.messages ?? 0) > 0 ? ` (${notificationCounts.messages} unread)` : ""}`}
+              >
+                <SendIcon className="w-6 h-6" strokeWidth={dmActive ? 2.2 : 1.8} />
+                {(notificationCounts.messages ?? 0) > 0 && (
+                  <div
+                    className="absolute flex items-center justify-center badge-pulse"
+                    style={{
+                      top: "0px",
+                      right: "2px",
+                      minWidth: "16px",
+                      height: "16px",
+                      borderRadius: "8px",
+                      fontSize: "9px",
+                      fontWeight: 700,
+                      padding: "0 3px",
+                      background: "#ef4444",
+                      color: "white",
+                      border: `2px solid ${badgeBorder}`,
+                    }}
+                  >
+                    {notificationCounts.messages}
+                  </div>
+                )}
+              </button>
+            );
+          })()}
           <NavButton
             tab="you"
             label="You"
