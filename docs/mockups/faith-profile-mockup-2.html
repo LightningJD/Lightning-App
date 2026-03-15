@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mockup 2 — Two Mini-Steps</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: linear-gradient(135deg, #cdd8f8 0%, #d6daf5 40%, #dee0f6 70%, #e4e0f5 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .phone-frame {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .wizard {
+    width: 100%;
+    max-width: 370px;
+    background: linear-gradient(135deg, #cdd8f8 0%, #d6daf5 40%, #dee0f6 70%, #e4e0f5 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(150,165,225,0.15);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.12);
+    overflow: hidden;
+  }
+  .step-label {
+    text-align: center;
+    padding: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #4a5e88;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .progress {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 20px 24px 8px;
+  }
+  .dot {
+    height: 8px;
+    border-radius: 4px;
+    transition: all 0.3s;
+  }
+  .dot.done { width: 8px; background: #4facfe; }
+  .dot.active { width: 20px; background: #4facfe; }
+  .dot.pending { width: 8px; background: rgba(150,165,225,0.15); }
+  .hero {
+    text-align: center;
+    padding: 0 24px 16px;
+  }
+  .hero-icon { font-size: 24px; margin-bottom: 4px; color: #4a5e88; }
+  .hero h2 { font-size: 18px; font-weight: 600; color: #1e2b4a; }
+  .hero p { font-size: 12px; color: #8e9ec0; margin-top: 2px; }
+  .content { padding: 0 24px 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* Avatar section - step A */
+  .avatar-pick {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 16px;
+    border: 1px solid rgba(150,165,225,0.15);
+  }
+  .avatar-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4facfe, #9b96f5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin: 0 auto 12px;
+    border: 3px solid rgba(255,255,255,0.6);
+    box-shadow: 0 6px 20px rgba(79,172,254,0.25);
+  }
+  .avatar-pick h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e2b4a;
+    margin-bottom: 4px;
+  }
+  .avatar-pick p {
+    font-size: 12px;
+    color: #8e9ec0;
+    margin-bottom: 14px;
+  }
+  .emoji-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .emoji-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+    background: rgba(255,255,255,0.4);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .emoji-btn:hover { background: rgba(79,172,254,0.1); border-color: rgba(79,172,254,0.2); }
+  .emoji-btn.selected {
+    background: rgba(79,172,254,0.15);
+    border-color: rgba(79,172,254,0.5);
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(79,172,254,0.2);
+  }
+  .upload-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #2b6cb0;
+    font-weight: 500;
+    margin-top: 8px;
+    cursor: pointer;
+  }
+
+  /* Bio section */
+  .bio-section {
+    padding: 16px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 16px;
+    border: 1px solid rgba(150,165,225,0.15);
+  }
+  .bio-section h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e2b4a;
+    margin-bottom: 8px;
+  }
+  textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(150,165,225,0.15);
+    background: rgba(255,255,255,0.6);
+    color: #1e2b4a;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    resize: none;
+    height: 72px;
+  }
+  textarea:focus { border-color: rgba(79,172,254,0.4); }
+  .char-count {
+    text-align: right;
+    font-size: 10px;
+    color: #8e9ec0;
+    margin-top: 4px;
+  }
+
+  /* Faith fields - step B */
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(0,0,0,0.5);
+    display: block;
+    margin-bottom: 6px;
+  }
+  label .opt { opacity: 0.4; font-weight: 400; }
+  input, select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(150,165,225,0.15);
+    background: rgba(255,255,255,0.6);
+    color: #1e2b4a;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+  }
+  input:focus, select:focus { border-color: rgba(79,172,254,0.4); }
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238e9ec0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  .field-group { display: flex; flex-direction: column; }
+  .row { display: flex; gap: 10px; }
+  .row > .field-group { flex: 1; }
+  .faith-card {
+    padding: 16px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 16px;
+    border: 1px solid rgba(150,165,225,0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .faith-card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e2b4a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 8px 24px 20px;
+    border-top: 1px solid rgba(150,165,225,0.15);
+    display: flex;
+    gap: 8px;
+  }
+  .btn-back {
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    background: transparent;
+    border: 1px solid rgba(150,165,225,0.15);
+    color: #4a5e88;
+    cursor: pointer;
+    flex: 1;
+  }
+  .btn-next {
+    flex: 2;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+    border: none;
+    background: linear-gradient(135deg, #4facfe, #3b82f6);
+    box-shadow: 0 4px 12px rgba(79,172,254,0.25);
+    cursor: pointer;
+  }
+  .skip-link {
+    text-align: center;
+    padding: 6px 24px 12px;
+  }
+  .skip-link a {
+    font-size: 12px;
+    color: #8e9ec0;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .approach-label {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(30,43,74,0.85);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="approach-label">Mockup 2: Two Mini-Steps — Avatar & Bio first, then Faith details</div>
+
+<div class="phone-frame">
+
+  <!-- STEP A: Avatar + Bio -->
+  <div class="wizard">
+    <div class="step-label">Step A of 2</div>
+    <div class="progress">
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot active"></div>
+      <div class="dot pending"></div>
+    </div>
+    <div class="hero">
+      <div class="hero-icon">&#x1F64F;</div>
+      <h2>Make it Yours</h2>
+      <p>Choose an avatar and introduce yourself</p>
+    </div>
+    <div class="content">
+      <div class="avatar-pick">
+        <div class="avatar-ring">🙏</div>
+        <h3>Pick Your Avatar</h3>
+        <p>How do you want to show up?</p>
+        <div class="emoji-row">
+          <button class="emoji-btn">😊</button>
+          <button class="emoji-btn">😇</button>
+          <button class="emoji-btn selected">🙏</button>
+          <button class="emoji-btn">🕊️</button>
+          <button class="emoji-btn">🔥</button>
+          <button class="emoji-btn">🦁</button>
+        </div>
+        <div class="emoji-row">
+          <button class="emoji-btn">📖</button>
+          <button class="emoji-btn">⭐</button>
+          <button class="emoji-btn">💪</button>
+          <button class="emoji-btn">🛡️</button>
+          <button class="emoji-btn">👑</button>
+          <button class="emoji-btn">🌿</button>
+        </div>
+        <div class="upload-link">📷 Or upload a photo</div>
+      </div>
+
+      <div class="bio-section">
+        <h3>About You</h3>
+        <textarea placeholder="Share a little about yourself and your faith walk...">Follower of Christ, worship leader at Grace Community. Love hiking and leading small groups.</textarea>
+        <div class="char-count">84 / 500</div>
+      </div>
+    </div>
+    <div class="footer">
+      <button class="btn-back">Previous</button>
+      <button class="btn-next">Next</button>
+    </div>
+  </div>
+
+  <!-- STEP B: Faith Details -->
+  <div class="wizard">
+    <div class="step-label">Step B of 2</div>
+    <div class="progress">
+      <div class="dot done"></div>
+      <div class="dot done"></div>
+      <div class="dot active"></div>
+      <div class="dot pending"></div>
+    </div>
+    <div class="hero">
+      <div class="hero-icon">&#x271D;&#xFE0F;</div>
+      <h2>Your Faith Journey</h2>
+      <p>This helps others connect with you</p>
+    </div>
+    <div class="content">
+      <div class="faith-card">
+        <h3>&#x1F4D6; Faith Details</h3>
+        <div class="row">
+          <div class="field-group">
+            <label>Year Saved <span class="opt">(optional)</span></label>
+            <input type="text" placeholder="e.g. 2018" value="2015">
+          </div>
+          <div class="field-group">
+            <label>Baptized? <span class="opt">(optional)</span></label>
+            <select>
+              <option value="">Select...</option>
+              <option value="yes" selected>Yes</option>
+              <option value="no">Not yet</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Denomination <span class="opt">(optional)</span></label>
+          <input type="text" placeholder="e.g. Non-denominational" value="Non-denominational">
+        </div>
+        <div class="field-group">
+          <label>Favorite Verse <span class="opt">(optional)</span></label>
+          <input type="text" placeholder="e.g. Jeremiah 29:11" value="Philippians 4:13">
+        </div>
+      </div>
+    </div>
+    <div class="skip-link">
+      <a href="#">Skip — you can add this anytime in Settings</a>
+    </div>
+    <div class="footer">
+      <button class="btn-back">Previous</button>
+      <button class="btn-next">Next</button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
