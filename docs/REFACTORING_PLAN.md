@@ -345,7 +345,7 @@ These changes are mechanical and cannot break functionality.
 ## PHASE 6 — Hardening & Polish (Sessions 7+, ~8-12 hours)
 
 ### Step 6.1 — Centralize Night-Mode Theming
-- [ ] **Status**: Not started
+- [x] **Status**: INFRASTRUCTURE DONE (Mar 8, 2026) — Added `darkMode: 'class'` to Tailwind config, added `dark` class toggle on `<html>` in AppContext + inline script in index.html for flash prevention. Converted `SkeletonLoaders.tsx` as proof of concept (removed nightMode prop, uses `dark:` variants). Remaining: 50+ components still use nightMode prop — convert one at a time in future sessions.
 - **What to do**:
   - Add `darkMode: 'class'` to `tailwind.config.js`
   - Toggle a `dark` class on `<html>` or `<body>` based on nightMode state

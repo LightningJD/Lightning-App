@@ -1341,7 +1341,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
       {isInitialLoad ? (
         <div className="space-y-2">
           {[1, 2, 3, 4].map((i) => (
-            <ConversationSkeleton key={i} nightMode={nightMode} />
+            <ConversationSkeleton key={i} />
           ))}
         </div>
       ) : conversations.length === 0 ? (

@@ -274,13 +274,12 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             />
           )}
           <NavButton
-            tab="charge"
-            label="Charge"
+            tab="you"
+            label="You"
             currentTab={currentTab}
             nightMode={nightMode}
-            badge={notificationCounts.charge}
-            onClick={() => setCurrentTab("charge")}
-            icon={<BoltIcon className="w-5 h-5" strokeWidth={currentTab === "charge" ? 2.2 : 1.8} />}
+            onClick={() => setCurrentTab("you")}
+            icon={<PersonIcon className="w-5 h-5" strokeWidth={currentTab === "you" ? 2.2 : 1.8} />}
           />
           {/* Floating DM button — Phase 1 center nav */}
           {PHASE < 2 && (() => {
@@ -335,12 +334,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             );
           })()}
           <NavButton
-            tab="you"
-            label="You"
+            tab="charge"
+            label="Charge"
             currentTab={currentTab}
             nightMode={nightMode}
-            onClick={() => setCurrentTab("you")}
-            icon={<PersonIcon className="w-5 h-5" strokeWidth={currentTab === "you" ? 2.2 : 1.8} />}
+            badge={notificationCounts.charge}
+            onClick={() => setCurrentTab("charge")}
+            icon={<BoltIcon className="w-5 h-5" strokeWidth={currentTab === "charge" ? 2.2 : 1.8} />}
           />
         </div>
       </div>
