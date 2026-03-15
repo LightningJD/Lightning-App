@@ -11,7 +11,7 @@ import {
   RefreshCw,
   BookOpen,
 } from "lucide-react";
-import { generateTestimony } from "../lib/api/claude";
+import { generateTestimony } from "../lib/api/ai-service";
 
 interface EditTestimonyDialogProps {
   testimony: any;

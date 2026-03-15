@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, ArrowLeft, Sparkles, Loader, Lock, Globe, Link2, BookOpen } from 'lucide-react';
 import { TESTIMONY_QUESTIONS, validateAnswers, getWordCount } from '../config/testimonyQuestions';
-import { generateTestimony, type TestimonyAnswers } from '../lib/api/claude';
+import { generateTestimony, type TestimonyAnswers } from '../lib/api/ai-service';
 import { checkRateLimit, recordAttempt } from '../lib/rateLimiter';
 
 type TestimonyVisibility = 'my_church' | 'all_churches' | 'shareable';

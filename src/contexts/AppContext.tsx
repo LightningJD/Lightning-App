@@ -59,7 +59,7 @@ import {
 } from "../lib/activityTracker";
 import { initSentry, setUser as setSentryUser } from "../lib/sentry";
 import type { UserUpdate } from "../types";
-import type { TestimonyAnswers } from "../lib/api/claude";
+import type { TestimonyAnswers } from "../lib/api/ai-service";
 import { PHASE } from "../lib/phase";
 
 // ============================================

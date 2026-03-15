@@ -1,7 +1,7 @@
 /**
- * Lightning Service for Testimony Generation
+ * Lightning AI Service — Testimony Generation
  *
- * Uses Anthropic Claude API (Sonnet 4) to generate authentic Christian
+ * Model-agnostic AI service. Currently routes through Cloudflare Pages Function proxy.
  * testimonies based on user answers to 4 questions.
  *
  * Authenticity-first approach: Lightning rephrases and polishes the user's
