@@ -41,6 +41,11 @@ interface FormData {
   bio: string;
   location: string;
   avatar: string;
+  // Faith profile fields (new — collected during onboarding)
+  yearSaved: string;
+  baptized: boolean | null;
+  denomination: string;
+  favoriteVerse: string;
 }
 
 interface ProfileCreationWizardProps {
@@ -61,6 +66,11 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
     bio: "", // user can add later in settings
     location: "",
     avatar: "👤", // default, user can change later
+    // Faith profile fields
+    yearSaved: "",
+    baptized: null,
+    denomination: "",
+    favoriteVerse: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,7 +154,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
           return; // Don't advance — show error
         }
       }
-      if (currentStep < 2) {
+      if (currentStep < 3) {
         setCurrentStep(currentStep + 1);
       }
     }
@@ -624,8 +634,143 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
     </div>
   );
 
-  // ── Step 3: Boom ────────────────────────────────────────────
-  const renderStep2 = () => (
+  // ── Step 3: Faith Profile (NEW) ─────────────────────────────
+  const renderStep2 = () => {
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 80 }, (_, i) => String(currentYear - i));
+    const denominations = [
+      "Non-denominational", "Baptist", "Pentecostal", "Charismatic",
+      "Catholic", "Methodist", "Presbyterian", "Lutheran",
+      "Assembly of God", "Church of God", "Anglican/Episcopal",
+      "Apostolic", "Reformed", "Other",
+    ];
+    const avatarOptions = ["👤","✝️","🙏","⚡","🔥","🕊️","🌟","💫","🌊","🌿","🎵","❤️","🦁","🌙","☀️","🫶"];
+
+    return (
+      <div className="space-y-4">
+        {/* Avatar picker */}
+        <div>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: nightMode ? "#9b96b8" : "#5a6a8a" }}>
+            Pick your avatar
+          </label>
+          <div className="grid grid-cols-8 gap-1.5">
+            {avatarOptions.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, avatar: emoji }))}
+                className="text-xl h-9 w-9 rounded-lg flex items-center justify-center transition-all"
+                style={{
+                  background: formData.avatar === emoji
+                    ? (nightMode ? "rgba(123,118,224,0.3)" : "rgba(79,172,254,0.2)")
+                    : (nightMode ? "rgba(255,255,255,0.05)" : "rgba(150,165,225,0.1)"),
+                  border: formData.avatar === emoji
+                    ? `2px solid ${nightMode ? "#7b76e0" : "#4facfe"}`
+                    : `2px solid transparent`,
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Year saved */}
+        <div>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: nightMode ? "#9b96b8" : "#5a6a8a" }}>
+            Year you gave your life to Christ <span style={{ color: nightMode ? "#5d5877" : "#aab0c4" }}>(optional)</span>
+          </label>
+          <select
+            value={formData.yearSaved}
+            onChange={(e) => setFormData(prev => ({ ...prev, yearSaved: e.target.value }))}
+            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+            style={{
+              background: nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.12)",
+              border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(150,165,225,0.2)"}`,
+              color: nightMode ? "#e8e5f2" : "#1e2b4a",
+            }}
+          >
+            <option value="">Select year...</option>
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
+
+        {/* Baptized */}
+        <div>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: nightMode ? "#9b96b8" : "#5a6a8a" }}>
+            Have you been baptized? <span style={{ color: nightMode ? "#5d5877" : "#aab0c4" }}>(optional)</span>
+          </label>
+          <div className="flex gap-2">
+            {[{ label: "Yes", value: true }, { label: "No", value: false }, { label: "Prefer not to say", value: null }].map(opt => (
+              <button
+                key={String(opt.value)}
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, baptized: opt.value }))}
+                className="flex-1 py-2 rounded-xl text-xs font-medium transition-all"
+                style={{
+                  background: formData.baptized === opt.value && opt.value !== null
+                    ? (nightMode ? "rgba(123,118,224,0.3)" : "rgba(79,172,254,0.2)")
+                    : formData.baptized === null && opt.value === null && formData.baptized !== false && formData.baptized !== true
+                      ? (nightMode ? "rgba(123,118,224,0.3)" : "rgba(79,172,254,0.2)")
+                      : (nightMode ? "rgba(255,255,255,0.05)" : "rgba(150,165,225,0.1)"),
+                  border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(150,165,225,0.2)"}`,
+                  color: nightMode ? "#e8e5f2" : "#1e2b4a",
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Denomination */}
+        <div>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: nightMode ? "#9b96b8" : "#5a6a8a" }}>
+            Denomination <span style={{ color: nightMode ? "#5d5877" : "#aab0c4" }}>(optional)</span>
+          </label>
+          <select
+            value={formData.denomination}
+            onChange={(e) => setFormData(prev => ({ ...prev, denomination: e.target.value }))}
+            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+            style={{
+              background: nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.12)",
+              border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(150,165,225,0.2)"}`,
+              color: nightMode ? "#e8e5f2" : "#1e2b4a",
+            }}
+          >
+            <option value="">Select denomination...</option>
+            {denominations.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+        </div>
+
+        {/* Favorite verse */}
+        <div>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: nightMode ? "#9b96b8" : "#5a6a8a" }}>
+            Favorite Bible verse <span style={{ color: nightMode ? "#5d5877" : "#aab0c4" }}>(optional)</span>
+          </label>
+          <input
+            type="text"
+            value={formData.favoriteVerse}
+            onChange={(e) => setFormData(prev => ({ ...prev, favoriteVerse: e.target.value }))}
+            placeholder="e.g. Revelation 12:11"
+            maxLength={100}
+            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
+            style={{
+              background: nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.12)",
+              border: `1px solid ${nightMode ? "rgba(255,255,255,0.1)" : "rgba(150,165,225,0.2)"}`,
+              color: nightMode ? "#e8e5f2" : "#1e2b4a",
+            }}
+          />
+          <p className="text-xs mt-1" style={{ color: nightMode ? "#5d5877" : "#aab0c4" }}>
+            Everything on this step can be skipped and updated later in your profile.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Step 4: Boom ────────────────────────────────────────────
+  const renderStep3 = () => (
     <div className="space-y-4">
       {/* Review card */}
       <div
@@ -715,6 +860,12 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
     },
     {
       icon: <BoltIcon className="w-6 h-6" />,
+      title: "Your Faith Journey",
+      subtitle: "Tell us a little about where you've been",
+      subtitleIsVerse: false,
+    },
+    {
+      icon: <BoltIcon className="w-6 h-6" />,
       title: "Boom",
       subtitle: "His lightning lights up the world; the earth sees and trembles. — Psalm 97:4",
       subtitleIsVerse: true,
@@ -742,7 +893,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
         >
           {/* Progress dots */}
           <div className="flex gap-1.5 justify-center px-6 pt-5 pb-2">
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2, 3].map((i) => (
               <div
                 key={i}
                 className="h-2 rounded-full transition-all"
@@ -792,6 +943,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
             {currentStep === 0 && renderStep0()}
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
+            {currentStep === 3 && renderStep3()}
           </div>
 
           {/* Footer */}
@@ -799,7 +951,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
             className="px-6 pb-5 pt-2"
             style={{ borderTop: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)"}` }}
           >
-            {currentStep < 2 ? (
+            {currentStep < 3 ? (
               <>
                 <div className="flex gap-2">
                   {currentStep > 0 && (
