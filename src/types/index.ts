@@ -36,6 +36,7 @@ export interface User {
   year_saved?: number;
   is_baptized?: boolean;
   year_baptized?: number;
+  relationship_status?: string;
   favorite_verse?: string;
   favorite_verse_ref?: string;
   faith_interests?: string[];

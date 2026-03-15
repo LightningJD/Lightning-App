@@ -201,6 +201,7 @@ export const updateUserProfile = async (userId: string, profileData: ProfileUpda
   if ((profileData as any).year_saved !== undefined) updates.year_saved = (profileData as any).year_saved;
   if ((profileData as any).is_baptized !== undefined) updates.is_baptized = (profileData as any).is_baptized;
   if ((profileData as any).year_baptized !== undefined) updates.year_baptized = (profileData as any).year_baptized;
+  if ((profileData as any).relationship_status !== undefined) updates.relationship_status = (profileData as any).relationship_status;
   if ((profileData as any).favorite_verse !== undefined) updates.favorite_verse = (profileData as any).favorite_verse;
   if ((profileData as any).favorite_verse_ref !== undefined) updates.favorite_verse_ref = (profileData as any).favorite_verse_ref;
   if ((profileData as any).faith_interests !== undefined) updates.faith_interests = (profileData as any).faith_interests;

@@ -41,6 +41,8 @@ interface FormData {
   bio: string;
   location: string;
   avatar: string;
+  relationshipStatus: string;
+  favoriteVerse: string;
 }
 
 interface ProfileCreationWizardProps {
@@ -61,6 +63,8 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
     bio: "", // user can add later in settings
     location: "",
     avatar: "👤", // default, user can change later
+    relationshipStatus: "",
+    favoriteVerse: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,7 +148,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
           return; // Don't advance — show error
         }
       }
-      if (currentStep < 2) {
+      if (currentStep < 3) {
         setCurrentStep(currentStep + 1);
       }
     }
@@ -162,6 +166,8 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
     try {
       await onComplete({
         ...formData,
+        relationship_status: formData.relationshipStatus || undefined,
+        favorite_verse: formData.favoriteVerse || undefined,
         _coords: detectedCoords,
         _churchId: churchResult?.id,
         _pendingChurch: churchResult?._pendingCreate ? churchResult : undefined,
@@ -624,8 +630,216 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
     </div>
   );
 
-  // ── Step 3: Boom ────────────────────────────────────────────
+  // ── Step 3: Faith Profile (Live Preview — Mockup 5) ────────
   const renderStep2 = () => (
+    <div className="space-y-3">
+      {/* Live profile preview card */}
+      <div
+        className="rounded-2xl p-4 text-center relative"
+        style={{
+          background: nightMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.55)",
+          border: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)"}`,
+          ...(nightMode ? {} : { backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }),
+        }}
+      >
+        <div
+          className="absolute top-2.5 right-2.5 text-[9px] font-semibold uppercase tracking-wider"
+          style={{ color: nightMode ? "#7b76e0" : "#4facfe", opacity: 0.6 }}
+        >
+          Live Preview
+        </div>
+        {/* Avatar */}
+        <div
+          className="rounded-full flex items-center justify-center text-white mx-auto mb-2"
+          style={{
+            width: '56px',
+            height: '56px',
+            fontSize: '22px',
+            background: getGradient(),
+            border: "3px solid rgba(255,255,255,0.6)",
+            boxShadow: "0 4px 12px rgba(79,172,254,0.2)",
+          }}
+        >
+          {previewInitial}
+        </div>
+        <div
+          className="text-base font-semibold"
+          style={{ color: nightMode ? "#e8e5f2" : "#1e2b4a" }}
+        >
+          {formData.displayName || "Your Name"}
+        </div>
+        {formData.location && (
+          <div
+            className="text-[11px] mt-0.5"
+            style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}
+          >
+            📍 {formData.location}
+          </div>
+        )}
+        {formData.bio && (
+          <div
+            className="text-xs mt-1.5 italic"
+            style={{ color: nightMode ? "#8e89a8" : "#4a5e88" }}
+          >
+            "{formData.bio}"
+          </div>
+        )}
+        {/* Tags */}
+        <div className="flex gap-1.5 justify-center flex-wrap mt-2.5">
+          {formData.relationshipStatus ? (
+            <span
+              className="px-2.5 py-1 rounded-xl text-[11px] font-medium"
+              style={{
+                background: nightMode ? "rgba(123,118,224,0.1)" : "rgba(79,172,254,0.08)",
+                color: nightMode ? "#9b96f5" : "#2b6cb0",
+                border: `1px solid ${nightMode ? "rgba(123,118,224,0.15)" : "rgba(79,172,254,0.12)"}`,
+              }}
+            >
+              {formData.relationshipStatus}
+            </span>
+          ) : (
+            <span
+              className="px-2.5 py-1 rounded-xl text-[11px] font-medium"
+              style={{
+                background: nightMode ? "rgba(255,255,255,0.03)" : "rgba(150,165,225,0.08)",
+                color: nightMode ? "#5d5877" : "#8e9ec0",
+                border: `1px dashed ${nightMode ? "rgba(255,255,255,0.08)" : "rgba(150,165,225,0.12)"}`,
+              }}
+            >
+              Status
+            </span>
+          )}
+        </div>
+        {/* Verse preview */}
+        {formData.favoriteVerse ? (
+          <div
+            className="mt-2.5 px-3 py-2 rounded-lg text-left"
+            style={{
+              background: nightMode ? "rgba(123,118,224,0.05)" : "rgba(79,172,254,0.05)",
+              borderLeft: `3px solid ${nightMode ? "rgba(123,118,224,0.3)" : "rgba(79,172,254,0.3)"}`,
+            }}
+          >
+            <div
+              className="text-[11px] italic"
+              style={{
+                color: nightMode ? "#8e89a8" : "#4a5e88",
+                fontFamily: "'Playfair Display', Georgia, serif",
+              }}
+            >
+              {formData.favoriteVerse}
+            </div>
+          </div>
+        ) : (
+          <div
+            className="mt-2.5 px-3 py-2 rounded-lg text-left"
+            style={{
+              background: nightMode ? "rgba(255,255,255,0.02)" : "rgba(150,165,225,0.04)",
+              borderLeft: `3px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)"}`,
+            }}
+          >
+            <div
+              className="text-[11px] italic"
+              style={{ color: nightMode ? "#3d3858" : "#b0b8d0" }}
+            >
+              Your favorite verse will appear here
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Live update hint */}
+      <div
+        className="flex items-center gap-1.5 justify-center py-1.5 px-3 rounded-lg text-[11px] font-medium"
+        style={{
+          background: nightMode ? "rgba(123,118,224,0.06)" : "rgba(79,172,254,0.06)",
+          color: nightMode ? "#9b96f5" : "#2b6cb0",
+        }}
+      >
+        <div
+          className="w-1.5 h-1.5 rounded-full animate-pulse"
+          style={{
+            background: nightMode ? "#7b76e0" : "#4facfe",
+          }}
+        />
+        Your profile updates as you type below
+      </div>
+
+      {/* Form fields */}
+      <div className="space-y-2.5">
+        <div
+          className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider"
+          style={{ color: nightMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.4)" }}
+        >
+          <span>About</span>
+          <div className="flex-1 h-px" style={{ background: nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)" }} />
+        </div>
+
+        {/* Bio */}
+        <div>
+          <label htmlFor="faith-bio" style={labelStyle}>
+            Bio <span style={{ opacity: 0.4, fontWeight: 400 }}>(optional)</span>
+          </label>
+          <textarea
+            id="faith-bio"
+            value={formData.bio}
+            onChange={(e) => handleInputChange("bio", e.target.value)}
+            placeholder="A few words about you..."
+            maxLength={200}
+            className="w-full px-3.5 py-2.5 rounded-xl resize-none"
+            rows={2}
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Relationship Status */}
+        <div>
+          <label htmlFor="relationship-status" style={labelStyle}>
+            Relationship Status <span style={{ opacity: 0.4, fontWeight: 400 }}>(optional)</span>
+          </label>
+          <select
+            id="relationship-status"
+            value={formData.relationshipStatus}
+            onChange={(e) => setFormData({ ...formData, relationshipStatus: e.target.value })}
+            className="w-full px-3.5 py-2.5 rounded-xl"
+            style={{
+              ...inputStyle,
+              appearance: "none" as const,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${nightMode ? "%235d5877" : "%238e9ec0"}' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 12px center",
+              paddingRight: "32px",
+            }}
+          >
+            <option value="">Select...</option>
+            <option value="Single">Single</option>
+            <option value="In a relationship">In a relationship</option>
+            <option value="Engaged">Engaged</option>
+            <option value="Married">Married</option>
+          </select>
+        </div>
+
+        {/* Favorite Verse */}
+        <div>
+          <label htmlFor="favorite-verse" style={labelStyle}>
+            Favorite Verse <span style={{ opacity: 0.4, fontWeight: 400 }}>(optional)</span>
+          </label>
+          <input
+            id="favorite-verse"
+            type="text"
+            value={formData.favoriteVerse}
+            onChange={(e) => setFormData({ ...formData, favoriteVerse: e.target.value })}
+            placeholder="e.g. Philippians 4:13"
+            maxLength={200}
+            className="w-full px-3.5 py-2.5 rounded-xl"
+            style={inputStyle}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Step 4: Boom ────────────────────────────────────────────
+  const renderStep3 = () => (
     <div className="space-y-4">
       {/* Review card */}
       <div
@@ -715,6 +929,12 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
     },
     {
       icon: <BoltIcon className="w-6 h-6" />,
+      title: "Build Your Profile",
+      subtitle: "See it come alive as you fill in details",
+      subtitleIsVerse: false,
+    },
+    {
+      icon: <BoltIcon className="w-6 h-6" />,
       title: "Boom",
       subtitle: "His lightning lights up the world; the earth sees and trembles. — Psalm 97:4",
       subtitleIsVerse: true,
@@ -742,7 +962,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
         >
           {/* Progress dots */}
           <div className="flex gap-1.5 justify-center px-6 pt-5 pb-2">
-            {[0, 1, 2].map((i) => (
+            {[0, 1, 2, 3].map((i) => (
               <div
                 key={i}
                 className="h-2 rounded-full transition-all"
@@ -792,6 +1012,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
             {currentStep === 0 && renderStep0()}
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
+            {currentStep === 3 && renderStep3()}
           </div>
 
           {/* Footer */}
@@ -799,7 +1020,7 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
             className="px-6 pb-5 pt-2"
             style={{ borderTop: `1px solid ${nightMode ? "rgba(255,255,255,0.06)" : "rgba(150,165,225,0.15)"}` }}
           >
-            {currentStep < 2 ? (
+            {currentStep < 3 ? (
               <>
                 <div className="flex gap-2">
                   {currentStep > 0 && (
@@ -838,6 +1059,15 @@ const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
                     style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}
                   >
                     Skip for now
+                  </button>
+                )}
+                {currentStep === 2 && (
+                  <button
+                    onClick={handleNext}
+                    className="w-full text-center text-xs font-medium mt-2 py-1"
+                    style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}
+                  >
+                    Skip — add later in Settings
                   </button>
                 )}
               </>
