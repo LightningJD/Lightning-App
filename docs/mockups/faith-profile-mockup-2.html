@@ -63,73 +63,45 @@
   .hero p { font-size: 12px; color: #8e9ec0; margin-top: 2px; }
   .content { padding: 0 24px 16px; display: flex; flex-direction: column; gap: 16px; }
 
-  /* Avatar section - step A */
-  .avatar-pick {
+  /* Photo upload section - step A */
+  .photo-pick {
     text-align: center;
     padding: 20px;
     background: rgba(255,255,255,0.5);
     border-radius: 16px;
     border: 1px solid rgba(150,165,225,0.15);
   }
-  .avatar-ring {
+  .photo-circle {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #4facfe, #9b96f5);
+    background: rgba(79,172,254,0.08);
+    border: 2px dashed rgba(79,172,254,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 36px;
     margin: 0 auto 12px;
-    border: 3px solid rgba(255,255,255,0.6);
-    box-shadow: 0 6px 20px rgba(79,172,254,0.25);
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
   }
-  .avatar-pick h3 {
+  .photo-circle:hover {
+    border-color: rgba(79,172,254,0.5);
+    background: rgba(79,172,254,0.12);
+  }
+  .photo-circle .camera-icon {
+    font-size: 32px;
+    color: #4facfe;
+  }
+  .photo-pick h3 {
     font-size: 15px;
     font-weight: 600;
     color: #1e2b4a;
     margin-bottom: 4px;
   }
-  .avatar-pick p {
+  .photo-pick p {
     font-size: 12px;
     color: #8e9ec0;
-    margin-bottom: 14px;
-  }
-  .emoji-row {
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    margin-bottom: 6px;
-  }
-  .emoji-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    border: 1.5px solid transparent;
-    background: rgba(255,255,255,0.4);
-    font-size: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-  }
-  .emoji-btn:hover { background: rgba(79,172,254,0.1); border-color: rgba(79,172,254,0.2); }
-  .emoji-btn.selected {
-    background: rgba(79,172,254,0.15);
-    border-color: rgba(79,172,254,0.5);
-    transform: scale(1.08);
-    box-shadow: 0 2px 8px rgba(79,172,254,0.2);
-  }
-  .upload-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: #2b6cb0;
-    font-weight: 500;
-    margin-top: 8px;
-    cursor: pointer;
   }
 
   /* Bio section */
@@ -293,27 +265,12 @@
       <p>Choose an avatar and introduce yourself</p>
     </div>
     <div class="content">
-      <div class="avatar-pick">
-        <div class="avatar-ring">🙏</div>
-        <h3>Pick Your Avatar</h3>
-        <p>How do you want to show up?</p>
-        <div class="emoji-row">
-          <button class="emoji-btn">😊</button>
-          <button class="emoji-btn">😇</button>
-          <button class="emoji-btn selected">🙏</button>
-          <button class="emoji-btn">🕊️</button>
-          <button class="emoji-btn">🔥</button>
-          <button class="emoji-btn">🦁</button>
+      <div class="photo-pick">
+        <div class="photo-circle">
+          <span class="camera-icon">&#x1F4F7;</span>
         </div>
-        <div class="emoji-row">
-          <button class="emoji-btn">📖</button>
-          <button class="emoji-btn">⭐</button>
-          <button class="emoji-btn">💪</button>
-          <button class="emoji-btn">🛡️</button>
-          <button class="emoji-btn">👑</button>
-          <button class="emoji-btn">🌿</button>
-        </div>
-        <div class="upload-link">📷 Or upload a photo</div>
+        <h3>Upload a Profile Picture</h3>
+        <p>Tap to choose a photo from your device</p>
       </div>
 
       <div class="bio-section">
@@ -344,24 +301,16 @@
     </div>
     <div class="content">
       <div class="faith-card">
-        <h3>&#x1F4D6; Faith Details</h3>
-        <div class="row">
-          <div class="field-group">
-            <label>Year Saved <span class="opt">(optional)</span></label>
-            <input type="text" placeholder="e.g. 2018" value="2015">
-          </div>
-          <div class="field-group">
-            <label>Baptized? <span class="opt">(optional)</span></label>
-            <select>
-              <option value="">Select...</option>
-              <option value="yes" selected>Yes</option>
-              <option value="no">Not yet</option>
-            </select>
-          </div>
-        </div>
+        <h3>&#x1F4D6; Profile Details</h3>
         <div class="field-group">
-          <label>Denomination <span class="opt">(optional)</span></label>
-          <input type="text" placeholder="e.g. Non-denominational" value="Non-denominational">
+          <label>Relationship Status <span class="opt">(optional)</span></label>
+          <select>
+            <option value="">Select...</option>
+            <option value="single">Single</option>
+            <option value="in_a_relationship">In a relationship</option>
+            <option value="engaged">Engaged</option>
+            <option value="married" selected>Married</option>
+          </select>
         </div>
         <div class="field-group">
           <label>Favorite Verse <span class="opt">(optional)</span></label>

@@ -206,35 +206,29 @@
   .row { display: flex; gap: 10px; }
   .row > .field-group { flex: 1; }
 
-  /* Avatar picker inline */
-  .avatar-inline {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .av-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2px solid transparent;
+  /* Photo upload inline */
+  .photo-upload-area {
+    text-align: center;
+    padding: 16px;
     background: rgba(255,255,255,0.4);
-    font-size: 18px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-  }
-  .av-btn.selected {
-    border-color: #4facfe;
-    background: rgba(79,172,254,0.1);
-    box-shadow: 0 0 0 3px rgba(79,172,254,0.12);
-  }
-  .av-btn.upload-btn {
-    background: rgba(79,172,254,0.06);
+    border-radius: 14px;
     border: 2px dashed rgba(79,172,254,0.25);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .photo-upload-area:hover {
+    border-color: rgba(79,172,254,0.5);
+    background: rgba(79,172,254,0.06);
+  }
+  .photo-upload-area .camera-icon {
+    font-size: 28px;
     color: #4facfe;
-    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .photo-upload-area .upload-text {
+    font-size: 12px;
+    color: #2b6cb0;
+    font-weight: 500;
   }
 
   /* The "live update" hint */
@@ -339,14 +333,12 @@
     <!-- Live profile preview -->
     <div class="preview-card">
       <div class="preview-badge">&#x1F534; Live Preview</div>
-      <div class="preview-avatar">🙏</div>
+      <div class="preview-avatar" style="font-size: 22px;">&#x1F4F7;</div>
       <div class="preview-name">Marcus Johnson</div>
       <div class="preview-loc">&#x1F4CD; Atlanta, GA</div>
       <div class="preview-bio">"Worship leader, father of 3, love hiking and leading small groups."</div>
       <div class="preview-tags">
-        <div class="preview-tag">Saved 2015</div>
-        <div class="preview-tag">Baptized</div>
-        <div class="preview-tag empty">+ Denomination</div>
+        <div class="preview-tag">Married</div>
       </div>
       <div class="preview-verse">
         <div class="preview-verse-text">"I can do all things through Christ who strengthens me."</div>
@@ -362,21 +354,12 @@
     <!-- Form fields -->
     <div class="form-section">
       <div class="section-header">
-        <span>Avatar</span>
+        <span>Profile Picture</span>
         <div class="line"></div>
       </div>
-      <div class="avatar-inline">
-        <div class="av-btn">😊</div>
-        <div class="av-btn">😇</div>
-        <div class="av-btn selected">🙏</div>
-        <div class="av-btn">🕊️</div>
-        <div class="av-btn">🔥</div>
-        <div class="av-btn">📖</div>
-        <div class="av-btn">🦁</div>
-        <div class="av-btn">⭐</div>
-        <div class="av-btn">💪</div>
-        <div class="av-btn">🛡️</div>
-        <div class="av-btn upload-btn">+</div>
+      <div class="photo-upload-area">
+        <div class="camera-icon">&#x1F4F7;</div>
+        <div class="upload-text">Tap to upload a photo</div>
       </div>
     </div>
 
@@ -389,30 +372,15 @@
         <label>Bio <span class="opt">(optional)</span></label>
         <textarea placeholder="A few words about you...">Worship leader, father of 3, love hiking and leading small groups.</textarea>
       </div>
-    </div>
-
-    <div class="form-section">
-      <div class="section-header">
-        <span>Faith Journey</span>
-        <div class="line"></div>
-      </div>
-      <div class="row">
-        <div class="field-group">
-          <label>Year Saved <span class="opt">(opt)</span></label>
-          <input type="text" placeholder="e.g. 2018" value="2015">
-        </div>
-        <div class="field-group">
-          <label>Baptized? <span class="opt">(opt)</span></label>
-          <select>
-            <option>Select...</option>
-            <option selected>Yes</option>
-            <option>Not yet</option>
-          </select>
-        </div>
-      </div>
       <div class="field-group">
-        <label>Denomination <span class="opt">(optional)</span></label>
-        <input type="text" placeholder="e.g. Non-denominational">
+        <label>Relationship Status <span class="opt">(optional)</span></label>
+        <select>
+          <option>Select...</option>
+          <option>Single</option>
+          <option>In a relationship</option>
+          <option>Engaged</option>
+          <option selected>Married</option>
+        </select>
       </div>
       <div class="field-group">
         <label>Favorite Verse <span class="opt">(optional)</span></label>

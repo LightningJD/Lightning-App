@@ -166,30 +166,33 @@
     font-weight: 600;
   }
 
-  /* Avatar in chat */
-  .emoji-inline {
+  /* Photo upload in chat */
+  .photo-upload-chat {
     display: flex;
-    gap: 6px;
     justify-content: flex-end;
-    flex-wrap: wrap;
   }
-  .emoji-chat-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    background: rgba(255,255,255,0.5);
-    font-size: 20px;
-    cursor: pointer;
+  .photo-upload-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 14px 14px 4px 14px;
+    border: 2px dashed rgba(79,172,254,0.3);
+    background: rgba(79,172,254,0.06);
+    cursor: pointer;
+    transition: all 0.2s;
   }
-  .emoji-chat-btn.selected {
-    border-color: #4facfe;
-    background: rgba(79,172,254,0.12);
-    transform: scale(1.08);
+  .photo-upload-btn:hover {
+    border-color: rgba(79,172,254,0.5);
+    background: rgba(79,172,254,0.1);
+  }
+  .photo-upload-btn .camera-icon {
+    font-size: 24px;
+  }
+  .photo-upload-btn .upload-text {
+    font-size: 13px;
+    color: #2b6cb0;
+    font-weight: 500;
   }
 
   /* Typing indicator */
@@ -293,24 +296,20 @@
   </div>
 
   <div class="chat-flow">
-    <!-- Q1: Avatar -->
+    <!-- Q1: Profile Picture -->
     <div class="q-block">
       <div class="q-bubble">
         <div class="q-avatar">&#x26A1;</div>
         <div class="q-text">
           <div class="name">Lightning</div>
-          First things first — pick an emoji that represents you! &#x1F60A;
+          First things first — upload a profile picture so people can recognize you! &#x1F4F7;
         </div>
       </div>
-      <div class="emoji-inline">
-        <button class="emoji-chat-btn">😊</button>
-        <button class="emoji-chat-btn">😇</button>
-        <button class="emoji-chat-btn selected">🙏</button>
-        <button class="emoji-chat-btn">🕊️</button>
-        <button class="emoji-chat-btn">🔥</button>
-        <button class="emoji-chat-btn">📖</button>
-        <button class="emoji-chat-btn">🦁</button>
-        <button class="emoji-chat-btn">⭐</button>
+      <div class="photo-upload-chat">
+        <div class="photo-upload-btn">
+          <span class="camera-icon">&#x1F4F7;</span>
+          <span class="upload-text">Tap to upload a photo</span>
+        </div>
       </div>
     </div>
 
@@ -320,7 +319,7 @@
         <div class="q-avatar">&#x26A1;</div>
         <div class="q-text">
           <div class="name">Lightning</div>
-          Great choice! Now tell us a bit about yourself &#x2014; just a sentence or two is perfect.
+          Now tell us a bit about yourself &#x2014; just a sentence or two is perfect.
         </div>
       </div>
       <div class="a-bubble">
@@ -330,37 +329,24 @@
       </div>
     </div>
 
-    <!-- Q3: Year saved -->
+    <!-- Q3: Relationship Status -->
     <div class="q-block">
       <div class="q-bubble">
         <div class="q-avatar">&#x26A1;</div>
         <div class="q-text">
           <div class="name">Lightning</div>
-          When did you give your life to Christ?
-        </div>
-      </div>
-      <div class="a-bubble">
-        <div class="a-filled">2015</div>
-      </div>
-    </div>
-
-    <!-- Q4: Baptized -->
-    <div class="q-block">
-      <div class="q-bubble">
-        <div class="q-avatar">&#x26A1;</div>
-        <div class="q-text">
-          <div class="name">Lightning</div>
-          Have you been baptized? &#x1F4A7;
+          What's your relationship status? &#x1F48D;
         </div>
       </div>
       <div class="pill-row">
-        <div class="pill selected">Yes &#x2714;&#xFE0F;</div>
-        <div class="pill">Not yet</div>
-        <div class="pill">Prefer not to say</div>
+        <div class="pill">Single</div>
+        <div class="pill">In a relationship</div>
+        <div class="pill">Engaged</div>
+        <div class="pill selected">Married &#x2714;&#xFE0F;</div>
       </div>
     </div>
 
-    <!-- Q5: Favorite verse -->
+    <!-- Q4: Favorite verse -->
     <div class="q-block">
       <div class="q-bubble">
         <div class="q-avatar">&#x26A1;</div>

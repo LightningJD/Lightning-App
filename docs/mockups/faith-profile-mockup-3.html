@@ -43,52 +43,45 @@
   .hero p { font-size: 12px; color: #8e9ec0; margin-top: 2px; }
   .content { padding: 0 24px 12px; display: flex; flex-direction: column; gap: 14px; }
 
-  /* Avatar as horizontal scroll */
-  .avatar-strip {
+  /* Photo upload */
+  .photo-section {
+    text-align: center;
+    padding: 20px;
     background: rgba(255,255,255,0.5);
     border-radius: 16px;
     border: 1px solid rgba(150,165,225,0.15);
-    padding: 14px;
   }
-  .avatar-strip h3 {
+  .photo-section h3 {
     font-size: 12px;
     font-weight: 600;
     color: rgba(0,0,0,0.5);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
   }
-  .avatar-scroll {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .avatar-scroll::-webkit-scrollbar { display: none; }
-  .avatar-opt {
-    min-width: 48px;
-    height: 48px;
+  .photo-circle {
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
-    border: 2px solid transparent;
-    background: rgba(255,255,255,0.5);
-    font-size: 24px;
+    background: rgba(79,172,254,0.08);
+    border: 2px dashed rgba(79,172,254,0.3);
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto 8px;
     cursor: pointer;
-    transition: all 0.15s;
-    flex-shrink: 0;
+    transition: all 0.2s;
   }
-  .avatar-opt.selected {
-    border-color: #4facfe;
-    background: rgba(79,172,254,0.1);
-    box-shadow: 0 0 0 3px rgba(79,172,254,0.15);
-    transform: scale(1.05);
+  .photo-circle:hover {
+    border-color: rgba(79,172,254,0.5);
+    background: rgba(79,172,254,0.12);
   }
-  .avatar-opt.upload {
-    background: rgba(79,172,254,0.08);
-    border: 2px dashed rgba(79,172,254,0.3);
-    font-size: 18px;
+  .photo-circle .camera-icon {
+    font-size: 28px;
     color: #4facfe;
+  }
+  .photo-hint {
+    font-size: 11px;
+    color: #8e9ec0;
   }
 
   /* Tappable info cards */
@@ -281,24 +274,13 @@
   </div>
 
   <div class="content">
-    <!-- Avatar horizontal scroll -->
-    <div class="avatar-strip">
-      <h3>YOUR AVATAR</h3>
-      <div class="avatar-scroll">
-        <div class="avatar-opt selected">🙏</div>
-        <div class="avatar-opt">😊</div>
-        <div class="avatar-opt">😇</div>
-        <div class="avatar-opt">🕊️</div>
-        <div class="avatar-opt">🔥</div>
-        <div class="avatar-opt">📖</div>
-        <div class="avatar-opt">🦁</div>
-        <div class="avatar-opt">⭐</div>
-        <div class="avatar-opt">💪</div>
-        <div class="avatar-opt">🛡️</div>
-        <div class="avatar-opt">👑</div>
-        <div class="avatar-opt">🌿</div>
-        <div class="avatar-opt upload">+</div>
+    <!-- Profile Photo Upload -->
+    <div class="photo-section">
+      <h3>Profile Picture</h3>
+      <div class="photo-circle">
+        <span class="camera-icon">&#x1F4F7;</span>
       </div>
+      <div class="photo-hint">Tap to upload a photo</div>
     </div>
 
     <!-- Bio -->
@@ -307,24 +289,13 @@
       <textarea placeholder="A few words about you and your faith..."></textarea>
     </div>
 
-    <!-- Tappable faith cards -->
+    <!-- Tappable profile cards -->
     <div class="info-cards">
       <div class="info-card filled">
         <div class="check">&#x2713;</div>
-        <div class="card-icon">&#x1F4C5;</div>
-        <div class="card-label">Year Saved</div>
-        <div class="card-value">2015</div>
-      </div>
-      <div class="info-card filled">
-        <div class="check">&#x2713;</div>
-        <div class="card-icon">&#x1F4A7;</div>
-        <div class="card-label">Baptized</div>
-        <div class="card-value">Yes</div>
-      </div>
-      <div class="info-card">
-        <div class="card-icon">&#x26EA;</div>
-        <div class="card-label">Denomination</div>
-        <div class="card-placeholder">Tap to add</div>
+        <div class="card-icon">&#x1F48D;</div>
+        <div class="card-label">Relationship</div>
+        <div class="card-value">Married</div>
       </div>
       <div class="info-card filled">
         <div class="check">&#x2713;</div>
@@ -337,9 +308,9 @@
     <!-- Completion indicator -->
     <div class="completion">
       <div class="completion-bar">
-        <div class="completion-fill"></div>
+        <div class="completion-fill" style="width: 80%;"></div>
       </div>
-      <div class="completion-text">3 of 5 filled — looking great!</div>
+      <div class="completion-text">4 of 5 filled — looking great!</div>
     </div>
   </div>
 
