@@ -41,9 +41,9 @@ export const TESTIMONY_QUESTIONS: TestimonyQuestion[] = [
     },
     {
         id: 'question4',
-        question: 'Where are you now in your walk with God?',
-        placeholder: 'Share where you are now — your relationship with God, what He\'s doing in your life, what you\'re being called to...',
-        hint: 'What is your current relationship with Him like? Are you being called to something today? How is your life now?',
+        question: 'What do you believe God is calling you to do now? What are you being led to? How is your walk with Him today?',
+        placeholder: 'Share what you feel God is calling you toward — your current walk with Him, what He\'s leading you into...',
+        hint: 'What do you sense God calling you to? What are you being led toward? How is your relationship with Him right now?',
         minLength: 70,
         suggestedLength: 200
     }
