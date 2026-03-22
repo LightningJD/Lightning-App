@@ -354,7 +354,7 @@ These changes are mechanical and cannot break functionality.
 - **Risk**: Low — visual regressions only, easily caught
 
 ### Step 6.2 — Add Component Tests
-- [ ] **Status**: Not started
+- [x] **Status**: DONE (Mar 22, 2026) — 50 tests across 4 files: SignInPage (7), SignUpPage (8), ErrorBoundary (22), ProfileCreationWizard (13). All pass. Pre-existing failures in musicUtils/friendSystem/inputValidation are unrelated.
 - **What to do**:
   - Add tests for: `SignInPage`, `SignUpPage`, `ProfileCreationWizard`, `ErrorBoundary`
   - Mock Clerk auth, mock Supabase client
