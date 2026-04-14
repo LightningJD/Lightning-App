@@ -141,7 +141,7 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
 <div class="scene" id="s12">
   <!-- walkie circle -->
   <div class="ic" id="s12w" style="left:740px;top:170px">
-    <div class="cicon-lg" style="background:#F0F4F8">
+    <div class="cicon-lg" style="background:transparent">
       <svg viewBox="0 0 80 120" width="160" height="240">
         <!-- walkie body -->
         <rect x="12" y="28" width="56" height="86" rx="10" fill="#7EC8E3"/>
@@ -165,7 +165,7 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
   </svg>
   <!-- monitor circle -->
   <div class="ic" id="s12m" style="left:320px;top:170px">
-    <div class="cicon-lg" style="background:#F0F4F8">
+    <div class="cicon-lg" style="background:transparent">
       <svg viewBox="0 0 100 90" width="200" height="180">
         <!-- monitor -->
         <rect x="4" y="0" width="92" height="62" rx="6" fill="#7EC8E3"/>
@@ -402,21 +402,21 @@ function makeRefine(){
     const machY=beltY-machH+20;
 
     // --- CONVEYOR BELT ---
-    cx.fillStyle='#222';
+    cx.fillStyle='#7EC8E3';
     cx.beginPath();cx.roundRect(60,beltY,1160,beltH,6);cx.fill();
     const beltSpeed=el*.08;
-    cx.strokeStyle='#333';cx.lineWidth=1.5;
+    cx.strokeStyle='#94D4ED';cx.lineWidth=1.5;
     for(let i=0;i<30;i++){
       const x=((60+i*42+beltSpeed)%1180)+60;
       if(x>60&&x<1220){cx.beginPath();cx.moveTo(x,beltY+4);cx.lineTo(x,beltY+beltH-4);cx.stroke();}
     }
-    cx.fillStyle='#2a2a2a';
+    cx.fillStyle='#6AB7D2';
     cx.beginPath();cx.arc(100,beltY+beltH+10,16,0,Math.PI*2);cx.fill();
     cx.beginPath();cx.arc(1180,beltY+beltH+10,16,0,Math.PI*2);cx.fill();
-    cx.fillStyle='#333';
+    cx.fillStyle='#94D4ED';
     cx.beginPath();cx.arc(100,beltY+beltH+10,6,0,Math.PI*2);cx.fill();
     cx.beginPath();cx.arc(1180,beltY+beltH+10,6,0,Math.PI*2);cx.fill();
-    cx.fillStyle='#1a1a1a';
+    cx.fillStyle='#58A8C3';
     cx.fillRect(88,beltY+beltH+24,24,80);
     cx.fillRect(1168,beltY+beltH+24,24,80);
 
@@ -495,7 +495,7 @@ function makeRefine(){
       const x=rockX-4+Math.cos(a)*(sz*.7+jag),y=rockY-4+Math.sin(a)*(sz*.5+jag*.4);
       if(i===0)cx.moveTo(x,y);else cx.lineTo(x,y);}
       cx.closePath();cx.fill();
-      cx.fillStyle='#6DEBB8';
+      cx.fillStyle='#7EC8E3';
       cx.beginPath();cx.moveTo(rockX+8,rockY-sz+2);cx.lineTo(rockX+16,rockY-sz-14);cx.lineTo(rockX+24,rockY-sz+2);cx.closePath();cx.fill();
     }
 
