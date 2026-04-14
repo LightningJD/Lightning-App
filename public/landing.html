@@ -28,8 +28,8 @@
     100% { transform: translateX(-50%); }
   }
   @keyframes bannerGlow {
-    0%, 100% { text-shadow: 0 0 8px rgba(255,218,100,.3); }
-    50% { text-shadow: 0 0 20px rgba(255,218,100,.6), 0 0 40px rgba(255,218,100,.2); }
+    0%, 100% { text-shadow: 0 0 8px rgba(147,197,253,.3); }
+    50% { text-shadow: 0 0 20px rgba(147,197,253,.6), 0 0 40px rgba(147,197,253,.2); }
   }
   .grand-banner {
     position: fixed;
@@ -37,8 +37,8 @@
     left: 0;
     right: 0;
     z-index: 1000;
-    background: linear-gradient(90deg, #0a1a3e, #1a2e5c, #0a1a3e);
-    border-bottom: 2px solid rgba(255,218,100,.3);
+    background: linear-gradient(90deg, #2563EB, #3B82F6, #2563EB);
+    border-bottom: 2px solid rgba(59,130,246,.5);
     overflow: hidden;
     height: 44px;
     display: flex;
@@ -58,7 +58,7 @@
     padding: 0 60px;
     animation: bannerGlow 3s ease-in-out infinite;
   }
-  .banner-item .star { color: rgba(255,218,100,.8); margin: 0 12px; }
+  .banner-item .star { color: rgba(255,255,255,.7); margin: 0 12px; }
 
   @keyframes powderIn {
     0%   { opacity: 0; transform: scale(0.5); }
@@ -559,10 +559,10 @@
 <!-- Grand Opening Banner -->
 <div class="grand-banner">
   <div class="banner-track">
-    <span class="banner-item"><span class="star">&#10038;</span> MAY 15 LAUNCH DAY <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
-    <span class="banner-item"><span class="star">&#10038;</span> MAY 15 LAUNCH DAY <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
-    <span class="banner-item"><span class="star">&#10038;</span> MAY 15 LAUNCH DAY <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
-    <span class="banner-item"><span class="star">&#10038;</span> MAY 15 LAUNCH DAY <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
+    <span class="banner-item"><span class="star">&#10038;</span> <span class="banner-cd"></span> <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
+    <span class="banner-item"><span class="star">&#10038;</span> <span class="banner-cd"></span> <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
+    <span class="banner-item"><span class="star">&#10038;</span> <span class="banner-cd"></span> <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
+    <span class="banner-item"><span class="star">&#10038;</span> <span class="banner-cd"></span> <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
   </div>
 </div>
 
@@ -594,16 +594,6 @@
   </section>
 
   
-    <!-- —— Countdown Timer —— -->
-    <div style="text-align:center;padding:10px 24px 20px;max-width:700px;margin:0 auto;">
-      <p style="font-size:11px;letter-spacing:3px;color:rgba(255,218,140,0.6);font-family:monospace;text-transform:uppercase;margin-bottom:16px;">Launching in</p>
-      <div id="countdown" style="display:flex;justify-content:center;gap:24px;">
-        <div style="text-align:center;"><span id="cd-days" style="font-size:clamp(28px,5vw,42px);font-weight:700;color:white;display:block;">--</span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);font-family:monospace;">DAYS</span></div>
-        <div style="text-align:center;"><span id="cd-hours" style="font-size:clamp(28px,5vw,42px);font-weight:700;color:white;display:block;">--</span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);font-family:monospace;">HOURS</span></div>
-        <div style="text-align:center;"><span id="cd-mins" style="font-size:clamp(28px,5vw,42px);font-weight:700;color:white;display:block;">--</span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);font-family:monospace;">MINS</span></div>
-        <div style="text-align:center;"><span id="cd-secs" style="font-size:clamp(28px,5vw,42px);font-weight:700;color:white;display:block;">--</span><span style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.3);font-family:monospace;">SECS</span></div>
-      </div>
-    </div>
 
     <!-- ── Explainer Video ── -->
   <div class="explainer-outer">
@@ -703,7 +693,7 @@
   <footer class="footer">
     <span class="logo">LIGHTNING</span>
     <div class="meta">
-      <span>MAY 15 LAUNCH DAY</span>
+      <span><span class="banner-cd"></span></span>
       <span style="opacity:0.4;">•</span>
       <span>INVITE ONLY</span>
             <span style="opacity:0.4;">&bull;</span>
@@ -788,22 +778,6 @@
   });
 
     // —— Countdown Timer ——
-    function updateCountdown() {
-      var launch = new Date('2026-05-15T00:00:00').getTime();
-      var now = new Date().getTime();
-      var diff = launch - now;
-      if (diff <= 0) { document.getElementById('countdown').innerHTML = '<p style="font-size:24px;font-weight:700;color:rgba(160,230,200,0.9);">WE\'RE LIVE!</p>'; return; }
-      var d = Math.floor(diff / (1000*60*60*24));
-      var h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
-      var m = Math.floor((diff % (1000*60*60)) / (1000*60));
-      var s = Math.floor((diff % (1000*60)) / 1000);
-      document.getElementById('cd-days').textContent = d;
-      document.getElementById('cd-hours').textContent = h;
-      document.getElementById('cd-mins').textContent = m;
-      document.getElementById('cd-secs').textContent = s;
-    }
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
 
     </script>
 
@@ -839,8 +813,8 @@
     100% { transform: translateX(-50%); }
   }
   @keyframes bannerGlow {
-    0%, 100% { text-shadow: 0 0 8px rgba(255,218,100,.3); }
-    50% { text-shadow: 0 0 20px rgba(255,218,100,.6), 0 0 40px rgba(255,218,100,.2); }
+    0%, 100% { text-shadow: 0 0 8px rgba(147,197,253,.3); }
+    50% { text-shadow: 0 0 20px rgba(147,197,253,.6), 0 0 40px rgba(147,197,253,.2); }
   }
   .grand-banner {
     position: fixed;
@@ -848,8 +822,8 @@
     left: 0;
     right: 0;
     z-index: 1000;
-    background: linear-gradient(90deg, #0a1a3e, #1a2e5c, #0a1a3e);
-    border-bottom: 2px solid rgba(255,218,100,.3);
+    background: linear-gradient(90deg, #2563EB, #3B82F6, #2563EB);
+    border-bottom: 2px solid rgba(59,130,246,.5);
     overflow: hidden;
     height: 44px;
     display: flex;
@@ -869,7 +843,7 @@
     padding: 0 60px;
     animation: bannerGlow 3s ease-in-out infinite;
   }
-  .banner-item .star { color: rgba(255,218,100,.8); margin: 0 12px; }
+  .banner-item .star { color: rgba(255,255,255,.7); margin: 0 12px; }
 
   @keyframes powderIn {
     0%   { opacity: 0; transform: scale(0.5); }
@@ -1370,10 +1344,10 @@
 <!-- Grand Opening Banner -->
 <div class="grand-banner">
   <div class="banner-track">
-    <span class="banner-item"><span class="star">&#10038;</span> MAY 15 LAUNCH DAY <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
-    <span class="banner-item"><span class="star">&#10038;</span> MAY 15 LAUNCH DAY <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
-    <span class="banner-item"><span class="star">&#10038;</span> MAY 15 LAUNCH DAY <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
-    <span class="banner-item"><span class="star">&#10038;</span> MAY 15 LAUNCH DAY <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
+    <span class="banner-item"><span class="star">&#10038;</span> <span class="banner-cd"></span> <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
+    <span class="banner-item"><span class="star">&#10038;</span> <span class="banner-cd"></span> <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
+    <span class="banner-item"><span class="star">&#10038;</span> <span class="banner-cd"></span> <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
+    <span class="banner-item"><span class="star">&#10038;</span> <span class="banner-cd"></span> <span class="star">&#10038;</span> INVITE ONLY <span class="star">&#10038;</span> FIRST 20 TO SIGN UP GET A SPECIAL GIFT <span class="star">&#10038;</span> DROP YOUR EMAIL BELOW <span class="star">&#10038;</span></span>
   </div>
 </div>
 
@@ -1502,7 +1476,7 @@
   <footer class="footer">
     <span class="logo">LIGHTNING</span>
     <div class="meta">
-      <span>MAY 15 LAUNCH DAY</span>
+      <span><span class="banner-cd"></span></span>
       <span style="opacity:0.4;">•</span>
       <span>INVITE ONLY</span>
     </div>
@@ -1583,6 +1557,22 @@
     }
     document.removeEventListener('click', unmuteIframe);
   });
+
+    // Banner Countdown
+    function updateBannerCD() {
+      var launch = new Date('2026-05-15T00:00:00').getTime();
+      var now = new Date().getTime();
+      var diff = launch - now;
+      var text = 'MAY 15 LAUNCH DAY';
+      if (diff > 0) {
+        var d = Math.floor(diff / (1000*60*60*24));
+        var h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+        text = d + ' DAYS ' + h + ' HRS TO LAUNCH';
+      }
+      document.querySelectorAll('.banner-cd').forEach(function(el) { el.textContent = text; });
+    }
+    updateBannerCD();
+    setInterval(updateBannerCD, 60000);
 </script>
 
 </body>
