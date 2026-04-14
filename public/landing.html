@@ -576,7 +576,7 @@
     }
 
     body.light-mode .explainer-outer {
-      background: rgba(210,220,240,0.45);
+      background: transparent;
       border-radius: 20px;
     }
 
@@ -647,6 +647,65 @@
     body.light-mode .footer span,
     body.light-mode .footer a,
     body.light-mode .footer p { color: #5a5a7a; }
+
+    /* ── Light Mode Text Shadows & Outlines ── */
+    body.light-mode .hero h1 {
+      text-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 20px rgba(255,255,255,0.5);
+    }
+    body.light-mode .hero .subhead {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    body.light-mode .email-standalone h2 {
+      text-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    }
+    body.light-mode .serving h2,
+    body.light-mode .serving .subhead {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    body.light-mode .church-connect h2 {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* Banner text outline for light mode */
+    body.light-mode .grand-banner .banner-item {
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    /* Email input & button outlines */
+    body.light-mode .email-standalone input,
+    body.light-mode .church-connect input {
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06), inset 0 1px 2px rgba(0,0,0,0.04);
+    }
+    body.light-mode .email-standalone button,
+    body.light-mode .church-connect button {
+      box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    }
+
+    /* HOW IT WORKS cards get subtle shadow */
+    body.light-mode .how-card {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    /* Reward badge shadow */
+    body.light-mode .email-standalone .reward-badge {
+      box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+    }
+
+    /* Launch button outline */
+    body.light-mode .launch-btn {
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      text-shadow: 0 0 1px rgba(0,0,0,0.1);
+    }
+
+    /* Footer subtle top shadow */
+    body.light-mode .footer {
+      box-shadow: 0 -1px 8px rgba(0,0,0,0.04);
+    }
+
+    /* Divider lines more visible */
+    body.light-mode .v-divider {
+      opacity: 0.7;
+    }
 
     /* Theme toggle button */
     .theme-toggle {
@@ -935,6 +994,11 @@
       const isLight = document.body.classList.contains('light-mode');
       btn.innerHTML = isLight ? '&#9728;' : '&#9790;';
       localStorage.setItem('lightning-theme', isLight ? 'light' : 'dark');
+      // Tell the explainer iframe about the theme change
+      const iframe = document.querySelector('iframe');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({ theme: isLight ? 'light' : 'dark' }, '*');
+      }
     }
     // Restore saved theme
     (function() {
@@ -944,6 +1008,15 @@
         const btn = document.querySelector('.theme-toggle');
         if (btn) btn.innerHTML = '\u2600';
       }
+      // Send theme to iframe once it loads
+      window.addEventListener('load', function() {
+        const iframe = document.querySelector('iframe');
+        if (iframe && iframe.contentWindow && saved === 'light') {
+          setTimeout(function() {
+            iframe.contentWindow.postMessage({ theme: 'light' }, '*');
+          }, 500);
+        }
+      });
     })();
   </script>
   <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode">&#9790;</button>
