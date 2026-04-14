@@ -2,4 +2,6 @@
 # This ensures React Router works properly with client-side routing
 
 / /landing.html 200
+/sign-in /landing.html 302
+/sign-up /landing.html 302
 /* /index.html 200
