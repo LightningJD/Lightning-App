@@ -417,7 +417,7 @@ function makeOpening(){
         const dx=lx, dy=CY+bob-R-18;
         const dApp=Math.min((t3-.2)/.15,1);
         cx.globalAlpha=dApp;
-        cx.fillStyle='#6DEBB8';cx.beginPath();
+        cx.fillStyle='#7EC8E3';cx.beginPath();
         cx.moveTo(dx,dy-38);cx.lineTo(dx+26,dy-10);cx.lineTo(dx+20,dy+2);cx.lineTo(dx,dy+24);cx.lineTo(dx-20,dy+2);cx.lineTo(dx-26,dy-10);cx.closePath();cx.fill();
         cx.fillStyle='rgba(40,100,140,.4)';cx.beginPath();cx.moveTo(dx-26,dy-10);cx.lineTo(dx,dy+24);cx.lineTo(dx-20,dy+2);cx.closePath();cx.fill();
         cx.fillStyle='rgba(40,100,140,.25)';cx.beginPath();cx.moveTo(dx+26,dy-10);cx.lineTo(dx,dy+24);cx.lineTo(dx+20,dy+2);cx.closePath();cx.fill();
@@ -536,7 +536,7 @@ function makeRefine(){
       const x=rockX-4+Math.cos(a)*(sz*.7+jag),y=rockY-4+Math.sin(a)*(sz*.5+jag*.4);
       if(i===0)cx.moveTo(x,y);else cx.lineTo(x,y);}
       cx.closePath();cx.fill();
-      cx.fillStyle='#7EC8E3';
+      cx.fillStyle='#6DEBB8';
       cx.beginPath();cx.moveTo(rockX+6,rockY-sz+2);cx.lineTo(rockX+13,rockY-sz-12);cx.lineTo(rockX+20,rockY-sz+2);cx.closePath();cx.fill();cx.beginPath();cx.moveTo(rockX+18,rockY-sz+6);cx.lineTo(rockX+26,rockY-sz-8);cx.lineTo(rockX+32,rockY-sz+6);cx.closePath();cx.fill();
     }
 
