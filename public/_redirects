@@ -1,4 +1,5 @@
 # Cloudflare Pages SPA Redirect
 # This ensures React Router works properly with client-side routing
 
+/ /landing.html 200
 /* /index.html 200
