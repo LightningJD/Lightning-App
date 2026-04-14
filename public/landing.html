@@ -975,10 +975,20 @@
   // Signups stored locally. Swap in your Supabase/Formspree endpoint below.
 
   function saveEmail(type, email) {
-    // ── REPLACE with your backend ──
-    // Supabase: await supabase.from('waitlist').insert({ email, type });
-    // Formspree: fetch('https://formspree.io/f/YOUR_ID', { method:'POST', body:JSON.stringify({email,type}), headers:{'Content-Type':'application/json'} });
-    console.log('[Lightning] ' + type + ' signup:', email);
+    var ref = new URLSearchParams(window.location.search).get('ref') || '';
+    fetch('https://wsyhpxnzsuxnylgqvcti.supabase.co/rest/v1/signups', {
+      method: 'POST',
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzeWhweG56c3V4bnlsZ3F2Y3RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4ODcxNDcsImV4cCI6MjA3NjQ2MzE0N30.9KgfzAVwf7gHrPYqTpo_TcZbJg_ori9vaHBf4MvAHz4',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzeWhweG56c3V4bnlsZ3F2Y3RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4ODcxNDcsImV4cCI6MjA3NjQ2MzE0N30.9KgfzAVwf7gHrPYqTpo_TcZbJg_ori9vaHBf4MvAHz4',
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ email: email, ref_code: ref || null, signup_type: type })
+    }).then(function(r) {
+      if (r.ok) console.log('[Lightning] ' + type + ' signup saved:', email, ref ? '(ref: ' + ref + ')' : '');
+      else console.error('[Lightning] signup error:', r.status);
+    }).catch(function(e) { console.error('[Lightning] signup error:', e); });
   }
 
   function handleHeroSubmit(e) {
