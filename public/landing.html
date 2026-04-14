@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lightning — A New Home for Christians</title>
+<title>Lightning — A Christian social app</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -116,9 +116,9 @@
     animation: pulseC 5.5s ease-in-out infinite, driftC 18s ease-in-out infinite;
   }
   /* Green */
-  .blob-green {
+  .blob-teal {
     width: 520px; height: 520px;
-    background: rgba(0, 210, 60, 0.38);
+    background: rgba(60, 180, 220, 0.38);
     top: 55%; right: 20%;
     animation: pulseD 8s ease-in-out infinite, driftD 15s ease-in-out infinite;
   }
@@ -335,13 +335,13 @@
   .success-hero {
     display: none;
     padding: 24px;
-    background: rgba(160,230,200,0.08);
-    border: 1px solid rgba(160,230,200,0.2);
+    background: rgba(180,210,240,0.08);
+    border: 1px solid rgba(180,210,240,0.2);
     border-radius: 12px;
     max-width: 420px;
     margin: 0 auto;
   }
-  .success-hero .title { font-size: 18px; font-weight: 600; color: rgba(160,230,200,0.9); margin: 0 0 8px; }
+  .success-hero .title { font-size: 18px; font-weight: 600; color: rgba(180,210,240,0.9); margin: 0 0 8px; }
   .success-hero .sub { font-size: 14px; color: rgba(255,255,255,0.4); margin: 0; }
 
   .success-church {
@@ -571,7 +571,7 @@
   <div class="rainbow-blob blob-red"></div>
   <div class="rainbow-blob blob-orange"></div>
   <div class="rainbow-blob blob-yellow"></div>
-  <div class="rainbow-blob blob-green"></div>
+  <div class="rainbow-blob blob-teal"></div>
   <div class="rainbow-blob blob-blue"></div>
   <div class="rainbow-blob blob-indigo"></div>
   <div class="rainbow-blob blob-violet"></div>
@@ -755,12 +755,12 @@
   var LAUNCH_MODE = false;
 
   if (LAUNCH_MODE) {
-    document.querySelector('.hero .tagline').innerHTML = '<span style="color:rgba(160,230,200,0.8); font-weight:600; font-size:18px; letter-spacing:2px;">WE\'RE LIVE</span><br><span style="color:rgba(255,255,255,0.35);">The wait is over. Get in.</span>';
+    document.querySelector('.hero .tagline').innerHTML = '<span style="color:rgba(180,210,240,0.8); font-weight:600; font-size:18px; letter-spacing:2px;">WE\'RE LIVE</span><br><span style="color:rgba(255,255,255,0.35);">The wait is over. Get in.</span>';
     document.querySelector('.email-form button').textContent = 'SIGN UP';
     document.querySelector('.email-label').textContent = 'Sign up now';
     document.querySelector('.first-20').style.display = 'none';
     document.querySelector('.top-header .invite-tag').textContent = 'Now Live';
-    document.querySelector('.top-header .invite-tag').style.color = 'rgba(160,230,200,0.7)';
+    document.querySelector('.top-header .invite-tag').style.color = 'rgba(180,210,240,0.7)';
     document.querySelector('.footer .meta').innerHTML = '<span>AVAILABLE NOW</span>';
   }
 
