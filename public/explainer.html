@@ -141,7 +141,7 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
 <div class="scene" id="s12">
   <!-- walkie circle -->
   <div class="ic" id="s12w" style="left:740px;top:170px">
-    <div class="cicon-lg" style="background:#2563EB">
+    <div class="cicon-lg" style="background:#6B8EB5">
       <svg viewBox="0 0 80 120" width="80" height="120">
         <!-- walkie body -->
         <rect x="12" y="28" width="56" height="86" rx="10" fill="#0a0a0a"/>
@@ -165,7 +165,7 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
   </svg>
   <!-- monitor circle -->
   <div class="ic" id="s12m" style="left:320px;top:170px">
-    <div class="cicon-lg" style="background:#2563EB">
+    <div class="cicon-lg" style="background:#6B8EB5">
       <svg viewBox="0 0 100 90" width="100" height="90">
         <!-- monitor -->
         <rect x="4" y="0" width="92" height="62" rx="6" fill="#0a0a0a"/>
@@ -421,11 +421,11 @@ function makeRefine(){
     cx.fillRect(1168,beltY+beltH+24,24,80);
 
     // --- MACHINE ---
-    cx.fillStyle='#2563EB';
+    cx.fillStyle='#6B8EB5';
     cx.beginPath();cx.roundRect(machX,machY,machW,machH+beltH,10);cx.fill();
-    cx.fillStyle='#1d4ed8';
+    cx.fillStyle='#5A7DA5';
     cx.beginPath();cx.roundRect(machX+20,machY-30,machW-40,40,8);cx.fill();
-    cx.fillStyle='#1e40af';
+    cx.fillStyle='#4E7095';
     cx.fillRect(machX+machW/2-16,machY-70,32,44);
     cx.fillRect(machX+machW/2-22,machY-78,44,14);
     cx.fillStyle='#111';
@@ -764,14 +764,14 @@ function makeBuilding(){
 
   function drawBldg(el){
     // Ground
-    cx.fillStyle='#1a1a1a';cx.fillRect(0,BY+BH-10,1280,200);
+    cx.fillStyle='#333';cx.fillRect(0,BY+BH-10,1280,200);
 
     // Main building body
-    cx.fillStyle='#2563EB';cx.beginPath();cx.roundRect(BX,BY,BW,BH,4);cx.fill();
+    cx.fillStyle='#1e1e1e';cx.beginPath();cx.roundRect(BX,BY,BW,BH,4);cx.fill();
 
     // Roof ledge / cornice
-    cx.fillStyle='#1c1c1c';cx.fillRect(BX-8,BY-6,BW+16,18);
-    cx.fillStyle='#222';cx.fillRect(BX-4,BY-12,BW+8,10);
+    cx.fillStyle='#2a2a2a';cx.fillRect(BX-8,BY-6,BW+16,18);
+    cx.fillStyle='#303030';cx.fillRect(BX-4,BY-12,BW+8,10);
 
     // LIGHTNING text on rooftop
     cx.fillStyle='#fff';cx.font='bold 38px Outfit,sans-serif';cx.textAlign='center';cx.letterSpacing='8px';
@@ -781,11 +781,11 @@ function makeBuilding(){
     // Horizontal floor lines between window rows
     for(let r=1;r<=ROWS;r++){
       const ly=BY+100+VG*r+WH*(r-1)+VG*0.5-2;
-      cx.fillStyle='#1a1a1a';cx.fillRect(BX+10,ly,BW-20,3);
+      cx.fillStyle='#2a2a2a';cx.fillRect(BX+10,ly,BW-20,3);
     }
 
     // Vertical pilasters on sides
-    cx.fillStyle='#181818';
+    cx.fillStyle='#252525';
     cx.fillRect(BX,BY,20,BH);
     cx.fillRect(BX+BW-20,BY,20,BH);
 
