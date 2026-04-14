@@ -30,7 +30,48 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
 @keyframes punchSpin{0%{transform:scale(1) perspective(800px) rotateY(0deg)}30%{transform:scale(1.05) perspective(800px) rotateY(0deg)}100%{transform:scale(1) perspective(800px) rotateY(180deg);opacity:0}}
 @keyframes spinIn{0%{transform:scale(1) perspective(800px) rotateY(-180deg);opacity:0}60%{transform:scale(1.05) perspective(800px) rotateY(-10deg);opacity:1}80%{transform:scale(1) perspective(800px) rotateY(5deg)}100%{transform:scale(1) perspective(800px) rotateY(0deg)}}.punch-out{animation:punchSpin .5s ease-in forwards}
 .spin-in{animation:spinIn .6s cubic-bezier(.34,1.4,.64,1) forwards}
-</style>
+
+    /* ── Light Mode (received from parent) ── */
+    body.light-mode .cicon-lg {
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+    }
+    body.light-mode .cicon {
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+    }
+    body.light-mode svg {
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+    }
+    body.light-mode canvas {
+      filter: drop-shadow(0 3px 10px rgba(0,0,0,0.12));
+    }
+    body.light-mode .caption {
+      color: #1a1a2e;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 0 12px rgba(255,255,255,0.6);
+    }
+    body.light-mode .caption.show {
+      color: #1a1a2e;
+    }
+    body.light-mode h2 {
+      color: #1a1a2e;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    body.light-mode [style*="color:#F0F4F8"],
+    body.light-mode [style*="color: #F0F4F8"] {
+      color: #1a1a2e !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    body.light-mode [style*="color:white"],
+    body.light-mode [style*="color: white"] {
+      color: #1a1a2e !important;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    body.light-mode [style*="background:#F0F4F8"],
+    body.light-mode [style*="background: #F0F4F8"] {
+      background: rgba(255,255,255,0.85) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+  </style>
 </head>
 <body>
 <div id="stage">
@@ -951,5 +992,18 @@ window.addEventListener('load',()=>setTimeout(start,300));
 document.getElementById('stage').addEventListener('click',function(){if(!isMuted)start();});
 </script>
 <audio id="narration" preload="auto"><source src="/narration.mp3" type="audio/mpeg"></audio>
+
+  <script>
+    // Listen for theme changes from parent landing page
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.theme) {
+        if (e.data.theme === 'light') {
+          document.body.classList.add('light-mode');
+        } else {
+          document.body.classList.remove('light-mode');
+        }
+      }
+    });
+  </script>
 </body>
 </html>
