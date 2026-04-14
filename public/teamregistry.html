@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lightning â Team Registry</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0a0a1a;
+  color: #fff;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.header img { height: 40px; margin-bottom: 16px; }
+.header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #7EC8E3, #A78BFA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+.header p {
+  color: rgba(255,255,255,0.6);
+  font-size: 0.95rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Reward banner */
+.reward-banner {
+  background: linear-gradient(135deg, rgba(126,200,227,0.15), rgba(167,139,250,0.15));
+  border: 1px solid rgba(126,200,227,0.3);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 40px;
+  text-align: center;
+}
+.reward-banner h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #7EC8E3;
+  margin-bottom: 12px;
+}
+.reward-tiers {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.reward-tier {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 16px 20px;
+  min-width: 200px;
+}
+.reward-tier .threshold {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.reward-tier .prize {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* Team cards */
+.teams {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+@media (max-width: 640px) {
+  .teams { grid-template-columns: 1fr; }
+}
+
+.team-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 28px;
+  transition: border-color 0.3s;
+}
+.team-card:hover {
+  border-color: rgba(126,200,227,0.3);
+}
+.team-card.leading {
+  border-color: rgba(126,200,227,0.4);
+  background: linear-gradient(135deg, rgba(126,200,227,0.08), rgba(167,139,250,0.05));
+}
+
+.team-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.team-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+.team-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+.team-badge.leader { background: rgba(126,200,227,0.2); color: #7EC8E3; }
+.team-badge.trailing { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+
+.team-count {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  line-height: 1;
+}
+.team-count-label {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 16px;
+}
+
+/* Progress bar */
+.progress-track {
+  height: 8px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+  background: linear-gradient(90deg, #7EC8E3, #A78BFA);
+}
+.progress-label {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.4);
+  text-align: right;
+}
+
+/* Helpers section */
+.helpers-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.helpers-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 10px;
+}
+.helper-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+.helper-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.helper-count {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  font-weight: 600;
+}
+.no-helpers {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.3);
+  font-style: italic;
+}
+
+/* QR section */
+.qr-section {
+  text-align: center;
+  margin-top: 48px;
+  padding: 32px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.qr-section h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.qr-section p {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.85rem;
+  margin-bottom: 24px;
+}
+.qr-grid {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+.qr-item {
+  text-align: center;
+}
+.qr-item canvas {
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+}
+.qr-label {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+}
+
+/* Recent signups */
+.recent-section {
+  margin-top: 40px;
+}
+.recent-section h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: rgba(255,255,255,0.7);
+}
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+.recent-email { color: rgba(255,255,255,0.7); }
+.recent-ref { color: #7EC8E3; font-weight: 600; }
+.recent-time { color: rgba(255,255,255,0.3); font-size: 0.75rem; }
+
+/* Add helper form */
+.add-helper-section {
+  margin-top: 40px;
+  padding: 24px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.add-helper-section h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+.add-helper-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.add-helper-form select,
+.add-helper-form input {
+  flex: 1;
+  min-width: 140px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+.add-helper-form select option { background: #1a1a2e; }
+.add-helper-form button {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #7EC8E3, #A78BFA);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.add-helper-form button:hover { opacity: 0.85; }
+
+/* Loading state */
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: rgba(255,255,255,0.4);
+}
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #7EC8E3;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Auto-refresh indicator */
+.refresh-bar {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.refresh-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="loading" id="loadingState">
+    <div class="loading-spinner"></div>
+    <p>Loading team data...</p>
+  </div>
+</div>
+
+<div class="refresh-bar">
+  <span class="refresh-dot"></span>
+  Live â updates every 30s
+</div>
+
+<!-- QR Code library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+<script>
+const SUPABASE_URL = 'https://wsyhpxnzsuxnylgqvcti.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzeWhweG56c3V4bnlsZ3F2Y3RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4ODcxNDcsImV4cCI6MjA3NjQ2MzE0N30.9KgfzAVwf7gHrPYqTpo_TcZbJg_ori9vaHBf4MvAHz4';
+const GOAL = 50;
+const LANDING_URL = 'https://lightningsocial.app/landing';
+
+async function supaFetch(table, query) {
+  const url = SUPABASE_URL + '/rest/v1/' + table + (query ? '?' + query : '');
+  const res = await fetch(url, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY
+    }
+  });
+  return res.json();
+}
+
+async function supaInsert(table, data) {
+  const url = SUPABASE_URL + '/rest/v1/' + table;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  return Math.floor(hrs / 24) + 'd ago';
+}
+
+async function loadData() {
+  const [referrers, signups] = await Promise.all([
+    supaFetch('referrers', 'select=*&order=created_at.asc'),
+    supaFetch('signups', 'select=*&order=created_at.desc')
+  ]);
+
+  const leads = referrers.filter(r => r.role === 'lead');
+  const helpers = referrers.filter(r => r.role === 'helper');
+
+  // Build team data
+  const teams = leads.map(lead => {
+    const teamHelpers = helpers.filter(h => h.parent_ref_code === lead.ref_code);
+    const allCodes = [lead.ref_code, ...teamHelpers.map(h => h.ref_code)];
+    const teamSignups = signups.filter(s => allCodes.includes(s.ref_code));
+
+    return {
+      lead,
+      helpers: teamHelpers.map(h => ({
+        ...h,
+        count: signups.filter(s => s.ref_code === h.ref_code).length
+      })),
+      directCount: signups.filter(s => s.ref_code === lead.ref_code).length,
+      totalCount: teamSignups.length
+    };
+  });
+
+  // Sort: most signups first
+  teams.sort((a, b) => b.totalCount - a.totalCount);
+
+  render(teams, signups.slice(0, 10), referrers);
+}
+
+function render(teams, recentSignups, allReferrers) {
+  const app = document.getElementById('app');
+  const maxCount = Math.max(...teams.map(t => t.totalCount), 1);
+  const leadingTeam = teams[0];
+
+  let html = '';
+
+  // Header
+  html += '<div class="header">';
+  html += '<h1>Team Registry</h1>';
+  html += '<p>Lightning signup competition â recruit friends, earn rewards</p>';
+  html += '</div>';
+
+  // Reward banner
+  html += '<div class="reward-banner">';
+  html += '<h3>Rewards</h3>';
+  html += '<div class="reward-tiers">';
+  html += '<div class="reward-tier"><div class="threshold">50+ signups each</div><div class="prize">2 Ruelle Club Jackets + Next Release</div></div>';
+  html += '<div class="reward-tier"><div class="threshold">Most signups</div><div class="prize">$200 Cash Prize</div></div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Team cards
+  html += '<div class="teams">';
+  teams.forEach((team, i) => {
+    const isLeading = i === 0 && team.totalCount > 0;
+    const pct = Math.min((team.totalCount / GOAL) * 100, 100);
+    
+    html += '<div class="team-card' + (isLeading ? ' leading' : '') + '">';
+    html += '<div class="team-header">';
+    html += '<div class="team-name">' + team.lead.name + '</div>';
+    if (isLeading && teams.length > 1 && team.totalCount > teams[1].totalCount) {
+      html += '<span class="team-badge leader">Leading</span>';
+    } else if (i > 0 && teams[i-1].totalCount > team.totalCount) {
+      html += '<span class="team-badge trailing">Trailing</span>';
+    }
+    html += '</div>';
+
+    html += '<div class="team-count">' + team.totalCount + '</div>';
+    html += '<div class="team-count-label">total signups (' + team.directCount + ' direct)</div>';
+
+    html += '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%"></div></div>';
+    html += '<div class="progress-label">' + team.totalCount + ' / ' + GOAL + ' goal</div>';
+
+    // Helpers
+    html += '<div class="helpers-section">';
+    html += '<div class="helpers-title">Team Partners</div>';
+    if (team.helpers.length === 0) {
+      html += '<div class="no-helpers">No partners added yet</div>';
+    } else {
+      team.helpers.forEach(h => {
+        html += '<div class="helper-row">';
+        html += '<span class="helper-name">' + h.name + '</span>';
+        html += '<span class="helper-count">' + h.count + ' signups</span>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // Add helper form
+  html += '<div class="add-helper-section">';
+  html += '<h3>Add a Team Partner</h3>';
+  html += '<div class="add-helper-form">';
+  html += '<select id="parentTeam">';
+  teams.forEach(t => {
+    html += '<option value="' + t.lead.ref_code + '">Team ' + t.lead.name + '</option>';
+  });
+  html += '</select>';
+  html += '<input type="text" id="helperName" placeholder="Partner name">';
+  html += '<button onclick="addHelper()">Add Partner</button>';
+  html += '</div>';
+  html += '</div>';
+
+  // QR Codes
+  html += '<div class="qr-section">';
+  html += '<h3>Referral QR Codes</h3>';
+  html += '<p>Scan to sign up â each code tracks who referred the signup</p>';
+  html += '<div class="qr-grid">';
+  allReferrers.forEach(r => {
+    html += '<div class="qr-item">';
+    html += '<canvas id="qr-' + r.ref_code + '" width="160" height="160"></canvas>';
+    html += '<div class="qr-label">' + r.name + ' (' + r.role + ')</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // Recent signups
+  if (recentSignups.length > 0) {
+    html += '<div class="recent-section">';
+    html += '<h3>Recent Signups</h3>';
+    html += '<div class="recent-list">';
+    recentSignups.forEach(s => {
+      const emailMasked = s.email.substring(0, 3) + '***@' + s.email.split('@')[1];
+      html += '<div class="recent-item">';
+      html += '<span class="recent-email">' + emailMasked + '</span>';
+      html += '<span class="recent-ref">via ' + (s.ref_code || 'direct') + '</span>';
+      html += '<span class="recent-time">' + timeAgo(s.created_at) + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '</div>';
+  }
+
+  app.innerHTML = html;
+
+  // Generate QR codes after DOM update
+  setTimeout(() => {
+    allReferrers.forEach(r => {
+      const canvas = document.getElementById('qr-' + r.ref_code);
+      if (canvas) {
+        new QRious({
+          element: canvas,
+          value: LANDING_URL + '?ref=' + r.ref_code,
+          size: 160,
+          backgroundAlpha: 1,
+          foreground: '#0a0a1a',
+          background: '#ffffff',
+          level: 'M'
+        });
+      }
+    });
+  }, 100);
+}
+
+async function addHelper() {
+  const parent = document.getElementById('parentTeam').value;
+  const name = document.getElementById('helperName').value.trim();
+  if (!name) { alert('Please enter a name'); return; }
+
+  const refCode = parent + '-' + name.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  try {
+    await supaInsert('referrers', {
+      name: name,
+      role: 'helper',
+      ref_code: refCode,
+      parent_ref_code: parent
+    });
+    document.getElementById('helperName').value = '';
+    loadData(); // Refresh
+  } catch (e) {
+    alert('Error adding partner: ' + e.message);
+  }
+}
+
+// Initial load
+loadData();
+
+// Auto-refresh every 30 seconds
+setInterval(loadData, 30000);
+</script>
+</body>
+</html>
