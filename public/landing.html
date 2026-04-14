@@ -599,7 +599,7 @@
     }
 
     body.light-mode .email-standalone .reward-badge {
-      background: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.85);
       color: #3a3a5a;
       border-color: rgba(200,170,255,0.3);
     }
@@ -713,11 +713,11 @@
       bottom: 24px; right: 24px;
       width: 44px; height: 44px;
       border-radius: 50%;
-      border: 1.5px solid rgba(255,255,255,0.25);
-      background: rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.4);
+      background: rgba(0,0,0,0.45);
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
+      font-size: 22px;
       transition: all 0.3s ease;
       z-index: 9999;
       -webkit-backdrop-filter: blur(12px);
@@ -731,7 +731,7 @@
       border-color: rgba(255,255,255,0.4);
     }
     body.light-mode .theme-toggle {
-      border-color: rgba(26,26,46,0.15);
+      border-color: rgba(26,26,46,0.3);
       background: rgba(255,255,255,0.7);
       color: #2a2a3a;
       box-shadow: 0 2px 12px rgba(0,0,0,0.08);
@@ -926,7 +926,7 @@
 
     <div id="churchFormWrap">
       <form class="church-form" id="churchForm" onsubmit="handleChurchSubmit(event)">
-        <input type="email" id="churchEmail" placeholder="church email" required>
+        <input type="email" id="churchEmail" placeholder="email" required>
         <button type="submit">CONNECT</button>
       </form>
     </div>
