@@ -650,29 +650,36 @@
 
     /* Theme toggle button */
     .theme-toggle {
-      width: 36px; height: 36px;
+      position: fixed;
+      bottom: 24px; right: 24px;
+      width: 44px; height: 44px;
       border-radius: 50%;
       border: 1.5px solid rgba(255,255,255,0.25);
-      background: rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.3);
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
+      font-size: 20px;
       transition: all 0.3s ease;
-      margin-left: 12px;
-      -webkit-backdrop-filter: blur(8px);
-      backdrop-filter: blur(8px);
+      z-index: 9999;
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+      color: white;
+      line-height: 1;
     }
     .theme-toggle:hover {
       background: rgba(255,255,255,0.15);
       border-color: rgba(255,255,255,0.4);
     }
     body.light-mode .theme-toggle {
-      border-color: rgba(26,26,46,0.2);
-      background: rgba(26,26,46,0.06);
+      border-color: rgba(26,26,46,0.15);
+      background: rgba(255,255,255,0.7);
+      color: #2a2a3a;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
     body.light-mode .theme-toggle:hover {
-      background: rgba(26,26,46,0.12);
-      border-color: rgba(26,26,46,0.35);
+      background: rgba(255,255,255,0.9);
+      border-color: rgba(26,26,46,0.3);
     }
 
     /* Smooth transition for theme switch */
@@ -713,7 +720,6 @@
     <div class="logo">LIGHTNING</div>
     <span style="padding:8px 24px;background:rgba(200,170,255,0.08);border:1px solid rgba(200,170,255,0.15);border-radius:8px;color:rgba(200,170,255,0.5);font-size:13px;font-weight:600;letter-spacing:1px;font-family:'Outfit',sans-serif;cursor:default;">MAY 15</span>
   
-    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode">&#9790;</button>
   </header>
 
   <!-- ── Hero ── -->
@@ -940,5 +946,6 @@
       }
     })();
   </script>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode">&#9790;</button>
 </body>
 </html>
