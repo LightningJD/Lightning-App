@@ -6,18 +6,18 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Outfit:wght@400;500;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{width:1280px;height:720px;overflow:hidden;background:transparent;font-family:'Plus Jakarta Sans',sans-serif}
+body{width:1280px;height:720px;overflow:hidden;background:#F0F4F8;font-family:'Plus Jakarta Sans',sans-serif}
 #stage{position:relative;width:1280px;height:720px;cursor:pointer}
-#muteBtn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200;width:180px;height:180px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .5s,transform .5s}
+#muteBtn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:200;width:180px;height:180px;border-radius:50%;background:rgba(0,0,0,.4);border:2px solid rgba(240,244,248,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .5s,transform .5s}
 #muteBtn:hover{background:rgba(0,0,0,.55)}
 #muteBtn.hidden{opacity:0;pointer-events:none;transform:translate(-50%,-50%) scale(.8)}
-#muteBtn svg{width:80px;height:80px;fill:rgba(255,255,255,.8)}
-#progress{position:absolute;bottom:0;left:0;height:3px;background:#fff;width:0%;z-index:100}
+#muteBtn svg{width:80px;height:80px;fill:rgba(240,244,248,.8)}
+#progress{position:absolute;bottom:0;left:0;height:3px;background:#F0F4F8;width:0%;z-index:100}
 #logo{position:absolute;top:24px;left:32px;display:flex;align-items:center;gap:8px;z-index:100;opacity:.3}
-#logo span{font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#fff}
+#logo span{font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#F0F4F8}
 .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .5s ease}
 .scene.active{opacity:1;pointer-events:auto}
-.caption{position:absolute;bottom:52px;left:60px;right:60px;text-align:center;font-size:26px;font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1.45;opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}
+.caption{position:absolute;bottom:52px;left:60px;right:60px;text-align:center;font-size:26px;font-weight:700;color:#F0F4F8;letter-spacing:-.02em;line-height:1.45;opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}
 .caption.show{opacity:1;transform:translateY(0)}
 .caption em{color:#FFE566;font-style:normal;display:inline-block}
 .caption em.pulse{animation:kp .7s ease forwards}
@@ -44,7 +44,7 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
 
 <!-- S4: LIGHTNING text roll -->
 <div class="scene" id="s4">
-  <div id="s4name" style="position:absolute;left:0;right:0;top:280px;text-align:center;font-family:'Outfit',sans-serif;font-size:80px;font-weight:700;letter-spacing:12px;color:#fff;opacity:0;overflow:hidden;white-space:nowrap;clip-path:inset(0 0% 0 100%)"></div>
+  <div id="s4name" style="position:absolute;left:0;right:0;top:280px;text-align:center;font-family:'Outfit',sans-serif;font-size:80px;font-weight:700;letter-spacing:12px;color:#F0F4F8;opacity:0;overflow:hidden;white-space:nowrap;clip-path:inset(0 0% 0 100%)"></div>
 </div>
 
 <!-- S5: 7 colored circles -->
@@ -69,9 +69,9 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
 <div class="scene" id="s7">
   <canvas id="s7cv" style="position:absolute;inset:0" width="1280" height="720"></canvas>
   <div class="ic" id="s7banner" style="left:0;right:0;top:240px;text-align:center">
-    <div style="display:inline-block;position:relative;padding:24px 80px;background:#1a5fb4;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.35)">
-      <div style="font-family:'Outfit',sans-serif;font-size:46px;font-weight:800;letter-spacing:8px;color:#fff;line-height:1">BORN AGAIN</div>
-      <div style="position:absolute;top:-6px;left:-6px;right:-6px;bottom:-6px;border-radius:18px;border:2px solid rgba(255,255,255,.25);pointer-events:none"></div>
+    <div style="display:inline-block;position:relative;padding:24px 80px;background:#7EC8E3;border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.35)">
+      <div style="font-family:'Outfit',sans-serif;font-size:46px;font-weight:800;letter-spacing:8px;color:#F0F4F8;line-height:1">BORN AGAIN</div>
+      <div style="position:absolute;top:-6px;left:-6px;right:-6px;bottom:-6px;border-radius:18px;border:2px solid rgba(240,244,248,.25);pointer-events:none"></div>
     </div>
   </div>
 </div>
@@ -113,13 +113,13 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
 <div class="scene" id="s10">
   <!-- folder body appears first -->
   <div class="ic" id="s10body" style="left:340px;top:170px">
-    <div style="width:600px;height:360px;background:#C4A265;border-radius:14px;padding:32px">
-      <div style="height:12px;background:#B8923F;border-radius:5px;margin-bottom:14px;width:92%"></div>
-      <div style="height:10px;background:#A8842E;border-radius:4px;margin-bottom:12px;width:70%"></div>
-      <div style="height:10px;background:#B8923F;border-radius:4px;margin-bottom:12px;width:82%"></div>
-      <div style="height:10px;background:#A8842E;border-radius:4px;margin-bottom:12px;width:60%"></div>
-      <div style="height:10px;background:#B8923F;border-radius:4px;margin-bottom:12px;width:85%"></div>
-      <div style="height:10px;background:#A8842E;border-radius:4px;width:66%"></div>
+    <div style="width:600px;height:360px;background:#D4BC85;border-radius:14px;padding:32px">
+      <div style="height:12px;background:#C8A85F;border-radius:5px;margin-bottom:14px;width:92%"></div>
+      <div style="height:10px;background:#B8944E;border-radius:4px;margin-bottom:12px;width:70%"></div>
+      <div style="height:10px;background:#C8A85F;border-radius:4px;margin-bottom:12px;width:82%"></div>
+      <div style="height:10px;background:#B8944E;border-radius:4px;margin-bottom:12px;width:60%"></div>
+      <div style="height:10px;background:#C8A85F;border-radius:4px;margin-bottom:12px;width:85%"></div>
+      <div style="height:10px;background:#B8944E;border-radius:4px;width:66%"></div>
     </div>
   </div>
   <!-- individual tabs -->
@@ -141,20 +141,20 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
 <div class="scene" id="s12">
   <!-- walkie circle -->
   <div class="ic" id="s12w" style="left:740px;top:170px">
-    <div class="cicon-lg" style="background:transparent">
+    <div class="cicon-lg" style="background:#F0F4F8">
       <svg viewBox="0 0 80 120" width="160" height="240">
         <!-- walkie body -->
-        <rect x="12" y="28" width="56" height="86" rx="10" fill="#6B8EB5"/>
+        <rect x="12" y="28" width="56" height="86" rx="10" fill="#7EC8E3"/>
         <!-- antenna -->
-        <rect x="18" y="2" width="8" height="30" rx="3" fill="#6B8EB5"/>
+        <rect x="18" y="2" width="8" height="30" rx="3" fill="#7EC8E3"/>
         <!-- screen -->
-        <rect x="20" y="38" width="40" height="26" rx="5" fill="#5A7DA5"/>
+        <rect x="20" y="38" width="40" height="26" rx="5" fill="#6AB7D2"/>
         <!-- button -->
-        <rect x="20" y="70" width="40" height="12" rx="5" fill="#7A9CC4"/>
+        <rect x="20" y="70" width="40" height="12" rx="5" fill="#94D4ED"/>
         <!-- speaker lines -->
-        <line x1="26" y1="92" x2="54" y2="92" stroke="#5A7DA5" stroke-width="2"/>
-        <line x1="26" y1="97" x2="54" y2="97" stroke="#5A7DA5" stroke-width="2"/>
-        <line x1="26" y1="102" x2="54" y2="102" stroke="#5A7DA5" stroke-width="2"/>
+        <line x1="26" y1="92" x2="54" y2="92" stroke="#6AB7D2" stroke-width="2"/>
+        <line x1="26" y1="97" x2="54" y2="97" stroke="#6AB7D2" stroke-width="2"/>
+        <line x1="26" y1="102" x2="54" y2="102" stroke="#6AB7D2" stroke-width="2"/>
       </svg>
     </div>
   </div>
@@ -165,20 +165,20 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
   </svg>
   <!-- monitor circle -->
   <div class="ic" id="s12m" style="left:320px;top:170px">
-    <div class="cicon-lg" style="background:transparent">
+    <div class="cicon-lg" style="background:#F0F4F8">
       <svg viewBox="0 0 100 90" width="200" height="180">
         <!-- monitor -->
-        <rect x="4" y="0" width="92" height="62" rx="6" fill="#6B8EB5"/>
+        <rect x="4" y="0" width="92" height="62" rx="6" fill="#7EC8E3"/>
         <!-- screen -->
-        <rect x="8" y="4" width="84" height="54" rx="4" fill="#5A7DA5"/>
+        <rect x="8" y="4" width="84" height="54" rx="4" fill="#6AB7D2"/>
         <!-- bars -->
         <rect x="14" y="22" width="14" height="30" rx="3" fill="#FFE566" opacity=".6"/>
         <rect x="32" y="30" width="14" height="22" rx="3" fill="#FFB347" opacity=".6"/>
         <rect x="50" y="18" width="14" height="34" rx="3" fill="#FF6B6B" opacity=".6"/>
         <rect x="68" y="26" width="14" height="26" rx="3" fill="#6DEBB8" opacity=".6"/>
         <!-- stand -->
-        <rect x="42" y="62" width="16" height="12" rx="3" fill="#6B8EB5"/>
-        <rect x="30" y="74" width="40" height="6" rx="3" fill="#6B8EB5"/>
+        <rect x="42" y="62" width="16" height="12" rx="3" fill="#7EC8E3"/>
+        <rect x="30" y="74" width="40" height="6" rx="3" fill="#7EC8E3"/>
       </svg>
     </div>
   </div>
@@ -244,7 +244,7 @@ function makeOpening(){
   function drawPerson(x,y,r,alpha){
     // White circle with person silhouette
     cx.globalAlpha=alpha;
-    cx.fillStyle='#fff';cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);cx.fill();
+    cx.fillStyle='#F0F4F8';cx.beginPath();cx.arc(x,y,r,0,Math.PI*2);cx.fill();
     const s=r/110;
     cx.fillStyle='#0a0a0a';
     cx.beginPath();cx.arc(x,y-r*.25,22*s,0,Math.PI*2);cx.fill();
@@ -316,7 +316,7 @@ function makeOpening(){
         const g=1-t/.2;
         cx.globalAlpha=g*.5;
         const grad=cx.createRadialGradient(640,CY,0,640,CY,180);
-        grad.addColorStop(0,'rgba(255,255,255,.9)');grad.addColorStop(1,'rgba(255,255,255,0)');
+        grad.addColorStop(0,'rgba(240,244,248,.9)');grad.addColorStop(1,'rgba(240,244,248,0)');
         cx.fillStyle=grad;cx.beginPath();cx.arc(640,CY,180,0,Math.PI*2);cx.fill();
         cx.globalAlpha=1;
       }
@@ -337,7 +337,7 @@ function makeOpening(){
         const ga=t3/.4;
         cx.globalAlpha=ga*.4;
         const grad=cx.createRadialGradient(640,CY,0,640,CY,60);
-        grad.addColorStop(0,'rgba(255,255,255,.8)');grad.addColorStop(1,'rgba(255,255,255,0)');
+        grad.addColorStop(0,'rgba(240,244,248,.8)');grad.addColorStop(1,'rgba(240,244,248,0)');
         cx.fillStyle=grad;cx.beginPath();cx.arc(640,CY,60,0,Math.PI*2);cx.fill();
         cx.globalAlpha=1;
 
@@ -364,12 +364,12 @@ function makeOpening(){
         // Right ring (white)
         cx.strokeStyle='#FFFFFF';cx.lineWidth=strokeW;
         cx.beginPath();cx.arc(rx,CY+bob,R,0,Math.PI*2);cx.stroke();
-        cx.strokeStyle='rgba(255,255,255,.18)';cx.lineWidth=5;
+        cx.strokeStyle='rgba(240,244,248,.18)';cx.lineWidth=5;
         cx.beginPath();cx.arc(rx,CY+bob,R-6,Math.PI*1.55,Math.PI*1.85);cx.stroke();
         // Left ring (white) — front half
         cx.strokeStyle='#FFFFFF';cx.lineWidth=strokeW;
         cx.beginPath();cx.arc(lx,CY+bob,R,Math.PI*1.82,Math.PI*1.18);cx.stroke();
-        cx.strokeStyle='rgba(255,255,255,.22)';cx.lineWidth=5;
+        cx.strokeStyle='rgba(240,244,248,.22)';cx.lineWidth=5;
         cx.beginPath();cx.arc(lx,CY+bob,R-6,Math.PI*0.55,Math.PI*0.85);cx.stroke();
 
         // Blue diamond on LEFT ring
@@ -380,9 +380,9 @@ function makeOpening(){
         cx.moveTo(dx,dy-38);cx.lineTo(dx+26,dy-10);cx.lineTo(dx+20,dy+2);cx.lineTo(dx,dy+24);cx.lineTo(dx-20,dy+2);cx.lineTo(dx-26,dy-10);cx.closePath();cx.fill();
         cx.fillStyle='rgba(40,100,140,.4)';cx.beginPath();cx.moveTo(dx-26,dy-10);cx.lineTo(dx,dy+24);cx.lineTo(dx-20,dy+2);cx.closePath();cx.fill();
         cx.fillStyle='rgba(40,100,140,.25)';cx.beginPath();cx.moveTo(dx+26,dy-10);cx.lineTo(dx,dy+24);cx.lineTo(dx+20,dy+2);cx.closePath();cx.fill();
-        cx.fillStyle='rgba(255,255,255,.2)';cx.beginPath();cx.moveTo(dx,dy-38);cx.lineTo(dx+26,dy-10);cx.lineTo(dx+8,dy+2);cx.lineTo(dx-8,dy+2);cx.lineTo(dx-26,dy-10);cx.closePath();cx.fill();
+        cx.fillStyle='rgba(240,244,248,.2)';cx.beginPath();cx.moveTo(dx,dy-38);cx.lineTo(dx+26,dy-10);cx.lineTo(dx+8,dy+2);cx.lineTo(dx-8,dy+2);cx.lineTo(dx-26,dy-10);cx.closePath();cx.fill();
         const spk=.5+.5*Math.sin(el*.004);
-        cx.globalAlpha=dApp*spk*.7;cx.fillStyle='#fff';cx.beginPath();cx.arc(dx+8,dy-18,4,0,Math.PI*2);cx.fill();
+        cx.globalAlpha=dApp*spk*.7;cx.fillStyle='#F0F4F8';cx.beginPath();cx.arc(dx+8,dy-18,4,0,Math.PI*2);cx.fill();
         cx.globalAlpha=1;
       }
     }
@@ -421,11 +421,11 @@ function makeRefine(){
     cx.fillRect(1168,beltY+beltH+24,24,80);
 
     // --- MACHINE ---
-    cx.fillStyle='#6B8EB5';
+    cx.fillStyle='#7EC8E3';
     cx.beginPath();cx.roundRect(machX,machY,machW,machH+beltH,10);cx.fill();
-    cx.fillStyle='#5A7DA5';
+    cx.fillStyle='#6AB7D2';
     cx.beginPath();cx.roundRect(machX+20,machY-30,machW-40,40,8);cx.fill();
-    cx.fillStyle='#4E7095';
+    cx.fillStyle='#58A8C3';
     cx.fillRect(machX+machW/2-16,machY-70,32,44);
     cx.fillRect(machX+machW/2-22,machY-78,44,14);
     cx.fillStyle='#111';
@@ -503,7 +503,7 @@ function makeRefine(){
       cx.fillStyle='#6DEBB8';cx.beginPath();
       for(let i=0;i<=6;i++){const a=(i%6)/6*Math.PI*2-Math.PI/6;cx.lineTo(rockX+Math.cos(a)*sz,rockY+Math.sin(a)*sz);}
       cx.closePath();cx.fill();
-      cx.fillStyle='rgba(255,255,255,.2)';cx.beginPath();
+      cx.fillStyle='rgba(240,244,248,.2)';cx.beginPath();
       const a0=-Math.PI/6,a1=a0+Math.PI*2/6;
       cx.moveTo(rockX,rockY);cx.lineTo(rockX+Math.cos(a0)*sz,rockY+Math.sin(a0)*sz);cx.lineTo(rockX+Math.cos(a1)*sz,rockY+Math.sin(a1)*sz);cx.closePath();cx.fill();
       cx.fillStyle='rgba(0,0,0,.12)';cx.beginPath();
@@ -511,7 +511,7 @@ function makeRefine(){
       cx.moveTo(rockX,rockY);cx.lineTo(rockX+Math.cos(a3)*sz,rockY+Math.sin(a3)*sz);cx.lineTo(rockX+Math.cos(a4)*sz,rockY+Math.sin(a4)*sz);cx.closePath();cx.fill();
       if(el>4200){
         const sparkles=[{ox:-sz*.4,oy:-sz*.5,phase:0},{ox:sz*.35,oy:-sz*.6,phase:0.33},{ox:sz*.5,oy:sz*.15,phase:0.66},{ox:-sz*.25,oy:sz*.4,phase:0.5},{ox:0,oy:-sz*.75,phase:0.17}];
-        cx.strokeStyle='#fff';cx.lineCap='round';
+        cx.strokeStyle='#F0F4F8';cx.lineCap='round';
         sparkles.forEach(s=>{const t=((el*.001)+s.phase)%1;const scale=.3+.7*Math.sin(t*Math.PI);
         const shX=rockX+s.ox,shY=rockY+s.oy;const len=(5+7*scale);
         cx.globalAlpha=.3+.7*Math.sin(t*Math.PI);cx.lineWidth=2.5*scale;
@@ -576,7 +576,7 @@ function makeBalloons(){
     cx.beginPath();cx.moveTo(b.x-4*scale,y+yOff+b.ry*scale);cx.lineTo(b.x+4*scale,y+yOff+b.ry*scale);
     cx.lineTo(b.x,y+yOff+b.ry*scale+8*scale);cx.closePath();cx.fill();
     // highlight
-    cx.fillStyle='rgba(255,255,255,.22)';
+    cx.fillStyle='rgba(240,244,248,.22)';
     cx.beginPath();cx.ellipse(b.x-b.rx*.3,y+yOff-b.ry*.3,b.rx*.28*scale,b.ry*.35*scale,-.4,0,Math.PI*2);cx.fill();
     cx.globalAlpha=1;
   }
@@ -599,7 +599,7 @@ function makeRing(){
     cx.fillStyle='#999';cx.beginPath();cx.roundRect(42,390-postH,48,22,6);cx.fill();
     cx.fillStyle='#666';cx.beginPath();cx.roundRect(38,400-postH+40,52,260*ease,10);cx.fill();
     if(ease>.3){const ra=Math.min((ease-.3)/.7,1);cx.globalAlpha=ra;
-      [[180,'#FF6B6B'],[260,'#fff'],[340,'#FF6B6B']].forEach(([ry,col])=>{
+      [[180,'#FF6B6B'],[260,'#F0F4F8'],[340,'#FF6B6B']].forEach(([ry,col])=>{
         cx.strokeStyle=col;cx.lineWidth=10;cx.lineCap='round';
         cx.beginPath();cx.moveTo(66,ry);cx.lineTo(1280,ry);cx.stroke();
         cx.beginPath();cx.moveTo(66,ry);cx.lineTo(66,400);cx.stroke();
@@ -611,7 +611,7 @@ function makeRing(){
       cx.fillStyle='#999';cx.beginPath();cx.ellipse(220,440,58,14,0,0,Math.PI*2);cx.fill();
       cx.fillStyle='#7EC8E3';cx.beginPath();cx.roundRect(340,400,20,50,8);cx.fill();
       cx.fillStyle='#a0d8ee';cx.beginPath();cx.roundRect(344,392,12,14,4);cx.fill();
-      cx.fillStyle='#fff';cx.globalAlpha=se*.6;
+      cx.fillStyle='#F0F4F8';cx.globalAlpha=se*.6;
       cx.beginPath();cx.roundRect(740,168,60,20,4);cx.fill();cx.beginPath();cx.roundRect(774,168,26,52,4);cx.fill();
       cx.globalAlpha=1;}
     r=requestAnimationFrame(lp);}r=requestAnimationFrame(lp);},
@@ -627,13 +627,13 @@ function makeRing(){
   const clothesCol=['#2c3e6b','#c0392b','#555','#1a6b4a','#8e44ad','#e67e22','#2980b9'];
   const clothesSVG=[
     // 1: Suit + tie
-    '<path d="M16 56 C16 48 56 48 56 56 L56 88 L16 88Z" fill="CLR"/><path d="M16 56 L30 56 L36 64 L42 56 L56 56 L56 60 L42 60 L36 68 L30 60 L16 60Z" fill="#fff"/><rect x="34" y="64" width="4" height="24" rx="1" fill="#c0392b"/><polygon points="33,64 36,60 39,64" fill="#c0392b"/>',
+    '<path d="M16 56 C16 48 56 48 56 56 L56 88 L16 88Z" fill="CLR"/><path d="M16 56 L30 56 L36 64 L42 56 L56 56 L56 60 L42 60 L36 68 L30 60 L16 60Z" fill="#F0F4F8"/><rect x="34" y="64" width="4" height="24" rx="1" fill="#c0392b"/><polygon points="33,64 36,60 39,64" fill="#c0392b"/>',
     // 2: T-shirt (crew neck)
     '<path d="M16 56 C16 48 56 48 56 56 L56 88 L16 88Z" fill="CLR"/><path d="M28 48 Q36 54 44 48" fill="none" stroke="CLR2" stroke-width="2.5"/>',
     // 3: Hoodie
     '<path d="M16 56 C16 48 56 48 56 56 L56 88 L16 88Z" fill="CLR"/><path d="M26 48 Q36 58 46 48" fill="none" stroke="CLR" stroke-width="3"/><path d="M24 48 L24 54 Q36 64 48 54 L48 48" fill="CLR2" stroke="none"/><rect x="32" y="68" width="8" height="10" rx="3" fill="CLR2"/>',
     // 4: Dress shirt + collar
-    '<path d="M16 56 C16 48 56 48 56 56 L56 88 L16 88Z" fill="CLR"/><path d="M28 48 L24 58 L32 54Z" fill="#fff"/><path d="M44 48 L48 58 L40 54Z" fill="#fff"/><circle cx="36" cy="62" r="1.5" fill="#fff" opacity=".5"/><circle cx="36" cy="70" r="1.5" fill="#fff" opacity=".5"/><circle cx="36" cy="78" r="1.5" fill="#fff" opacity=".5"/>',
+    '<path d="M16 56 C16 48 56 48 56 56 L56 88 L16 88Z" fill="CLR"/><path d="M28 48 L24 58 L32 54Z" fill="#F0F4F8"/><path d="M44 48 L48 58 L40 54Z" fill="#F0F4F8"/><circle cx="36" cy="62" r="1.5" fill="#F0F4F8" opacity=".5"/><circle cx="36" cy="70" r="1.5" fill="#F0F4F8" opacity=".5"/><circle cx="36" cy="78" r="1.5" fill="#F0F4F8" opacity=".5"/>',
     // 5: Turtleneck
     '<path d="M16 56 C16 48 56 48 56 56 L56 88 L16 88Z" fill="CLR"/><rect x="28" y="44" width="16" height="10" rx="4" fill="CLR"/><line x1="36" y1="44" x2="36" y2="54" stroke="CLR2" stroke-width="1"/>',
     // 6: V-neck blouse
@@ -666,7 +666,7 @@ function makeRing(){
     const hair=hairPaths[i].replace(/HAIR/g,hairs[i]);
     const clothes=clothesSVG[i].replace(/CLR2/g,clothesDark[i]).replace(/CLR/g,clothesCol[i]).replace(/SKIN/g,skins[i]);
     
-    d.innerHTML=`<div style="width:220px;height:140px;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.3);overflow:hidden;position:relative">
+    d.innerHTML=`<div style="width:220px;height:140px;background:#F0F4F8;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.3);overflow:hidden;position:relative">
       <div style="height:6px;background:${col}"></div>
       <div style="display:flex;padding:12px 14px;gap:14px">
         <div style="flex-shrink:0">
@@ -723,10 +723,10 @@ function makeTrees(){
       if(ft>0){[[-30,-20],[20,-36],[40,-8],[-18,6],[0,-44],[-42,-14]].forEach((o,oi)=>{
         cx.globalAlpha=ft;const bob=Math.sin(el*.002+ti*7+oi)*3;
         cx.fillStyle=fc[ti];cx.beginPath();cx.arc(td.x+o[0],td.y-td.h+o[1]+bob,8,0,Math.PI*2);cx.fill();
-        cx.fillStyle='rgba(255,255,255,.25)';cx.beginPath();cx.arc(td.x+o[0]-3,td.y-td.h+o[1]+bob-3,3,0,Math.PI*2);cx.fill();
+        cx.fillStyle='rgba(240,244,248,.25)';cx.beginPath();cx.arc(td.x+o[0]-3,td.y-td.h+o[1]+bob-3,3,0,Math.PI*2);cx.fill();
         // Subtle animated shine
         const sh=(.4+.6*Math.sin(el*.003+ti*2.1+oi*1.7))*.35;
-        cx.globalAlpha=ft*sh;cx.strokeStyle='#fff';cx.lineWidth=1.2;
+        cx.globalAlpha=ft*sh;cx.strokeStyle='#F0F4F8';cx.lineWidth=1.2;
         const sx=td.x+o[0],sy=td.y-td.h+o[1]+bob-10;
         cx.beginPath();cx.moveTo(sx,sy-4);cx.lineTo(sx,sy+4);cx.stroke();
         cx.beginPath();cx.moveTo(sx-4,sy);cx.lineTo(sx+4,sy);cx.stroke();
@@ -774,7 +774,7 @@ function makeBuilding(){
     cx.fillStyle='#303030';cx.fillRect(BX-4,BY-12,BW+8,10);
 
     // LIGHTNING text on rooftop
-    cx.fillStyle='#fff';cx.font='bold 38px Outfit,sans-serif';cx.textAlign='center';cx.letterSpacing='8px';
+    cx.fillStyle='#F0F4F8';cx.font='bold 38px Outfit,sans-serif';cx.textAlign='center';cx.letterSpacing='8px';
     cx.fillText('WELCOME TO LIGHTNING',BX+BW/2,BY-24);
     cx.letterSpacing='0px';
 
@@ -794,15 +794,15 @@ function makeBuilding(){
     const openEase=doorOpen*doorOpen*(3-2*doorOpen);
 
     // White rectangle behind door (visible as doors slide open)
-    cx.fillStyle='#fff';
+    cx.fillStyle='#F0F4F8';
     cx.fillRect(doorX,doorY,doorW,doorH);
 
     // Left door panel — slides left as white rectangle
     const slideDist=doorW/2*openEase;
-    cx.fillStyle='#fff';
+    cx.fillStyle='#F0F4F8';
     cx.fillRect(doorX-slideDist,doorY,doorW/2,doorH);
     // Right door panel — slides right as white rectangle
-    cx.fillStyle='#fff';
+    cx.fillStyle='#F0F4F8';
     cx.fillRect(doorX+doorW/2+slideDist,doorY,doorW/2,doorH);
 
     // Door frame (always on top)
@@ -846,7 +846,7 @@ function makeBuilding(){
         cx.beginPath();cx.moveTo(w.x+WW/2,w.y);cx.lineTo(w.x+WW/2,w.y+WH);cx.stroke();
         cx.beginPath();cx.moveTo(w.x,w.y+WH*0.4);cx.lineTo(w.x+WW,w.y+WH*0.4);cx.stroke();
         // Top highlight
-        cx.globalAlpha=w.al*pulse*.15;cx.fillStyle='#fff';cx.beginPath();cx.roundRect(w.x+2,w.y+2,WW-4,10,2);cx.fill();
+        cx.globalAlpha=w.al*pulse*.15;cx.fillStyle='#F0F4F8';cx.beginPath();cx.roundRect(w.x+2,w.y+2,WW-4,10,2);cx.fill();
       } else {
         cx.globalAlpha=1;cx.fillStyle='#1a1a1a';cx.beginPath();cx.roundRect(w.x,w.y,WW,WH,2);cx.fill();
         cx.strokeStyle='#161616';cx.lineWidth=2;
