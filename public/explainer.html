@@ -123,13 +123,13 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
     </div>
   </div>
   <!-- individual tabs -->
-  <div class="ic" id="s10t0" style="left:340px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#FFE566"></div>
-  <div class="ic" id="s10t1" style="left:425px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#FFB347"></div>
-  <div class="ic" id="s10t2" style="left:510px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#FF6B6B"></div>
-  <div class="ic" id="s10t3" style="left:595px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#FF8FAB"></div>
-  <div class="ic" id="s10t4" style="left:680px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#B8B3FF"></div>
-  <div class="ic" id="s10t5" style="left:765px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#7EC8E3"></div>
-  <div class="ic" id="s10t6" style="left:850px;top:128px;width:86px;height:42px;border-radius:10px 10px 0 0;background:#6DEBB8"></div>
+  <div class="ic" id="s10t0" style="left:340px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#D2B48C"></div>
+  <div class="ic" id="s10t1" style="left:425px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#D2B48C"></div>
+  <div class="ic" id="s10t2" style="left:510px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#D2B48C"></div>
+  <div class="ic" id="s10t3" style="left:595px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#D2B48C"></div>
+  <div class="ic" id="s10t4" style="left:680px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#D2B48C"></div>
+  <div class="ic" id="s10t5" style="left:765px;top:128px;width:85px;height:42px;border-radius:10px 10px 0 0;background:#D2B48C"></div>
+  <div class="ic" id="s10t6" style="left:850px;top:128px;width:86px;height:42px;border-radius:10px 10px 0 0;background:#D2B48C"></div>
 </div>
 
 <!-- S11: ID cards scattered — driver's license style -->
@@ -141,7 +141,7 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
 <div class="scene" id="s12">
   <!-- walkie circle -->
   <div class="ic" id="s12w" style="left:740px;top:170px">
-    <div class="cicon-lg" style="background:#fff">
+    <div class="cicon-lg" style="background:#2563EB">
       <svg viewBox="0 0 80 120" width="80" height="120">
         <!-- walkie body -->
         <rect x="12" y="28" width="56" height="86" rx="10" fill="#0a0a0a"/>
@@ -165,7 +165,7 @@ body{width:1280px;height:720px;overflow:hidden;background:transparent;font-famil
   </svg>
   <!-- monitor circle -->
   <div class="ic" id="s12m" style="left:320px;top:170px">
-    <div class="cicon-lg" style="background:#fff">
+    <div class="cicon-lg" style="background:#2563EB">
       <svg viewBox="0 0 100 90" width="100" height="90">
         <!-- monitor -->
         <rect x="4" y="0" width="92" height="62" rx="6" fill="#0a0a0a"/>
@@ -421,11 +421,11 @@ function makeRefine(){
     cx.fillRect(1168,beltY+beltH+24,24,80);
 
     // --- MACHINE ---
-    cx.fillStyle='#1a1a1a';
+    cx.fillStyle='#2563EB';
     cx.beginPath();cx.roundRect(machX,machY,machW,machH+beltH,10);cx.fill();
-    cx.fillStyle='#222';
+    cx.fillStyle='#1d4ed8';
     cx.beginPath();cx.roundRect(machX+20,machY-30,machW-40,40,8);cx.fill();
-    cx.fillStyle='#252525';
+    cx.fillStyle='#1e40af';
     cx.fillRect(machX+machW/2-16,machY-70,32,44);
     cx.fillRect(machX+machW/2-22,machY-78,44,14);
     cx.fillStyle='#111';
@@ -767,7 +767,7 @@ function makeBuilding(){
     cx.fillStyle='#1a1a1a';cx.fillRect(0,BY+BH-10,1280,200);
 
     // Main building body
-    cx.fillStyle='#141414';cx.beginPath();cx.roundRect(BX,BY,BW,BH,4);cx.fill();
+    cx.fillStyle='#2563EB';cx.beginPath();cx.roundRect(BX,BY,BW,BH,4);cx.fill();
 
     // Roof ledge / cornice
     cx.fillStyle='#1c1c1c';cx.fillRect(BX-8,BY-6,BW+16,18);
