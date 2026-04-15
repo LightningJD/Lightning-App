@@ -4,4 +4,5 @@
 / /landing.html 200
 /sign-in /landing.html 302
 /sign-up /landing.html 302
+/teamregistry /teamregistry.html 200
 /* /index.html 200
