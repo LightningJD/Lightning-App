@@ -63,29 +63,30 @@ body {
   margin-bottom: 12px;
 }
 .reward-tiers {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-.reward-tier {
-  background: rgba(255,255,255,0.05);
-  border-radius: 12px;
-  padding: 16px 20px;
-  min-width: 200px;
-}
-.reward-tier .threshold {
-  font-size: 0.8rem;
-  color: rgba(255,255,255,0.5);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
-}
-.reward-tier .prize {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #fff;
-}
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .reward-tier {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+      }
+      .tier-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+      }
+      .tier-reward {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+      }
 
 /* Team cards */
 .teams {
@@ -625,9 +626,6 @@ function render(teams, recentSignups, allReferrers) {
     html += '<div class="reward-tier"><div class="tier-label">50+ SIGNUPS EACH</div><div class="tier-reward">Win Both Jackets + Next Release</div></div>';
     html += '<div class="reward-tier"><div class="tier-label">MOST SIGNUPS</div><div class="tier-reward">$200 Cash Prize</div></div>';
     html += '</div>';
-    html += '</div>';
-  html += '<div class="reward-tier"><div class="threshold">Most signups</div><div class="prize">$200 Cash Prize</div></div>';
-  html += '</div>';
   html += '</div>';
 
   // QR Codes
