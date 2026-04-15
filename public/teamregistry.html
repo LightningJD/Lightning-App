@@ -2,12 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+  <meta name="description" content="Lightning signup competition - track team referrals, earn rewards">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%E2%9A%A1</text></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lightning &mdash; Team Registry</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 * { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+::selection { background: rgba(126,200,227,0.3); }
 
 body {
   font-family: 'Inter', sans-serif;
@@ -19,7 +23,7 @@ body {
 .container {
   max-width: 960px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px 20px 80px;
 }
 
 /* Header */
@@ -93,6 +97,16 @@ body {
 @media (max-width: 640px) {
   .teams { grid-template-columns: 1fr; }
 }
+@media (max-width: 640px) {
+  .add-helper-form { flex-direction: column; }
+  .add-helper-form select, .add-helper-form input { min-width: 100%; }
+.add-helper-form select:focus, .add-helper-form input:focus {
+  outline: none;
+  border-color: #7EC8E3;
+  box-shadow: 0 0 0 2px rgba(126,200,227,0.2);
+}
+  .reward-tiers { flex-direction: column; align-items: center; }
+}
 
 .team-card {
   background: rgba(255,255,255,0.04);
@@ -153,7 +167,7 @@ body {
 .progress-fill {
   height: 100%;
   border-radius: 4px;
-  transition: width 0.6s ease;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   background: linear-gradient(90deg, #7EC8E3, #A78BFA);
 }
 .progress-label {
@@ -306,6 +320,13 @@ body {
   cursor: pointer;
   transition: opacity 0.2s;
 }
+.add-helper-form button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(126,200,227,0.3);
+}
+.add-helper-form button:active {
+  transform: translateY(0);
+}
 .add-helper-form button:hover { opacity: 0.85; }
 
 /* Loading state */
@@ -454,7 +475,7 @@ function render(teams, recentSignups, allReferrers) {
 
   // Header
   html += '<div class="header">';
-  html += '<h1>Team Registry</h1>';
+  html += '<h1>\u26A1 Team Registry</h1>';
   html += '<p>Lightning signup competition &mdash; recruit friends, earn rewards</p>';
   html += '</div>';
 
@@ -507,7 +528,22 @@ function render(teams, recentSignups, allReferrers) {
   });
   html += '</div>';
 
-  // Add helper form
+  // QR Codes
+  html += '<div class="qr-section">';
+  html += '<h3>Referral QR Codes</h3>';
+  html += '<p>Scan to sign up &mdash; each code tracks who referred the signup</p>';
+  html += '<div class="qr-grid">';
+  allReferrers.forEach(r => {
+    html += '<div class="qr-item">';
+    html += '<canvas id="qr-' + r.ref_code + '" width="160" height="160"></canvas>';
+    html += '<div class="qr-label">' + (r.role === 'lead' ? r.name + ' \u2014 Team Lead' : r.name) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  
+    // Add helper form
   html += '<div class="add-helper-section">';
   html += '<h3>Add a Team Partner</h3>';
   html += '<div class="add-helper-form">';
@@ -518,20 +554,6 @@ function render(teams, recentSignups, allReferrers) {
   html += '</select>';
   html += '<input type="text" id="helperName" placeholder="Partner name">';
   html += '<button onclick="addHelper()">Add Partner</button>';
-  html += '</div>';
-  html += '</div>';
-
-  // QR Codes
-  html += '<div class="qr-section">';
-  html += '<h3>Referral QR Codes</h3>';
-  html += '<p>Scan to sign up &mdash; each code tracks who referred the signup</p>';
-  html += '<div class="qr-grid">';
-  allReferrers.forEach(r => {
-    html += '<div class="qr-item">';
-    html += '<canvas id="qr-' + r.ref_code + '" width="160" height="160"></canvas>';
-    html += '<div class="qr-label">' + r.name + ' (' + r.role + ')</div>';
-    html += '</div>';
-  });
   html += '</div>';
   html += '</div>';
 
