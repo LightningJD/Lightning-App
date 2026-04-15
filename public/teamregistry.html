@@ -561,8 +561,29 @@ function render(teams, recentSignups, allReferrers) {
   // Reward banner
   html += '<div class="reward-banner">';
   html += '<h3>Rewards</h3>';
-  html += '<div class="reward-tiers">';
-  html += '<div class="reward-tier"><div class="threshold">50+ signups each</div><div class="prize">2 Ruelle Club Jackets + Next Release</div></div>';
+    // Jacket Showcase + Rewards Section
+    html += '<div class="jacket-showcase">';
+    html += '<h2>\u26A1 Team Reward: Ruelle Signature Jackets</h2>';
+    html += '<p class="showcase-subtitle">Hit your referral goals and rep the team in style</p>';
+    html += '<div class="jacket-cards">';
+    html += '<a href="https://ruelleclub.com/products/product-1" target="_blank" class="jacket-card">';
+    html += '<img src="https://ruelleclub.com/cdn/shop/files/untitled-3_b4d9cc44-ef27-483a-a7e0-d864570c0b59.jpg" alt="Twill Friend of God Jacket">';
+    html += '<div class="jacket-info">';
+    html += '<h3>Twill Friend of God Jacket</h3>';
+    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
+    html += '</div></a>';
+    html += '<a href="https://ruelleclub.com/products/product-2" target="_blank" class="jacket-card">';
+    html += '<img src="https://ruelleclub.com/cdn/shop/files/untitled-11.jpg" alt="Varsity Friend of God Jacket">';
+    html += '<div class="jacket-info">';
+    html += '<h3>Varsity Friend of God Jacket</h3>';
+    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
+    html += '</div></a>';
+    html += '</div>';
+    html += '<div class="reward-tiers" style="margin-top:24px">';
+    html += '<div class="reward-tier"><div class="tier-label">50+ SIGNUPS EACH</div><div class="tier-reward">Win Both Jackets + Next Release</div></div>';
+    html += '<div class="reward-tier"><div class="tier-label">MOST SIGNUPS</div><div class="tier-reward">$200 Cash Prize</div></div>';
+    html += '</div>';
+    html += '</div>';
   html += '<div class="reward-tier"><div class="threshold">Most signups</div><div class="prize">$200 Cash Prize</div></div>';
   html += '</div>';
   html += '</div>';
@@ -654,24 +675,6 @@ function render(teams, recentSignups, allReferrers) {
   }
 
 
-    // Jacket Showcase Section
-    html += '<div class="jacket-showcase">';
-    html += '<h2>\u26A1 Team Reward: Ruelle Signature Jackets</h2>';
-    html += '<p class="showcase-subtitle">Hit your referral goals and rep the team in style</p>';
-    html += '<div class="jacket-cards">';
-    html += '<a href="https://ruelleclub.com/products/product-1" target="_blank" class="jacket-card">';
-    html += '<img src="https://ruelleclub.com/cdn/shop/files/untitled-3_b4d9cc44-ef27-483a-a7e0-d864570c0b59.jpg" alt="Twill Friend of God Jacket">';
-    html += '<div class="jacket-info">';
-    html += '<h3>Twill Friend of God Jacket</h3>';
-    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
-    html += '</div></a>';
-    html += '<a href="https://ruelleclub.com/products/product-2" target="_blank" class="jacket-card">';
-    html += '<img src="https://ruelleclub.com/cdn/shop/files/untitled-11.jpg" alt="Varsity Friend of God Jacket">';
-    html += '<div class="jacket-info">';
-    html += '<h3>Varsity Friend of God Jacket</h3>';
-    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
-    html += '</div></a>';
-    html += '</div></div>';
 
   app.innerHTML = html;
 
