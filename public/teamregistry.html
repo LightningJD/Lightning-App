@@ -373,6 +373,85 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+.jacket-showcase {
+  margin-top: 40px;
+  padding: 30px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.jacket-showcase h2 {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  color: #fff;
+}
+.jacket-showcase .showcase-subtitle {
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+}
+.jacket-cards {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.jacket-card {
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  width: 280px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.1);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.jacket-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.jacket-card img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  background: #f5f0eb;
+}
+.jacket-info {
+  padding: 16px;
+}
+.jacket-info h3 {
+  font-size: 1rem;
+  margin: 0 0 6px 0;
+  color: #fff;
+}
+.jacket-info .jacket-price {
+  font-size: 0.9rem;
+  color: #7EC8E3;
+}
+.jacket-info .jacket-price .original {
+  text-decoration: line-through;
+  color: rgba(255,255,255,0.4);
+  margin-right: 8px;
+}
+.jacket-info .jacket-sale {
+  display: inline-block;
+  background: #7EC8E3;
+  color: #0a1628;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+@media (max-width: 640px) {
+  .jacket-cards { flex-direction: column; align-items: center; }
+  .jacket-card { width: 100%; max-width: 320px; }
+}
+
 </style>
 </head>
 <body>
@@ -573,6 +652,26 @@ function render(teams, recentSignups, allReferrers) {
     html += '</div>';
     html += '</div>';
   }
+
+
+    // Jacket Showcase Section
+    html += '<div class="jacket-showcase">';
+    html += '<h2>\u26A1 Team Reward: Ruelle Signature Jackets</h2>';
+    html += '<p class="showcase-subtitle">Hit your referral goals and rep the team in style</p>';
+    html += '<div class="jacket-cards">';
+    html += '<a href="https://ruelleclub.com/products/product-1" target="_blank" class="jacket-card">';
+    html += '<img src="https://ruelleclub.com/cdn/shop/files/untitled-3_b4d9cc44-ef27-483a-a7e0-d864570c0b59.jpg" alt="Twill Friend of God Jacket">';
+    html += '<div class="jacket-info">';
+    html += '<h3>Twill Friend of God Jacket</h3>';
+    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
+    html += '</div></a>';
+    html += '<a href="https://ruelleclub.com/products/product-2" target="_blank" class="jacket-card">';
+    html += '<img src="https://ruelleclub.com/cdn/shop/files/untitled-11.jpg" alt="Varsity Friend of God Jacket">';
+    html += '<div class="jacket-info">';
+    html += '<h3>Varsity Friend of God Jacket</h3>';
+    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
+    html += '</div></a>';
+    html += '</div></div>';
 
   app.innerHTML = html;
 
