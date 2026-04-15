@@ -1088,6 +1088,7 @@
     // Restore saved theme
     (function() {
       const saved = localStorage.getItem('lightning-theme');
+           if (saved === 'light') {
         document.body.classList.add('light-mode');
         const btn = document.querySelector('.theme-toggle');
         if (btn) btn.innerHTML = '\u2600';
