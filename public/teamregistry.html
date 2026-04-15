@@ -249,6 +249,20 @@ body {
   font-weight: 600;
   color: rgba(255,255,255,0.7);
 }
+      .qr-download {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 4px 12px;
+        background: rgba(126,200,227,0.15);
+        color: #7ec8e3;
+        border: 1px solid rgba(126,200,227,0.3);
+        border-radius: 6px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.2s;
+      }
+      .qr-download:hover { background: rgba(126,200,227,0.3); }
 
 /* Recent signups */
 .recent-section {
@@ -552,33 +566,6 @@ function render(teams, recentSignups, allReferrers) {
   html += '<h1>\u26A1 Team Registry</h1>';
   html += '<p>Lightning signup &mdash; recruit friends, earn rewards</p>';
   html += '</div>';
-    // Jacket Showcase + Rewards Section
-    html += '<div class="jacket-showcase">';
-    html += '<h2>\u26A1 Team Reward</h2>';
-    html += '<p class="showcase-subtitle" style="color:#FFD700;font-weight:600;font-size:1rem;">\u26A0\uFE0F Signups must create a profile on May 15th to qualify<br>&#x26A0;&#xFE0F; Signups must be from TCS only (bring 2-3 friends to help you win and split the cash rewards)</p>';
-    html += '<div class="jacket-cards">';
-    html += '<a href="https://ruelleclub.com/products/product-1" target="_blank" class="jacket-card">';
-    html += '<img src="/images/untitled-8.webp" alt="Twill Friend of God Jacket - Back">';
-    html += '<div class="jacket-info">';
-    html += '<h3>Twill Friend of God Jacket</h3>';
-    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
-    html += '</div></a>';
-    html += '<a href="https://ruelleclub.com/products/product-2" target="_blank" class="jacket-card">';
-    html += '<img src="/images/untitled-18_170550e2-8e18-4039-9383-0dc45081d9c8.webp" alt="Varsity Friend of God Jacket - Back">';
-    html += '<div class="jacket-info">';
-    html += '<h3>Varsity Friend of God Jacket</h3>';
-    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
-    html += '</div></a>';
-    html += '</div>';
-    html += '<div class="reward-tiers" style="margin-top:24px">';
-    html += '<div class="reward-tier"><div class="tier-label">50+ SIGNUPS EACH</div><div class="tier-reward">Win Both Jackets + Next Release</div></div>';
-    html += '<div class="reward-tier"><div class="tier-label">MOST SIGNUPS</div><div class="tier-reward">$200 Cash Prize</div></div>';
-    html += '</div>';
-    html += '</div>';
-  html += '<div class="reward-tier"><div class="threshold">Most signups</div><div class="prize">$200 Cash Prize</div></div>';
-  html += '</div>';
-  html += '</div>';
-
   // Team cards
   html += '<div class="teams">';
   teams.forEach((team, i) => {
@@ -602,7 +589,7 @@ function render(teams, recentSignups, allReferrers) {
     html += '<div class="helpers-section">';
     html += '<div class="helpers-title">Team Partners</div>';
     if (team.helpers.length === 0) {
-      html += '<div class="no-helpers">No partners added yet</div>';
+      html += '<div class="no-helpers">Partners will show here once added</div>';
     } else {
       team.helpers.forEach(h => {
         html += '<div class="helper-row">';
@@ -616,6 +603,33 @@ function render(teams, recentSignups, allReferrers) {
   });
   html += '</div>';
 
+    // Jacket Showcase + Rewards Section
+    html += '<div class="jacket-showcase">';
+    html += '<h2>\u26A1 Team Reward</h2>';
+    html += '<p class="showcase-subtitle" style="color:#FFD700;font-weight:600;font-size:1rem;">\u26A0\uFE0F Signups must create a profile on May 15th to qualify<br>&#x26A0;&#xFE0F; Signups must be from The Crossing Students (TCS) only (bring 2-3 friends to help you win and split the cash rewards)</p>';
+    html += '<div class="jacket-cards">';
+    html += '<a href="https://ruelleclub.com/products/product-1" target="_blank" class="jacket-card">';
+    html += '<img src="/images/untitled-8.webp" alt="Twill Friend of God Jacket - Back">';
+    html += '<div class="jacket-info">';
+    html += '<h3>Twill Friend of God Jacket</h3>';
+    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
+    html += '</div></a>';
+    html += '<a href="https://ruelleclub.com/products/product-2" target="_blank" class="jacket-card">';
+    html += '<img src="/images/untitled-18_170550e2-8e18-4039-9383-0dc45081d9c8.webp" alt="Varsity Friend of God Jacket - Back">';
+    html += '<div class="jacket-info">';
+    html += '<h3>Varsity Friend of God Jacket</h3>';
+    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
+    html += '</div></a>';
+    html += '</div>';
+    html += '<div class="reward-tiers" style="margin-top:24px">';
+    html += '<div class="reward-tier"><div class="tier-label">50+ SIGNUPS EACH</div><div class="tier-reward">Win Both Jackets + Next Release</div></div>';
+    html += '<div class="reward-tier"><div class="tier-label">MOST SIGNUPS</div><div class="tier-reward">$200 Cash Prize</div></div>';
+    html += '</div>';
+    html += '</div>';
+  html += '<div class="reward-tier"><div class="threshold">Most signups</div><div class="prize">$200 Cash Prize</div></div>';
+  html += '</div>';
+  html += '</div>';
+
   // QR Codes
   html += '<div class="qr-section">';
   html += '<h3>Referral QR Codes</h3>';
@@ -625,6 +639,7 @@ function render(teams, recentSignups, allReferrers) {
     html += '<div class="qr-item">';
     html += '<canvas id="qr-' + r.ref_code + '" width="160" height="160"></canvas>';
     html += '<div class="qr-label">' + (r.role === 'lead' ? r.name + ' \u2014 Team Lead' : r.name) + '</div>';
+    html += '<a class="qr-download" data-qrid="qr-' + r.ref_code + '" data-name="' + r.name + '">Save QR</a>';
     html += '</div>';
   });
   html += '</div>';
@@ -680,6 +695,18 @@ function render(teams, recentSignups, allReferrers) {
           background: '#ffffff',
           level: 'M'
         });
+
+      // Download QR click handler
+      document.querySelectorAll('.qr-download').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var canvas = document.getElementById(btn.getAttribute('data-qrid'));
+          if (!canvas) return;
+          var link = document.createElement('a');
+          link.download = btn.getAttribute('data-name').replace(/\s+/g, '_') + '_QR.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        });
+      });
       }
     });
   }, 100);
