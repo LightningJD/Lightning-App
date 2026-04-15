@@ -709,39 +709,49 @@
       opacity: 0.7;
     }
 
-    /* Theme toggle button */
+    /* Theme toggle pill */
     .theme-toggle {
       position: fixed;
       bottom: 24px; right: 24px;
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.4);
-      background: rgba(0,0,0,0.45);
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 8px;
+      border-radius: 30px;
+      border: 2px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.5);
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-      transition: all 0.3s ease;
       z-index: 9999;
       -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-      color: white;
-      line-height: 1;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      transition: all 0.35s ease;
+      user-select: none;
+    }
+    .toggle-icon { font-size: 16px; line-height: 1; transition: opacity 0.3s; }
+    .toggle-sun { color: #FFD700; opacity: 0.5; }
+    .toggle-moon { color: #E0E0FF; opacity: 1; }
+    .toggle-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: rgba(255,255,255,0.85);
+      min-width: 32px; text-align: center; transition: color 0.3s;
+    }
+    .toggle-knob {
+      display: none;
     }
     .theme-toggle:hover {
-      background: rgba(255,255,255,0.15);
-      border-color: rgba(255,255,255,0.4);
+      border-color: rgba(255,255,255,0.55);
+      background: rgba(0,0,0,0.6);
     }
     body.light-mode .theme-toggle {
-      border-color: rgba(26,26,46,0.3);
-      background: rgba(255,255,255,0.7);
-      color: #2a2a3a;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      border-color: rgba(26,26,46,0.25);
+      background: rgba(255,255,255,0.75);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
     }
     body.light-mode .theme-toggle:hover {
       background: rgba(255,255,255,0.9);
-      border-color: rgba(26,26,46,0.3);
     }
+    body.light-mode .toggle-sun { opacity: 1; }
+    body.light-mode .toggle-moon { opacity: 0.4; }
+    body.light-mode .toggle-label { color: rgba(26,26,46,0.8); }
 
     /* Light mode: override inline light colors for readability */
     body.light-mode [style*="color:rgba(255,255,255"] {
@@ -1059,16 +1069,22 @@
 
   <script>
     function toggleTheme() {
-      document.body.classList.toggle('light-mode');
-      const btn = document.querySelector('.theme-toggle');
-      const isLight = document.body.classList.contains('light-mode');
-      btn.innerHTML = isLight ? '&#9728;' : '&#9790;';
-      localStorage.setItem('lightning-theme', isLight ? 'light' : 'dark');
-      // Tell the explainer iframe about the theme change
-      const iframe = document.querySelector('iframe');
-      if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage({ theme: isLight ? 'light' : 'dark' }, '*');
+      const body = document.body;
+      body.classList.toggle('light-mode');
+      const isLight = body.classList.contains('light-mode');
+      const label = document.getElementById('themeLabel');
+      if (label) label.textContent = isLight ? 'Dark' : 'Light';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    }
+    // Restore saved theme on load
+    (function() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light') {
+        document.body.classList.add('light-mode');
+        const label = document.getElementById('themeLabel');
+        if (label) label.textContent = 'Dark';
       }
+    })();
     }
     // Restore saved theme
     (function() {
@@ -1089,6 +1105,6 @@
       });
     })();
   </script>
-  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light/dark mode">&#9790;</button>
+  <div class="theme-toggle" onclick="toggleTheme()" role="switch" aria-label="Toggle light/dark mode"><span class="toggle-icon toggle-sun">&#9788;</span><span class="toggle-label" id="themeLabel">Light</span><span class="toggle-icon toggle-moon">&#9790;</span><span class="toggle-knob"></span></div>
 </body>
 </html>
