@@ -1,11 +1,15 @@
 # Cloudflare Pages SPA Redirect
 # This ensures React Router works properly with client-side routing
+#
+# NOTE: Do NOT use 200 rewrites to .html files for specific paths.
+# Cloudflare Pages' clean-URL feature will 308-redirect them instead
+# of serving the content in-place. The /* wildcard is special-cased
+# by Pages as an SPA fallback and works correctly.
 
-# Allow sign-in/sign-up to reach the React app (for beta testers)
-/sign-in /index.html 200
-/sign-up /index.html 200
+# Landing page as homepage until launch (302 because 200 rewrite
+# to landing.html triggers a 308 clean-URL redirect)
+/ /landing 302
 
-# Landing page as homepage until launch
-/ /landing.html 200
-
+# SPA fallback — serves React app for all other routes
+# (including /sign-in, /sign-up)
 /* /index.html 200
