@@ -296,6 +296,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [showProfileWizard, setShowProfileWizard] = useState(false);
   const [profileCompleted, setProfileCompleted] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+
+  // Listen for "openProfileEdit" window events dispatched by child components
+  // (e.g. ProfileTab's Edit Profile button). This avoids coupling ProfileTab
+  // to AppContext directly.
+  React.useEffect(() => {
+    const handler = () => setShowProfileEdit(true);
+    window.addEventListener("openProfileEdit", handler);
+    return () => window.removeEventListener("openProfileEdit", handler);
+  }, []);
   const [showTestimonyEdit, setShowTestimonyEdit] = useState(false);
   const [testimonyData, setTestimonyData] = useState<any>(null);
   const [showTestimonyQuestionnaire, setShowTestimonyQuestionnaire] =
