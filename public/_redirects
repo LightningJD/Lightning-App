@@ -1,7 +1,11 @@
 # Cloudflare Pages SPA Redirect
 # This ensures React Router works properly with client-side routing
 
+# Allow sign-in/sign-up to reach the React app (for beta testers)
+/sign-in /index.html 200
+/sign-up /index.html 200
+
+# Landing page as homepage until launch
 / /landing.html 200
-/sign-in /landing.html 302
-/sign-up /landing.html 302
+
 /* /index.html 200
