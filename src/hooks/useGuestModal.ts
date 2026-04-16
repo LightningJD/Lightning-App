@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import {
   initGuestSession,
@@ -34,7 +34,7 @@ export const useGuestModal = () => {
   }, [isSignedIn]);
 
   // Check guest limits and show modal if needed
-  const checkAndShowModal = () => {
+  const checkAndShowModal = useCallback(() => {
     if (isSignedIn) return false;
 
     const limit = checkGuestLimit();
@@ -47,20 +47,20 @@ export const useGuestModal = () => {
     }
 
     return false;
-  };
+  }, [isSignedIn]);
 
   // Handle modal dismissal (only for version 1)
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     console.log('👋 Guest dismissed modal');
     trackModalDismiss();
     setShowModal(false);
-  };
+  }, []);
 
-  return {
+  return useMemo(() => ({
     showModal,
     modalVersion,
     handleDismiss,
     checkAndShowModal,
     isGuest: !isSignedIn
-  };
+  }), [showModal, modalVersion, handleDismiss, checkAndShowModal, isSignedIn]);
 };

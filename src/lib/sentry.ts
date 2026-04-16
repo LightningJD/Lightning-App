@@ -14,8 +14,9 @@ export const initSentry = () => {
   const sentryDSN = import.meta.env.VITE_SENTRY_DSN;
 
   if (!sentryDSN) {
-    console.warn('⚠️  Sentry DSN not found. Error monitoring disabled.');
-    console.warn('Add VITE_SENTRY_DSN to .env.local to enable error tracking.');
+    if (import.meta.env.DEV) {
+      console.info('Sentry disabled (no VITE_SENTRY_DSN set in env).');
+    }
     return;
   }
 

@@ -221,7 +221,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
     });
     setActiveChat(startChatWith.id);
     setShowNewChatDialog(false);
-  }, [startChatWith]);
+  }, [startChatWith?.id, startChatWith?.name]);
 
   // Close conversation menu when switching chats
   useEffect(() => {
@@ -231,7 +231,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
   // Block guests from accessing messages
   useEffect(() => {
     if (isGuest) checkAndShowModal();
-  }, [isGuest]);
+  }, [isGuest, checkAndShowModal]);
 
   // Reaction emojis (shared constant)
   const reactionEmojis = REACTION_EMOJIS;

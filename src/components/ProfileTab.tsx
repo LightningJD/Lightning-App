@@ -512,7 +512,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
               color: nightMode ? '#e8e5f2' : '#1e2b4a',
             }}
           >
-            {profile.username}
+            {profile.displayName || profile.username}
             {isUserPro && <ProBadge size="sm" />}
           </h1>
           <p
@@ -521,7 +521,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
               color: nightMode ? '#5d5877' : '#8e9ec0',
             }}
           >
-            @{profile.displayName}{profile.churchName ? ` · ${profile.churchName}` : ''}
+            @{profile.username}{profile.churchName ? ` · ${profile.churchName}` : ''}
           </p>
 
           {/* Location */}
