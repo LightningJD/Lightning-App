@@ -835,7 +835,28 @@
     }
     .grand-banner, .grand-banner * { transition: none; }
 
-  </style>
+  
+    .ig-follow-btn {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 10px 22px;
+      background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 50px;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .ig-follow-btn:hover { opacity: 0.85; transform: scale(1.04); }
+    .footer-ig { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 13px; margin-left: 16px; transition: color 0.3s; }
+    .footer-ig:hover { color: #fcb045; }
+    [data-theme="light"] .footer-ig { color: rgba(0,0,0,0.4); }
+    [data-theme="light"] .footer-ig:hover { color: #833ab4; }
+    </style>
 </head>
 <body>
 
@@ -901,6 +922,7 @@
       <div class="success-hero" id="heroSuccess">
         <p class="title">You're in.</p>
         <p class="sub">We'll send your invite on launch day. May 15.</p>
+        <a href="https://instagram.com/lightningsocial.app" target="_blank" rel="noopener" class="ig-follow-btn">Follow us on Instagram</a>
       </div>
     </div>
   </section>
@@ -968,6 +990,7 @@
     <div class="success-church" id="churchSuccess">
       <p class="title">We'll be in touch.</p>
       <p class="sub">Thank you for your interest.</p>
+        <a href="https://instagram.com/lightningsocial.app" target="_blank" rel="noopener" class="ig-follow-btn">Follow us on Instagram</a>
     </div>
   </section>
 
@@ -978,6 +1001,7 @@
       <span><span class="banner-cd"></span></span>
       <span style="opacity:0.4;">•</span>
       <span>INVITE ONLY</span>
+      <a href="https://instagram.com/lightningsocial.app" target="_blank" rel="noopener" class="footer-ig">@lightningsocial.app</a>
     </div>
   </footer>
 
