@@ -11,7 +11,6 @@ interface TestimonyData {
   question4?: string;
   isPublic?: boolean;
   visibility?: 'my_church' | 'all_churches' | 'shareable';
-  musicSpotifyUrl?: string;
   musicTrackName?: string;
   musicArtist?: string;
   musicAudioUrl?: string;
@@ -41,7 +40,6 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
       word_count: testimonyData.content.trim().split(/\s+/).filter(Boolean).length,
       is_public: testimonyData.isPublic ?? true,
       visibility: testimonyData.visibility ?? 'my_church',
-      music_spotify_url: testimonyData.musicSpotifyUrl,
       music_track_name: testimonyData.musicTrackName,
       music_artist: testimonyData.musicArtist,
       music_audio_url: testimonyData.musicAudioUrl,
