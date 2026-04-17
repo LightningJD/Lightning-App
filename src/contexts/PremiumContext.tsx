@@ -6,7 +6,6 @@ import type {
   ServerPremiumState,
   SubscriptionStatus,
   PremiumFeature,
-  CHURCH_PREMIUM_FEATURES,
 } from '../types/premium';
 import { CHURCH_PREMIUM_FEATURES as ALL_CHURCH_FEATURES } from '../types/premium';
 
@@ -61,7 +60,7 @@ interface PremiumProviderProps {
 export const PremiumProvider: React.FC<PremiumProviderProps> = ({ children, userId }) => {
   const [serverPremiumMap, setServerPremiumMap] = useState<Record<string, ServerPremiumState>>({});
   const [userProSubscription, setUserProSubscription] = useState<Subscription | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   // ============================================
   // SERVER PREMIUM

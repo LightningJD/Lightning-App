@@ -267,11 +267,10 @@ export async function awardPoints(userId: string, amount: number): Promise<boole
     const u = user as any;
     const { error } = await supabase
       .from('users')
-      // @ts-ignore
       .update({
         blessing_points: (u.blessing_points || 0) + amount,
         overall_points: (u.overall_points || 0) + amount
-      })
+      } as any)
       .eq('id', userId);
 
     if (error) {

@@ -22,7 +22,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({
   const [songArtist, setSongArtist] = useState(userProfile?.songArtist || "");
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
+  const [, setFetchedTitle] = useState<string | null>(null);
   const lastFetchedId = useRef<string | null>(null);
 
   // Auto-fetch video info when a valid YouTube URL is entered

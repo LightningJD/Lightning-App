@@ -357,8 +357,10 @@ export const getReactionsForMessages = async (messageIds: string[]): Promise<Rec
   const map: Record<string, any[]> = {};
   for (const reaction of data || []) {
     const id = reaction.message_id;
-    if (!map[id]) map[id] = [];
-    map[id].push(reaction);
+    if (id === null || id === undefined) continue;
+    const key = String(id);
+    if (!map[key]) map[key] = [];
+    map[key].push(reaction);
   }
   return map;
 };

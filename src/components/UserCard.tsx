@@ -87,6 +87,19 @@ const UserCard: React.FC<UserCardProps> = ({
                   <span>{Math.floor(Number.parseFloat(user.distance))} mi</span>
                 </div>
               )}
+            {/* BUG-C: show city as a disambiguator when distance isn't set
+                (search results don't compute distance). Two users with the
+                same display name are otherwise distinguishable only by the
+                small @username text. */}
+            {!user.distance &&
+              (user.location_city || user.location) && (
+                <div
+                  className={`flex items-center gap-0.5 ${nightMode ? "text-slate-100" : "text-black"}`}
+                >
+                  <MapPin className="w-3 h-3" />
+                  <span>{user.location_city || user.location}</span>
+                </div>
+              )}
             {showReason &&
               user.reason &&
               !user.reason.toLowerCase().includes("similar interests") && (

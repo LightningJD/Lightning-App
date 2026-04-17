@@ -34,14 +34,12 @@ import {
   rejectInviteRequest,
   joinByInviteCode,
   getChannelRoleAccessBulk,
-  setChannelRoleAccess,
   timeoutMember,
   removeTimeout,
   isMemberTimedOut,
   addAuditLogEntry,
   setChannelNotificationOverride,
   getUserNotificationOverrides,
-  sendWelcomeMessage,
 } from '../lib/database';
 
 // ── Types ──────────────────────────────────────────────────────
@@ -606,24 +604,13 @@ export function useServerState({
 
   // ── Refresh channel access helper ─────────────────────────────
 
-  const refreshChannelAccess = useCallback(async () => {
-    const privateChannelIds = channels
-      .filter((c: any) => c.is_private)
-      .map((c: any) => c.id);
-    if (privateChannelIds.length > 0) {
-      const access = await getChannelRoleAccessBulk(privateChannelIds);
-      setChannelAccess(access);
-    } else {
-      setChannelAccess({});
-    }
-  }, [channels]);
 
   // ── Timeout handlers ──────────────────────────────────────────
 
   const handleTimeoutMember = useCallback(async (userId: string, minutes: number) => {
     if (!activeServerId) return;
     await timeoutMember(activeServerId, userId, supabaseId || '', minutes);
-    await addAuditLogEntry(activeServerId, supabaseId || '', 'timeout_member', { userId, minutes });
+    await addAuditLogEntry(activeServerId, supabaseId || '', 'timeout_member', 'member', userId, undefined, { minutes });
     // Refresh members
     const refreshedMembers = await getServerMembers(activeServerId);
     setMembers(refreshedMembers || []);
@@ -633,7 +620,7 @@ export function useServerState({
   const handleRemoveTimeout = useCallback(async (userId: string) => {
     if (!activeServerId) return;
     await removeTimeout(activeServerId, userId, supabaseId || '');
-    await addAuditLogEntry(activeServerId, supabaseId || '', 'remove_timeout', { userId });
+    await addAuditLogEntry(activeServerId, supabaseId || '', 'remove_timeout', 'member', userId);
     showSuccess('Timeout removed');
   }, [activeServerId, supabaseId]);
 

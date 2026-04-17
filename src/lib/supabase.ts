@@ -14,7 +14,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
  */
 let _getClerkToken: (() => Promise<string | null>) | null = null;
 let _tokenGetterRegistered = false;
-let _realtimeRefreshInterval: ReturnType<typeof setInterval> | null = null;
 
 /**
  * Custom fetch that gets a FRESH Clerk JWT on every REST request.
@@ -77,7 +76,7 @@ export const setClerkTokenGetter = async (getter: () => Promise<string | null>) 
 
       // Refresh the Realtime token every 50s (Clerk tokens expire at ~60s).
       // REST doesn't need this because customFetch gets a fresh token per request.
-      _realtimeRefreshInterval = setInterval(async () => {
+      setInterval(async () => {
         try {
           const freshToken = await getter();
           if (freshToken && supabase) {

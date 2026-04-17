@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { Crown, CreditCard, ExternalLink, AlertTriangle, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { useServerPremium, usePremium } from '../../contexts/PremiumContext';
+import { useServerPremium } from '../../contexts/PremiumContext';
 import { createCheckoutSession, openBillingPortal, getSubscriptionEvents } from '../../lib/database/billing';
 import type { PricingTier, BillingInterval, SubscriptionEvent } from '../../types/premium';
 import PricingTable from './PricingTable';
-import PremiumBadge from './PremiumBadge';
 import TierProximityWarning from './TierProximityWarning';
-import { showError, showSuccess } from '../../lib/toast';
+import { showError } from '../../lib/toast';
 import { getTierForMemberCount } from '../../lib/database/billing';
 
 interface SubscriptionSettingsProps {
@@ -26,7 +25,7 @@ const SubscriptionSettings: React.FC<SubscriptionSettingsProps> = ({
   userEmail,
   userId,
 }) => {
-  const { premium, isPremium, refresh } = useServerPremium(serverId);
+  const { premium, isPremium } = useServerPremium(serverId);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [events, setEvents] = useState<SubscriptionEvent[]>([]);

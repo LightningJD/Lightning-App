@@ -79,7 +79,7 @@ export const subscribeToGroupMessages = (groupId: string, callback: RealtimeCall
       },
       callback
     )
-    .subscribe((status, err) => {
+    .subscribe((_status, err) => {
       if (err) console.error('📡 Group messages subscription error:', err);
     });
 
@@ -104,7 +104,7 @@ export const subscribeToChannelMessages = (channelId: string, callback: Realtime
       },
       callback
     )
-    .subscribe((status, err) => {
+    .subscribe((_status, err) => {
       if (err) console.error('📡 Channel messages subscription error:', err);
     });
 

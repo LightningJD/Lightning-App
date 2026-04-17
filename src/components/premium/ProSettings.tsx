@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Zap, CreditCard, ExternalLink, AlertTriangle, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Zap, CreditCard, ExternalLink, AlertTriangle } from 'lucide-react';
 import { usePremium } from '../../contexts/PremiumContext';
 import { createCheckoutSession, openBillingPortal, getSubscriptionEvents } from '../../lib/database/billing';
 import type { BillingInterval, SubscriptionEvent } from '../../types/premium';
 import ProBadge from './ProBadge';
-import { showError, showSuccess } from '../../lib/toast';
+import { showError } from '../../lib/toast';
 
 interface ProSettingsProps {
   nightMode: boolean;
@@ -17,7 +17,7 @@ const ProSettings: React.FC<ProSettingsProps> = ({
   userEmail,
   userId,
 }) => {
-  const { isUserPro, userProStatus, userProSubscription, refreshUserPro } = usePremium();
+  const { isUserPro, userProStatus, userProSubscription } = usePremium();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [selectedInterval, setSelectedInterval] = useState<BillingInterval>('monthly');
   const [showHistory, setShowHistory] = useState(false);

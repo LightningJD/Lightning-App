@@ -29,6 +29,7 @@ import {
   getRoleLabel,
   getRoleColor,
   getAssignableRoles,
+  outranks,
 } from "../lib/permissions";
 import EventsView from "./EventsView";
 import AnnouncementsView from "./AnnouncementsView";
@@ -45,7 +46,7 @@ import { useGroupChat } from "../hooks/useGroupChat";
 import { useGroupMembers } from "../hooks/useGroupMembers";
 import SwipeablePageWrapper from "./SwipeablePageWrapper";
 import { REACTION_EMOJIS } from "../lib/reactionEmojis";
-import type { GroupMessageView as GroupMessage, GroupMessageReactionView as MessageReaction, GroupMemberView as GroupMember, GroupDataView as GroupData } from "../types/chat";
+import type { GroupDataView as GroupData } from "../types/chat";
 
 interface GroupsTabProps {
   nightMode: boolean;
@@ -256,18 +257,6 @@ const GroupsTab: React.FC<GroupsTabProps> = ({
         )}
       </div>
     );
-  };
-
-  // Helper function to check if message is in bottom half of viewport
-  const isMessageInBottomHalf = (messageId: string | number): boolean => {
-    const messageEl = messageRefs.current[messageId];
-    if (!messageEl) return false;
-
-    const rect = messageEl.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const messageMiddle = rect.top + rect.height / 2;
-
-    return messageMiddle > viewportHeight / 2;
   };
 
   // Reaction emojis (shared constant)

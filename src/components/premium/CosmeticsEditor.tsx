@@ -42,7 +42,7 @@ const CosmeticsEditor: React.FC<CosmeticsEditorProps> = ({
   serverId,
   serverName,
 }) => {
-  const { isPremium, premium, refresh } = useServerPremium(serverId);
+  const { isPremium, refresh } = useServerPremium(serverId);
   const nm = nightMode;
 
   const [cosmetics, setCosmetics] = useState<Partial<PremiumCosmetics>>({

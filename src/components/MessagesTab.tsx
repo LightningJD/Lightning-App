@@ -27,9 +27,8 @@ import { isSupabaseConfigured } from "../lib/supabase";
 import OtherUserProfileDialog from "./OtherUserProfileDialog";
 import { useMessages } from "../hooks/useMessages";
 import { useNewChat } from "../hooks/useNewChat";
-import type { Message, Conversation } from "../hooks/useMessages";
+import type { Conversation } from "../hooks/useMessages";
 import { REACTION_EMOJIS } from "../lib/reactionEmojis";
-import type { Connection } from "../hooks/useNewChat";
 
 // ── Gradient avatar helpers ──────────────────────────────────────
 const AVATAR_GRADIENTS = [

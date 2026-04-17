@@ -57,7 +57,6 @@ interface ProfileCreationWizardProps {
 const ProfileCreationWizard: React.FC<ProfileCreationWizardProps> = ({
   nightMode,
   onComplete,
-  onSkip,
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>({

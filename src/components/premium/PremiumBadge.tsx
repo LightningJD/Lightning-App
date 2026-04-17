@@ -8,7 +8,6 @@ interface PremiumBadgeProps {
 }
 
 const PremiumBadge: React.FC<PremiumBadgeProps> = ({
-  nightMode,
   size = 'sm',
   variant = 'church',
   className = '',

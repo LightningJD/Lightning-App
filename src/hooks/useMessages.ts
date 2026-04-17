@@ -7,7 +7,7 @@ import {
   deleteMessage, markConversationAsRead,
 } from '../lib/database';
 import { showError } from '../lib/toast';
-import { checkMilestoneSecret, checkMessageSecrets, unlockSecret } from '../lib/secrets';
+import { checkMessageSecrets, unlockSecret } from '../lib/secrets';
 import { trackMessageByHour, getEarlyBirdMessages, getNightOwlMessages, trackMessageStreak } from '../lib/activityTracker';
 import { checkAndNotify, recordAttempt } from '../lib/rateLimiter';
 import { sanitizeInput } from '../lib/inputValidation';

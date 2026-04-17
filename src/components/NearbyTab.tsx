@@ -86,9 +86,6 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
   const [testimonies, setTestimonies] = useState<any[]>([]);
   const [isLoadingTestimonies, setIsLoadingTestimonies] =
     useState<boolean>(false);
-  const [expandedTestimonies, setExpandedTestimonies] = useState<Set<string>>(
-    new Set(),
-  );
   const [trendingTestimony, setTrendingTestimony] = useState<any>(null);
 
   // BUG-009: Track which testimonies the current user has liked and maintain
@@ -260,15 +257,28 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
 
   const handleAddFriend = async (userId: string): Promise<void> => {
     if (!profile?.supabaseId) return;
+
+    // BUG-A: Optimistic update. Flip the button to "Pending" immediately so
+    // the user gets instant feedback, then call the DB. If the insert fails,
+    // revert the row to its previous friendshipStatus so the UI stays truthful.
+    const previousStatus = searchResults.find((u) => u.id === userId)
+      ?.friendshipStatus;
+    setSearchResults((prev) =>
+      prev.map((u) =>
+        u.id === userId ? { ...u, friendshipStatus: "pending" } : u,
+      ),
+    );
+
     try {
       await sendFriendRequest(profile.supabaseId, userId);
-      setSearchResults((prev) =>
-        prev.map((u) =>
-          u.id === userId ? { ...u, friendshipStatus: "pending" } : u,
-        ),
-      );
     } catch (error) {
       console.error("Error sending friend request:", error);
+      // Revert on failure.
+      setSearchResults((prev) =>
+        prev.map((u) =>
+          u.id === userId ? { ...u, friendshipStatus: previousStatus } : u,
+        ),
+      );
     }
   };
 
@@ -332,7 +342,6 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
     const user = testimony.users || {};
     const initial = (user.display_name || user.username || "?").charAt(0).toUpperCase();
     const gradient = getAvatarGradient(user.id || user.username || "");
-    const isExpanded = expandedTestimonies.has(testimony.id);
 
     return (
       <div

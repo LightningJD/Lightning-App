@@ -20,7 +20,6 @@ const AnimatedServerIcon: React.FC<AnimatedServerIconProps> = ({
   glowColor = '#F59E0B',
   size = 48,
   isActive = false,
-  nightMode,
 }) => {
   const getAnimationStyle = (): React.CSSProperties => {
     switch (animation) {

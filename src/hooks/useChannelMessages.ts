@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { showError } from '../lib/toast';
-import { sanitizeInput } from '../lib/inputValidation';
+import { sanitizeInput, validateMessage } from '../lib/inputValidation';
 import { uploadMessageImage } from '../lib/cloudinary';
 import { validateAndCheckMessage } from '../lib/messageValidation';
 import { handleImageFileSelect } from '../lib/imageUploadHandler';
@@ -83,7 +83,6 @@ export function useChannelMessages({
   userDisplayName,
   serverId,
   members,
-  permissions,
 }: UseChannelMessagesOptions) {
   // Core state
   const [messages, setMessages] = useState<ChannelMessage[]>([]);

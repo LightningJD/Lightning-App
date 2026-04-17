@@ -1239,6 +1239,175 @@ export type Database = {
         }
         Relationships: []
       }
+      announcement_receipts: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      announcements: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      bp_cycles: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      bp_reset_dismissals: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      channel_notification_overrides: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      channel_read_receipts: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      channel_role_access: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      channel_typing_indicators: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      churches: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      custom_roles: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      device_fingerprints: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      event_messages: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      event_rsvps: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      followers: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      group_events: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      individual_pro_cosmetics: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      leaderboard_cache: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      member_count_snapshots: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      premium_cosmetics: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      pricing_tiers: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      referrals: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      reports: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      server_audit_log: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      server_bans: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      server_invite_requests: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      subscription_events: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: { [key: string]: any }
+        Insert: { [key: string]: any }
+        Update: { [key: string]: any }
+        Relationships: []
+      }
+
     }
     Views: {
       geography_columns: {
