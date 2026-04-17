@@ -299,8 +299,21 @@ export const unfriend = async (userId: string, friendId: string): Promise<boolea
 };
 
 /**
- * Check friendship status between two users
- * Returns: null (no friendship), 'pending', 'accepted', 'rejected'
+ * Check friendship status between two users.
+ *
+ * Returns the strongest status among any rows linking the two users.
+ *
+ * NOTE: `friendships` can hold MULTIPLE rows for the same pair. The
+ * `accept_friend_request` RPC (shipped in #68 / P1-1) writes an additional
+ * caller→target 'accepted' row on top of the original target→caller row,
+ * so an accepted friendship is typically stored as 2 rows. We therefore
+ * cannot use `.single()` here — it throws "multiple rows" and the client
+ * would incorrectly render "Add Friend" on a friend's profile (BUG-G).
+ *
+ * Status precedence used when multiple rows exist:
+ *   accepted > pending > rejected
+ *
+ * Returns: null (no friendship), 'pending', 'accepted', 'rejected'.
  */
 export const checkFriendshipStatus = async (userId: string, friendId: string): Promise<'pending' | 'accepted' | 'rejected' | null> => {
   if (!supabase) return null;
@@ -308,15 +321,21 @@ export const checkFriendshipStatus = async (userId: string, friendId: string): P
   const { data, error } = await supabase
     .from('friendships')
     .select('status')
-    .or(`and(user_id_1.eq.${userId},user_id_2.eq.${friendId}),and(user_id_1.eq.${friendId},user_id_2.eq.${userId})`)
-    .single();
+    .or(`and(user_id_1.eq.${userId},user_id_2.eq.${friendId}),and(user_id_1.eq.${friendId},user_id_2.eq.${userId})`);
 
   if (error) {
-    // No friendship exists
+    console.error('Error checking friendship status:', error);
     return null;
   }
 
-  return (data as any).status as 'pending' | 'accepted' | 'rejected';
+  const rows = (data as any[]) || [];
+  if (rows.length === 0) return null;
+
+  const statuses = new Set<string>(rows.map((r) => r.status));
+  if (statuses.has('accepted')) return 'accepted';
+  if (statuses.has('pending')) return 'pending';
+  if (statuses.has('rejected')) return 'rejected';
+  return null;
 };
 
 /**
