@@ -197,7 +197,7 @@ CREATE INDEX join_requests_status_idx ON join_requests(status);
 CREATE TABLE notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('friend_request', 'message', 'group_invite', 'testimony_like', 'join_request')),
+  type TEXT NOT NULL CHECK (type IN ('friend_request', 'friend_accepted', 'message', 'group_invite', 'testimony_like', 'join_request')),
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   link TEXT,
