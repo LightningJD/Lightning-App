@@ -99,52 +99,59 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
 
   if (!user) return null;
 
-  // Build profile object matching what ProfileTab expects
-  const fp = fullProfile || {};
-  const profileForTab = {
-    supabaseId: user.id,
-    username: fp.username || user.username || user.displayName,
-    displayName: fp.display_name || user.displayName,
-    avatar: fp.avatar_emoji || user.avatar,
-    avatarImage: fp.avatar_url || user.avatarImage,
-    location: fp.location_city || user.location,
-    bio: (() => {
-      const bio = fp.bio || user.bio;
-      const defaultBio = 'Welcome to Lightning! Share your testimony to inspire others.';
-      return bio && bio !== defaultBio ? bio : undefined;
-    })(),
-    churchName: fp.church_name || user.churchName || church?.name,
-    churchLocation: fp.church_location || user.churchLocation || church?.location,
-    denomination: fp.denomination || user.denomination || church?.denomination,
-    yearSaved: fp.year_saved || user.yearSaved,
-    isBaptized: fp.is_baptized || user.isBaptized,
-    yearBaptized: fp.year_baptized || user.yearBaptized,
-    favoriteVerse: fp.favorite_verse || user.favoriteVerse,
-    favoriteVerseRef: fp.favorite_verse_ref || user.favoriteVerseRef,
-    faithInterests: fp.faith_interests || user.faithInterests,
-    music: fp.spotify_url ? {
-      platform: 'youtube' as const,
-      spotifyUrl: fp.spotify_url,
-      trackName: fp.song_name || 'My Song',
-      artist: fp.song_artist || '',
-    } : user.music,
-    story: testimony ? {
-      id: testimony.id,
-      title: testimony.title,
-      content: testimony.content,
-      lesson: testimony.lesson,
-      viewCount: testimony.view_count || 0,
-      likeCount: testimony.like_count || 0,
-    } : user.story ? {
-      id: user.story.id,
-      title: user.story.title,
-      content: user.story.content,
-      lesson: user.story.lesson,
-      viewCount: 0,
-      likeCount: user.story.likeCount || 0,
-    } : undefined,
-    church: church || undefined,
-  };
+  // Build profile object matching what ProfileTab expects.
+  // IMPORTANT: This MUST be memoized. ProfileTab contains useEffects that
+  // depend on properties of `profile`, and it also passes `profile` down
+  // into child components. Rebuilding this object on every render creates
+  // a new reference on every tick → triggers useEffect deps → setState →
+  // re-render → new object → ... → React Error #185 (max update depth).
+  const profileForTab = React.useMemo(() => {
+    const fp = fullProfile || {};
+    return {
+      supabaseId: user.id,
+      username: fp.username || user.username || user.displayName,
+      displayName: fp.display_name || user.displayName,
+      avatar: fp.avatar_emoji || user.avatar,
+      avatarImage: fp.avatar_url || user.avatarImage,
+      location: fp.location_city || user.location,
+      bio: (() => {
+        const bio = fp.bio || user.bio;
+        const defaultBio = 'Welcome to Lightning! Share your testimony to inspire others.';
+        return bio && bio !== defaultBio ? bio : undefined;
+      })(),
+      churchName: fp.church_name || user.churchName || church?.name,
+      churchLocation: fp.church_location || user.churchLocation || church?.location,
+      denomination: fp.denomination || user.denomination || church?.denomination,
+      yearSaved: fp.year_saved || user.yearSaved,
+      isBaptized: fp.is_baptized || user.isBaptized,
+      yearBaptized: fp.year_baptized || user.yearBaptized,
+      favoriteVerse: fp.favorite_verse || user.favoriteVerse,
+      favoriteVerseRef: fp.favorite_verse_ref || user.favoriteVerseRef,
+      faithInterests: fp.faith_interests || user.faithInterests,
+      music: fp.spotify_url ? {
+        platform: 'youtube' as const,
+        spotifyUrl: fp.spotify_url,
+        trackName: fp.song_name || 'My Song',
+        artist: fp.song_artist || '',
+      } : user.music,
+      story: testimony ? {
+        id: testimony.id,
+        title: testimony.title,
+        content: testimony.content,
+        lesson: testimony.lesson,
+        viewCount: testimony.view_count || 0,
+        likeCount: testimony.like_count || 0,
+      } : user.story ? {
+        id: user.story.id,
+        title: user.story.title,
+        content: user.story.content,
+        lesson: user.story.lesson,
+        viewCount: 0,
+        likeCount: user.story.likeCount || 0,
+      } : undefined,
+      church: church || undefined,
+    };
+  }, [user, fullProfile, testimony, church]);
 
   // Use the user's actual selected theme (not hardcoded)
   const currentTheme = themes[selectedTheme];
