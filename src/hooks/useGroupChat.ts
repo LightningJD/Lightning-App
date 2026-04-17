@@ -5,11 +5,13 @@ import {
   sendGroupMessage,
   getGroupMessages,
   getPinnedMessages,
-  getMessageReactions,
+  getReactionsForMessages,
   addReaction,
   removeReaction,
   pinMessage,
   unpinMessage,
+  subscribeToGroupMessages,
+  subscribeToMessageReactions,
   unsubscribe
 } from '../lib/database';
 import { analyzeContent } from '../lib/contentFilter';
@@ -42,73 +44,133 @@ export function useGroupChat({ activeGroup, activeView, userId, displayName, ava
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const pinnedSectionRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string | number, HTMLDivElement | null>>({});
-  const subscriptionRef = useRef<any>(null);
   const userIsScrollingRef = useRef(false);
 
-  // Load messages with polling
+  // Ref tracking the IDs of messages currently in view, so the
+  // reactions-channel callback can skip rows for other groups.
+  const visibleMessageIdsRef = useRef<Set<string>>(new Set());
+
+  // ── Initial load + refresh helper ───────────────────────
+  // Fetches messages + pinned + reactions. Reactions are batched into a
+  // single `message_reactions.in(id,...)` query instead of N+1 one-per-
+  // message queries (the old polling path issued ~33 QPS for a 100-msg
+  // chat). Used on mount, when switching groups, and on tab regain.
+  const refreshAll = useCallback(async (groupId: string) => {
+    const [messages, pinned] = await Promise.all([
+      getGroupMessages(groupId),
+      getPinnedMessages(groupId),
+    ]);
+    const msgs = messages || [];
+    const pins = pinned || [];
+    setGroupMessages(msgs);
+    setPinnedMessages(pins);
+
+    const allIds = [...pins, ...msgs].map(m => String(m.id));
+    visibleMessageIdsRef.current = new Set(allIds);
+
+    if (allIds.length === 0) {
+      setMessageReactions({});
+      return;
+    }
+
+    const batched = await getReactionsForMessages(allIds);
+    const map: Record<string | number, MessageReaction[]> = {};
+    for (const id of allIds) {
+      map[id] = (batched[id] || []) as MessageReaction[];
+    }
+    setMessageReactions(map);
+  }, []);
+
+  // ── Initial load on mount / group change ────────────────
   useEffect(() => {
-    let pollInterval: NodeJS.Timeout | null = null;
+    if (!activeGroup || activeView !== 'chat') return;
 
-    const loadGroupMessages = async () => {
-      if (activeGroup && activeView === 'chat') {
-        setLoading(true);
-
-        const [messages, pinned] = await Promise.all([
-          getGroupMessages(activeGroup),
-          getPinnedMessages(activeGroup)
-        ]);
-
-        setGroupMessages(messages || []);
-        setPinnedMessages(pinned || []);
-
-        // Load reactions in parallel
-        const allMessages: GroupMessage[] = [...(pinned || []), ...(messages || [])];
-        // @ts-ignore
-        const reactionsPromises = allMessages.map(msg => getMessageReactions(msg.id));
-        const reactionsResults = await Promise.all(reactionsPromises);
-
-        const reactionsMap: Record<string | number, MessageReaction[]> = {};
-        reactionsResults.forEach((reactions, index) => {
-          if (allMessages[index] && reactions !== undefined) {
-            // @ts-ignore
-            reactionsMap[allMessages[index].id] = reactions;
-          }
-        });
-        setMessageReactions(reactionsMap);
-        setLoading(false);
-
-        // Poll every 3 seconds
-        pollInterval = setInterval(async () => {
-          const [updatedMessages, updatedPinned] = await Promise.all([
-            getGroupMessages(activeGroup),
-            getPinnedMessages(activeGroup)
-          ]);
-
-          setGroupMessages(updatedMessages || []);
-          setPinnedMessages(updatedPinned || []);
-
-          const allMsgs: GroupMessage[] = [...(updatedPinned || []), ...(updatedMessages || [])];
-          // @ts-ignore
-          const rPromises = allMsgs.map(msg => getMessageReactions(msg.id));
-          const rResults = await Promise.all(rPromises);
-
-          const newMap: Record<string | number, MessageReaction[]> = {};
-          allMsgs.forEach((msg, index) => {
-            // @ts-ignore
-            newMap[msg.id] = rResults[index];
-          });
-          setMessageReactions(newMap);
-        }, 3000);
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        await refreshAll(activeGroup);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    };
-
-    loadGroupMessages();
+    })();
 
     return () => {
-      if (pollInterval) clearInterval(pollInterval);
-      if (subscriptionRef.current) unsubscribe(subscriptionRef.current);
+      cancelled = true;
+    };
+  }, [activeGroup, activeView, refreshAll]);
+
+  // ── Realtime: new group_messages INSERT ─────────────────
+  // Replaces the old 3-second poll. When another user posts, Supabase
+  // pushes the INSERT to us; we append it and fetch its reactions.
+  useEffect(() => {
+    if (!activeGroup || activeView !== 'chat') return;
+
+    const sub = subscribeToGroupMessages(activeGroup, async (payload: any) => {
+      const newMsg = payload?.new;
+      if (!newMsg?.id) return;
+      const idStr = String(newMsg.id);
+
+      setGroupMessages(prev => {
+        if (prev.some(m => String(m.id) === idStr)) return prev;
+        return [...prev, newMsg as GroupMessage];
+      });
+
+      visibleMessageIdsRef.current.add(idStr);
+
+      // Fetch reactions for this one message (usually 0 right away).
+      const batched = await getReactionsForMessages([idStr]);
+      if (batched[idStr]?.length) {
+        setMessageReactions(prev => ({
+          ...prev,
+          [idStr]: batched[idStr] as MessageReaction[],
+        }));
+      }
+    });
+
+    return () => {
+      if (sub) unsubscribe(sub);
     };
   }, [activeGroup, activeView]);
+
+  // ── Realtime: reactions INSERT/UPDATE/DELETE ────────────
+  // Subscribes to ALL message_reactions changes (the table has no group
+  // scope) and filters by the message IDs we're currently displaying,
+  // so we only refetch reactions for messages we care about.
+  useEffect(() => {
+    if (!activeGroup || activeView !== 'chat') return;
+
+    const sub = subscribeToMessageReactions(async (payload: any) => {
+      const messageId = payload?.new?.message_id ?? payload?.old?.message_id;
+      if (messageId === null || messageId === undefined) return;
+      const idStr = String(messageId);
+      if (!visibleMessageIdsRef.current.has(idStr)) return;
+
+      const batched = await getReactionsForMessages([idStr]);
+      setMessageReactions(prev => ({
+        ...prev,
+        [idStr]: (batched[idStr] || []) as MessageReaction[],
+      }));
+    });
+
+    return () => {
+      if (sub) unsubscribe(sub);
+    };
+  }, [activeGroup, activeView]);
+
+  // ── Catch-up refresh when tab regains focus ─────────────
+  // Realtime WebSockets can silently drop while backgrounded.
+  useEffect(() => {
+    if (!activeGroup || activeView !== 'chat') return;
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refreshAll(activeGroup).catch(() => { /* non-critical */ });
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [activeGroup, activeView, refreshAll]);
 
   // Scroll tracking
   useEffect(() => {
