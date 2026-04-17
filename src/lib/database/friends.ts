@@ -23,7 +23,15 @@ interface FriendRequest extends Friend {
 // ============================================
 
 /**
- * Send a friend request
+ * Send a friend request.
+ *
+ * Inserts a pending friendship row, then — mirroring the pattern in
+ * acceptFriendRequest — creates a `friend_request` notification for the
+ * recipient so they actually see something in the notifications panel.
+ *
+ * The notification insert is non-fatal: if it fails the friendship is still
+ * returned, since the recipient can still discover the request via the
+ * pending-requests query in NotificationsPanel.
  */
 export const sendFriendRequest = async (fromUserId: string, toUserId: string): Promise<Friend | null> => {
   if (!supabase) return null;
@@ -44,6 +52,49 @@ export const sendFriendRequest = async (fromUserId: string, toUserId: string): P
   if (error) {
     console.error('Error sending friend request:', error);
     return null;
+  }
+
+  // Notify the recipient (toUserId) that they have a new friend request.
+  // Parallel fetch of sender name + recipient's notify preference to keep
+  // this off the critical path.
+  const [senderRes, recipientPrefRes] = await Promise.all([
+    supabase
+      .from('users')
+      .select('display_name, username')
+      .eq('id', fromUserId)
+      .single(),
+    supabase
+      .from('users')
+      .select('notify_friend_requests')
+      .eq('id', toUserId)
+      .single(),
+  ]);
+
+  const senderName =
+    (senderRes.data as any)?.display_name ||
+    (senderRes.data as any)?.username ||
+    'Someone';
+  const shouldNotifyRecipient =
+    (recipientPrefRes.data as any)?.notify_friend_requests !== false;
+
+  if (shouldNotifyRecipient) {
+    const { error: notificationError } = await supabase
+      .from('notifications')
+      // @ts-ignore - Supabase generated types are incomplete
+      .insert({
+        user_id: toUserId,
+        type: 'friend_request',
+        title: 'New Friend Request',
+        content: `${senderName} sent you a friend request`,
+        link: `/profile/${fromUserId}`,
+        is_read: false,
+      });
+
+    if (notificationError) {
+      // Non-fatal: recipient can still see the pending request via the
+      // friend_requests section of NotificationsPanel.
+      console.error('Error creating friend_request notification:', notificationError);
+    }
   }
 
   return data as Friend;
