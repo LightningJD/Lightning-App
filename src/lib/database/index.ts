@@ -27,6 +27,7 @@ export {
   getTestimonyViewCount,
   toggleTestimonyLike,
   hasUserLikedTestimony,
+  getTestimonyLikesByUser,
   getTestimonyLikeCount,
   addTestimonyComment,
   getTestimonyComments,
