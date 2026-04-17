@@ -94,6 +94,14 @@ export const getPinnedMessagesFromTable = async (
 
 /**
  * Add a reaction in the given reactions table.
+ *
+ * For DM reactions (`message_reactions`), also fires a `message_reaction`
+ * notification to the message author. Group/channel reactions are left
+ * alone intentionally — a single group message with many reactors would
+ * flood the author's inbox, and those surfaces have other notification
+ * paths (mentions, channel settings) better suited to that fan-out.
+ * The notification insert is best-effort and does NOT roll back the
+ * reaction on failure.
  */
 export const addReactionToTable = async (
   table: string,
@@ -120,6 +128,42 @@ export const addReactionToTable = async (
     }
     console.error(`Error adding reaction in ${table}:`, error);
     return null;
+  }
+
+  // Best-effort notification on DM reactions (BUG-J). Fire-and-forget —
+  // a failed notification must not fail the reaction write.
+  if (table === 'message_reactions') {
+    void (async () => {
+      if (!supabase) return;
+      try {
+        const [{ data: msgRow }, { data: reactorRow }] = await Promise.all([
+          (supabase as any).from('messages').select('sender_id').eq('id', messageId).maybeSingle(),
+          (supabase as any).from('users').select('display_name, username').eq('id', userId).maybeSingle(),
+        ]);
+
+        const authorId = (msgRow as any)?.sender_id as string | undefined;
+        if (!authorId || authorId === userId) return; // no self-notify
+
+        const reactorName =
+          (reactorRow as any)?.display_name ||
+          (reactorRow as any)?.username ||
+          'Someone';
+
+        const { error: notifErr } = await (supabase as any)
+          .from('notifications')
+          .insert({
+            user_id: authorId,
+            type: 'message_reaction',
+            title: 'New Reaction',
+            content: `${reactorName} reacted ${emoji} to your message`,
+            link: `/messages/${userId}`,
+            is_read: false,
+          });
+        if (notifErr) console.warn('message_reaction notification insert failed:', notifErr);
+      } catch (e) {
+        console.warn('message_reaction notification fire-and-forget error:', e);
+      }
+    })();
   }
 
   return data;
