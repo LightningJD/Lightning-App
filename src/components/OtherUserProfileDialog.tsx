@@ -141,6 +141,12 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         lesson: testimony.lesson,
         viewCount: testimony.view_count || 0,
         likeCount: testimony.like_count || 0,
+        // BUG-H: surface the testimony's visibility so ProfileTab can render
+        // accurate "why can't I see this?" copy. Without it, the gating view
+        // used to say "Only friends can view this testimony" which is wrong
+        // — there is no friends-only testimony visibility. The actual options
+        // are 'my_church', 'all_churches', and 'shareable'.
+        visibility: testimony.visibility || 'my_church',
       } : user.story ? {
         id: user.story.id,
         title: user.story.title,
@@ -148,6 +154,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         lesson: user.story.lesson,
         viewCount: 0,
         likeCount: user.story.likeCount || 0,
+        visibility: user.story.visibility,
       } : undefined,
       church: church || undefined,
     };

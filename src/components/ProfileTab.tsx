@@ -1101,14 +1101,45 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                 </div>
               </>
             ) : !canView ? (
-              <div className={`text-center py-6 ${nightMode ? "bg-white/5" : "bg-slate-50"} rounded-lg`}>
-                <p className={`text-sm font-medium ${nightMode ? "text-slate-100" : "text-slate-900"}`}>
-                  This testimony is private
-                </p>
-                <p className={`text-xs mt-1 ${nightMode ? "text-slate-400" : "text-slate-500"}`}>
-                  Only friends can view this testimony
-                </p>
-              </div>
+              // BUG-H: copy was "Only friends can view this testimony" — wrong,
+              // because testimonies don't have a friends-only visibility. The
+              // three options are 'my_church' (same church only), 'all_churches'
+              // (same church, friends, or followers), and 'shareable' (public).
+              // Surface accurate copy based on the owner's actual visibility
+              // setting so the viewer understands why it's hidden.
+              (() => {
+                const vis = profile?.story?.visibility;
+                const { title, subtitle } =
+                  vis === "my_church"
+                    ? {
+                        title: "For their church only",
+                        subtitle:
+                          "This testimony is shared with members of the author's church.",
+                      }
+                    : vis === "all_churches"
+                      ? {
+                          title: "Not visible to you yet",
+                          subtitle:
+                            "This testimony is shared with the author's church, friends, and followers.",
+                        }
+                      : {
+                          // Fallback when visibility is missing/unknown — stay
+                          // accurate without implying a specific audience.
+                          title: "Not visible to you",
+                          subtitle:
+                            "The author has limited who can view this testimony.",
+                        };
+                return (
+                  <div className={`text-center py-6 ${nightMode ? "bg-white/5" : "bg-slate-50"} rounded-lg`}>
+                    <p className={`text-sm font-medium ${nightMode ? "text-slate-100" : "text-slate-900"}`}>
+                      {title}
+                    </p>
+                    <p className={`text-xs mt-1 ${nightMode ? "text-slate-400" : "text-slate-500"}`}>
+                      {subtitle}
+                    </p>
+                  </div>
+                );
+              })()
             ) : null}
           </div>
         </div>
