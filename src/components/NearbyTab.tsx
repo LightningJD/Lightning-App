@@ -4,6 +4,7 @@ import UserCard from "./UserCard";
 import { UserCardSkeleton } from "./SkeletonLoader";
 import OtherUserProfileDialog from "./OtherUserProfileDialog";
 import { useUserProfile } from "./useUserProfile";
+import { showSuccess, showError } from "../lib/toast";
 import {
   getFriends,
   sendFriendRequest,
@@ -13,6 +14,8 @@ import {
   searchUsers,
   getFeedTestimonies,
   getTrendingTestimony,
+  toggleTestimonyLike,
+  getTestimonyLikesByUser,
 } from "../lib/database";
 
 interface User {
@@ -88,6 +91,18 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
   );
   const [trendingTestimony, setTrendingTestimony] = useState<any>(null);
 
+  // BUG-009: Track which testimonies the current user has liked and maintain
+  // optimistic count overrides per-testimony for the feed cards. A Set of
+  // testimony IDs is enough for the liked state (cheap lookups, no extra
+  // metadata needed), and the overrides map lets us apply optimistic +/-1
+  // updates without mutating the testimony objects themselves.
+  const [likedTestimonyIds, setLikedTestimonyIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [likeCountOverrides, setLikeCountOverrides] = useState<
+    Record<string, number>
+  >({});
+
   // Load friends (needed for testimony feed query)
   useEffect(() => {
     const loadFriends = async () => {
@@ -139,6 +154,26 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
     };
     loadTestimonies();
   }, [profile?.supabaseId, friends]);
+
+  // BUG-009: After the feed loads, batch-check which testimonies the current
+  // user has already liked so the card can render a filled heart from the
+  // start. One round-trip replaces N per-card `hasUserLikedTestimony` calls.
+  // Also resets optimistic count overrides so stale counts from a previous
+  // feed don't leak onto a fresh batch.
+  useEffect(() => {
+    const loadLikedIds = async () => {
+      if (!profile?.supabaseId || testimonies.length === 0) {
+        setLikedTestimonyIds(new Set());
+        setLikeCountOverrides({});
+        return;
+      }
+      const ids = testimonies.map((t) => t.id).filter(Boolean);
+      const liked = await getTestimonyLikesByUser(profile.supabaseId, ids);
+      setLikedTestimonyIds(liked);
+      setLikeCountOverrides({});
+    };
+    loadLikedIds();
+  }, [profile?.supabaseId, testimonies]);
 
   // Search handler with debouncing
   useEffect(() => {
@@ -234,6 +269,53 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
       );
     } catch (error) {
       console.error("Error sending friend request:", error);
+    }
+  };
+
+  // BUG-009: Toggle a like on a feed testimony card.
+  //
+  // Optimistic update pattern (matches ProfileTab's handleLike): flip the
+  // liked state and adjust the count immediately, then call the DB mutation.
+  // If the DB call fails, revert both so the UI stays truthful. The count
+  // is tracked via likeCountOverrides[id] with a fallback to the baseline
+  // testimony.like_count, so the render path stays simple.
+  const handleToggleTestimonyLike = async (
+    testimonyId: string,
+    baseCount: number,
+  ): Promise<void> => {
+    if (!profile?.supabaseId || !testimonyId) return;
+
+    const wasLiked = likedTestimonyIds.has(testimonyId);
+    const currentCount = likeCountOverrides[testimonyId] ?? baseCount ?? 0;
+    const optimisticCount = wasLiked
+      ? Math.max(0, currentCount - 1)
+      : currentCount + 1;
+
+    // Optimistic
+    setLikedTestimonyIds((prev) => {
+      const next = new Set(prev);
+      if (wasLiked) next.delete(testimonyId);
+      else next.add(testimonyId);
+      return next;
+    });
+    setLikeCountOverrides((prev) => ({ ...prev, [testimonyId]: optimisticCount }));
+
+    try {
+      const { success } = await toggleTestimonyLike(
+        testimonyId,
+        profile.supabaseId,
+      );
+      if (!success) throw new Error("toggleTestimonyLike returned !success");
+    } catch (err) {
+      console.error("Error toggling testimony like:", err);
+      // Revert
+      setLikedTestimonyIds((prev) => {
+        const next = new Set(prev);
+        if (wasLiked) next.add(testimonyId);
+        else next.delete(testimonyId);
+        return next;
+      });
+      setLikeCountOverrides((prev) => ({ ...prev, [testimonyId]: currentCount }));
     }
   };
 
@@ -397,24 +479,93 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
           className="flex items-center text-[11px]"
           style={{ gap: '6px', color: nightMode ? "#5d5877" : "#8e9ec0" }}
         >
-          <span>♡ {testimony.like_count || 0}</span>
+          {/* BUG-009: Like button — previously a dead <span>. Now toggles a
+              like via toggleTestimonyLike with optimistic count updates.
+              The filled heart (♥) indicates the current user has liked it. */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleTestimonyLike(testimony.id, testimony.like_count || 0);
+            }}
+            className="transition-colors"
+            style={{
+              color: likedTestimonyIds.has(testimony.id)
+                ? "#ef4444"
+                : nightMode
+                  ? "#5d5877"
+                  : "#8e9ec0",
+            }}
+            aria-label={
+              likedTestimonyIds.has(testimony.id) ? "Unlike testimony" : "Like testimony"
+            }
+          >
+            {likedTestimonyIds.has(testimony.id) ? "♥" : "♡"}{" "}
+            {likeCountOverrides[testimony.id] ?? testimony.like_count ?? 0}
+          </button>
           <span>·</span>
-          <span>💬 {testimony.comment_count || 0}</span>
+          {/* BUG-010: Comment button — previously a dead <span>. Until a
+              dedicated comment modal exists, route to the author's profile
+              where the comment UI lives. */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (user.id) {
+                handleViewProfile({
+                  id: user.id,
+                  username: user.username,
+                  display_name: user.display_name,
+                  displayName: user.display_name,
+                  avatar_emoji: user.avatar_emoji,
+                  avatar: user.avatar_emoji,
+                  is_online: user.is_online ?? false,
+                  online: user.is_online,
+                } as any);
+              }
+            }}
+            className="transition-colors"
+            style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}
+            aria-label="View comments"
+          >
+            💬 {testimony.comment_count || 0}
+          </button>
           <span>·</span>
           <button
-            onClick={() =>
-              user.id &&
-              handleViewProfile({
-                id: user.id,
-                username: user.username,
-                display_name: user.display_name,
-                displayName: user.display_name,
-                avatar_emoji: user.avatar_emoji,
-                avatar: user.avatar_emoji,
-                is_online: user.is_online ?? false,
-                online: user.is_online,
-              } as any)
-            }
+            onClick={async (e) => {
+              // BUG-007: Share button was previously wired to handleViewProfile,
+              // which opened the author's profile instead of sharing. Now it
+              // uses the native Web Share API on supported platforms (mobile
+              // primarily) and falls back to copying the URL to the clipboard.
+              // Stop propagation so the click doesn't bubble to any parent
+              // row handler added later.
+              e.stopPropagation();
+              const testimonyUrl = `https://lightningsocial.io/testimony/${testimony.id}`;
+              const authorName =
+                user.display_name || user.username || "Someone";
+              const shareData = {
+                title: `${authorName}'s Testimony on Lightning`,
+                text: "Be encouraged by this testimony on Lightning",
+                url: testimonyUrl,
+              };
+              try {
+                // @ts-ignore - navigator.share is not in all lib targets
+                if (navigator?.share && typeof navigator.share === "function") {
+                  // @ts-ignore
+                  await navigator.share(shareData);
+                  return;
+                }
+              } catch (err) {
+                // User cancelled the native share sheet, or share failed.
+                // AbortError is the user-cancel case — silently drop it.
+                if ((err as any)?.name === "AbortError") return;
+                // Otherwise fall through to clipboard fallback.
+              }
+              try {
+                await navigator.clipboard.writeText(testimonyUrl);
+                showSuccess("Link copied to clipboard");
+              } catch {
+                showError("Could not copy link");
+              }
+            }}
             className="transition-colors"
             style={{ color: nightMode ? "#5d5877" : "#8e9ec0" }}
           >
