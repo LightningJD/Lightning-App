@@ -152,7 +152,6 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
     };
 
     const currentAnswer = currentQuestion ? (answers[currentQuestion.id as keyof TestimonyAnswers] || '') : '';
-    const wordCount = getWordCount(currentAnswer);
     const totalWords = (Object.keys(answers) as Array<keyof TestimonyAnswers>).reduce((sum: number, key) => sum + getWordCount(answers[key]), 0);
 
     // Show generated testimony review screen

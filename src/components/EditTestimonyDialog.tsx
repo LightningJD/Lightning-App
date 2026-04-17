@@ -50,7 +50,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedDraft, setGeneratedDraft] = useState<string>("");
+  const [, setGeneratedDraft] = useState<string>("");
   const [editableDraft, setEditableDraft] = useState<string>("");
   const [isEditingDraft, setIsEditingDraft] = useState(false);
 

@@ -11,6 +11,7 @@ interface TestimonyData {
   content: string;
   answers: any;
   lesson?: string;
+  visibility?: string;
   createdAt?: string;
   version?: number;
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { showError, showSuccess } from '../lib/toast';
+import { showError } from '../lib/toast';
 import { validateGroup, sanitizeInput } from '../lib/inputValidation';
 import {
   createGroup,

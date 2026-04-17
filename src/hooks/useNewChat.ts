@@ -13,7 +13,7 @@ interface UseNewChatOptions {
   startChatWith?: { id: string; name: string; avatar?: string; avatarImage?: string; online?: boolean } | null;
 }
 
-export function useNewChat({ userId, startChatWith }: UseNewChatOptions) {
+export function useNewChat({ userId }: UseNewChatOptions) {
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [newChatMessage, setNewChatMessage] = useState('');

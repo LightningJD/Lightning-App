@@ -41,7 +41,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   isOwnProfile = false,
 }) => {
   const hasVerse = profile.favoriteVerse && profile.favoriteVerseRef;
-  const hasBio = profile.bio && profile.bio !== 'Welcome to Lightning! Share your testimony to inspire others.';
   const hasMusic = profile.music && profile.music.spotifyUrl;
   const viewCount = profile.story?.viewCount || 0;
 

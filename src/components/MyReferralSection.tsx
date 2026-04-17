@@ -16,7 +16,7 @@ interface MyReferralSectionProps {
   username: string;
 }
 
-const MyReferralSection: React.FC<MyReferralSectionProps> = ({ nightMode, userId, username }) => {
+const MyReferralSection: React.FC<MyReferralSectionProps> = ({ nightMode, userId }) => {
   const [stats, setStats] = useState<{ code: string | null; totalReferred: number; confirmed: number; pending: number }>({
     code: null, totalReferred: 0, confirmed: 0, pending: 0
   });

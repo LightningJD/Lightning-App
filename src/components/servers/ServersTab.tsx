@@ -13,7 +13,6 @@ import ServerSettings from "./ServerSettings";
 import RoleManager from "./RoleManager";
 import MemberList from "./MemberList";
 import AuditLog from "./AuditLog";
-import { ServerSkeleton, ChannelSkeleton } from "../SkeletonLoaders";
 
 interface ServersTabProps {
   nightMode: boolean;
@@ -26,13 +25,10 @@ interface ServersTabProps {
   hideServerRail?: boolean;
 }
 
-type ViewMode = "chat" | "settings" | "roles" | "members" | "audit";
-
 const ServersTab: React.FC<ServersTabProps> = ({
   nightMode,
   onActiveServerChange,
   initialServerId,
-  onBack,
   hideServerRail,
 }) => {
   const { profile } = useUserProfile();
@@ -90,7 +86,9 @@ const ServersTab: React.FC<ServersTabProps> = ({
   // Channel selection handler (wraps hook + mobile view logic)
   const handleSelectChannel = useCallback(
     (channelId: string) => {
-      sv.handleSelectChannel(channelId, setMobileView);
+      sv.handleSelectChannel(channelId, (view: string) =>
+        setMobileView(view as MobileView),
+      );
     },
     [sv.handleSelectChannel],
   );
@@ -353,7 +351,6 @@ const ServersTab: React.FC<ServersTabProps> = ({
   };
 
   // Active channel name for mobile header
-  const activeChannel = sv.channels.find((c) => c.id === sv.activeChannelId);
 
   // Shared ChannelSidebar props
   const channelSidebarProps = {

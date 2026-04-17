@@ -9,7 +9,6 @@ import {
   X,
   UserPlus,
   Clock,
-  Crown,
   Image as ImageIcon,
   MessageSquare,
   Bell,
@@ -162,10 +161,6 @@ const ServerSettings: React.FC<ServerSettingsProps> = ({
     setGeneratingInvite(false);
   };
 
-  const handleDelete = () => {
-    if (showDeleteConfirm) onDelete();
-    else setShowDeleteConfirm(true);
-  };
 
   const nm = nightMode;
   const cardStyle = {

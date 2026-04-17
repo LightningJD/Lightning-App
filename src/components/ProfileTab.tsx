@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Heart,
   Plus,
   Edit3,
   MapPin,
@@ -24,7 +23,6 @@ import {
   getTestimonyComments,
   addTestimonyComment,
   canViewTestimony,
-  updateUserProfile,
   leaveChurch,
   regenerateChurchInviteCode,
   sendFriendRequest,
@@ -195,18 +193,25 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
 
   const handleSendFriendRequest = async () => {
     if (!currentUserProfile?.supabaseId || !profile?.supabaseId) return;
+
+    // BUG-A: Optimistic update. Flip friendStatus to "pending" immediately so
+    // the button reflects the new state without waiting on the round-trip.
+    // Revert to the previous status if the insert fails.
+    const previousStatus = friendStatus;
+    setFriendStatus("pending");
     setSendingRequest(true);
+
     try {
       await sendFriendRequest(
         currentUserProfile.supabaseId,
         profile.supabaseId,
       );
-      setFriendStatus("pending");
       showSuccess(
         `Friend request sent to ${profile.displayName || profile.username}!`,
       );
     } catch (error) {
       console.error("Error sending friend request:", error);
+      setFriendStatus(previousStatus);
       showError("Failed to send friend request");
     } finally {
       setSendingRequest(false);

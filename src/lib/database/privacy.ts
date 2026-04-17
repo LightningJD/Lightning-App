@@ -201,7 +201,7 @@ export const isUserVisible = async (userId: string, currentUserId: string): Prom
     .eq('status', 'accepted')
     .limit(1);
 
-  return friendship && friendship.length > 0;
+  return !!(friendship && friendship.length > 0);
 };
 
 export default {

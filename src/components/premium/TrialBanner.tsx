@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Crown } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface TrialBannerProps {
   nightMode: boolean;

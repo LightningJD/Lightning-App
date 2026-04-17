@@ -19,7 +19,7 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Zap, Plus } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '../ErrorBoundary';
 import ProfileCreationWizard from '../ProfileCreationWizard';

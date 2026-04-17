@@ -14,7 +14,6 @@ interface TierProximityWarningProps {
 const TierProximityWarning: React.FC<TierProximityWarningProps> = ({
   nightMode,
   currentMembers,
-  currentTier,
   nextTier,
   nextTierMinMembers,
   nextTierPriceCents,

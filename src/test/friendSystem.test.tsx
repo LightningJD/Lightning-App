@@ -536,8 +536,7 @@ describe("Friend System - Type Safety & Logic Tests", () => {
 
     it("should handle empty friend lists", () => {
       const friends: Friend[] = [];
-      const acceptedFriends =
-        friends.length > 0 && friends.filter((f) => f.status === "accepted");
+      const acceptedFriends = friends.filter((f) => f.status === "accepted");
 
       expect(acceptedFriends).toHaveLength(0);
       expect(Array.isArray(acceptedFriends)).toBe(true);

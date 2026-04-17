@@ -851,11 +851,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             console.error("Failed to save location coordinates:", locErr);
           }
         } else if (
-          profileData.location &&
-          typeof profileData.location === "string"
+          (profileData as any).location &&
+          typeof (profileData as any).location === "string"
         ) {
           try {
-            const coords = await geocodeCity(profileData.location);
+            const coords = await geocodeCity((profileData as any).location);
             if (coords)
               await updateUserLocation(
                 userProfile.supabaseId,

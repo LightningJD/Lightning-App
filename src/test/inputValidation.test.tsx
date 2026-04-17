@@ -288,7 +288,8 @@ describe('Input Validation', () => {
     });
 
     it('should reject messages that are too long', () => {
-      const longMessage = 'a'.repeat(1001);
+      // Message limit is 5000 chars (see limits.message in inputValidation.ts)
+      const longMessage = 'a'.repeat(5001);
       const result = validateMessage(longMessage);
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('less than'))).toBe(true);
