@@ -316,6 +316,11 @@ export const getTestimonyLikeCount = async (testimonyId: string): Promise<{ coun
 
 /**
  * Add comment to testimony
+ *
+ * Also fires a `testimony_comment` notification to the testimony owner,
+ * unless the commenter is the owner (self-comment). The notification
+ * insert is best-effort: the comment is source of truth, so a flaky
+ * notification insert must not roll back the comment.
  */
 export const addTestimonyComment = async (testimonyId: string, userId: string, content: string): Promise<{ success: boolean; error?: string; comment?: any }> => {
   if (!supabase) return { success: false, error: 'Database not initialized' };
@@ -333,6 +338,44 @@ export const addTestimonyComment = async (testimonyId: string, userId: string, c
       .single();
 
     if (error) throw error;
+
+    // Best-effort notification to the testimony owner (BUG-I).
+    // Intentionally not awaited for the hot path — fired and logged
+    // on failure so a notification blip cannot fail the comment write.
+    void (async () => {
+      if (!supabase) return;
+      try {
+        // Look up testimony owner + commenter display name in one pass
+        const [{ data: testimonyRow }, { data: commenterRow }] = await Promise.all([
+          supabase.from('testimonies').select('user_id, title').eq('id', testimonyId).maybeSingle(),
+          supabase.from('users').select('display_name, username').eq('id', userId).maybeSingle(),
+        ]);
+
+        const ownerId = (testimonyRow as any)?.user_id as string | undefined;
+        if (!ownerId || ownerId === userId) return; // no self-notify
+
+        const commenterName =
+          (commenterRow as any)?.display_name ||
+          (commenterRow as any)?.username ||
+          'Someone';
+        const snippet = content.trim().slice(0, 80);
+
+        const { error: notifErr } = await supabase
+          .from('notifications')
+          // @ts-ignore - Supabase generated types are incomplete for this table
+          .insert({
+            user_id: ownerId,
+            type: 'testimony_comment',
+            title: 'New Comment',
+            content: `${commenterName} commented: "${snippet}"`,
+            link: `/testimony/${testimonyId}`,
+            is_read: false,
+          });
+        if (notifErr) console.warn('testimony_comment notification insert failed:', notifErr);
+      } catch (e) {
+        console.warn('testimony_comment notification fire-and-forget error:', e);
+      }
+    })();
 
     return { success: true, comment: data };
   } catch (error) {
