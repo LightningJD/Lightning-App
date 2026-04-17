@@ -92,6 +92,41 @@ export const acceptFriendRequest = async (requestId: string): Promise<Friend | n
     return null;
   }
 
+  // Notify the original requester (user_id_1) that their request was accepted
+  const { data: accepterData } = await supabase
+    .from('users')
+    .select('display_name, username')
+    .eq('id', user_id_2)
+    .single();
+
+  const accepterName = accepterData?.display_name || accepterData?.username || 'Someone';
+
+  const { data: requesterPrefData } = await supabase
+    .from('users')
+    .select('notify_friend_requests')
+    .eq('id', user_id_1)
+    .single();
+
+  const shouldNotifyRequester = requesterPrefData?.notify_friend_requests !== false;
+
+  if (shouldNotifyRequester) {
+    const { error: notificationError } = await supabase
+      .from('notifications')
+      // @ts-ignore - Supabase generated types are incomplete
+      .insert({
+        user_id: user_id_1,
+        type: 'friend_accepted',
+        title: 'Friend Request Accepted',
+        content: `${accepterName} accepted your friend request`,
+        link: `/profile/${user_id_2}`,
+        is_read: false
+      });
+
+    if (notificationError) {
+      console.error('Error creating friend_accepted notification:', notificationError);
+    }
+  }
+
   return data as Friend;
 };
 
@@ -210,11 +245,6 @@ export const unfriend = async (userId: string, friendId: string): Promise<boolea
     .from('friendships')
     .delete()
     .or(`and(user_id_1.eq.${userId},user_id_2.eq.${friendId}),and(user_id_1.eq.${friendId},user_id_2.eq.${userId})`);
-
-  if (error) {
-    console.error('Error unfriending user:', error);
-    return null;
-  }
 
   if (error) {
     console.error('Error unfriending user:', error);
