@@ -746,11 +746,28 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                             "0 2px 10px rgba(0, 0, 0, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.4)",
                         }
                   }
-                  aria-label={`Add ${profile.displayName || profile.username} as friend`}
+                  aria-label={
+                    friendStatus === "accepted"
+                      ? `You and ${profile.displayName || profile.username} are friends`
+                      : friendStatus === "pending"
+                        ? `Friend request to ${profile.displayName || profile.username} is pending`
+                        : `Add ${profile.displayName || profile.username} as friend`
+                  }
                 >
-                  <UserPlus
-                    className={`w-5 h-5 ${nightMode ? "text-slate-100" : "text-slate-900"}`}
-                  />
+                  {/* BUG-005: Icon must reflect friendship state. The label
+                      already switched to "Friends"/"Pending" but the icon
+                      stayed as UserPlus, making the button still read as
+                      an add-action to users. UserCheck for accepted,
+                      UserPlus for pending/none. */}
+                  {friendStatus === "accepted" ? (
+                    <UserCheck
+                      className={`w-5 h-5 ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+                    />
+                  ) : (
+                    <UserPlus
+                      className={`w-5 h-5 ${nightMode ? "text-slate-100" : "text-slate-900"}`}
+                    />
+                  )}
                   <span
                     className={nightMode ? "text-slate-100" : "text-slate-900"}
                   >
