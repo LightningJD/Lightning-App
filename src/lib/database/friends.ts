@@ -101,49 +101,42 @@ export const sendFriendRequest = async (fromUserId: string, toUserId: string): P
 };
 
 /**
- * Accept a friend request
+ * Accept a friend request.
+ *
+ * Delegates the UPDATE (pending → accepted) and the reverse-row INSERT to the
+ * `accept_friend_request` Postgres RPC so both statements commit atomically.
+ * Before this RPC was introduced we ran two separate round-trips with a
+ * compensating UPDATE on insert failure, which could still leave a
+ * half-committed state if the compensation itself failed (connectivity blip,
+ * RLS drift, etc.). See migration 20260417100000_create_accept_friend_request_rpc.sql.
+ *
+ * Notifications stay outside the transaction as a best-effort side-effect:
+ * the accepted friendship is the source of truth and we don't want a flaky
+ * notifications insert to roll the friendship back.
  */
 export const acceptFriendRequest = async (requestId: string): Promise<Friend | null> => {
   if (!supabase) return null;
 
-  const { data, error } = await supabase
-    .from('friendships')
-    // @ts-ignore - Supabase generated types don't allow update on this table
-    .update({ status: 'accepted' })
-    .eq('id', requestId)
-    .select()
-    .single();
+  const { data: rpcData, error: rpcError } = await supabase
+    // @ts-ignore - RPC not yet in generated Supabase types (migration 20260417100000)
+    .rpc('accept_friend_request', { _request_id: requestId });
 
-  if (error) {
-    console.error('Error accepting friend request:', error);
+  if (rpcError) {
+    console.error('Error accepting friend request:', rpcError);
     return null;
   }
 
-  // Create reverse friendship (so both users are friends)
+  // RPC returns the accepted friendship row as JSONB.
+  const data = rpcData as Friend | null;
+  if (!data) {
+    console.error('accept_friend_request RPC returned no row');
+    return null;
+  }
+
+  // Notify the original requester (user_id_1) that their request was accepted.
+  // Best-effort: failures here must not affect the accepted friendship state.
   const { user_id_1, user_id_2 } = data as any;
-  const insertData: any = {
-    user_id_1: user_id_2,
-    user_id_2: user_id_1,
-    status: 'accepted',
-    requested_by: user_id_2
-  };
 
-  const { error: reverseError } = await supabase
-    .from('friendships')
-    .insert(insertData);
-
-  if (reverseError) {
-    console.error('Error creating reverse friendship:', reverseError);
-    // Revert the original update to keep state consistent
-    await supabase
-      .from('friendships')
-      // @ts-ignore - Supabase generated types don't allow update on this table
-      .update({ status: 'pending' })
-      .eq('id', requestId);
-    return null;
-  }
-
-  // Notify the original requester (user_id_1) that their request was accepted
   const { data: accepterData } = await supabase
     .from('users')
     .select('display_name, username')
@@ -178,7 +171,7 @@ export const acceptFriendRequest = async (requestId: string): Promise<Friend | n
     }
   }
 
-  return data as Friend;
+  return data;
 };
 
 /**
