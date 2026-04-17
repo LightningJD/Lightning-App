@@ -158,10 +158,12 @@ export const recordAttempt = (action: string): void => {
  * @param {Function} showErrorToast - Toast error function
  * @returns {boolean} - Whether action is allowed
  */
-export const checkAndNotify = (action: string, showErrorToast?: (message: string | null) => void): boolean => {
+export const checkAndNotify = (action: string, showErrorToast?: (message: string) => void): boolean => {
   const { allowed, reason } = checkRateLimit(action);
 
-  if (!allowed && showErrorToast) {
+  // `reason` is guaranteed non-null whenever `!allowed` (see checkRateLimit),
+  // but guard explicitly so the narrower callback signature holds.
+  if (!allowed && showErrorToast && reason) {
     showErrorToast(reason);
   }
 
