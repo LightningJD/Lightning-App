@@ -260,15 +260,28 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
 
   const handleAddFriend = async (userId: string): Promise<void> => {
     if (!profile?.supabaseId) return;
+
+    // BUG-A: Optimistic update. Flip the button to "Pending" immediately so
+    // the user gets instant feedback, then call the DB. If the insert fails,
+    // revert the row to its previous friendshipStatus so the UI stays truthful.
+    const previousStatus = searchResults.find((u) => u.id === userId)
+      ?.friendshipStatus;
+    setSearchResults((prev) =>
+      prev.map((u) =>
+        u.id === userId ? { ...u, friendshipStatus: "pending" } : u,
+      ),
+    );
+
     try {
       await sendFriendRequest(profile.supabaseId, userId);
-      setSearchResults((prev) =>
-        prev.map((u) =>
-          u.id === userId ? { ...u, friendshipStatus: "pending" } : u,
-        ),
-      );
     } catch (error) {
       console.error("Error sending friend request:", error);
+      // Revert on failure.
+      setSearchResults((prev) =>
+        prev.map((u) =>
+          u.id === userId ? { ...u, friendshipStatus: previousStatus } : u,
+        ),
+      );
     }
   };
 
