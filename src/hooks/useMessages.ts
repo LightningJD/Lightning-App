@@ -347,7 +347,6 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
         ...prev,
         [messageId]: reactions.filter(r => r.userId !== userId || r.emoji !== emoji),
       }));
-      // @ts-ignore
       const result = await removeReaction(String(messageId), userId, emoji);
       if (!result) {
         setMessageReactions(prev => ({ ...prev, [messageId]: reactions }));
@@ -358,7 +357,6 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
         ...prev,
         [messageId]: [...reactions, { emoji, userId }],
       }));
-      // @ts-ignore
       const result = await addReaction(String(messageId), userId, emoji);
       if (!result) {
         setMessageReactions(prev => ({ ...prev, [messageId]: reactions }));
@@ -382,7 +380,6 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     // Validate
     if (newMessage.trim() && !validateAndCheckMessage(newMessage)) return;
 
-    // @ts-ignore
     if (!checkAndNotify('send_message', showError)) return;
 
     const conversation = conversations.find(c => c.id === activeChat);
