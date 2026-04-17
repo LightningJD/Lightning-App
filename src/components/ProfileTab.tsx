@@ -1323,7 +1323,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                     {/* Comment Avatar */}
                     <div className="flex-shrink-0">
                       <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center text-sm ${nightMode ? "bg-white/10" : "bg-white/50"}`}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-sm overflow-hidden ${nightMode ? "bg-white/10" : "bg-white/50"}`}
                         style={
                           nightMode
                             ? {}
@@ -1332,7 +1332,25 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                               }
                         }
                       >
-                        {comment.users?.avatar_emoji || "👤"}
+                        {/* BUG-013: Prefer the uploaded profile photo
+                            (avatar_url) over the emoji, and only fall back
+                            to the generic silhouette when both are missing.
+                            getTestimonyComments already SELECTs avatar_url;
+                            previously only avatar_emoji was rendered. */}
+                        {comment.users?.avatar_url ? (
+                          <img
+                            src={comment.users.avatar_url}
+                            alt={
+                              comment.users?.display_name ||
+                              comment.users?.username ||
+                              "Commenter avatar"
+                            }
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span>{comment.users?.avatar_emoji || "👤"}</span>
+                        )}
                       </div>
                     </div>
 
