@@ -263,6 +263,37 @@ export const hasUserLikedTestimony = async (testimonyId: string, userId: string)
 };
 
 /**
+ * Batch-check which testimonies the user has liked.
+ *
+ * Used by the feed to render correct heart state on many cards at once
+ * without N round-trips. Returns a Set of testimony IDs the user has liked.
+ * Returns an empty Set if the testimonyIds list is empty, on error, or when
+ * Supabase is unavailable — callers should treat the absence of a membership
+ * as "not liked" rather than "unknown".
+ */
+export const getTestimonyLikesByUser = async (
+  userId: string,
+  testimonyIds: string[]
+): Promise<Set<string>> => {
+  if (!supabase || !userId || testimonyIds.length === 0) return new Set();
+
+  try {
+    const { data, error } = await supabase
+      .from('testimony_likes')
+      .select('testimony_id')
+      .eq('user_id', userId)
+      .in('testimony_id', testimonyIds);
+
+    if (error) throw error;
+
+    return new Set((data as any[] | null)?.map((row: any) => row.testimony_id) || []);
+  } catch (error) {
+    console.error('Error batch-checking testimony likes:', error);
+    return new Set();
+  }
+};
+
+/**
  * Get testimony like count
  */
 export const getTestimonyLikeCount = async (testimonyId: string): Promise<{ count: number }> => {
