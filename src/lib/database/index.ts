@@ -177,6 +177,16 @@ export {
   unsubscribe
 } from './subscriptions.js';
 
+// Notifications (in-app notification feed)
+export {
+  getUserNotifications,
+  getUnreadNotificationCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+  subscribeToNotifications
+} from './notifications.js';
+export type { AppNotification } from './notifications.js';
+
 // Blocking / Privacy
 export {
   blockUser,
