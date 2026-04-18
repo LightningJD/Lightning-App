@@ -29,6 +29,8 @@ import { useMessages } from "../hooks/useMessages";
 import { useNewChat } from "../hooks/useNewChat";
 import type { Conversation } from "../hooks/useMessages";
 import { REACTION_EMOJIS } from "../lib/reactionEmojis";
+import ConfirmDialog from "./ConfirmDialog";
+import * as Sentry from "@sentry/react";
 
 // ── Gradient avatar helpers ──────────────────────────────────────
 const AVATAR_GRADIENTS = [
@@ -177,6 +179,13 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
   // ── Local UI state (kept in component) ───────────────────
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
   const [showConversationMenu, setShowConversationMenu] = useState(false);
+  // BUG-02: custom modal target replaces native window.confirm(). Storing the
+  // target here (not just a boolean) is defensive: the three-dot menu closes
+  // on click, so we capture which user to block at click-time.
+  const [blockConfirmTarget, setBlockConfirmTarget] = useState<{
+    userId: string;
+    name: string;
+  } | null>(null);
   const [viewingChatUser, setViewingChatUser] = useState<any>(null);
   const [mobileActionMenu, setMobileActionMenu] = useState<
     number | string | null
@@ -405,57 +414,17 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                   }
                 >
                   <button
-                    onClick={async () => {
+                    onClick={() => {
+                      // BUG-02: open the custom confirm dialog instead of
+                      // calling native window.confirm() (which freezes the
+                      // renderer). Actual block runs in the dialog's
+                      // onConfirm handler below.
                       if (!profile?.supabaseId || !conversation.userId) return;
-                      const confirmMessage = `Block ${conversation.name}? They won't be able to message you, see your profile, or find you in searches.`;
-                      if (!window.confirm(confirmMessage)) {
-                        setShowConversationMenu(false);
-                        return;
-                      }
-                      try {
-                        await blockUser(
-                          profile.supabaseId,
-                          conversation.userId,
-                        );
-                        showSuccess(`${conversation.name} has been blocked`);
-                        setShowConversationMenu(false);
-                        setActiveChat(null);
-                        // Reload conversations and filter out blocked users
-                        try {
-                          const updatedConversations =
-                            await getUserConversations(profile.supabaseId);
-                          const filtered = [];
-                          for (const convo of updatedConversations || []) {
-                            try {
-                              const blk = await isUserBlocked(
-                                profile.supabaseId,
-                                convo.userId,
-                              );
-                              const blkBy = await isBlockedBy(
-                                profile.supabaseId,
-                                convo.userId,
-                              );
-                              if (!blk && !blkBy) {
-                                filtered.push(convo);
-                              }
-                            } catch {
-                              // On error checking block status, keep the conversation visible
-                              filtered.push(convo);
-                            }
-                          }
-                          setConversations(filtered);
-                        } catch {
-                          // If conversation reload fails, just remove the blocked user from current list
-                          setConversations((prev) =>
-                            prev.filter(
-                              (c) => c.userId !== conversation.userId,
-                            ),
-                          );
-                        }
-                      } catch (error) {
-                        console.error("Error blocking user:", error);
-                        showError("Failed to block user");
-                      }
+                      setBlockConfirmTarget({
+                        userId: conversation.userId,
+                        name: conversation.name,
+                      });
+                      setShowConversationMenu(false);
                     }}
                     className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-t-xl ${
                       nightMode
@@ -1291,6 +1260,71 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
             onMessage={() => setViewingChatUser(null)}
           />
         )}
+
+        {/* BUG-02: Block Confirmation Dialog (replaces native window.confirm) */}
+        <ConfirmDialog
+          isOpen={blockConfirmTarget !== null}
+          onClose={() => setBlockConfirmTarget(null)}
+          onConfirm={async () => {
+            if (!profile?.supabaseId || !blockConfirmTarget) return;
+            const target = blockConfirmTarget;
+            try {
+              await blockUser(profile.supabaseId, target.userId);
+              Sentry.addBreadcrumb({
+                category: "user-action",
+                message: "block_user_confirmed",
+                level: "info",
+                data: {
+                  targetId: target.userId,
+                  source: "messages",
+                },
+              });
+              showSuccess(`${target.name} has been blocked`);
+              setShowConversationMenu(false);
+              setActiveChat(null);
+              // Reload conversations and filter out blocked users
+              try {
+                const updatedConversations = await getUserConversations(
+                  profile.supabaseId,
+                );
+                const filtered = [];
+                for (const convo of updatedConversations || []) {
+                  try {
+                    const blk = await isUserBlocked(
+                      profile.supabaseId,
+                      convo.userId,
+                    );
+                    const blkBy = await isBlockedBy(
+                      profile.supabaseId,
+                      convo.userId,
+                    );
+                    if (!blk && !blkBy) {
+                      filtered.push(convo);
+                    }
+                  } catch {
+                    // On error checking block status, keep the conversation visible
+                    filtered.push(convo);
+                  }
+                }
+                setConversations(filtered);
+              } catch {
+                // If conversation reload fails, just remove the blocked user from current list
+                setConversations((prev) =>
+                  prev.filter((c) => c.userId !== target.userId),
+                );
+              }
+            } catch (error) {
+              console.error("Error blocking user:", error);
+              showError("Failed to block user");
+            }
+          }}
+          title={`Block ${blockConfirmTarget?.name || "user"}?`}
+          message="They won't be able to message you, see your profile, or find you in searches."
+          confirmText="Block"
+          cancelText="Cancel"
+          variant="danger"
+          nightMode={nightMode}
+        />
       </div>
     );
   }

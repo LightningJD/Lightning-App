@@ -44,9 +44,11 @@ import { usePremium } from "../contexts/PremiumContext";
 import ProBadge from "./premium/ProBadge";
 import TestimonyShareModal from "./TestimonyShareModal";
 import ReportContent from "./ReportContent";
+import ConfirmDialog from "./ConfirmDialog";
 import { deleteTestimony } from "../lib/database";
 import ProfileCard from "./ProfileCard";
 import ChurchCard from "./ChurchCard";
+import * as Sentry from "@sentry/react";
 
 interface ProfileTabProps {
   profile: any;
@@ -102,6 +104,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
   const [sendingRequest, setSendingRequest] = useState(false);
   const [isBlocked, setIsBlocked] = useState<boolean>(false);
   const [blocking, setBlocking] = useState<boolean>(false);
+  // BUG-02: custom modal state replaces native window.confirm()
+  const [showBlockConfirm, setShowBlockConfirm] = useState<boolean>(false);
   const [followingUser, setFollowingUser] = useState<boolean>(false);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [isTogglingFollow, setIsTogglingFollow] = useState<boolean>(false);
@@ -218,13 +222,24 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
     }
   };
 
-  const handleBlockUser = async () => {
+  // BUG-02: Trigger opens the custom confirm dialog instead of blocking the
+  // renderer with window.confirm(). Actual block runs in confirmBlock() below.
+  const handleBlockUser = () => {
     if (!currentUserProfile?.supabaseId || !profile?.supabaseId) return;
-    const confirmMessage = `Block ${profile.displayName || profile.username}? They won't be able to message you, see your profile, or find you in searches.`;
-    if (!window.confirm(confirmMessage)) return;
+    setShowBlockConfirm(true);
+  };
+
+  const confirmBlock = async () => {
+    if (!currentUserProfile?.supabaseId || !profile?.supabaseId) return;
     setBlocking(true);
     try {
       await blockUser(currentUserProfile.supabaseId, profile.supabaseId);
+      Sentry.addBreadcrumb({
+        category: "user-action",
+        message: "block_user_confirmed",
+        level: "info",
+        data: { targetId: profile.supabaseId, source: "profile" },
+      });
       setIsBlocked(true);
       showSuccess(
         `${profile.displayName || profile.username} has been blocked`,
@@ -1508,6 +1523,19 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
           reportedContent={reportData.content}
         />
       )}
+
+      {/* BUG-02: Block Confirmation Dialog (replaces native window.confirm) */}
+      <ConfirmDialog
+        isOpen={showBlockConfirm}
+        onClose={() => setShowBlockConfirm(false)}
+        onConfirm={confirmBlock}
+        title={`Block ${profile?.displayName || profile?.username || "user"}?`}
+        message="They won't be able to message you, see your profile, or find you in searches."
+        confirmText="Block"
+        cancelText="Cancel"
+        variant="danger"
+        nightMode={nightMode}
+      />
     </div>
   );
 };
