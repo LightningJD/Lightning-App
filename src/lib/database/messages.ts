@@ -141,6 +141,18 @@ export const deleteMessage = async (messageId: string, userId: string): Promise<
 
 /**
  * Get conversation between two users
+ *
+ * BUG-K fix: we must fetch the NEWEST `limit` messages, not the oldest. The
+ * previous implementation ordered `created_at ASC` and took the first `limit`
+ * rows — which in a long-running conversation (>50 messages) silently
+ * truncated every recent message. Symptom: a message appeared on send
+ * (optimistic) then "disappeared" a few seconds later when any refetch
+ * (initial load, visibilitychange, chat reopen) re-hydrated state from the
+ * oldest slice.
+ *
+ * Fix: order DESC, take newest `limit` rows, then reverse in memory so the
+ * caller still receives messages in chronological (oldest → newest) order,
+ * which is what the UI expects for rendering.
  */
 export const getConversation = async (userId1: string, userId2: string, limit: number = 50): Promise<any[]> => {
   if (!supabase) {
@@ -154,7 +166,7 @@ export const getConversation = async (userId1: string, userId2: string, limit: n
       // @ts-ignore - Supabase generated types don't handle nested relations
       .select('*, sender:users!sender_id(username, display_name, avatar_emoji), reply_to:messages!reply_to_message_id(id, content, sender:users!sender_id(username, display_name, avatar_emoji))')
       .or(`and(sender_id.eq.${userId1},recipient_id.eq.${userId2}),and(sender_id.eq.${userId2},recipient_id.eq.${userId1})`)
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: false })
       .limit(limit);
 
     if (error) {
@@ -165,7 +177,8 @@ export const getConversation = async (userId1: string, userId2: string, limit: n
       return [];
     }
 
-    return data || [];
+    // Reverse so the caller gets oldest → newest, matching how the UI renders.
+    return (data || []).slice().reverse();
   } catch (error: any) {
     console.error('Exception in getConversation:', error);
     if (error?.message && error.message.includes('Failed to fetch')) {

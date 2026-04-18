@@ -167,12 +167,15 @@ export const sendGroupMessage = async (groupId: string, senderId: string, conten
 export const getGroupMessages = async (groupId: string, limit: number = 100): Promise<any[]> => {
   if (!supabase) return [];
 
+  // BUG-K fix: fetch newest `limit` rows (DESC + LIMIT) and reverse in memory
+  // so the caller receives chronological (oldest → newest) order. Ordering ASC
+  // before LIMIT silently truncates newer messages in long-running groups.
   const { data, error } = await supabase
     .from('group_messages')
     // @ts-ignore - Supabase generated types don't handle nested relations
     .select('*, sender:users!sender_id(username, display_name, avatar_emoji)')
     .eq('group_id', groupId)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
     .limit(limit);
 
   if (error) {
@@ -180,7 +183,7 @@ export const getGroupMessages = async (groupId: string, limit: number = 100): Pr
     return [];
   }
 
-  return data;
+  return (data || []).slice().reverse();
 };
 
 /**

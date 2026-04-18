@@ -454,12 +454,15 @@ export const sendEventMessage = async (
 export const getEventMessages = async (eventId: string, limit: number = 100): Promise<any[]> => {
   if (!supabase) return [];
 
+  // BUG-K fix: fetch newest `limit` rows (DESC + LIMIT) and reverse in memory
+  // so the caller receives chronological (oldest → newest) order. Ordering ASC
+  // before LIMIT silently truncates newer messages in long-running event chats.
   const { data, error } = await supabase
     .from('event_messages')
     // @ts-ignore
     .select('*, sender:users!sender_id(username, display_name, avatar_emoji)')
     .eq('event_id', eventId)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
     .limit(limit);
 
   if (error) {
@@ -467,7 +470,7 @@ export const getEventMessages = async (eventId: string, limit: number = 100): Pr
     return [];
   }
 
-  return data || [];
+  return (data || []).slice().reverse();
 };
 
 // ============================================
