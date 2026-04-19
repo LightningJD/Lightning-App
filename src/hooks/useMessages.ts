@@ -93,7 +93,19 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
   const [expandedReactions, setExpandedReactions] = useState<Record<string | number, boolean>>({});
 
   // Message composition
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessageState] = useState('');
+  // BUG-04: Mirror of `newMessage` kept in sync synchronously with every
+  // setNewMessage call. `handleSendMessage` reads this ref instead of the
+  // `newMessage` closure value so a submit dispatched before React commits
+  // the final keystroke's setState still sees the latest typed content.
+  const newMessageRef = useRef<string>('');
+  const setNewMessage = useCallback<React.Dispatch<React.SetStateAction<string>>>((value) => {
+    newMessageRef.current =
+      typeof value === 'function'
+        ? (value as (prev: string) => string)(newMessageRef.current)
+        : value;
+    setNewMessageState(value);
+  }, []);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
@@ -375,10 +387,13 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
 
   const handleSendMessage = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    if ((!newMessage.trim() && !pendingImage) || !profile) return;
+    // BUG-04: Read the ref, not the closure — guards against the stale-closure
+    // race between the final keystroke's setState and the form's submit handler.
+    const latestMessage = newMessageRef.current;
+    if ((!latestMessage.trim() && !pendingImage) || !profile) return;
 
     // Validate
-    if (newMessage.trim() && !validateAndCheckMessage(newMessage)) return;
+    if (latestMessage.trim() && !validateAndCheckMessage(latestMessage)) return;
 
     if (!checkAndNotify('send_message', showError)) return;
 
@@ -397,7 +412,7 @@ export function useMessages({ userId, profile, initialConversationId, onConversa
     if (!privacyCheck.allowed) { showError(privacyCheck.reason || 'Unable to send message'); return; }
 
     // Prepare
-    const messageContent = newMessage.trim() ? sanitizeInput(newMessage) : '';
+    const messageContent = latestMessage.trim() ? sanitizeInput(latestMessage) : '';
     const previousMessages = [...messages];
     const imageToUpload = pendingImage;
     const imagePreview = pendingImagePreview;
