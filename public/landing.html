@@ -886,7 +886,31 @@
   <!-- ── Top Header ── -->
   <header class="top-header">
     <div class="logo">LIGHTNING</div>
-    <span style="padding:8px 24px;background:rgba(200,170,255,0.08);border:1px solid rgba(200,170,255,0.15);border-radius:8px;color:rgba(200,170,255,0.5);font-size:13px;font-weight:600;letter-spacing:1px;font-family:'Outfit',sans-serif;cursor:default;">MAY 15</span>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+  <div style="display:flex;gap:8px;align-items:center;">
+    <input id="gate-pw" type="password" placeholder="Password" style="padding:8px 16px;background:rgba(200,170,255,0.08);border:1px solid rgba(200,170,255,0.15);border-radius:999px;color:rgba(200,170,255,0.9);font-size:13px;font-weight:600;letter-spacing:1px;font-family:'Outfit',sans-serif;outline:none;width:150px;" />
+    <button id="gate-btn" style="padding:8px 24px;background:rgba(200,170,255,0.08);border:1px solid rgba(200,170,255,0.15);border-radius:999px;color:rgba(200,170,255,0.9);font-size:13px;font-weight:600;letter-spacing:1px;font-family:'Outfit',sans-serif;cursor:pointer;">ENTER</button>
+  </div>
+  <p id="gate-err" style="display:none;color:#ff9090;font-size:11px;margin:0;">Wrong password</p>
+</div>
+<script>
+(function(){
+  var btn = document.getElementById('gate-btn');
+  var inp = document.getElementById('gate-pw');
+  var err = document.getElementById('gate-err');
+  async function go(){
+    err.style.display='none';
+    try {
+      var res = await fetch('/api/gate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:inp.value})});
+      var data = await res.json();
+      if (data.ok) window.location.href='/sign-in';
+      else err.style.display='block';
+    } catch(e){ err.style.display='block'; }
+  }
+  btn.addEventListener('click', go);
+  inp.addEventListener('keydown', function(e){ if(e.key==='Enter') go(); });
+})();
+</script>
   
   </header>
 
