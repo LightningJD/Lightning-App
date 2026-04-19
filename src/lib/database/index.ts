@@ -9,6 +9,7 @@ export {
   syncUserToSupabase,
   getUserById,
   getUserByClerkId,
+  getUserByUsername,
   updateUserProfile,
   updateUserLocation,
   findNearbyUsers,

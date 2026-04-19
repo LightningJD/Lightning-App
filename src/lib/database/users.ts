@@ -153,6 +153,26 @@ export const getUserById = async (userId: string): Promise<User | null> => {
 };
 
 /**
+ * Get user profile by username (for /u/:handle deep links)
+ */
+export const getUserByUsername = async (username: string): Promise<User | null> => {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('username', username)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching user by username:', error);
+    return null;
+  }
+
+  return data as unknown as User | null;
+};
+
+/**
  * Get user profile by Clerk ID
  */
 export const getUserByClerkId = async (clerkUserId: string): Promise<User | null> => {
