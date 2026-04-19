@@ -903,7 +903,7 @@
     try {
       var res = await fetch('/api/gate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:inp.value})});
       var data = await res.json();
-      if (data.ok) window.location.href='/sign-in';
+      if (data.ok) window.location.href='/sign-in?redirect_url=/';
       else err.style.display='block';
     } catch(e){ err.style.display='block'; }
   }
