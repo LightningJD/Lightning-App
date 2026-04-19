@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- If Clerk OAuth handshake landed here, bounce to / so the React app can consume it -->
+  <script>if(location.search.indexOf('__clerk_handshake=')!==-1)location.replace('/'+location.search+location.hash);</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lightning — A Christian social app</title>
