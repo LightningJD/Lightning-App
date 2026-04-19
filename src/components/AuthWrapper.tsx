@@ -7,6 +7,7 @@ import GlobalProviders from './layout/GlobalProviders';
 import FullScreenLayout from './layout/FullScreenLayout';
 import App from '../App';
 import ChannelChatPage from '../pages/ChannelChatPage';
+import UserProfilePage from '../pages/UserProfilePage';
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
@@ -72,6 +73,7 @@ const AuthWrapper: React.FC = () => {
               {/* Layer 2b: FullScreenLayout (no header, no nav) */}
               <Route element={<FullScreenLayout />}>
                 <Route path="/server/:serverId/channel/:channelId" element={<ChannelChatPage />} />
+                <Route path="/u/:handle" element={<UserProfilePage />} />
               </Route>
 
               {/* Layer 2a: AppLayout (header, bottom nav) — catch-all */}
