@@ -6,10 +6,11 @@
 # of serving the content in-place. The /* wildcard is special-cased
 # by Pages as an SPA fallback and works correctly.
 
-# Landing page as homepage until launch (302 because 200 rewrite
-# to landing.html triggers a 308 clean-URL redirect)
-/ /landing 302
+# Homepage gate (/ -> /landing for unauthenticated visitors) is now
+# handled in functions/_middleware.ts so it can skip the redirect
+# during a Clerk OAuth handshake. The previous `/ /landing 302` rule
+# created a redirect loop with the handshake bounce.
 
-# SPA fallback — serves React app for all other routes
+# SPA fallback - serves React app for all other routes
 # (including /sign-in, /sign-up)
 /* /index.html 200
