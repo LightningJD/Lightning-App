@@ -9,7 +9,7 @@ import ModalOverlay from "./ModalOverlay";
 interface FormData {
   displayName: string;
   username: string;
-  bio: string;
+  bio: string
   location: string;
   avatar: string;
   avatarUrl: string | null;
@@ -304,10 +304,14 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
 
   return (
     <>
-      <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]">
-          {/* Header */}
+      <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]">
+          {/* Drag Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className={`w-10 h-1 rounded-full ${nightMode ? "bg-white/20" : "bg-slate-300"}`} />
+        </div>
+        {/* Header */}
           <div
-            className="p-6"
+            className="px-6 pt-2 pb-4"
             style={{
               background: nightMode
                 ? "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)"
@@ -349,7 +353,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
           <div className="flex-1 overflow-y-auto p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Left Column */}
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {/* Display Name */}
                 <div>
                   <label
@@ -367,7 +371,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                       handleInputChange("displayName", e.target.value)
                     }
                     placeholder="John Doe"
-                    className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
                         : "bg-white border-slate-200 text-slate-900"
@@ -405,7 +409,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                         handleInputChange("username", cleanValue);
                       }}
                       placeholder="johndoe"
-                      className={`w-full pl-8 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full pl-8 pr-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         nightMode
                           ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
                           : "bg-white border-slate-200 text-slate-900"
@@ -444,7 +448,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                         handleInputChange("location", e.target.value)
                       }
                       placeholder="City, State"
-                      className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         nightMode
                           ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
                           : "bg-white border-slate-200 text-slate-900"
@@ -536,7 +540,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                     placeholder="Tell us about yourself and your faith journey..."
                     rows={5}
                     maxLength={500}
-                    className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                    className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
                         : "bg-white border-slate-200 text-slate-900"
@@ -627,7 +631,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                     }
                     placeholder="Share your testimony..."
                     rows={8}
-                    className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                    className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
                         : "bg-white border-slate-200 text-slate-900"
@@ -656,7 +660,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                     }
                     placeholder="What lesson did you learn from this experience?"
                     rows={4}
-                    className={`w-full px-4 py-3 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+                    className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-400"
                         : "bg-white border-slate-200 text-slate-900"
@@ -711,7 +715,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                       handleInputChange("churchName" as any, e.target.value)
                     }
                     placeholder="Grace Community Church"
-                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                    className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-500"
                         : "bg-white border-slate-200 text-slate-900"
@@ -735,7 +739,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                       handleInputChange("churchLocation" as any, e.target.value)
                     }
                     placeholder="Las Vegas, NV"
-                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                    className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-500"
                         : "bg-white border-slate-200 text-slate-900"
@@ -759,7 +763,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                       handleInputChange("denomination" as any, e.target.value)
                     }
                     placeholder="Non-denominational"
-                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                    className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-500"
                         : "bg-white border-slate-200 text-slate-900"
@@ -785,7 +789,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                     placeholder="2019"
                     min="1900"
                     max={new Date().getFullYear()}
-                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                    className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-500"
                         : "bg-white border-slate-200 text-slate-900"
@@ -823,7 +827,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                       placeholder="Year baptized"
                       min="1900"
                       max={new Date().getFullYear()}
-                      className={`w-32 px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                      className={`w-32 px-3 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
                         nightMode
                           ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-500"
                           : "bg-white border-slate-200 text-slate-900"
@@ -848,7 +852,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                     }
                     placeholder="For I know the plans I have for you, declares the Lord..."
                     rows={2}
-                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none ${
+                    className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-500"
                         : "bg-white border-slate-200 text-slate-900"
@@ -875,7 +879,7 @@ const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
                       )
                     }
                     placeholder="Jeremiah 29:11"
-                    className={`w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+                    className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
                       nightMode
                         ? "bg-white/5 border-white/10 text-slate-100 placeholder-gray-500"
                         : "bg-white border-slate-200 text-slate-900"
