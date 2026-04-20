@@ -12,7 +12,6 @@ import {
   Bell,
   Users,
   MapPin,
-  Globe,
   FileText,
   Shield,
   HelpCircle,
@@ -77,12 +76,9 @@ const SettingsMenu: React.FC = () => {
     userIsAdmin,
     privacySettings,
     notificationSettings,
-    searchRadius,
-    setSearchRadius,
     pushPermission,
     handlePrivacyToggle,
     handleNotificationToggle,
-    handleSaveSearchRadius,
     handleEnablePush,
     handleDisablePush,
     setShowMenu,
@@ -437,98 +433,6 @@ const SettingsMenu: React.FC = () => {
               </div>
             </div>
 
-            {/* Search Radius */}
-            <div
-              style={{
-                padding: "10px 12px",
-                borderTop: nightMode
-                  ? "1px solid rgba(255,255,255,0.04)"
-                  : "1px solid rgba(150,165,225,0.1)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-                <MapPin
-                  style={{
-                    width: "20px",
-                    height: "20px",
-                    color: nightMode ? "#8e89a8" : "#4a5e88",
-                  }}
-                />
-                <div>
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      color: nightMode ? "#e8e5f2" : "#1e2b4a",
-                    }}
-                  >
-                    Search Radius
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      color: nightMode ? "#5d5877" : "#8e9ec0",
-                      marginLeft: "6px",
-                    }}
-                  >
-                    5-100 miles
-                  </span>
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <input
-                  type="number"
-                  min="5"
-                  max="100"
-                  value={searchRadius}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === "") setSearchRadius(0);
-                    else setSearchRadius(Number.parseInt(val));
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleSaveSearchRadius();
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: "6px 10px",
-                    borderRadius: "8px",
-                    textAlign: "center",
-                    fontSize: "13px",
-                    background: nightMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.5)",
-                    border: nightMode
-                      ? "1px solid rgba(255,255,255,0.06)"
-                      : "1px solid rgba(150,165,225,0.15)",
-                    color: nightMode ? "#e8e5f2" : "#1e2b4a",
-                    outline: "none",
-                  }}
-                  placeholder="25"
-                />
-                <button
-                  onClick={handleSaveSearchRadius}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: "8px",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    border: "none",
-                    background: nightMode ? "rgba(123,118,224,0.15)" : "rgba(79,172,254,0.1)",
-                    color: nightMode ? "#9b96f5" : "#2b6cb0",
-                  }}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-
-            <MenuItem
-              icon={Globe}
-              label="Language"
-              subtext="English"
-              nightMode={nightMode}
-              comingSoon
-            />
           </GlassCard>
         </div>
 
