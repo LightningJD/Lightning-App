@@ -27,7 +27,7 @@ interface ProfileCardProps {
   onShareTestimony?: () => void;
   onEditProfile?: () => void;
   isOwnProfile?: boolean;
-  /** Testimony content rendered between music player and action buttons */
+  /** Testimony content rendered in the tinted section */
   children?: React.ReactNode;
 }
 
@@ -76,8 +76,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           boxShadow: '0 2px 10px rgba(150,165,225,0.07)',
         }}
       >
+        {/* Top section: header + identity + music */}
         <div className="px-3.5 py-3 flex flex-col gap-2">
-
           {/* Card Header */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-widest" style={{
@@ -90,15 +90,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             }} />
           </div>
 
-          {/* Identity Block — @handle, church, location */}
+          {/* Identity Block */}
           {hasIdentity && (
-            <div
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-              style={{
-                background: nightMode ? 'rgba(123,118,224,0.05)' : 'rgba(79,172,254,0.04)',
-                border: nightMode ? '1px solid rgba(123,118,224,0.08)' : '1px solid rgba(79,172,254,0.08)',
-              }}
-            >
+            <div className="flex items-center gap-3">
               {/* Church icon */}
               <div
                 className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
@@ -154,82 +148,76 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               nightMode={nightMode}
             />
           )}
+        </div>
 
-          {/* Testimony content (passed as children) */}
-          {hasTestimonyContent && (
-            <>
-              {/* Divider between profile info and testimony */}
-              <div className="h-px -mx-0.5" style={{
-                background: nightMode
-                  ? 'linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.08), rgba(255,255,255,0.01))'
-                  : 'linear-gradient(90deg, rgba(150,165,225,0.02), rgba(150,165,225,0.12), rgba(150,165,225,0.02))',
-              }} />
-              {children}
-            </>
-          )}
+        {/* Middle section: testimony (tinted background) */}
+        {hasTestimonyContent && (
+          <div
+            className="px-3.5 py-3"
+            style={{
+              background: nightMode ? 'rgba(123,118,224,0.03)' : 'rgba(79,172,254,0.03)',
+              borderTop: nightMode
+                ? '1px solid rgba(255,255,255,0.06)'
+                : '1px solid rgba(150,165,225,0.1)',
+            }}
+          >
+            {children}
+          </div>
+        )}
 
-          {/* Divider before action buttons */}
-          {isOwnProfile && hasTestimonyContent && (
-            <div className="h-px -mx-0.5" style={{
-              background: nightMode
-                ? 'linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.08), rgba(255,255,255,0.01))'
-                : 'linear-gradient(90deg, rgba(150,165,225,0.02), rgba(150,165,225,0.12), rgba(150,165,225,0.02))',
-            }} />
-          )}
+        {/* Footer bar: view count + compact action buttons */}
+        {isOwnProfile && (
+          <div
+            className="px-3.5 py-2.5 flex items-center justify-between"
+            style={{
+              borderTop: nightMode
+                ? '1px solid rgba(255,255,255,0.05)'
+                : '1px solid rgba(150,165,225,0.08)',
+            }}
+          >
+            {/* View count */}
+            <span style={{
+              fontSize: '11px',
+              color: nightMode ? '#5d5877' : '#8e9ec0',
+            }}>
+              {viewCount > 0 ? `⦿ ${viewCount}` : ''}
+            </span>
 
-          {/* Action Buttons — Share Testimony + Edit Profile */}
-          {isOwnProfile && (
-            <div className="flex gap-2">
+            {/* Compact buttons */}
+            <div className="flex gap-1.5">
               {profile.story?.id && onShareTestimony && (
                 <button
                   onClick={onShareTestimony}
-                  className="flex-1 py-2 rounded-xl text-[12px] font-semibold text-center transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
                   style={{
-                    background: nightMode ? 'rgba(123,118,224,0.12)' : 'rgba(79,172,254,0.12)',
-                    border: nightMode ? '1px solid rgba(123,118,224,0.2)' : '1px solid rgba(79,172,254,0.2)',
+                    background: nightMode ? 'rgba(123,118,224,0.1)' : 'rgba(79,172,254,0.1)',
+                    border: nightMode ? '1px solid rgba(123,118,224,0.15)' : '1px solid rgba(79,172,254,0.15)',
                     color: nightMode ? '#9b96f5' : '#2b6cb0',
                   }}
                 >
-                  ⚡ Share Testimony
+                  ⚡ Share
                 </button>
               )}
               {onEditProfile && (
                 <button
                   onClick={onEditProfile}
-                  className="flex-1 py-2 rounded-xl text-[12px] font-semibold text-center transition-colors"
+                  className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
                   style={nightMode ? {
                     background: 'rgba(255,255,255,0.05)',
                     border: '1px solid rgba(255,255,255,0.06)',
                     color: '#8e89a8',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
                   } : {
                     background: 'rgba(255,255,255,0.5)',
                     border: '1px solid rgba(150,165,225,0.15)',
-                    color: '#4a5e88',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
+                    color: '#64748b',
                   }}
                 >
-                  Edit Profile
+                  Edit
                 </button>
               )}
             </div>
-          )}
-
-          {/* Subtle views */}
-          {viewCount > 0 && (
-            <div className="text-center" style={{
-              fontSize: '11px',
-              color: nightMode ? '#8e89a8' : '#4a5e88',
-              opacity: 0.45,
-              letterSpacing: '0.3px',
-            }}>
-              ⦿ {viewCount} views
-            </div>
-          )}
-
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
