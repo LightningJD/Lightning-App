@@ -5,15 +5,11 @@ interface ProfileCardProps {
   nightMode: boolean;
   profile: {
     bio?: string | null;
-    churchName?: string;
-    churchLocation?: string;
-    denomination?: string;
-    yearSaved?: number | null;
-    isBaptized?: boolean;
-    yearBaptized?: number | null;
+    username?: string | null;
+    churchName?: string | null;
+    location?: string | null;
     favoriteVerse?: string | null;
     favoriteVerseRef?: string | null;
-    faithInterests?: string[];
     music?: {
       spotifyUrl?: string;
       trackName?: string;
@@ -31,6 +27,8 @@ interface ProfileCardProps {
   onShareTestimony?: () => void;
   onEditProfile?: () => void;
   isOwnProfile?: boolean;
+  /** Testimony content rendered between music player and action buttons */
+  children?: React.ReactNode;
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -39,10 +37,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   onShareTestimony,
   onEditProfile,
   isOwnProfile = false,
+  children,
 }) => {
-  const hasVerse = profile.favoriteVerse && profile.favoriteVerseRef;
   const hasMusic = profile.music && profile.music.spotifyUrl;
+  const hasIdentity = profile.username || profile.churchName || profile.location;
   const viewCount = profile.story?.viewCount || 0;
+  const hasTestimonyContent = !!children;
 
   return (
     <div className="relative">
@@ -90,30 +90,57 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             }} />
           </div>
 
-          {/* Favorite Verse */}
-          {hasVerse && (
+          {/* Identity Block — @handle, church, location */}
+          {hasIdentity && (
             <div
-              className="rounded-lg px-2.5 py-2"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5"
               style={{
                 background: nightMode ? 'rgba(123,118,224,0.05)' : 'rgba(79,172,254,0.04)',
-                borderLeft: nightMode ? '3px solid #7b76e0' : '3px solid #4facfe',
+                border: nightMode ? '1px solid rgba(123,118,224,0.08)' : '1px solid rgba(79,172,254,0.08)',
               }}
             >
-              <div className="text-[9px] font-bold uppercase tracking-wide mb-1" style={{
-                color: nightMode ? '#5d5877' : '#8e9ec0',
-              }}>
-                Favorite Verse
+              {/* Church icon */}
+              <div
+                className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
+                style={{
+                  background: nightMode
+                    ? 'linear-gradient(135deg, rgba(123,118,224,0.15), rgba(155,150,245,0.1))'
+                    : 'linear-gradient(135deg, rgba(79,172,254,0.15), rgba(139,92,246,0.1))',
+                }}
+              >
+                <span className="text-base">⛪</span>
               </div>
-              <div className="text-[12px] italic leading-snug" style={{
-                fontFamily: "'Playfair Display', serif",
-                color: nightMode ? '#b8b4c8' : '#3a4d6e',
-              }}>
-                &ldquo;{profile.favoriteVerse}&rdquo;
-              </div>
-              <div className="text-[10px] font-semibold mt-1" style={{
-                color: nightMode ? '#7b76e0' : '#4facfe',
-              }}>
-                — {profile.favoriteVerseRef}
+              <div className="flex-1 min-w-0">
+                {profile.username && (
+                  <div className="text-[13px] font-semibold" style={{
+                    color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                    letterSpacing: '-0.1px',
+                  }}>
+                    @{profile.username}
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  {profile.churchName && (
+                    <span className="text-[11px]" style={{
+                      color: nightMode ? '#8e89a8' : '#8e9ec0',
+                    }}>
+                      {profile.churchName}
+                    </span>
+                  )}
+                  {profile.churchName && profile.location && (
+                    <span
+                      className="w-[3px] h-[3px] rounded-full flex-shrink-0"
+                      style={{ background: nightMode ? '#5d5877' : '#c4cfe6' }}
+                    />
+                  )}
+                  {profile.location && (
+                    <span className="text-[11px]" style={{
+                      color: nightMode ? '#8e89a8' : '#8e9ec0',
+                    }}>
+                      {profile.location}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -126,6 +153,28 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
               artist={profile.music!.artist}
               nightMode={nightMode}
             />
+          )}
+
+          {/* Testimony content (passed as children) */}
+          {hasTestimonyContent && (
+            <>
+              {/* Divider between profile info and testimony */}
+              <div className="h-px -mx-0.5" style={{
+                background: nightMode
+                  ? 'linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.08), rgba(255,255,255,0.01))'
+                  : 'linear-gradient(90deg, rgba(150,165,225,0.02), rgba(150,165,225,0.12), rgba(150,165,225,0.02))',
+              }} />
+              {children}
+            </>
+          )}
+
+          {/* Divider before action buttons */}
+          {isOwnProfile && hasTestimonyContent && (
+            <div className="h-px -mx-0.5" style={{
+              background: nightMode
+                ? 'linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.08), rgba(255,255,255,0.01))'
+                : 'linear-gradient(90deg, rgba(150,165,225,0.02), rgba(150,165,225,0.12), rgba(150,165,225,0.02))',
+            }} />
           )}
 
           {/* Action Buttons — Share Testimony + Edit Profile */}
