@@ -17,13 +17,25 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({
   nightMode,
   userProfile,
 }) => {
-  const [youtubeUrl, setYoutubeUrl] = useState(userProfile?.spotifyUrl || "");
-  const [songName, setSongName] = useState(userProfile?.songName || "");
-  const [songArtist, setSongArtist] = useState(userProfile?.songArtist || "");
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [songName, setSongName] = useState("");
+  const [songArtist, setSongArtist] = useState("");
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [, setFetchedTitle] = useState<string | null>(null);
+  const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
   const lastFetchedId = useRef<string | null>(null);
+
+  // Sync state from the user's saved song every time the dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      const savedUrl = userProfile?.music?.spotifyUrl || "";
+      setYoutubeUrl(savedUrl);
+      setSongName(userProfile?.music?.trackName || "");
+      setSongArtist(userProfile?.music?.artist || "");
+      setFetchedTitle(null);
+      lastFetchedId.current = savedUrl ? (getYouTubeVideoId(savedUrl) || null) : null;
+    }
+  }, [isOpen]);
 
   // Auto-fetch video info when a valid YouTube URL is entered
   useEffect(() => {
@@ -271,7 +283,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-2">
-              {userProfile?.spotifyUrl && (
+              {youtubeUrl && (
                 <button
                   type="button"
                   onClick={handleRemove}
