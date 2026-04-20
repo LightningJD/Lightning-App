@@ -260,7 +260,7 @@ const DEMO_PROFILE = {
   hasTestimony: false,
   music: null,
   story: {
-    title: "My Testimony",
+    title: "",
     content: "Today, I lead God's people as king over all Israel...",
     lesson:
       "My life taught me that being 'a man after God's own heart' doesn't mean never falling...",
