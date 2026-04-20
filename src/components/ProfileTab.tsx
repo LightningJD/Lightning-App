@@ -56,7 +56,7 @@ interface ProfileTabProps {
   onAddTestimony?: () => void;
   onEditTestimony?: () => void;
   currentUserProfile?: any;
-  /** When provided, renders social action buttons (Message, Add Friend, etc.) â indicates viewing another user */
+  /** When provided, renders social action buttons (Message, Add Friend, etc.) — indicates viewing another user */
   onMessage?: (user: any) => void;
   /** Called when user blocks someone and the profile should close */
   onBlocked?: () => void;
@@ -91,7 +91,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [canView, setCanView] = useState(true); // Can view testimony based on privacy settings
 
-  // Social action state â only used when viewing another user's profile (onMessage is provided)
+  // Social action state — only used when viewing another user's profile (onMessage is provided)
   const isViewingOther =
     !!onMessage && profile?.supabaseId !== currentUserProfile?.supabaseId;
   const [friendStatus, setFriendStatus] = useState<
@@ -377,7 +377,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
       return Math.max(0, prev - 1);
     });
 
-    // Update database â use CURRENT user's ID (the person liking), not testimony owner
+    // Update database — use CURRENT user's ID (the person liking), not testimony owner
     const { success } = await toggleTestimonyLike(
       profile.story.id,
       currentUserProfile.supabaseId,
@@ -474,7 +474,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
               currentUserProfile?.displayName ||
               currentUserProfile?.username ||
               "User",
-            avatar_emoji: currentUserProfile?.avatar || "ð¤",
+            avatar_emoji: currentUserProfile?.avatar || "👤",
             avatar_url: currentUserProfile?.avatarImage,
           },
         },
@@ -537,7 +537,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         </div>
       </div>
 
-      {/* Bio â between avatar area and profile card */}
+      {/* Bio — between avatar area and profile card */}
       {profile.bio && profile.bio !== 'Welcome to Lightning! Share your testimony to inspire others.' && (
         <p className="text-center text-sm leading-relaxed px-8 mt-1" style={{
           color: nightMode ? '#8e89a8' : '#4a5e88',
@@ -546,7 +546,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         </p>
       )}
 
-      {/* Social Action Buttons â shown when viewing another user's profile */}
+      {/* Social Action Buttons — shown when viewing another user's profile */}
       {isViewingOther && (
         <div className="px-4 space-y-3">
           {/* Message + Report + Block row */}
@@ -730,7 +730,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                   } ${friendStatus !== "none" || sendingRequest ? "opacity-50 cursor-not-allowed" : ""}`}
                   style={
                     nightMode
-                               ? {
+                      ? {
                           background:
                             "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)",
                           boxShadow:
@@ -845,7 +845,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             </span>
           </div>
 
-          {/* Testimony content â tap to expand */}
+          {/* Testimony content — tap to expand */}
           <div
             role="button"
             tabIndex={0}
@@ -857,7 +857,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (canView) setExpandedTestimony(!expandedTestimony); } }}
           >
 
-            {/* Title â only render if the author provided one */}
+            {/* Title — only render if the author provided one */}
             {profile?.story?.title && (
               <h2
                 className="text-base font-medium leading-tight mb-2"
@@ -888,7 +888,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                   </div>
                 )}
 
-                {/* Body â 2 line clamp when collapsed, full when expanded */}
+                {/* Body — 2 line clamp when collapsed, full when expanded */}
                 <div
                   className="text-[13px] leading-relaxed mb-2 whitespace-pre-wrap"
                   style={{
@@ -905,14 +905,14 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                   }}
                 />
 
-                {/* Lesson Learned â only visible when expanded */}
+                {/* Lesson Learned — only visible when expanded */}
                 {expandedTestimony && profile?.story?.lesson && (
                   <div
                     className="mt-3 pt-3 mb-2"
                     style={{ borderTop: nightMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(150,165,225,0.1)' }}
                   >
                     <div className="flex items-center gap-1.5 mb-1.5">
-                      <span className="text-sm">ð</span>
+                      <span className="text-sm">📖</span>
                       <h3 className="text-[13px] font-semibold" style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>
                         A Lesson Learned
                       </h3>
@@ -944,10 +944,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                     className="flex items-center gap-1 transition-colors hover:opacity-80"
                     style={{ color: isLiked ? '#ef4444' : (nightMode ? '#5d5877' : '#8e9ec0') }}
                   >
-                    {isLiked ? 'â¥' : 'â¡'} {likeCount}
+                    {isLiked ? '♥' : '♡'} {likeCount}
                   </button>
                   <span className="flex items-center gap-1">
-                    ð¬ {comments.length}
+                    💬 {comments.length}
                   </span>
                   <button
                     onClick={() => {
@@ -970,10 +970,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                     }}
                     className="flex items-center gap-1 transition-colors hover:opacity-80"
                   >
-                    â Share
+                    ↗ Share
                   </button>
 
-                  {/* Owner actions â edit / delete */}
+                  {/* Owner actions — edit / delete */}
                   {currentUserProfile?.supabaseId === profile?.supabaseId && (
                     <div className="ml-auto flex items-center gap-2">
                       {onEditTestimony && profile?.story?.content && (
@@ -1028,7 +1028,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                 </div>
               </>
             ) : !canView ? (
-              // BUG-H: copy was "Only friends can view this testimony" â wrong,
+              // BUG-H: copy was "Only friends can view this testimony" — wrong,
               // because testimonies don't have a friends-only visibility. The
               // three options are 'my_church' (same church only), 'all_churches'
               // (same church, friends, or followers), and 'shareable' (public).
@@ -1050,7 +1050,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                             "This testimony is shared with the author's church, friends, and followers.",
                         }
                       : {
-                          // Fallback when visibility is missing/unknown â stay
+                          // Fallback when visibility is missing/unknown — stay
                           // accurate without implying a specific audience.
                           title: "Not visible to you",
                           subtitle:
@@ -1074,7 +1074,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         </ProfileCard>
       </div>
 
-      {/* Church Card â only on own profile */}
+      {/* Church Card — only on own profile */}
       {profile?.church &&
         profile?.supabaseId === currentUserProfile?.supabaseId && (
           <div className="px-4 mt-3">
@@ -1137,7 +1137,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
           >
             {/* Comments Header */}
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg">ð¬</span>
+              <span className="text-lg">💬</span>
               <h3
                 className={`text-base font-semibold ${nightMode ? "text-slate-100" : "text-black"}`}
               >
@@ -1166,7 +1166,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                             }
                       }
                     >
-                      {profile?.avatar || "ð¤"}
+                      {profile?.avatar || "👤"}
                     </div>
                   </div>
 
@@ -1220,7 +1220,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                           : {}
                       }
                     >
-                      {isSubmittingComment ? "â Posting..." : "Post"}
+                      {isSubmittingComment ? "✓ Posting..." : "Post"}
                     </button>
                   </div>
                 </div>
@@ -1296,7 +1296,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                             loading="lazy"
                           />
                         ) : (
-                          <span>{comment.users?.avatar_emoji || "ð¤"}</span>
+                          <span>{comment.users?.avatar_emoji || "👤"}</span>
                         )}
                       </div>
                     </div>
@@ -1324,23 +1324,23 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                           <span
                             className={`text-xs ${nightMode ? "text-slate-500" : "text-gray-500"}`}
                           >
-                            â¢
+                            •
                           </span>
                           <span
                             className={`text-xs ${nightMode ? "text-slate-500" : "text-gray-500"}`}
-                                      >
-                              {new Date(comment.created_at).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                  year:
-                                    new Date(comment.created_at).getFullYear() !==
-                                    new Date().getFullYear()
-                                      ? "numeric"
-                                      : undefined,
-                                },
-                              )}
+                          >
+                            {new Date(comment.created_at).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year:
+                                  new Date(comment.created_at).getFullYear() !==
+                                  new Date().getFullYear()
+                                    ? "numeric"
+                                    : undefined,
+                              },
+                            )}
                           </span>
                         </div>
                         <p
@@ -1388,7 +1388,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         </button>
       )}
 
-      {/* Report Content Dialog â for reporting other users/testimonies */}
+      {/* Report Content Dialog — for reporting other users/testimonies */}
       {reportData && (
         <ReportContent
           isOpen={showReport}
