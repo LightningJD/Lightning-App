@@ -77,7 +77,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
   const [likeCount, setLikeCount] = useState(profile?.story?.likeCount || 0);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showTestimonyMenu, setShowTestimonyMenu] = useState(false);
-  const [showLesson, setShowLesson] = useState(false);
   const [expandedTestimony, setExpandedTestimony] = useState(false);
   const { isGuest, checkAndShowModal } = useGuestModalContext() as {
     isGuest: boolean;
@@ -1158,85 +1157,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                 );
               })()
             ) : null}
-          </div>
-        </div>
-      )}
-
-      {/* Life Testimonies Section — placeholder for future multi-testimony support */}
-      {profile?.story?.id && canView && profile?.story?.lesson && (
-        <div className="px-4 mt-2">
-          <div className="text-[11px] uppercase tracking-[1.5px] font-semibold mb-2 ml-1" style={{
-            color: nightMode ? '#5d5877' : '#8e9ec0',
-          }}>
-            Life Testimonies
-          </div>
-          <div
-            role="button"
-            tabIndex={0}
-            className="p-4 rounded-xl cursor-pointer transition-all duration-200 active:scale-[0.99]"
-            onClick={() => setShowLesson(!showLesson)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowLesson(!showLesson); } }}
-            style={{
-              opacity: 0.85,
-              ...(nightMode
-                ? {
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                  }
-                : {
-                    background: 'rgba(255,255,255,0.45)',
-                    border: '1px solid rgba(150,165,225,0.12)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                  }),
-            }}
-          >
-            <div className="text-[10px] uppercase tracking-wide font-semibold mb-1" style={{
-              color: nightMode ? '#7b76e0' : '#4facfe',
-            }}>
-              Life Testimony
-            </div>
-            <h3
-              className="text-sm font-medium leading-tight mb-2"
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                color: nightMode ? '#e8e5f2' : '#1e2b4a',
-              }}
-            >
-              A Lesson Learned
-            </h3>
-            <div
-              className="text-[13px] italic leading-relaxed p-2.5 rounded-lg mb-2"
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                color: nightMode ? '#b8b4c8' : '#4a5e88',
-                borderLeft: nightMode ? '2px solid rgba(123,118,224,0.2)' : '2px solid rgba(79,172,254,0.2)',
-                background: nightMode ? 'rgba(123,118,224,0.04)' : 'rgba(79,172,254,0.04)',
-              }}
-            >
-              {showLesson
-                ? <>&ldquo;{profile.story.lesson}&rdquo;</>
-                : <>&ldquo;{profile.story.lesson.slice(0, 100)}{profile.story.lesson.length > 100 ? '...' : ''}&rdquo;</>
-              }
-            </div>
-            {!showLesson && (
-              <div
-                className="text-[13px] leading-relaxed"
-                style={{
-                  color: nightMode ? '#8e89a8' : '#4a5e88',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical' as any,
-                  overflow: 'hidden',
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: sanitizeUserContent(profile.story.lesson),
-                }}
-              />
-            )}
-            <div className="text-[11px] font-medium mt-1.5" style={{ color: nightMode ? '#7b76e0' : '#4facfe' }}>
-              {showLesson ? 'Tap to collapse' : 'Tap to read more'}
-            </div>
           </div>
         </div>
       )}
