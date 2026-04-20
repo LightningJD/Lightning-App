@@ -981,7 +981,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                           onClick={onEditTestimony}
                           className="flex items-center gap-1 transition-colors hover:opacity-80"
                         >
-                          <Edit3 className="w-3 h-3" /> Edit
+                          ⚡ Rewrite
                         </button>
                       )}
                       <div className="relative">
