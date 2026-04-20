@@ -1,6 +1,5 @@
 import React from "react";
 import MenuItem from "./MenuItem";
-import ProSettings from "./premium/ProSettings";
 import { isPushSupported } from "../lib/webPush";
 import { useAppContext } from "../contexts/AppContext";
 import {
@@ -278,20 +277,6 @@ const SettingsMenu: React.FC = () => {
                 setShowLinkSpotify(true);
               }}
             />
-          </GlassCard>
-        </div>
-
-        {/* Lightning Pro */}
-        <div style={{ marginBottom: "12px" }}>
-          <GroupLabel nightMode={nightMode}>Lightning Pro</GroupLabel>
-          <GlassCard nightMode={nightMode}>
-            <div style={{ padding: "10px 12px" }}>
-              <ProSettings
-                nightMode={nightMode}
-                userEmail={userProfile?.email || ""}
-                userId={userProfile?.supabaseId || ""}
-              />
-            </div>
           </GlassCard>
         </div>
 
