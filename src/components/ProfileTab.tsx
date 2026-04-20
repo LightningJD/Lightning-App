@@ -534,25 +534,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             {profile.displayName || profile.username}
             {isUserPro && <ProBadge size="sm" />}
           </h1>
-          <p
-            className="text-xs mt-1"
-            style={{
-              color: nightMode ? '#5d5877' : '#8e9ec0',
-            }}
-          >
-            @{profile.username}{profile.churchName ? ` · ${profile.churchName}` : ''}
-          </p>
-
-          {/* Location */}
-          {profile.location && (
-            <div
-              className="flex items-center justify-center gap-1.5 mt-2 text-xs"
-              style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
-            >
-              <MapPin className="w-3.5 h-3.5" />
-              <span>{profile.location}</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -806,100 +787,50 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
       )}
 
       {/* Profile Card */}
-      {(profile.bio ||
-        profile.favoriteVerse ||
-        (profile.music && profile.music.spotifyUrl)) && (
-        <div className="px-4">
-          <ProfileCard
-            nightMode={nightMode}
-            profile={{
-              bio: profile.bio,
-              favoriteVerse: profile.favoriteVerse,
-              favoriteVerseRef: profile.favoriteVerseRef,
-              music: profile.music,
-              story: profile.story
-                ? {
-                    id: profile.story.id,
-                    viewCount: profile.story.viewCount,
-                    likeCount: profile.story.likeCount,
-                    commentCount: profile.story.commentCount,
-                  }
-                : null,
-            }}
-            isOwnProfile={!isViewingOther}
-            onShareTestimony={() => {
-              try {
-                const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
-                const shareData = {
-                  title: `${profile?.name || profile?.displayName || "Someone"}'s Testimony on Lightning`,
-                  text: "Be encouraged by this testimony on Lightning",
-                  url: testimonyUrl,
-                };
-                // @ts-ignore
-                if (navigator?.share && typeof navigator.share === "function") {
-                  // @ts-ignore
-                  navigator.share(shareData);
-                } else {
-                  setShowShareModal(true);
+      <div className="px-4">
+        <ProfileCard
+          nightMode={nightMode}
+          profile={{
+            bio: profile.bio,
+            username: profile.username,
+            churchName: profile.churchName,
+            location: profile.location,
+            music: profile.music,
+            story: profile.story
+              ? {
+                  id: profile.story.id,
+                  viewCount: profile.story.viewCount,
+                  likeCount: profile.story.likeCount,
+                  commentCount: profile.story.commentCount,
                 }
-              } catch {
+              : null,
+          }}
+          isOwnProfile={!isViewingOther}
+          onShareTestimony={() => {
+            try {
+              const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
+              const shareData = {
+                title: `${profile?.name || profile?.displayName || "Someone"}'s Testimony on Lightning`,
+                text: "Be encouraged by this testimony on Lightning",
+                url: testimonyUrl,
+              };
+              // @ts-ignore
+              if (navigator?.share && typeof navigator.share === "function") {
+                // @ts-ignore
+                navigator.share(shareData);
+              } else {
                 setShowShareModal(true);
               }
-            }}
-            onEditProfile={() => {
-              // Dispatch event to open profile editing
-              window.dispatchEvent(new CustomEvent("openProfileEdit"));
-            }}
-          />
-        </div>
-      )}
-
-      {/* Church Card — only on own profile */}
-      {profile?.church &&
-        profile?.supabaseId === currentUserProfile?.supabaseId && (
-          <div className="px-4 mt-3">
-            <ChurchCard
-              nightMode={nightMode}
-              church={profile.church}
-              isCreator={profile.church.createdBy === profile.supabaseId}
-              onLeave={async () => {
-                if (confirm("Are you sure you want to leave this church?")) {
-                  await leaveChurch(profile.supabaseId);
-                  window.dispatchEvent(new CustomEvent("profileUpdated"));
-                }
-              }}
-              onRegenerateCode={
-                profile.church.createdBy === profile.supabaseId
-                  ? async () => {
-                      const newCode = await regenerateChurchInviteCode(
-                        profile.church.id,
-                        profile.supabaseId,
-                      );
-                      if (newCode) {
-                        window.dispatchEvent(new CustomEvent("profileUpdated"));
-                      }
-                    }
-                  : undefined
-              }
-            />
-          </div>
-        )}
-
-      {/* Ambassador section moved to Charge tab */}
-
-      {/* Testimony Share Modal */}
-      <TestimonyShareModal
-        nightMode={nightMode}
-        isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        testimonyId={profile?.story?.id || ""}
-        testimonyText={profile?.story?.content || profile?.story?.text || ""}
-        profileName={profile?.name || profile?.displayName || "Someone"}
-      />
-
-      {/* Salvation Testimony Section */}
-      {profile?.story?.id && (
-        <div className="px-4">
+            } catch {
+              setShowShareModal(true);
+            }
+          }}
+          onEditProfile={() => {
+            window.dispatchEvent(new CustomEvent("openProfileEdit"));
+          }}
+        >
+          {profile?.story?.id ? (
+            <>
           {/* Section label */}
           <div className="text-[11px] uppercase tracking-[1.5px] font-semibold mb-2 ml-1" style={{
             color: nightMode ? '#5d5877' : '#8e9ec0',
@@ -1158,8 +1089,54 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
               })()
             ) : null}
           </div>
-        </div>
-      )}
+            </>
+          ) : null}
+        </ProfileCard>
+      </div>
+
+      {/* Church Card — only on own profile */}
+      {profile?.church &&
+        profile?.supabaseId === currentUserProfile?.supabaseId && (
+          <div className="px-4 mt-3">
+            <ChurchCard
+              nightMode={nightMode}
+              church={profile.church}
+              isCreator={profile.church.createdBy === profile.supabaseId}
+              onLeave={async () => {
+                if (confirm("Are you sure you want to leave this church?")) {
+                  await leaveChurch(profile.supabaseId);
+                  window.dispatchEvent(new CustomEvent("profileUpdated"));
+                }
+              }}
+              onRegenerateCode={
+                profile.church.createdBy === profile.supabaseId
+                  ? async () => {
+                      const newCode = await regenerateChurchInviteCode(
+                        profile.church.id,
+                        profile.supabaseId,
+                      );
+                      if (newCode) {
+                        window.dispatchEvent(new CustomEvent("profileUpdated"));
+                      }
+                    }
+                  : undefined
+              }
+            />
+          </div>
+        )}
+
+      {/* Ambassador section moved to Charge tab */}
+
+      {/* Testimony Share Modal */}
+      <TestimonyShareModal
+        nightMode={nightMode}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        testimonyId={profile?.story?.id || ""}
+        testimonyText={profile?.story?.content || profile?.story?.text || ""}
+        profileName={profile?.name || profile?.displayName || "Someone"}
+      />
+
 
       <div className="px-4 pb-20">
         {/* Comments Section - Only show when testimony exists */}
