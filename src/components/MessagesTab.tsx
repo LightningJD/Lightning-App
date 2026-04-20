@@ -1766,7 +1766,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                           ? "No friends yet — add friends first!"
                           : selectedConnections.length > 0
                             ? "All matching friends already added"
-                            : "No matching friends found"}
+                            : (<><div style={{fontSize:'1.4rem',marginBottom:4}}>👥</div><div style={{fontWeight:600,fontSize:'0.8rem',marginBottom:2,color:nightMode?'#c0bcd8':'#2a3a5a'}}>No matching friends</div><div style={{fontSize:'0.72rem'}}>Try a different name, or invite someone to join Lightning.</div></>)}
                       </div>
                     )
                   )}
@@ -1774,7 +1774,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
               )}
             </div>
 
-            {/* Message */}
+            {selectedConnections.length > 0 && (
             <div className="mb-6">
               <label
                 htmlFor="new-chat-message"
@@ -1805,6 +1805,7 @@ const MessagesTab: React.FC<MessagesTabProps> = ({
                 rows={4}
               />
             </div>
+            )}
 
             {/* Send Button */}
             <button
