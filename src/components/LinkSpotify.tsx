@@ -82,6 +82,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({
         song_artist: songArtist.trim() || null,
       } as any);
       showSuccess(youtubeUrl ? "Song saved!" : "Song removed");
+      window.dispatchEvent(new CustomEvent('profileUpdated'));
       onClose();
     } catch (error) {
       console.error("Error saving song:", error);
@@ -105,6 +106,7 @@ const LinkSpotify: React.FC<LinkSpotifyProps> = ({
         song_artist: null,
       } as any);
       showSuccess("Song removed");
+      window.dispatchEvent(new CustomEvent('profileUpdated'));
       onClose();
     } catch (error) {
       console.error("Error removing song:", error);
