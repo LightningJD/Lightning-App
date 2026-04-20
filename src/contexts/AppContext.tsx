@@ -420,6 +420,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [userProfile?.username, localProfile?.username]);
 
+  // Sync music fields whenever the server copy changes (e.g. after saving/removing a song)
+  React.useEffect(() => {
+    setLocalProfile((prev: any) =>
+      prev
+        ? {
+            ...prev,
+            music: userProfile?.music ?? null,
+            spotifyUrl: userProfile?.spotifyUrl ?? null,
+            songName: userProfile?.songName ?? null,
+            songArtist: userProfile?.songArtist ?? null,
+          }
+        : null,
+    );
+  }, [userProfile?.spotifyUrl]);
+
+
   // Update settings when user profile loads
   React.useEffect(() => {
     if (userProfile) {
