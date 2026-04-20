@@ -422,13 +422,15 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
           </div>
         </div>
 
-        {/* Title */}
-        <h3
-          className="text-sm font-medium mb-1.5 leading-snug"
-          style={{ fontFamily: "'Playfair Display', serif", color: nightMode ? "#e8e5f2" : "#1e2b4a" }}
-        >
-          {testimony.title || "My Testimony"}
-        </h3>
+        {/* Title — only render if the author provided one */}
+        {testimony.title && (
+          <h3
+            className="text-sm font-medium mb-1.5 leading-snug"
+            style={{ fontFamily: "'Playfair Display', serif", color: nightMode ? "#e8e5f2" : "#1e2b4a" }}
+          >
+            {testimony.title}
+          </h3>
+        )}
 
         {/* Pull quote — always a short excerpt */}
         {testimony.content && (
