@@ -433,10 +433,14 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
   if (showIntro) {
     return (
       <>
-        <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]" ariaLabelledBy="modal-title">
-            {/* Header */}
+        <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="modal-title">
+            {/* Drag Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className={`w-10 h-1 rounded-full ${nightMode ? "bg-white/20" : "bg-slate-300"}`} />
+        </div>
+        {/* Header */}
             <div
-              className="p-6"
+              className="px-6 pt-2 pb-4"
               style={{
                 background: nightMode
                   ? "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)"
@@ -527,10 +531,14 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
 
   return (
     <>
-      <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]" ariaLabelledBy="dialog-title">
-          {/* Header */}
+      <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="dialog-title">
+          {/* Drag Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className={`w-10 h-1 rounded-full ${nightMode ? "bg-white/20" : "bg-slate-300"}`} />
+        </div>
+        {/* Header */}
           <div
-            className="p-6"
+            className="px-6 pt-2 pb-4"
             style={{
               background: nightMode
                 ? "linear-gradient(135deg, #4faaf8 0%, #3b82f6 50%, #2563eb 100%)"
