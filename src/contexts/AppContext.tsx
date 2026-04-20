@@ -307,6 +307,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
   const [showTestimonyEdit, setShowTestimonyEdit] = useState(false);
   const [testimonyData, setTestimonyData] = useState<any>(null);
+  // Testimony collected during onboarding — held in state until profile setup completes,
+  // then published. Never written to the DB before profileCompleted is true.
+  const [pendingTestimony, setPendingTestimony] = useState<{
+    content: string;
+    answers: TestimonyAnswers;
+    visibility?: "my_church" | "all_churches" | "shareable";
+  } | null>(null);
+  const [isOnboardingFlow, setIsOnboardingFlow] = useState(false);
   const [showTestimonyQuestionnaire, setShowTestimonyQuestionnaire] =
     useState(false);
   const [notificationCounts, setNotificationCounts] = React.useState({
@@ -646,7 +654,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const isProfileIncomplete = !userProfile.profileCompleted;
       if (isProfileIncomplete && !profileCompleted) {
         const timer = setTimeout(() => {
-          setShowProfileWizard(true);
+          // Testimony-first: show questionnaire before profile wizard
+          setIsOnboardingFlow(true);
+          setShowTestimonyQuestionnaire(true);
+          setTestimonyStartTime(Date.now());
         }, 500);
         return () => clearTimeout(timer);
       } else if (userProfile.profileCompleted) {
@@ -888,12 +899,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         );
         setProfileCompleted(true);
         setShowProfileWizard(false);
+        setIsOnboardingFlow(false);
         checkProfileSecrets({ ...profileData, profileCompleted: true });
         window.dispatchEvent(new CustomEvent("profileUpdated"));
-        setTimeout(() => {
-          setShowTestimonyQuestionnaire(true);
-          setTestimonyStartTime(Date.now());
-        }, 500);
+
+        // Publish the testimony that was collected before profile setup.
+        // We save it here (not earlier) so it never hits the DB before the
+        // profile is complete.
+        if (pendingTestimony) {
+          try {
+            const profanityResult = checkBeforeSend(pendingTestimony.content);
+            if (profanityResult.severity !== "high") {
+              const saved = await createTestimony(userProfile.supabaseId, {
+                content: pendingTestimony.content,
+                question1: pendingTestimony.answers.question1,
+                question2: pendingTestimony.answers.question2,
+                question3: pendingTestimony.answers.question3,
+                question4: pendingTestimony.answers.question4,
+                lesson:
+                  "My journey taught me that transformation is possible through faith.",
+                isPublic: true,
+                visibility: pendingTestimony.visibility || "my_church",
+              });
+              if (saved) {
+                unlockSecret("first_testimony");
+                window.dispatchEvent(new CustomEvent("profileUpdated"));
+              }
+            }
+          } catch (testimonyErr) {
+            console.error(
+              "Failed to publish pending onboarding testimony:",
+              testimonyErr,
+            );
+          }
+          setPendingTestimony(null);
+        }
       } else {
         throw new Error("Failed to update profile");
       }
@@ -911,6 +951,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleSkipProfileWizard = () => {
     setShowProfileWizard(false);
     setProfileCompleted(true);
+    setIsOnboardingFlow(false);
+    setPendingTestimony(null);
   };
 
   const handleContinueAsGuest = () => {
@@ -1135,6 +1177,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     visibility?: "my_church" | "all_churches" | "shareable";
   }): Promise<void> => {
     setShowTestimonyQuestionnaire(false);
+
+    // Onboarding mode: hold testimony in state and proceed to profile setup.
+    // The testimony will be published only when handleProfileComplete succeeds.
+    if (isOnboardingFlow) {
+      setPendingTestimony(testimonyContent);
+      setTimeout(() => {
+        setShowProfileWizard(true);
+      }, 300);
+      return;
+    }
+
     const toastId = showLoading("Saving your testimony...");
     try {
       const timeSpent = testimonyStartTime
