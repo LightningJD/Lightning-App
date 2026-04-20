@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import UserCard from "./UserCard";
-import { UserCardSkeleton } from "./SkeletonLoader";
+import { UserCardSkeleton } from "./SkeletonLoader"
 import OtherUserProfileDialog from "./OtherUserProfileDialog";
 import { useUserProfile } from "./useUserProfile";
 import { showSuccess, showError } from "../lib/toast";
@@ -622,7 +622,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search testimonies, people..."
+            placeholder="Search people..."
             className="flex-1 bg-transparent border-none outline-none text-sm"
             style={{
               color: nightMode ? "#e8e5f2" : "#1e2b4a",
@@ -682,7 +682,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
               }}
             >
               <p className="text-sm" style={{ color: nightMode ? "#8e89a8" : "#4a5e88" }}>
-                No users found for "{searchQuery}"
+                No results for "{searchQuery}"
               </p>
             </div>
           ) : (
