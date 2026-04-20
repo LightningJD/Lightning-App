@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Camera } from "lucide-react";
+import { EXIT_WARNING_MSG } from '../hooks/useOnboardingGuard';
 
 interface ProfileSetupProps {
   nightMode: boolean;
@@ -49,7 +50,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ nightMode, onComplete, onSk
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = "";
+      e.returnValue = EXIT_WARNING_MSG;
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
