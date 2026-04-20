@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, ArrowLeft, Sparkles, Loader, Lock, Globe, Link2, BookOpen } from 'lucide-react';
 import { TESTIMONY_QUESTIONS, validateAnswers, getWordCount } from '../config/testimonyQuestions';
 import { generateTestimony, type TestimonyAnswers } from '../lib/api/ai-service';
 import { checkRateLimit, recordAttempt } from '../lib/rateLimiter';
+import { EXIT_WARNING_MSG, useBeforeUnloadGuard } from '../hooks/useOnboardingGuard';
 
 type TestimonyVisibility = 'my_church' | 'all_churches' | 'shareable';
 
@@ -137,6 +138,24 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
     };
 
     const [saveError, setSaveError] = useState('');
+    const [showExitWarning, setShowExitWarning] = useState(false);
+
+    useBeforeUnloadGuard(true);
+
+    useEffect(() => {
+        window.history.pushState(null, '', window.location.href);
+        const handlePopState = () => {
+            window.history.pushState(null, '', window.location.href);
+            setShowExitWarning(true);
+        };
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
+    const handleLeaveAnyway = () => {
+        setShowExitWarning(false);
+        onCancel();
+    };
 
     const handleSave = () => {
         if (!editedTestimony || editedTestimony.trim().length < 50) {
@@ -369,6 +388,19 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                         </div>
                     </div>
                 </div>
+            {showExitWarning && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70" />
+                    <div className="relative rounded-2xl p-6 max-w-sm w-full shadow-2xl" style={{ background: nightMode ? '#1a1628' : '#fff', border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
+                        <h3 className="text-lg font-semibold mb-2" style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>Leave this page?</h3>
+                        <p className="text-sm mb-6" style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}>{EXIT_WARNING_MSG}</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowExitWarning(false)} className="flex-1 px-4 py-2.5 rounded-xl font-semibold" style={{ background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>Stay</button>
+                            <button onClick={handleLeaveAnyway} className="flex-1 px-4 py-2.5 rounded-xl font-semibold" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}>Leave anyway</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             </>
         );
@@ -404,7 +436,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                                     </h2>
                                 </div>
                                 <button
-                                    onClick={onCancel}
+                                    onClick={() => setShowExitWarning(true)}
                                     className="text-sm font-medium"
                                     style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
                                 >
@@ -476,6 +508,19 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                         </div>
                     </div>
                 </div>
+            {showExitWarning && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/70" />
+                    <div className="relative rounded-2xl p-6 max-w-sm w-full shadow-2xl" style={{ background: nightMode ? '#1a1628' : '#fff', border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
+                        <h3 className="text-lg font-semibold mb-2" style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>Leave this page?</h3>
+                        <p className="text-sm mb-6" style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}>{EXIT_WARNING_MSG}</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowExitWarning(false)} className="flex-1 px-4 py-2.5 rounded-xl font-semibold" style={{ background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>Stay</button>
+                            <button onClick={handleLeaveAnyway} className="flex-1 px-4 py-2.5 rounded-xl font-semibold" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}>Leave anyway</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             </>
         );
@@ -499,7 +544,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                 >
                     {/* Cancel button */}
                     <button
-                        onClick={onCancel}
+                        onClick={() => setShowExitWarning(true)}
                         className="absolute top-4 right-4 text-sm font-medium z-10"
                         style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
                     >
@@ -677,6 +722,19 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                     </div>
                 </div>
             </div>
+        {showExitWarning && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black/70" />
+                <div className="relative rounded-2xl p-6 max-w-sm w-full shadow-2xl" style={{ background: nightMode ? '#1a1628' : '#fff', border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}` }}>
+                    <h3 className="text-lg font-semibold mb-2" style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>Leave this page?</h3>
+                    <p className="text-sm mb-6" style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}>{EXIT_WARNING_MSG}</p>
+                    <div className="flex gap-3">
+                        <button onClick={() => setShowExitWarning(false)} className="flex-1 px-4 py-2.5 rounded-xl font-semibold" style={{ background: nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', color: nightMode ? '#e8e5f2' : '#1e2b4a' }}>Stay</button>
+                        <button onClick={handleLeaveAnyway} className="flex-1 px-4 py-2.5 rounded-xl font-semibold" style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)' }}>Leave anyway</button>
+                    </div>
+                </div>
+            </div>
+        )}
 
         </>
     );
