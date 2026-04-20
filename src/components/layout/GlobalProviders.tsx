@@ -22,7 +22,7 @@ import { Outlet } from 'react-router-dom';
 import { Zap } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from '../ErrorBoundary';
-import ProfileCreationWizard from '../ProfileCreationWizard';
+import ProfileSetup from '../ProfileSetup';
 import ProfileEditDialog from '../ProfileEditDialog';
 import ChangePictureModal from '../ChangePictureModal';
 import EditTestimonyDialog from '../EditTestimonyDialog';
@@ -52,7 +52,6 @@ import { unlockSecret } from '../../lib/secrets';
 // ============================================
 // OUTER WRAPPER — provides AppContext
 // ============================================
-
 const GlobalProviders: React.FC = () => {
   return (
     <AppProvider>
@@ -64,7 +63,6 @@ const GlobalProviders: React.FC = () => {
 // ============================================
 // INNER — reads AppContext, wraps remaining providers + modals
 // ============================================
-
 function GlobalProvidersInner() {
   const ctx = useAppContext();
 
@@ -105,7 +103,7 @@ function GlobalProvidersInner() {
           <Outlet />
 
           {/* ============================================ */}
-          {/* GLOBAL OVERLAYS                             */}
+          {/* GLOBAL OVERLAYS */}
           {/* ============================================ */}
 
           {/* Settings Menu */}
@@ -120,11 +118,11 @@ function GlobalProvidersInner() {
           )}
 
           {/* ============================================ */}
-          {/* MODAL DIALOGS                               */}
+          {/* MODAL DIALOGS */}
           {/* ============================================ */}
 
           {ctx.showProfileWizard && (
-            <ProfileCreationWizard
+            <ProfileSetup
               nightMode={ctx.nightMode}
               onComplete={ctx.handleProfileComplete}
               onSkip={ctx.handleSkipProfileWizard}
@@ -246,23 +244,27 @@ function GlobalProvidersInner() {
             onClose={() => ctx.setShowTerms(false)}
             nightMode={ctx.nightMode}
           />
+
           <PrivacyPolicy
             isOpen={ctx.showPrivacy}
             onClose={() => ctx.setShowPrivacy(false)}
             nightMode={ctx.nightMode}
           />
+
           <HelpCenter
             isOpen={ctx.showHelp}
             onClose={() => ctx.setShowHelp(false)}
             nightMode={ctx.nightMode}
             onContactSupport={() => ctx.setShowContactSupport(true)}
           />
+
           <ContactSupport
             isOpen={ctx.showContactSupport}
             onClose={() => ctx.setShowContactSupport(false)}
             nightMode={ctx.nightMode}
             userProfile={ctx.userProfile}
           />
+
           <BlockedUsers
             isOpen={ctx.showBlockedUsers}
             onClose={() => ctx.setShowBlockedUsers(false)}
@@ -300,6 +302,7 @@ function GlobalProvidersInner() {
               onCancel={() => ctx.setShowTestimonyQuestionnaire(false)}
             />
           )}
+
         </GuestModalProvider>
       </PremiumProvider>
     </ErrorBoundary>
