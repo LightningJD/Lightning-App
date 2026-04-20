@@ -947,16 +947,18 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
               Salvation Testimony
             </div>
 
-            {/* Title */}
-            <h2
-              className="text-base font-medium leading-tight mb-2"
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                color: nightMode ? '#e8e5f2' : '#1e2b4a',
-              }}
-            >
-              {profile?.story?.title || "My Testimony"}
-            </h2>
+            {/* Title — only render if the author provided one */}
+            {profile?.story?.title && (
+              <h2
+                className="text-base font-medium leading-tight mb-2"
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                }}
+              >
+                {profile.story.title}
+              </h2>
+            )}
 
             {/* Privacy Protected Content */}
             {canView ? (
