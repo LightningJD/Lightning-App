@@ -92,50 +92,24 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
           {/* Identity Block */}
           {hasIdentity && (
-            <div className="flex items-center gap-3">
-              {/* Church icon */}
-              <div
-                className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
-                style={{
-                  background: nightMode
-                    ? 'linear-gradient(135deg, rgba(123,118,224,0.15), rgba(155,150,245,0.1))'
-                    : 'linear-gradient(135deg, rgba(79,172,254,0.15), rgba(139,92,246,0.1))',
-                }}
-              >
-                <span className="text-base">⛪</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold" style={{
+                color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                letterSpacing: '-0.1px',
+              }}>
+                {profile.churchName && profile.username
+                  ? `${profile.churchName} · @${profile.username}`
+                  : profile.churchName || (profile.username ? `@${profile.username}` : null)}
               </div>
-              <div className="flex-1 min-w-0">
-                {profile.username && (
-                  <div className="text-[13px] font-semibold" style={{
-                    color: nightMode ? '#e8e5f2' : '#1e2b4a',
-                    letterSpacing: '-0.1px',
+              {profile.location && (
+                <div className="mt-0.5">
+                  <span className="text-[11px]" style={{
+                    color: nightMode ? '#8e89a8' : '#8e9ec0',
                   }}>
-                    @{profile.username}
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  {profile.churchName && (
-                    <span className="text-[11px]" style={{
-                      color: nightMode ? '#8e89a8' : '#8e9ec0',
-                    }}>
-                      {profile.churchName}
-                    </span>
-                  )}
-                  {profile.churchName && profile.location && (
-                    <span
-                      className="w-[3px] h-[3px] rounded-full flex-shrink-0"
-                      style={{ background: nightMode ? '#5d5877' : '#c4cfe6' }}
-                    />
-                  )}
-                  {profile.location && (
-                    <span className="text-[11px]" style={{
-                      color: nightMode ? '#8e89a8' : '#8e9ec0',
-                    }}>
-                      {profile.location}
-                    </span>
-                  )}
+                    {profile.location}
+                  </span>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
