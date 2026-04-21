@@ -23,8 +23,6 @@ import {
   getTestimonyComments,
   addTestimonyComment,
   canViewTestimony,
-  leaveChurch,
-  regenerateChurchInviteCode,
   sendFriendRequest,
   checkFriendshipStatus,
   blockUser,
@@ -47,7 +45,6 @@ import ReportContent from "./ReportContent";
 import ConfirmDialog from "./ConfirmDialog";
 import { deleteTestimony } from "../lib/database";
 import ProfileCard from "./ProfileCard";
-import ChurchCard from "./ChurchCard";
 import * as Sentry from "@sentry/react";
 
 interface ProfileTabProps {
@@ -1076,37 +1073,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
           ) : null}
         </ProfileCard>
       </div>
-
-      {/* Church Card — only on own profile */}
-      {profile?.church &&
-        profile?.supabaseId === currentUserProfile?.supabaseId && (
-          <div className="px-4 mt-3">
-            <ChurchCard
-              nightMode={nightMode}
-              church={profile.church}
-              isCreator={profile.church.createdBy === profile.supabaseId}
-              onLeave={async () => {
-                if (confirm("Are you sure you want to leave this church?")) {
-                  await leaveChurch(profile.supabaseId);
-                  window.dispatchEvent(new CustomEvent("profileUpdated"));
-                }
-              }}
-              onRegenerateCode={
-                profile.church.createdBy === profile.supabaseId
-                  ? async () => {
-                      const newCode = await regenerateChurchInviteCode(
-                        profile.church.id,
-                        profile.supabaseId,
-                      );
-                      if (newCode) {
-                        window.dispatchEvent(new CustomEvent("profileUpdated"));
-                      }
-                    }
-                  : undefined
-              }
-            />
-          </div>
-        )}
 
       {/* Ambassador section moved to Charge tab */}
 
