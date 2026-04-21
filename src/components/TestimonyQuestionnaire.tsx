@@ -12,7 +12,8 @@ interface TestimonyQuestionnaireProps {
     userName?: string;
     userAge?: number;
     userId?: string; // Supabase user UUID for server-side rate limiting
-    onComplete: (testimonyData: { content: string; answers: TestimonyAnswers; visibility?: TestimonyVisibility; lesson?: string }) => void;
+    hasChurch?: boolean;
+    onComplete: (testimonyData: { content: string; answers: TestimonyAnswers; visibility?: TestimonyVisibility; pullQuote?: string }) => void;
     onCancel: () => void;
 }
 
@@ -167,7 +168,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
         onComplete({
             content: editedTestimony,
             answers: answers,
-            lesson: extractedLesson || undefined,
+            pullQuote: extractedLesson || undefined,
         });
     };
 

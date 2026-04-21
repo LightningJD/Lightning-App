@@ -53,6 +53,7 @@ export interface Testimony {
   title: string;
   content: string;
   lesson?: string;
+  pull_quote?: string;
   tags?: string[];
   is_public: boolean;
   view_count: number;
@@ -342,6 +343,7 @@ export interface UserProfile {
     title: string;
     content: string;
     lesson?: string;
+    pull_quote?: string;
   };
   online?: boolean;
   lastSeen?: string;

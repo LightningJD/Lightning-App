@@ -161,11 +161,13 @@ export interface AppContextType {
     content: string;
     answers: TestimonyAnswers;
     visibility?: "my_church" | "all_churches" | "shareable";
+    pullQuote?: string;
   }) => Promise<void>;
   handleEditTestimony: () => Promise<void>;
   handleTestimonySave: (data: {
     formData: any;
     finalContent: string;
+    pullQuote?: string;
   }) => Promise<void>;
 
   // Profile handlers
@@ -316,7 +318,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     content: string;
     answers: TestimonyAnswers;
     visibility?: "my_church" | "all_churches" | "shareable";
-    lesson?: string;
+    pullQuote?: string;
   } | null>(null);
   const [isOnboardingFlow, setIsOnboardingFlow] = useState(false);
   const [showTestimonyQuestionnaire, setShowTestimonyQuestionnaire] =
@@ -907,9 +909,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
                 question2: pendingTestimony.answers.question2,
                 question3: pendingTestimony.answers.question3,
                 question4: pendingTestimony.answers.question4,
-                lesson:
-                  pendingTestimony.lesson ||
-                  "My journey taught me that transformation is possible through faith.",
+                pull_quote: pendingTestimony.pullQuote,
                 isPublic: true,
                 visibility: 'all_churches',
               });
@@ -1128,6 +1128,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const handleTestimonySave = async (data: {
     formData: any;
     finalContent: string;
+    pullQuote?: string;
   }): Promise<void> => {
     if (!testimonyData || !testimonyData.id) {
       showError("No testimony found. Please try again.");
@@ -1146,6 +1147,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         {
           content: finalContent,
           lesson: formData.lesson,
+          ...(data.pullQuote ? { pull_quote: data.pullQuote } : {}),
           question1_answer: formData.question1,
           question2_answer: formData.question2,
           question3_answer: formData.question3,
@@ -1176,14 +1178,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     content: string;
     answers: TestimonyAnswers;
     visibility?: "my_church" | "all_churches" | "shareable";
-    lesson?: string;
+    pullQuote?: string;
   }): Promise<void> => {
     setShowTestimonyQuestionnaire(false);
 
     // Onboarding mode: hold testimony in state and proceed to profile setup.
     // The testimony will be published only when handleProfileComplete succeeds.
     if (isOnboardingFlow) {
-      setPendingTestimony(testimonyContent);
+      setPendingTestimony({
+        content: testimonyContent.content,
+        answers: testimonyContent.answers,
+        visibility: testimonyContent.visibility,
+        pullQuote: testimonyContent.pullQuote,
+      });
       setTimeout(() => {
         setShowProfileWizard(true);
       }, 300);
@@ -1244,9 +1251,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           question2: testimonyContent.answers.question2,
           question3: testimonyContent.answers.question3,
           question4: testimonyContent.answers.question4,
-          lesson:
-            testimonyContent.lesson ||
-            "My journey taught me that transformation is possible through faith.",
+          pull_quote: testimonyContent.pullQuote,
           isPublic: true,
           visibility: testimonyContent.visibility || "my_church",
         });
@@ -1266,9 +1271,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             question3: testimonyContent.answers.question3,
             question4: testimonyContent.answers.question4,
           },
-          lesson:
-            testimonyContent.lesson ||
-            "My journey taught me that transformation is possible through faith.",
+          pull_quote: testimonyContent.pullQuote,
           visibility: testimonyContent.visibility || "shareable",
         });
         updateToSuccess(toastId, "Testimony created!");

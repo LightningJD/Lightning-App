@@ -873,8 +873,8 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             {/* Privacy Protected Content */}
             {canView ? (
               <>
-                {/* Pull quote in glass callout */}
-                {profile?.story?.lesson && (
+                {/* Pull quote in glass callout — AI-extracted God moment, falls back to content */}
+                {(profile?.story?.pull_quote || profile?.story?.content) && (
                   <div
                     className="text-[13px] italic leading-relaxed p-2.5 rounded-lg mb-2"
                     style={{
@@ -884,7 +884,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                       background: nightMode ? 'rgba(123,118,224,0.04)' : 'rgba(79,172,254,0.04)',
                     }}
                   >
-                    &ldquo;{profile.story.lesson.slice(0, 120)}{profile.story.lesson.length > 120 ? '...' : ''}&rdquo;
+                    {(() => {
+                      const quote = profile.story!.pull_quote || profile.story!.content || '';
+                      return <>&ldquo;{quote.slice(0, 120)}{quote.length > 120 ? '...' : ''}&rdquo;</>;
+                    })()}
                   </div>
                 )}
 

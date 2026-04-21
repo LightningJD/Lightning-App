@@ -132,6 +132,7 @@ const UserProfilePage: React.FC = () => {
       title: testimony.title,
       content: testimony.content,
       lesson: testimony.lesson,
+      pull_quote: testimony.pull_quote,
       viewCount: testimony.view_count || 0,
       likeCount: testimony.like_count || 0,
     } : undefined,

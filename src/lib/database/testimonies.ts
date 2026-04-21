@@ -5,6 +5,7 @@ interface TestimonyData {
   title?: string;
   content: string;
   lesson?: string;
+  pull_quote?: string;
   question1?: string;
   question2?: string;
   question3?: string;
@@ -33,6 +34,7 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
       title: testimonyData.title || 'My Testimony',
       content: testimonyData.content,
       lesson: testimonyData.lesson,
+      pull_quote: testimonyData.pull_quote,
       question1_answer: testimonyData.question1,
       question2_answer: testimonyData.question2,
       question3_answer: testimonyData.question3,
@@ -477,6 +479,7 @@ export const getPublicTestimonies = async (limit: number = 20, offset: number = 
         title,
         content,
         lesson,
+        pull_quote,
         view_count,
         like_count,
         created_at,
@@ -515,6 +518,7 @@ const TESTIMONY_SELECT_WITH_USER = `
   title,
   content,
   lesson,
+  pull_quote,
   view_count,
   like_count,
   visibility,

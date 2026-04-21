@@ -139,6 +139,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         title: testimony.title,
         content: testimony.content,
         lesson: testimony.lesson,
+        pull_quote: testimony.pull_quote,
         viewCount: testimony.view_count || 0,
         likeCount: testimony.like_count || 0,
         // BUG-H: surface the testimony's visibility so ProfileTab can render
@@ -152,6 +153,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         title: user.story.title,
         content: user.story.content,
         lesson: user.story.lesson,
+        pull_quote: user.story.pull_quote,
         viewCount: 0,
         likeCount: user.story.likeCount || 0,
         visibility: user.story.visibility,

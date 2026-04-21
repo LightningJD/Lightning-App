@@ -19,7 +19,7 @@ interface EditTestimonyDialogProps {
   nightMode: boolean;
   userName?: string;
   userId?: string;
-  onSave: (data: { formData: any; finalContent: string }) => void;
+  onSave: (data: { formData: any; finalContent: string; pullQuote?: string }) => void;
   onClose: () => void;
 }
 
@@ -53,6 +53,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [, setGeneratedDraft] = useState<string>("");
   const [editableDraft, setEditableDraft] = useState<string>("");
+  const [extractedPullQuote, setExtractedPullQuote] = useState<string>("");
   const [isEditingDraft, setIsEditingDraft] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(false);
   const [closeAttemptCount, setCloseAttemptCount] = useState(0);
@@ -180,9 +181,9 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
       if (result.success && result.testimony) {
         setGeneratedDraft(result.testimony);
         setEditableDraft(result.testimony);
-        // Extract pull quote from Q3 while user reviews; silently update lesson
+        // Extract pull quote from Q3 (AI-powered) and save to pull_quote field
         const pullQuote = await extractPullQuote(formData.question3);
-        if (pullQuote) setFormData((prev) => ({ ...prev, lesson: pullQuote }));
+        if (pullQuote) setExtractedPullQuote(pullQuote);
         setCurrentStep(testimonyQuestions.length + 1); // Move to preview step
       } else {
         setErrors({
@@ -208,11 +209,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
         setCurrentStep(currentStep + 1);
       }
     } else if (currentStep === testimonyQuestions.length) {
-      // Lesson step — validate and generate draft
-      if (!formData.lesson?.trim()) {
-        setErrors({ lesson: "Lesson is required" });
-        return;
-      }
+      // Lesson step — proceed to generation (lesson is optional)
       handleGenerateDraft();
     }
   };
@@ -234,6 +231,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
       await onSave({
         formData,
         finalContent: editableDraft,
+        pullQuote: extractedPullQuote || undefined,
       });
     } catch (error) {
       console.error("Error saving testimony:", error);
