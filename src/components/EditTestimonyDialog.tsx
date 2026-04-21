@@ -12,7 +12,7 @@ import {
   RefreshCw,
   BookOpen,
 } from "lucide-react";
-import { generateTestimony } from "../lib/api/ai-service";
+import { generateTestimony, extractPullQuote } from "../lib/api/ai-service";
 
 interface EditTestimonyDialogProps {
   testimony: any;
@@ -180,6 +180,9 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
       if (result.success && result.testimony) {
         setGeneratedDraft(result.testimony);
         setEditableDraft(result.testimony);
+        // Extract pull quote from Q3 while user reviews; silently update lesson
+        const pullQuote = await extractPullQuote(formData.question3);
+        if (pullQuote) setFormData((prev) => ({ ...prev, lesson: pullQuote }));
         setCurrentStep(testimonyQuestions.length + 1); // Move to preview step
       } else {
         setErrors({
