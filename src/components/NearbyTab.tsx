@@ -432,8 +432,8 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
           </h3>
         )}
 
-        {/* Pull quote — always a short excerpt */}
-        {testimony.content && (
+        {/* Pull quote — God moment from Q3 (lesson field) */}
+        {(testimony.lesson || testimony.content) && (
           <div
             className="px-2 py-1.5 my-1.5"
             style={{
@@ -447,9 +447,10 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
               borderLeft: `2px solid ${nightMode ? "#7b76e0" : "#4facfe"}`,
             }}
           >
-            "{testimony.content.length > 120
-              ? testimony.content.substring(0, 120) + "..."
-              : testimony.content}"
+            {(() => {
+              const quote = testimony.lesson || testimony.content;
+              return `"${quote!.length > 120 ? quote!.substring(0, 120) + "..." : quote}"`;
+            })()}
           </div>
         )}
 
