@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { EXIT_WARNING_MSG, useBeforeUnloadGuard } from '../hooks/useOnboardingGuard';
+import { EXIT_WARNING_MSG, EXIT_WARNING_MSG_ANSWERING, EXIT_WARNING_MSG_REPEAT, useBeforeUnloadGuard } from '../hooks/useOnboardingGuard';
 import ModalOverlay from "./ModalOverlay";
 import {
   X,
@@ -55,14 +55,27 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
   const [editableDraft, setEditableDraft] = useState<string>("");
   const [isEditingDraft, setIsEditingDraft] = useState(false);
   const [showExitWarning, setShowExitWarning] = useState(false);
+  const [closeAttemptCount, setCloseAttemptCount] = useState(0);
 
-  useBeforeUnloadGuard(true);
+  // Preview is always step 5 (steps 0-3 = questions, 4 = lesson, 5 = preview).
+  const exitWarningMsg = currentStep === 5
+    ? EXIT_WARNING_MSG
+    : closeAttemptCount >= 1
+      ? EXIT_WARNING_MSG_REPEAT
+      : EXIT_WARNING_MSG_ANSWERING;
+
+  const triggerExitWarning = () => {
+    setCloseAttemptCount(c => c + 1);
+    setShowExitWarning(true);
+  };
+
+  useBeforeUnloadGuard(true, exitWarningMsg);
 
   useEffect(() => {
     window.history.pushState(null, '', window.location.href);
     const handlePopState = () => {
       window.history.pushState(null, '', window.location.href);
-      setShowExitWarning(true);
+      triggerExitWarning();
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -452,7 +465,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
   if (showIntro) {
     return (
       <>
-        <ModalOverlay onClose={() => setShowExitWarning(true)} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="modal-title">
+        <ModalOverlay onClose={() => triggerExitWarning()} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="modal-title">
             {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-1">
           <div className={`w-10 h-1 rounded-full ${nightMode ? "bg-white/20" : "bg-slate-300"}`} />
@@ -479,7 +492,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
                   </h2>
                 </div>
                 <button
-                  onClick={() => setShowExitWarning(true)}
+                  onClick={() => triggerExitWarning()}
                   className={`text-sm font-medium ${nightMode ? "text-white/80 hover:text-white" : "text-slate-600 hover:text-slate-900"}`}
                 >
                   Cancel
@@ -489,32 +502,36 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="text-center space-y-4">
-                <p
-                  className={`text-base leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+              <div className="space-y-5">
+                <div
+                  className={`rounded-xl p-4 text-center ${nightMode ? "bg-white/5" : "bg-blue-50/70"}`}
                 >
-                  Your salvation story is a special event in your journey of eternal life.
-                </p>
-                <p
-                  className={`text-base leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
-                >
-                  But sometimes that moment can be forgotten.
-                </p>
-                <p
-                  className={`text-base leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
-                >
-                  Lightning's goal is to bring your testimony back and celebrate it.
-                </p>
-                <p
-                  className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
-                >
-                  Every generation has a testimony and every testimony has the power to change a generation.
-                </p>
-                <p
-                  className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
-                >
-                  Let it be yours.
-                </p>
+                  <p
+                    className={`text-sm italic leading-relaxed ${nightMode ? "text-slate-300" : "text-slate-700"}`}
+                  >
+                    "They triumphed over him by the blood of the Lamb and by the
+                    word of their testimony."
+                  </p>
+                  <p
+                    className={`text-xs mt-2 font-semibold ${nightMode ? "text-slate-400" : "text-slate-500"}`}
+                  >
+                    — Revelation 12:11
+                  </p>
+                </div>
+
+                <div className="text-center space-y-4">
+                  <p
+                    className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+                  >
+                    Every generation has a testimony and every testimony has the
+                    power to change a generation.
+                  </p>
+                  <p
+                    className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+                  >
+                    Share yours.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -560,7 +577,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
                 className="text-sm mb-6"
                 style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
               >
-                {EXIT_WARNING_MSG}
+                {exitWarningMsg}
               </p>
               <div className="flex gap-3">
                 <button
@@ -591,7 +608,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
 
   return (
     <>
-      <ModalOverlay onClose={() => setShowExitWarning(true)} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="dialog-title">
+      <ModalOverlay onClose={() => triggerExitWarning()} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="dialog-title">
           {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-1">
           <div className={`w-10 h-1 rounded-full ${nightMode ? "bg-white/20" : "bg-slate-300"}`} />
@@ -627,7 +644,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
                 </div>
               </div>
               <button
-                onClick={() => setShowExitWarning(true)}
+                onClick={() => triggerExitWarning()}
                 className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
                   nightMode
                     ? "bg-white/20 hover:bg-white/30 text-white"
@@ -793,7 +810,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
               className="text-sm mb-6"
               style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
             >
-              {EXIT_WARNING_MSG}
+              {exitWarningMsg}
             </p>
             <div className="flex gap-3">
               <button
