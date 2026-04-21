@@ -20,11 +20,13 @@ import {
   getUserByClerkId,
   getPendingFriendRequests,
   createChurch,
+  findChurchByName,
   resolveReferralCode,
   createPendingReferral,
   checkAndRunBpReset,
   recordDeviceFingerprint,
   updateOnlineStatus,
+  supabase,
 } from "../lib/database";
 import { isAdmin } from "../lib/database/users";
 import { generateDeviceFingerprint } from "../lib/deviceFingerprint";
@@ -810,40 +812,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     const toastId = showLoading("Setting up your profile...");
     try {
-      const churchData = (profileData as any)._churchId;
-      const pendingChurch = (profileData as any)._pendingChurch;
       const updated = await updateUserProfile(userProfile.supabaseId, {
         ...profileData,
         profileCompleted: true,
       });
       if (updated) {
-        if (pendingChurch?._pendingCreate) {
-          try {
-            const newChurch = await createChurch(
-              pendingChurch.name,
-              userProfile.supabaseId,
-              undefined,
-              pendingChurch.denomination || undefined,
-            );
-            if (newChurch)
-              console.log("Created church during onboarding:", newChurch.name);
-          } catch (churchErr) {
-            console.error(
-              "Failed to create church during onboarding:",
-              churchErr,
-            );
+        // Auto-assign to The Crossing church
+        try {
+          const crossing = await findChurchByName('The Crossing');
+          if (crossing) {
+            await updateUserProfile(userProfile.supabaseId, { church_id: crossing.id } as any);
+            await (supabase as any).rpc('increment_member_count', { church_id_input: crossing.id }).catch(() => {
+              (supabase as any)
+                .from('churches')
+                .update({ member_count: (crossing.member_count || 0) + 1 })
+                .eq('id', crossing.id);
+            });
+          } else {
+            await createChurch('The Crossing', userProfile.supabaseId);
           }
-        } else if (churchData) {
-          try {
-            await updateUserProfile(userProfile.supabaseId, {
-              church_id: churchData,
-            } as any);
-          } catch (churchErr) {
-            console.error(
-              "Failed to join church during onboarding:",
-              churchErr,
-            );
-          }
+        } catch (churchErr) {
+          console.error('Failed to assign church during onboarding:', churchErr);
         }
         const referralCode = (profileData as any)._referralCode;
         if (referralCode) {
@@ -919,7 +908,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
                 lesson:
                   "My journey taught me that transformation is possible through faith.",
                 isPublic: true,
-                visibility: pendingTestimony.visibility || "my_church",
+                visibility: 'all_churches',
               });
               if (saved) {
                 unlockSecret("first_testimony");

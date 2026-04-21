@@ -262,6 +262,7 @@ export {
 // Churches
 export {
   createChurch,
+  findChurchByName,
   joinChurchByCode,
   getChurchById,
   getChurchMembers,

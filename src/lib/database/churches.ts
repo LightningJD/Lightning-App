@@ -113,6 +113,23 @@ export const joinChurchByCode = async (code: string, userId: string): Promise<{ 
 };
 
 /**
+ * Find a church by name (case-insensitive, returns first match).
+ * Used to look up the default "The Crossing" church during onboarding.
+ */
+export const findChurchByName = async (name: string): Promise<any | null> => {
+  if (!supabase) return null;
+
+  const { data } = await (supabase as any)
+    .from('churches')
+    .select('id, member_count')
+    .ilike('name', name)
+    .limit(1)
+    .maybeSingle();
+
+  return data || null;
+};
+
+/**
  * Get church by ID
  */
 export const getChurchById = async (churchId: string): Promise<any> => {

@@ -99,13 +99,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ nightMode, onComplete, onSk
       await onComplete({
         displayName: displayName.trim(),
         bio: bio.trim(),
-        avatar: photoUrl,
-        username: "",
-        location: "",
-        yearSaved: "",
-        baptized: null,
-        denomination: "",
-        favoriteVerse: "",
+        avatarUrl: photoUrl,
       });
     } catch (e) {
       setErrors((prev) => ({ ...prev, submit: "Something went wrong. Please try again." }));
