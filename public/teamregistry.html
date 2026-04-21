@@ -123,6 +123,11 @@ body {
   border-color: rgba(126,200,227,0.4);
   background: linear-gradient(135deg, rgba(126,200,227,0.08), rgba(167,139,250,0.05));
 }
+.team-card.mine {
+  border-color: rgba(126,200,227,0.5);
+  background: linear-gradient(135deg, rgba(126,200,227,0.1), rgba(167,139,250,0.07));
+  box-shadow: 0 0 0 2px rgba(126,200,227,0.15);
+}
 
 .team-header {
   display: flex;
@@ -144,6 +149,7 @@ body {
 }
 .team-badge.leader { background: rgba(126,200,227,0.2); color: #7EC8E3; }
 .team-badge.trailing { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+.team-badge.you { background: rgba(167,139,250,0.2); color: #A78BFA; }
 
 .team-count {
   font-size: 3rem;
@@ -462,6 +468,121 @@ body {
   .jacket-card { width: 100%; max-width: 320px; }
 }
 
+/* ── Selector screen ── */
+.selector-screen {
+  max-width: 400px;
+  margin: 0 auto;
+}
+.selector-label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 8px;
+}
+.selector-dropdown {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  transition: border-color 0.2s;
+}
+.selector-dropdown:focus {
+  outline: none;
+  border-color: rgba(126,200,227,0.5);
+}
+.selector-dropdown option { background: #1a1a2e; }
+
+/* ── Personalized view ── */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.6);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 32px;
+}
+.back-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.personal-greeting {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.personal-greeting h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #7EC8E3, #A78BFA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+.personal-greeting p {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.9rem;
+}
+.personal-qr-section {
+  margin-bottom: 40px;
+  padding: 32px;
+  background: linear-gradient(135deg, rgba(126,200,227,0.1), rgba(167,139,250,0.08));
+  border-radius: 20px;
+  border: 1px solid rgba(126,200,227,0.25);
+  text-align: center;
+}
+.personal-qr-section h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #7EC8E3;
+}
+.personal-qr-section p {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.85rem;
+  margin-bottom: 24px;
+}
+.section-divider {
+  text-align: center;
+  margin: 8px 0 32px;
+  position: relative;
+}
+.section-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+}
+.section-divider span {
+  position: relative;
+  background: #0a0a1a;
+  padding: 0 16px;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 </style>
 </head>
 <body>
@@ -486,6 +607,8 @@ const SUPABASE_URL = 'https://wsyhpxnzsuxnylgqvcti.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzeWhweG56c3V4bnlsZ3F2Y3RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA4ODcxNDcsImV4cCI6MjA3NjQ2MzE0N30.9KgfzAVwf7gHrPYqTpo_TcZbJg_ori9vaHBf4MvAHz4';
 const GOAL = 50;
 const LANDING_URL = 'https://lightningsocial.app/landing';
+
+let selectedMember = localStorage.getItem('teamregistry_member') || null;
 
 async function supaFetch(table, query) {
   const url = SUPABASE_URL + '/rest/v1/' + table + (query ? '?' + query : '');
@@ -555,30 +678,110 @@ async function loadData() {
   render(teams, signups.slice(0, 10), referrers);
 }
 
+function selectMember(name) {
+  selectedMember = name;
+  localStorage.setItem('teamregistry_member', name);
+  loadData();
+}
+
+function clearMember() {
+  selectedMember = null;
+  localStorage.removeItem('teamregistry_member');
+  loadData();
+}
+
 function render(teams, recentSignups, allReferrers) {
   const app = document.getElementById('app');
-  const maxCount = Math.max(...teams.map(t => t.totalCount), 1);
-  const leadingTeam = teams[0];
 
+  if (!selectedMember) {
+    renderSelector(app, teams);
+    return;
+  }
+
+  const myTeam = teams.find(t => t.lead.name === selectedMember);
+  if (!myTeam) {
+    // Member not found in DB — fall back to selector
+    renderSelector(app, teams);
+    return;
+  }
+
+  renderPersonalized(app, teams, myTeam, recentSignups, allReferrers);
+}
+
+function renderSelector(app, teams) {
   let html = '';
 
-  // Header
   html += '<div class="header">';
   html += '<h1>\u26A1 Team Registry</h1>';
   html += '<p>Lightning signup &mdash; recruit friends, earn rewards</p>';
   html += '</div>';
-  // Team cards
+
+  html += '<div class="selector-screen">';
+  html += '<label class="selector-label">Team Selector</label>';
+  html += '<select class="selector-dropdown" onchange="if(this.value) selectMember(this.value)">';
+  html += '<option value="">Select a team&hellip;</option>';
+  teams.forEach(function(team) {
+    html += '<option value="' + team.lead.name.replace(/"/g, '&quot;') + '">Team ' + team.lead.name + '</option>';
+  });
+  html += '</select>';
+  html += '</div>';
+
+  app.innerHTML = html;
+}
+
+function renderPersonalized(app, teams, myTeam, recentSignups, allReferrers) {
+  let html = '';
+
+  // Back button
+  html += '<button class="back-btn" onclick="clearMember()">\u2190 Switch team member</button>';
+
+  // Personal greeting
+  html += '<div class="personal-greeting">';
+  html += '<h2>\u26A1 Hi, ' + myTeam.lead.name + '!</h2>';
+  html += '<p>Your personalized team view</p>';
+  html += '</div>';
+
+  // My QR codes — prominent at top
+  const myReferrers = [myTeam.lead, ...myTeam.helpers];
+  html += '<div class="personal-qr-section">';
+  html += '<h3>Your Referral QR Codes</h3>';
+  html += '<p>Show these to friends &mdash; every scan tracks back to you</p>';
+  html += '<div class="qr-grid">';
+  myReferrers.forEach(function(r) {
+    html += '<div class="qr-item">';
+    html += '<canvas id="qr-' + r.ref_code + '" width="160" height="160"></canvas>';
+    html += '<div class="qr-label">' + (r.role === 'lead' ? r.name + ' \u2014 Team Lead' : r.name) + '</div>';
+    html += '<a class="qr-download" data-qrid="qr-' + r.ref_code + '" data-name="' + r.name + '">Save QR</a>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '</div>';
+
+  // Section divider
+  html += '<div class="section-divider"><span>Team Progress</span></div>';
+
+  // Both team cards — my team first, then the rest
+  const highestCount = Math.max.apply(null, teams.map(function(t) { return t.totalCount; }));
+  const orderedTeams = [myTeam].concat(teams.filter(function(t) { return t.lead.name !== myTeam.lead.name; }));
+
   html += '<div class="teams">';
-  teams.forEach((team, i) => {
-    const isLeading = i === 0 && team.totalCount > 0;
-    const pct = Math.min((team.totalCount / GOAL) * 100, 100);
-    
-    html += '<div class="team-card' + (isLeading ? ' leading' : '') + '">';
+  orderedTeams.forEach(function(team) {
+    const isMe = team.lead.name === myTeam.lead.name;
+    const isLeading = !isMe && team.totalCount > 0 && team.totalCount === highestCount && team.totalCount > myTeam.totalCount;
+    const isTrailing = !isMe && !isLeading && teams.length > 1 && team.totalCount < myTeam.totalCount;
+
+    let cardClass = 'team-card';
+    if (isMe) cardClass += ' mine';
+    else if (isLeading) cardClass += ' leading';
+
+    html += '<div class="' + cardClass + '">';
     html += '<div class="team-header">';
     html += '<div class="team-name">' + team.lead.name + '</div>';
-    if (isLeading && teams.length > 1 && team.totalCount > teams[1].totalCount) {
+    if (isMe) {
+      html += '<span class="team-badge you">You</span>';
+    } else if (isLeading) {
       html += '<span class="team-badge leader">Leading</span>';
-    } else if (i > 0 && teams[i-1].totalCount > team.totalCount) {
+    } else if (isTrailing) {
       html += '<span class="team-badge trailing">Trailing</span>';
     }
     html += '</div>';
@@ -586,13 +789,12 @@ function render(teams, recentSignups, allReferrers) {
     html += '<div class="team-count">' + team.totalCount + '</div>';
     html += '<div class="team-count-label">total signups (' + team.directCount + ' direct)</div>';
 
-    // Helpers
     html += '<div class="helpers-section">';
     html += '<div class="helpers-title">Team Partners</div>';
     if (team.helpers.length === 0) {
       html += '<div class="no-helpers">Partners will show here once added</div>';
     } else {
-      team.helpers.forEach(h => {
+      team.helpers.forEach(function(h) {
         html += '<div class="helper-row">';
         html += '<span class="helper-name">' + h.name + '</span>';
         html += '<span class="helper-count">' + h.count + ' signups</span>';
@@ -604,53 +806,41 @@ function render(teams, recentSignups, allReferrers) {
   });
   html += '</div>';
 
-    // Jacket Showcase + Rewards Section
-    html += '<div class="jacket-showcase">';
-    html += '<h2>\u26A1 Team Reward</h2>';
-    html += '<p class="showcase-subtitle" style="color:#FFD700;font-weight:600;font-size:1rem;">\u26A0\uFE0F Signups must create a profile on May 15th to qualify<br>&#x26A0;&#xFE0F; Signups must be from THE CROSSING STUDENTS ONLY (bring 2-3 friends to help you win! Split the cash!)</p>';
-    html += '<div class="jacket-cards">';
-    html += '<a href="https://ruelleclub.com/products/product-1" target="_blank" class="jacket-card">';
-    html += '<img src="/images/untitled-8.webp" alt="Twill Friend of God Jacket - Back">';
-    html += '<div class="jacket-info">';
-    html += '<h3>Twill Friend of God Jacket</h3>';
-    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
-    html += '</div></a>';
-    html += '<a href="https://ruelleclub.com/products/product-2" target="_blank" class="jacket-card">';
-    html += '<img src="/images/untitled-18_170550e2-8e18-4039-9383-0dc45081d9c8.webp" alt="Varsity Friend of God Jacket - Back">';
-    html += '<div class="jacket-info">';
-    html += '<h3>Varsity Friend of God Jacket</h3>';
-    html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
-    html += '</div></a>';
-    html += '</div>';
-    html += '<div class="reward-tiers" style="margin-top:24px">';
-    html += '<div class="reward-tier"><div class="tier-label">50+ SIGNUPS EACH</div><div class="tier-reward">Win Both Jackets + Next Release</div></div>';
-    html += '<div class="reward-tier"><div class="tier-label">MOST SIGNUPS</div><div class="tier-reward">$200 Cash Prize</div></div>';
-    html += '</div>';
+  // Jacket Showcase + Rewards
+  html += '<div class="jacket-showcase">';
+  html += '<h2>\u26A1 Team Reward</h2>';
+  html += '<p class="showcase-subtitle" style="color:#FFD700;font-weight:600;font-size:1rem;">\u26A0\uFE0F Signups must create a profile on May 15th to qualify<br>&#x26A0;&#xFE0F; Signups must be from THE CROSSING STUDENTS ONLY (bring 2-3 friends to help you win! Split the cash!)</p>';
+  html += '<div class="jacket-cards">';
+  html += '<a href="https://ruelleclub.com/products/product-1" target="_blank" class="jacket-card">';
+  html += '<img src="/images/untitled-8.webp" alt="Twill Friend of God Jacket - Back">';
+  html += '<div class="jacket-info">';
+  html += '<h3>Twill Friend of God Jacket</h3>';
+  html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
+  html += '</div></a>';
+  html += '<a href="https://ruelleclub.com/products/product-2" target="_blank" class="jacket-card">';
+  html += '<img src="/images/untitled-18_170550e2-8e18-4039-9383-0dc45081d9c8.webp" alt="Varsity Friend of God Jacket - Back">';
+  html += '<div class="jacket-info">';
+  html += '<h3>Varsity Friend of God Jacket</h3>';
+  html += '<p class="jacket-price"><span class="original">$145.00</span>$60.00<span class="jacket-sale">SALE</span></p>';
+  html += '</div></a>';
   html += '</div>';
-
-  // QR Codes
-  html += '<div class="qr-section">';
-  html += '<h3>Referral QR Codes</h3>';
-  html += '<p>Scan to sign up &mdash; each code tracks who referred the signup</p>';
-  html += '<div class="qr-grid">';
-  allReferrers.forEach(r => {
-    html += '<div class="qr-item">';
-    html += '<canvas id="qr-' + r.ref_code + '" width="160" height="160"></canvas>';
-    html += '<div class="qr-label">' + (r.role === 'lead' ? r.name + ' \u2014 Team Lead' : r.name) + '</div>';
-    html += '<a class="qr-download" data-qrid="qr-' + r.ref_code + '" data-name="' + r.name + '">Save QR</a>';
-    html += '</div>';
-  });
+  html += '<div class="reward-tiers" style="margin-top:24px">';
+  html += '<div class="reward-tier"><div class="tier-label">50+ SIGNUPS EACH</div><div class="tier-reward">Win Both Jackets + Next Release</div></div>';
+  html += '<div class="reward-tier"><div class="tier-label">MOST SIGNUPS</div><div class="tier-reward">$200 Cash Prize</div></div>';
   html += '</div>';
   html += '</div>';
 
-  
-    // Add helper form
+  // Add helper form
   html += '<div class="add-helper-section">';
   html += '<h3>Add a Team Partner</h3>';
   html += '<div class="add-helper-form">';
   html += '<select id="parentTeam">';
-  teams.forEach(t => {
-    html += '<option value="' + t.lead.ref_code + '">Team ' + t.lead.name + '</option>';
+  // Pre-select my team
+  html += '<option value="' + myTeam.lead.ref_code + '" selected>Team ' + myTeam.lead.name + '</option>';
+  teams.forEach(function(t) {
+    if (t.lead.name !== myTeam.lead.name) {
+      html += '<option value="' + t.lead.ref_code + '">Team ' + t.lead.name + '</option>';
+    }
   });
   html += '</select>';
   html += '<input type="text" id="helperName" placeholder="Partner name">';
@@ -663,7 +853,7 @@ function render(teams, recentSignups, allReferrers) {
     html += '<div class="recent-section">';
     html += '<h3>Recent Signups</h3>';
     html += '<div class="recent-list">';
-    recentSignups.forEach(s => {
+    recentSignups.forEach(function(s) {
       const emailMasked = s.email.substring(0, 3) + '***@' + s.email.split('@')[1];
       html += '<div class="recent-item">';
       html += '<span class="recent-email">' + emailMasked + '</span>';
@@ -675,13 +865,11 @@ function render(teams, recentSignups, allReferrers) {
     html += '</div>';
   }
 
-
-
   app.innerHTML = html;
 
   // Generate QR codes after DOM update
-  setTimeout(() => {
-    allReferrers.forEach(r => {
+  setTimeout(function() {
+    myReferrers.forEach(function(r) {
       const canvas = document.getElementById('qr-' + r.ref_code);
       if (canvas) {
         new QRious({
@@ -693,19 +881,19 @@ function render(teams, recentSignups, allReferrers) {
           background: '#ffffff',
           level: 'M'
         });
-
-      // Download QR click handler
-      document.querySelectorAll('.qr-download').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var canvas = document.getElementById(btn.getAttribute('data-qrid'));
-          if (!canvas) return;
-          var link = document.createElement('a');
-          link.download = btn.getAttribute('data-name').replace(/\s+/g, '_') + '_QR.png';
-          link.href = canvas.toDataURL('image/png');
-          link.click();
-        });
-      });
       }
+    });
+
+    // Attach download handlers once after all QRs are generated
+    document.querySelectorAll('.qr-download').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var canvas = document.getElementById(btn.getAttribute('data-qrid'));
+        if (!canvas) return;
+        var link = document.createElement('a');
+        link.download = btn.getAttribute('data-name').replace(/\s+/g, '_') + '_QR.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
     });
   }, 100);
 }
