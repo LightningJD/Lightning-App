@@ -17,8 +17,9 @@
  * The API key is stored server-side only — never exposed to the browser.
  */
 
-// Backend proxy URL — Cloudflare Pages Function
+// Backend proxy URLs — Cloudflare Pages Functions
 const PROXY_URL = '/api/generate-testimony';
+const PULL_QUOTE_URL = '/api/extract-pull-quote';
 
 export interface TestimonyAnswers {
     question1: string; // Background/pre-crisis life
@@ -161,6 +162,26 @@ async function generateViaProxy(
     } catch (error) {
         // Network error, proxy unreachable — return null for fallback
         console.warn('Proxy fetch failed:', error);
+        return null;
+    }
+}
+
+/**
+ * Extract the single most powerful pull quote from a Q3 answer.
+ * Returns null on any failure — callers should fall back gracefully.
+ */
+export async function extractPullQuote(question3: string): Promise<string | null> {
+    if (!question3?.trim()) return null;
+    try {
+        const response = await fetch(PULL_QUOTE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question3 }),
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data.success && data.pullQuote ? (data.pullQuote as string) : null;
+    } catch {
         return null;
     }
 }

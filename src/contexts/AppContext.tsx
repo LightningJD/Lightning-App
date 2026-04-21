@@ -315,6 +315,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     content: string;
     answers: TestimonyAnswers;
     visibility?: "my_church" | "all_churches" | "shareable";
+    lesson?: string;
   } | null>(null);
   const [isOnboardingFlow, setIsOnboardingFlow] = useState(false);
   const [showTestimonyQuestionnaire, setShowTestimonyQuestionnaire] =
@@ -906,6 +907,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
                 question3: pendingTestimony.answers.question3,
                 question4: pendingTestimony.answers.question4,
                 lesson:
+                  pendingTestimony.lesson ||
                   "My journey taught me that transformation is possible through faith.",
                 isPublic: true,
                 visibility: 'all_churches',
@@ -1164,6 +1166,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     content: string;
     answers: TestimonyAnswers;
     visibility?: "my_church" | "all_churches" | "shareable";
+    lesson?: string;
   }): Promise<void> => {
     setShowTestimonyQuestionnaire(false);
 
@@ -1232,6 +1235,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           question3: testimonyContent.answers.question3,
           question4: testimonyContent.answers.question4,
           lesson:
+            testimonyContent.lesson ||
             "My journey taught me that transformation is possible through faith.",
           isPublic: true,
           visibility: testimonyContent.visibility || "my_church",
@@ -1253,6 +1257,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             question4: testimonyContent.answers.question4,
           },
           lesson:
+            testimonyContent.lesson ||
             "My journey taught me that transformation is possible through faith.",
           visibility: testimonyContent.visibility || "shareable",
         });

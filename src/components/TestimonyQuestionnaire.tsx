@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ArrowLeft, Sparkles, Loader, Lock, Globe, Link2, BookOpen } from 'lucide-react';
 import { TESTIMONY_QUESTIONS, validateAnswers, getWordCount } from '../config/testimonyQuestions';
-import { generateTestimony, type TestimonyAnswers } from '../lib/api/ai-service';
+import { generateTestimony, extractPullQuote, type TestimonyAnswers } from '../lib/api/ai-service';
 import { checkRateLimit, recordAttempt } from '../lib/rateLimiter';
 import { EXIT_WARNING_MSG, useBeforeUnloadGuard } from '../hooks/useOnboardingGuard';
 
@@ -13,7 +13,7 @@ interface TestimonyQuestionnaireProps {
     userAge?: number;
     userId?: string; // Supabase user UUID for server-side rate limiting
     hasChurch?: boolean;
-    onComplete: (testimonyData: { content: string; answers: TestimonyAnswers; visibility?: TestimonyVisibility }) => void;
+    onComplete: (testimonyData: { content: string; answers: TestimonyAnswers; visibility?: TestimonyVisibility; lesson?: string }) => void;
     onCancel: () => void;
 }
 
@@ -40,6 +40,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
     const [generatedTestimony, setGeneratedTestimony] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editedTestimony, setEditedTestimony] = useState('');
+    const [extractedLesson, setExtractedLesson] = useState<string | null>(null);
 
     const currentQuestion = TESTIMONY_QUESTIONS[currentStep];
     const isLastQuestion = currentStep === TESTIMONY_QUESTIONS.length - 1;
@@ -116,6 +117,9 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                 recordAttempt('generate_testimony');
                 setGeneratedTestimony(result.testimony);
                 setEditedTestimony(result.testimony);
+                // Extract pull quote from Q3 while user reviews the testimony
+                const pullQuote = await extractPullQuote(answers.question3);
+                if (pullQuote) setExtractedLesson(pullQuote);
             } else {
                 setErrors({
                     general: result.error || 'Failed to generate testimony. Please try again.'
@@ -166,7 +170,8 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
         onComplete({
             content: editedTestimony,
             answers: answers,
-            visibility: visibility
+            visibility: visibility,
+            lesson: extractedLesson || undefined,
         });
     };
 
