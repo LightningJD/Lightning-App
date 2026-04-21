@@ -25,7 +25,7 @@ interface ProfileCardProps {
   compact?: boolean;
   hideStats?: boolean;
   onShareTestimony?: () => void;
-  onEditProfile?: () => void;
+  onRewriteTestimony?: () => void;
   isOwnProfile?: boolean;
   /** Testimony content rendered in the tinted section */
   children?: React.ReactNode;
@@ -35,7 +35,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   nightMode,
   profile,
   onShareTestimony,
-  onEditProfile,
+  onRewriteTestimony,
   isOwnProfile = false,
   children,
 }) => {
@@ -159,6 +159,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
             {/* Compact buttons */}
             <div className="flex gap-1.5">
+              {profile.story?.id && onRewriteTestimony && (
+                <button
+                  onClick={onRewriteTestimony}
+                  className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
+                  style={{
+                    background: nightMode ? 'rgba(123,118,224,0.1)' : 'rgba(79,172,254,0.1)',
+                    border: nightMode ? '1px solid rgba(123,118,224,0.15)' : '1px solid rgba(79,172,254,0.15)',
+                    color: nightMode ? '#9b96f5' : '#2b6cb0',
+                  }}
+                >
+                  ⚡ Rewrite
+                </button>
+              )}
               {profile.story?.id && onShareTestimony && (
                 <button
                   onClick={onShareTestimony}
@@ -170,23 +183,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   }}
                 >
                   ⚡ Share
-                </button>
-              )}
-              {onEditProfile && (
-                <button
-                  onClick={onEditProfile}
-                  className="px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors"
-                  style={nightMode ? {
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    color: '#8e89a8',
-                  } : {
-                    background: 'rgba(255,255,255,0.5)',
-                    border: '1px solid rgba(150,165,225,0.15)',
-                    color: '#64748b',
-                  }}
-                >
-                  Edit
                 </button>
               )}
             </div>

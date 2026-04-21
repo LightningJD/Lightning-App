@@ -803,6 +803,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
               : null,
           }}
           isOwnProfile={!isViewingOther}
+          onRewriteTestimony={onEditTestimony}
           onShareTestimony={() => {
             try {
               const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
@@ -821,9 +822,6 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
             } catch {
               setShowShareModal(true);
             }
-          }}
-          onEditProfile={() => {
-            window.dispatchEvent(new CustomEvent("openProfileEdit"));
           }}
         >
           {profile?.story?.id ? (
@@ -973,17 +971,9 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                     ↗ Share
                   </button>
 
-                  {/* Owner actions — edit / delete */}
+                  {/* Owner actions — delete */}
                   {currentUserProfile?.supabaseId === profile?.supabaseId && (
                     <div className="ml-auto flex items-center gap-2">
-                      {onEditTestimony && profile?.story?.content && (
-                        <button
-                          onClick={onEditTestimony}
-                          className="flex items-center gap-1 transition-colors hover:opacity-80"
-                        >
-                          ⚡ Rewrite
-                        </button>
-                      )}
                       <div className="relative">
                         <button
                           onClick={() => setShowTestimonyMenu(!showTestimonyMenu)}
