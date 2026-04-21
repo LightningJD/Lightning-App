@@ -157,7 +157,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
       }
     };
     loadTestimonies();
-  }, [profile?.supabaseId, friends, feedRefreshTrigger]);
+  }, [profile?.supabaseId, friends, feedRefreshTrigger, profile?.churchId, profile?.hasTestimony]);
 
   // BUG-009: After the feed loads, batch-check which testimonies the current
   // user has already liked so the card can render a filled heart from the
