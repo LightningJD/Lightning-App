@@ -701,7 +701,7 @@ async function loadData() {
   ]);
 
   const leads = referrers.filter(r => r.role === 'lead');
-  const helpers = referrers.filter(r => r.role === 'helper' && r.ref_code !== 'makoa-testingpartner');
+  const helpers = referrers.filter(r => r.role === 'helper');
 
   // Build team data
   const teams = leads.map(lead => {
