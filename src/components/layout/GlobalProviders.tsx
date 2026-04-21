@@ -299,7 +299,7 @@ function GlobalProvidersInner() {
               userId={ctx.userProfile?.supabaseId}
               hasChurch={!!ctx.profile?.churchId}
               onComplete={ctx.handleTestimonyQuestionnaireComplete}
-              onCancel={() => ctx.setShowTestimonyQuestionnaire(false)}
+              onCancel={ctx.handleTestimonyQuestionnaireCancel}
             />
           )}
 

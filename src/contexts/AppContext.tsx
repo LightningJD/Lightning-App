@@ -218,6 +218,7 @@ export interface AppContextType {
   // Guest testimony
   handleContinueAsGuest: () => void;
   handleSaveTestimonyModalClose: () => void;
+  handleTestimonyQuestionnaireCancel: () => void;
 
   // Logo easter egg
   handleLogoClick: () => void;
@@ -944,6 +945,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     setPendingTestimony(null);
   };
 
+  const handleTestimonyQuestionnaireCancel = () => {
+    setShowTestimonyQuestionnaire(false);
+    if (isOnboardingFlow) {
+      setTimeout(() => {
+        setShowProfileWizard(true);
+      }, 300);
+    }
+  };
+
   const handleContinueAsGuest = () => {
     setShowSaveTestimonyModal(false);
     showSuccess("Testimony saved! Sign up anytime to publish it.");
@@ -1372,6 +1382,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     signOut,
     handleContinueAsGuest,
     handleSaveTestimonyModalClose,
+    handleTestimonyQuestionnaireCancel,
     handleLogoClick,
     headerBackAction,
     setHeaderBackAction,

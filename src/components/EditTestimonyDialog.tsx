@@ -489,36 +489,32 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-5">
-                <div
-                  className={`rounded-xl p-4 text-center ${nightMode ? "bg-white/5" : "bg-blue-50/70"}`}
+              <div className="text-center space-y-4">
+                <p
+                  className={`text-base leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
                 >
-                  <p
-                    className={`text-sm italic leading-relaxed ${nightMode ? "text-slate-300" : "text-slate-700"}`}
-                  >
-                    "They triumphed over him by the blood of the Lamb and by the
-                    word of their testimony."
-                  </p>
-                  <p
-                    className={`text-xs mt-2 font-semibold ${nightMode ? "text-slate-400" : "text-slate-500"}`}
-                  >
-                    — Revelation 12:11
-                  </p>
-                </div>
-
-                <div className="text-center space-y-4">
-                  <p
-                    className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
-                  >
-                    Every generation has a testimony and every testimony has the
-                    power to change a generation.
-                  </p>
-                  <p
-                    className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
-                  >
-                    Share yours.
-                  </p>
-                </div>
+                  Your salvation story is a special event in your journey of eternal life.
+                </p>
+                <p
+                  className={`text-base leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  But sometimes that moment can be forgotten.
+                </p>
+                <p
+                  className={`text-base leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  Lightning's goal is to bring your testimony back and celebrate it.
+                </p>
+                <p
+                  className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  Every generation has a testimony and every testimony has the power to change a generation.
+                </p>
+                <p
+                  className={`text-base font-bold leading-relaxed ${nightMode ? "text-slate-200" : "text-slate-800"}`}
+                >
+                  Let it be yours.
+                </p>
               </div>
             </div>
 

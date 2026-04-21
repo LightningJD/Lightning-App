@@ -447,43 +447,37 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
 
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6">
-                            <div className="space-y-5">
-                                <div
-                                    className="rounded-xl p-4 text-center"
-                                    style={{
-                                        background: nightMode ? 'rgba(123,118,224,0.05)' : 'rgba(79,172,254,0.05)',
-                                        border: `1px solid ${nightMode ? 'rgba(123,118,224,0.1)' : 'rgba(79,172,254,0.1)'}`,
-                                        borderLeft: `2px solid ${nightMode ? '#7b76e0' : '#4facfe'}`,
-                                    }}
+                            <div className="text-center space-y-4">
+                                <p
+                                    className="text-base leading-relaxed"
+                                    style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
                                 >
-                                    <p
-                                        className="text-sm italic leading-relaxed"
-                                        style={{ fontFamily: "'Playfair Display', serif", color: nightMode ? '#b8b4c8' : '#3a4d6e' }}
-                                    >
-                                        "They triumphed over him by the blood of the Lamb and by the word of their testimony."
-                                    </p>
-                                    <p
-                                        className="text-xs mt-2 font-semibold"
-                                        style={{ color: nightMode ? '#7b76e0' : '#4facfe' }}
-                                    >
-                                        — Revelation 12:11
-                                    </p>
-                                </div>
-
-                                <div className="text-center space-y-4">
-                                    <p
-                                        className="text-base font-bold leading-relaxed"
-                                        style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
-                                    >
-                                        Every generation has a testimony and every testimony has the power to change a generation.
-                                    </p>
-                                    <p
-                                        className="text-base font-bold leading-relaxed"
-                                        style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
-                                    >
-                                        Share yours.
-                                    </p>
-                                </div>
+                                    Your salvation story is a special event in your journey of eternal life.
+                                </p>
+                                <p
+                                    className="text-base leading-relaxed"
+                                    style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
+                                >
+                                    But sometimes that moment can be forgotten.
+                                </p>
+                                <p
+                                    className="text-base leading-relaxed"
+                                    style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
+                                >
+                                    Lightning's goal is to bring your testimony back and celebrate it.
+                                </p>
+                                <p
+                                    className="text-base font-bold leading-relaxed"
+                                    style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
+                                >
+                                    Every generation has a testimony and every testimony has the power to change a generation.
+                                </p>
+                                <p
+                                    className="text-base font-bold leading-relaxed"
+                                    style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
+                                >
+                                    Let it be yours.
+                                </p>
                             </div>
                         </div>
 
