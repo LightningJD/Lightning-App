@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { EXIT_WARNING_MSG, useBeforeUnloadGuard } from '../hooks/useOnboardingGuard';
 import ModalOverlay from "./ModalOverlay";
 import {
   X,
@@ -53,6 +54,24 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
   const [, setGeneratedDraft] = useState<string>("");
   const [editableDraft, setEditableDraft] = useState<string>("");
   const [isEditingDraft, setIsEditingDraft] = useState(false);
+  const [showExitWarning, setShowExitWarning] = useState(false);
+
+  useBeforeUnloadGuard(true);
+
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.href);
+      setShowExitWarning(true);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleLeaveAnyway = () => {
+    setShowExitWarning(false);
+    onClose();
+  };
 
   const totalSteps = 6; // 4 questions + lesson + preview
 
@@ -433,7 +452,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
   if (showIntro) {
     return (
       <>
-        <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="modal-title">
+        <ModalOverlay onClose={() => setShowExitWarning(true)} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="modal-title">
             {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-1">
           <div className={`w-10 h-1 rounded-full ${nightMode ? "bg-white/20" : "bg-slate-300"}`} />
@@ -460,7 +479,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
                   </h2>
                 </div>
                 <button
-                  onClick={onClose}
+                  onClick={() => setShowExitWarning(true)}
                   className={`text-sm font-medium ${nightMode ? "text-white/80 hover:text-white" : "text-slate-600 hover:text-slate-900"}`}
                 >
                   Cancel
@@ -525,13 +544,58 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
             </div>
         </ModalOverlay>
 
+        {showExitWarning && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70" />
+            <div
+              className="relative rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              style={{
+                background: nightMode ? '#1a1628' : '#fff',
+                border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+              }}
+            >
+              <h3
+                className="text-lg font-semibold mb-2"
+                style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
+              >
+                Leave this page?
+              </h3>
+              <p
+                className="text-sm mb-6"
+                style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
+              >
+                {EXIT_WARNING_MSG}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowExitWarning(false)}
+                  className="flex-1 py-2 rounded-xl font-medium text-sm"
+                  style={{
+                    background: nightMode ? 'rgba(255,255,255,0.08)' : '#f0f4ff',
+                    color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                  }}
+                >
+                  Stay
+                </button>
+                <button
+                  onClick={handleLeaveAnyway}
+                  className="flex-1 py-2 rounded-xl font-medium text-sm"
+                  style={{ background: '#ef4444', color: '#fff' }}
+                >
+                  Leave anyway
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </>
     );
   }
 
   return (
     <>
-      <ModalOverlay onClose={onClose} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="dialog-title">
+      <ModalOverlay onClose={() => setShowExitWarning(true)} nightMode={nightMode} maxHeight="max-h-[90vh]" cardClassName="min-h-[65vh]" ariaLabelledBy="dialog-title">
           {/* Drag Handle */}
         <div className="flex justify-center pt-3 pb-1">
           <div className={`w-10 h-1 rounded-full ${nightMode ? "bg-white/20" : "bg-slate-300"}`} />
@@ -567,7 +631,7 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={() => setShowExitWarning(true)}
                 className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
                   nightMode
                     ? "bg-white/20 hover:bg-white/30 text-white"
@@ -712,6 +776,51 @@ const EditTestimonyDialog: React.FC<EditTestimonyDialogProps> = ({
             </div>
           )}
       </ModalOverlay>
+
+      {showExitWarning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70" />
+          <div
+            className="relative rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+            style={{
+              background: nightMode ? '#1a1628' : '#fff',
+              border: `1px solid ${nightMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            }}
+          >
+            <h3
+              className="text-lg font-semibold mb-2"
+              style={{ color: nightMode ? '#e8e5f2' : '#1e2b4a' }}
+            >
+              Leave this page?
+            </h3>
+            <p
+              className="text-sm mb-6"
+              style={{ color: nightMode ? '#8e89a8' : '#4a5e88' }}
+            >
+              {EXIT_WARNING_MSG}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowExitWarning(false)}
+                className="flex-1 py-2 rounded-xl font-medium text-sm"
+                style={{
+                  background: nightMode ? 'rgba(255,255,255,0.08)' : '#f0f4ff',
+                  color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                }}
+              >
+                Stay
+              </button>
+              <button
+                onClick={handleLeaveAnyway}
+                className="flex-1 py-2 rounded-xl font-medium text-sm"
+                style={{ background: '#ef4444', color: '#fff' }}
+              >
+                Leave anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </>
   );
