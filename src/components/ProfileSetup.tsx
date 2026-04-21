@@ -84,7 +84,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ nightMode, onComplete, onSk
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!displayName.trim()) newErrors.displayName = "Display name is required.";
+    if (!displayName.trim()) newErrors.displayName = "First and last name is required.";
     if (!bio.trim()) newErrors.bio = "Bio is required.";
     else if (bio.length > BIO_MAX) newErrors.bio = `Bio must be ${BIO_MAX} characters or fewer.`;
     if (!photoUrl) newErrors.photo = "Please add a profile photo.";
@@ -267,7 +267,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ nightMode, onComplete, onSk
             {/* Display Name */}
             <div style={{ marginBottom: 16 }}>
               <label style={lbl}>
-                Display Name{" "}
+                First and Last Name{" "}
                 <span style={{ color: "#ef4444", fontSize: 10 }}>*</span>
               </label>
               <input
