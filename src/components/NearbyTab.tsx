@@ -334,7 +334,6 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
     (profile as any)?.display_name ||
     (profile as any)?.username ||
     "";
-  const firstName = displayName.split(" ")[0];
   const churchName = (profile as any)?.church?.name || null;
 
   // Render a testimony card with design tokens
@@ -595,7 +594,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
           className="text-lg font-medium italic"
           style={{ fontFamily: "'Playfair Display', serif", color: nightMode ? "#e8e5f2" : "#1e2b4a" }}
         >
-          {getTimeGreeting()}{firstName ? `, ${firstName}` : ""} ✨
+          {getTimeGreeting()}{displayName ? `, ${displayName}` : ""} ✨
         </h1>
         <p
           className="text-xs mt-0.5"
