@@ -99,6 +99,13 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
   const [likeCountOverrides, setLikeCountOverrides] = useState<
     Record<string, number>
   >({});
+  const [feedRefreshTrigger, setFeedRefreshTrigger] = useState(0);
+
+  useEffect(() => {
+    const handler = () => setFeedRefreshTrigger((n) => n + 1);
+    window.addEventListener("profileUpdated", handler);
+    return () => window.removeEventListener("profileUpdated", handler);
+  }, []);
 
   // Load friends (needed for testimony feed query)
   useEffect(() => {
@@ -150,7 +157,7 @@ const NearbyTab: React.FC<NearbyTabProps> = ({
       }
     };
     loadTestimonies();
-  }, [profile?.supabaseId, friends]);
+  }, [profile?.supabaseId, friends, feedRefreshTrigger]);
 
   // BUG-009: After the feed loads, batch-check which testimonies the current
   // user has already liked so the card can render a filled heart from the
