@@ -271,6 +271,54 @@ body {
       }
       .qr-download:hover { background: rgba(126,200,227,0.3); }
 
+/* Instructions box */
+.instructions-box {
+  background: rgba(255,215,0,0.08);
+  border: 1px solid rgba(255,215,0,0.25);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 20px;
+  text-align: left;
+}
+.instructions-box .step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+}
+.instructions-box .step + .step { border-top: 1px solid rgba(255,255,255,0.08); }
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FFD700;
+  color: #1a1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+.step-text { font-size: 0.85rem; color: rgba(255,255,255,0.85); line-height: 1.5; }
+.step-text strong { color: #FFD700; display: block; margin-bottom: 2px; }
+
+/* Gold reward card */
+.reward-tier.gold {
+  background: linear-gradient(135deg, #b8860b 0%, #ffd700 40%, #ffa500 70%, #ffd700 100%);
+  background-size: 200% 200%;
+  animation: goldShimmer 3s ease infinite;
+  border: 2px solid #FFD700;
+  box-shadow: 0 0 24px rgba(255,215,0,0.35), 0 4px 12px rgba(0,0,0,0.3);
+}
+.reward-tier.gold .tier-label { color: rgba(0,0,0,0.6); }
+.reward-tier.gold .tier-reward { color: #1a1000; }
+@keyframes goldShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 /* Recent signups */
 .recent-section {
   margin-top: 40px;
@@ -745,15 +793,19 @@ function renderPersonalized(app, teams, myTeam, recentSignups, allReferrers) {
   const myReferrers = [myTeam.lead, ...myTeam.helpers];
   html += '<div class="personal-qr-section">';
   html += '<h3>Your Referral QR Codes</h3>';
-  html += '<p>Show these to friends &mdash; every scan tracks back to you</p>';
+  html += '<p>Share these with friends &mdash; every scan tracks back to you</p>';
   html += '<div class="qr-grid">';
   myReferrers.forEach(function(r) {
     html += '<div class="qr-item">';
     html += '<canvas id="qr-' + r.ref_code + '" width="160" height="160"></canvas>';
     html += '<div class="qr-label">' + (r.role === 'lead' ? r.name + ' \u2014 Team Lead' : r.name) + '</div>';
-    html += '<a class="qr-download" data-qrid="qr-' + r.ref_code + '" data-name="' + r.name + '">Save QR</a>';
+    html += '<a class="qr-download" data-qrid="qr-' + r.ref_code + '" data-name="' + r.name + '">Save to Photos</a>';
     html += '</div>';
   });
+  html += '</div>';
+  html += '<div class="instructions-box">';
+  html += '<div class="step"><div class="step-num">1</div><div class="step-text"><strong>Friend scans your QR code</strong>They submit their email on the Lightning landing page</div></div>';
+  html += '<div class="step"><div class="step-num">2</div><div class="step-text"><strong>Friend completes their testimony by May 15th</strong>They must fully write and submit their testimony before launch day &mdash; both steps required to count</div></div>';
   html += '</div>';
   html += '</div>';
 
@@ -809,7 +861,7 @@ function renderPersonalized(app, teams, myTeam, recentSignups, allReferrers) {
   // Jacket Showcase + Rewards
   html += '<div class="jacket-showcase">';
   html += '<h2>\u26A1 Team Reward</h2>';
-  html += '<p class="showcase-subtitle" style="color:#FFD700;font-weight:600;font-size:1rem;">\u26A0\uFE0F Signups must create a profile on May 15th to qualify<br>&#x26A0;&#xFE0F; Signups must be from THE CROSSING STUDENTS ONLY (bring 2-3 friends to help you win! Split the cash!)</p>';
+  html += '<p class="showcase-subtitle" style="color:#FFD700;font-weight:600;font-size:1rem;">&#x26A0;&#xFE0F; THE CROSSING STUDENTS ONLY &mdash; bring 2-3 friends to help you win! Split the cash!<br><span style="color:rgba(255,255,255,0.7);font-size:0.9rem;font-weight:400;">To qualify, each signup must do <strong style="color:#FFD700;">TWO things</strong>: (1) scan your QR &amp; submit email on the landing page, AND (2) complete &amp; submit their testimony by May 15th launch day</span></p>';
   html += '<div class="jacket-cards">';
   html += '<a href="https://ruelleclub.com/products/product-1" target="_blank" class="jacket-card">';
   html += '<img src="/images/untitled-8.webp" alt="Twill Friend of God Jacket - Back">';
@@ -825,8 +877,8 @@ function renderPersonalized(app, teams, myTeam, recentSignups, allReferrers) {
   html += '</div></a>';
   html += '</div>';
   html += '<div class="reward-tiers" style="margin-top:24px">';
-  html += '<div class="reward-tier"><div class="tier-label">50+ SIGNUPS EACH</div><div class="tier-reward">Win Both Jackets + Next Release</div></div>';
-  html += '<div class="reward-tier"><div class="tier-label">MOST SIGNUPS</div><div class="tier-reward">$200 Cash Prize</div></div>';
+  html += '<div class="reward-tier"><div class="tier-label">50+ SIGNUPS EACH</div><div class="tier-reward">Win Twill Friend of God Jacket + Varsity Friend of God Jacket + Next Ruelle jacket release</div></div>';
+  html += '<div class="reward-tier gold"><div class="tier-label">\u2B50 MOST SIGNUPS</div><div class="tier-reward">\uD83D\uDCB0 $200 Cash Prize</div></div>';
   html += '</div>';
   html += '</div>';
 
@@ -884,17 +936,36 @@ function renderPersonalized(app, teams, myTeam, recentSignups, allReferrers) {
       }
     });
 
-    // Attach download handlers once after all QRs are generated
+    // Attach save-to-photos handlers once after all QRs are generated
     document.querySelectorAll('.qr-download').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var canvas = document.getElementById(btn.getAttribute('data-qrid'));
         if (!canvas) return;
-        var link = document.createElement('a');
-        link.download = btn.getAttribute('data-name').replace(/\s+/g, '_') + '_QR.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        var name = btn.getAttribute('data-name');
+        var fileName = name.replace(/\s+/g, '_') + '_QR.png';
+
+        canvas.toBlob(function(blob) {
+          var file = new File([blob], fileName, { type: 'image/png' });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({ files: [file], title: name + ' QR Code' }).catch(function() {
+              showQROverlay(canvas.toDataURL('image/png'));
+            });
+          } else {
+            showQROverlay(canvas.toDataURL('image/png'));
+          }
+        }, 'image/png');
       });
     });
+
+    function showQROverlay(dataUrl) {
+      var overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;cursor:pointer;';
+      overlay.innerHTML = '<img src="' + dataUrl + '" style="width:240px;height:240px;border-radius:16px;background:#fff;padding:14px;">'
+        + '<p style="color:#fff;font-family:Inter,sans-serif;font-size:1rem;font-weight:600;text-align:center;">Long-press the image to save to Photos</p>'
+        + '<p style="color:rgba(255,255,255,0.4);font-family:Inter,sans-serif;font-size:0.8rem;">Tap anywhere to close</p>';
+      overlay.addEventListener('click', function() { document.body.removeChild(overlay); });
+      document.body.appendChild(overlay);
+    }
   }, 100);
 }
 
