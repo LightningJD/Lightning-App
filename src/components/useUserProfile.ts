@@ -255,6 +255,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
       id: testimony.id,
       title: testimony.title || "My Testimony",
       content: testimony.content,
+      pull_quote: testimony.pull_quote || null,
       lesson: testimony.lesson,
       viewCount: testimony.view_count || 0,
       likeCount: testimony.like_count || 0
@@ -262,6 +263,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
       id: null,
       title: "My Testimony",
       content: null,
+      pull_quote: null,
       lesson: null,
       viewCount: 0,
       likeCount: 0
