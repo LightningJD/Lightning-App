@@ -668,7 +668,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setProfileCompleted(true);
       }
     }
-  }, [isAuthenticated, userProfile, profileCompleted]);
+  }, [isAuthenticated, userProfile?.supabaseId, userProfile?.profileCompleted, profileCompleted]);
 
   // ============================================
   // HANDLERS
