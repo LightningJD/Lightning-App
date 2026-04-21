@@ -297,7 +297,6 @@ function GlobalProvidersInner() {
               userName={ctx.profile.displayName}
               userAge={undefined}
               userId={ctx.userProfile?.supabaseId}
-              hasChurch={!!ctx.profile?.churchId}
               onComplete={ctx.handleTestimonyQuestionnaireComplete}
               onCancel={ctx.handleTestimonyQuestionnaireCancel}
             />

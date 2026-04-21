@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, ArrowLeft, Sparkles, Loader, Lock, Globe, Link2, BookOpen } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Sparkles, Loader, BookOpen } from 'lucide-react';
 import { TESTIMONY_QUESTIONS, validateAnswers, getWordCount } from '../config/testimonyQuestions';
 import { generateTestimony, type TestimonyAnswers } from '../lib/api/ai-service';
 import { checkRateLimit, recordAttempt } from '../lib/rateLimiter';
@@ -12,7 +12,6 @@ interface TestimonyQuestionnaireProps {
     userName?: string;
     userAge?: number;
     userId?: string; // Supabase user UUID for server-side rate limiting
-    hasChurch?: boolean;
     onComplete: (testimonyData: { content: string; answers: TestimonyAnswers; visibility?: TestimonyVisibility }) => void;
     onCancel: () => void;
 }
@@ -22,13 +21,11 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
     userName,
     userAge,
     userId,
-    hasChurch = false,
     onComplete,
     onCancel
 }) => {
     const [showIntro, setShowIntro] = useState(true);
     const [currentStep, setCurrentStep] = useState(0);
-    const [visibility, setVisibility] = useState<TestimonyVisibility>(hasChurch ? 'my_church' : 'all_churches');
     const [answers, setAnswers] = useState<TestimonyAnswers>({
         question1: '',
         question2: '',
@@ -166,7 +163,6 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
         onComplete({
             content: editedTestimony,
             answers: answers,
-            visibility: visibility
         });
     };
 
@@ -255,79 +251,6 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
 
                             <div className="text-xs" style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}>
                                 {getWordCount(editedTestimony)} words
-                            </div>
-
-                            {/* Visibility Selector */}
-                            <div
-                                className="mt-4 p-3 rounded-xl"
-                                style={{
-                                    background: nightMode ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.35)',
-                                    border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.1)'}`,
-                                }}
-                            >
-                                <div
-                                    className="text-[11px] font-bold uppercase tracking-wide mb-2"
-                                    style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}
-                                >
-                                    Who can see this?
-                                </div>
-                                <div className="flex gap-2">
-                                    {hasChurch && (
-                                        <button
-                                            onClick={() => setVisibility('my_church')}
-                                            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
-                                            style={visibility === 'my_church' ? {
-                                                background: nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.12)',
-                                                border: `1px solid ${nightMode ? 'rgba(123,118,224,0.3)' : 'rgba(79,172,254,0.25)'}`,
-                                                color: nightMode ? '#9b96f5' : '#2b6cb0',
-                                            } : {
-                                                background: 'transparent',
-                                                border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)'}`,
-                                                color: nightMode ? '#5d5877' : '#8e9ec0',
-                                            }}
-                                        >
-                                            <Lock className="w-3 h-3" />
-                                            My Church
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => setVisibility('all_churches')}
-                                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
-                                        style={visibility === 'all_churches' ? {
-                                            background: nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.12)',
-                                            border: `1px solid ${nightMode ? 'rgba(123,118,224,0.3)' : 'rgba(79,172,254,0.25)'}`,
-                                            color: nightMode ? '#9b96f5' : '#2b6cb0',
-                                        } : {
-                                            background: 'transparent',
-                                            border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)'}`,
-                                            color: nightMode ? '#5d5877' : '#8e9ec0',
-                                        }}
-                                    >
-                                        <Globe className="w-3 h-3" />
-                                        All Churches
-                                    </button>
-                                    <button
-                                        onClick={() => setVisibility('shareable')}
-                                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all"
-                                        style={visibility === 'shareable' ? {
-                                            background: nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.12)',
-                                            border: `1px solid ${nightMode ? 'rgba(123,118,224,0.3)' : 'rgba(79,172,254,0.25)'}`,
-                                            color: nightMode ? '#9b96f5' : '#2b6cb0',
-                                        } : {
-                                            background: 'transparent',
-                                            border: `1px solid ${nightMode ? 'rgba(255,255,255,0.06)' : 'rgba(150,165,225,0.15)'}`,
-                                            color: nightMode ? '#5d5877' : '#8e9ec0',
-                                        }}
-                                    >
-                                        <Link2 className="w-3 h-3" />
-                                        Shareable
-                                    </button>
-                                </div>
-                                <p className="text-[10px] mt-1.5" style={{ color: nightMode ? '#5d5877' : '#8e9ec0' }}>
-                                    {visibility === 'my_church' && 'Only members of your church can see this testimony'}
-                                    {visibility === 'all_churches' && 'Friends and church community members can see this'}
-                                    {visibility === 'shareable' && 'Anyone on Lightning can discover this testimony'}
-                                </p>
                             </div>
 
                             {saveError && (
