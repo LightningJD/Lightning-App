@@ -224,7 +224,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
     songName: (supabaseUser as any)?.song_name || null,
     songArtist: (supabaseUser as any)?.song_artist || null,
     // Profile card fields
-    churchName: supabaseUser?.church_name || null,
+    churchName: supabaseUser?.church_name || church?.name || null,
     churchLocation: supabaseUser?.church_location || null,
     denomination: supabaseUser?.denomination || null,
     yearSaved: supabaseUser?.year_saved || null,
