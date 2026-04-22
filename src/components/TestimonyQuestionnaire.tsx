@@ -13,7 +13,7 @@ interface TestimonyQuestionnaireProps {
     userAge?: number;
     userId?: string; // Supabase user UUID for server-side rate limiting
     hasChurch?: boolean;
-    onComplete: (testimonyData: { content: string; answers: TestimonyAnswers; visibility?: TestimonyVisibility; pullQuote?: string }) => void;
+    onComplete: (testimonyData: { content: string; answers: TestimonyAnswers; visibility?: TestimonyVisibility; pullQuote?: string; badgeColor?: string | null; badgeDoor?: number | null }) => void;
     onCancel: () => void;
 }
 
@@ -39,6 +39,8 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
     const [isEditing, setIsEditing] = useState(false);
     const [editedTestimony, setEditedTestimony] = useState('');
     const [extractedLesson, setExtractedLesson] = useState<string | null>(null);
+    const [badgeColor, setBadgeColor] = useState<string | null>(null);
+    const [badgeDoor, setBadgeDoor] = useState<number | null>(null);
 
     const currentQuestion = TESTIMONY_QUESTIONS[currentStep];
     const isLastQuestion = currentStep === TESTIMONY_QUESTIONS.length - 1;
@@ -115,6 +117,9 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                 recordAttempt('generate_testimony');
                 setGeneratedTestimony(result.testimony);
                 setEditedTestimony(result.testimony);
+                // Store badge classification from AI
+                setBadgeColor(result.badgeColor ?? null);
+                setBadgeDoor(result.badgeDoor ?? null);
                 // Extract pull quote from Q3 while user reviews the testimony
                 const pullQuote = await extractPullQuote(answers.question3);
                 if (pullQuote) setExtractedLesson(pullQuote);
@@ -169,6 +174,8 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
             content: editedTestimony,
             answers: answers,
             pullQuote: extractedLesson || undefined,
+            badgeColor,
+            badgeDoor,
         });
     };
 

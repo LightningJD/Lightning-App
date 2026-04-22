@@ -15,6 +15,10 @@ interface TestimonyData {
   musicTrackName?: string;
   musicArtist?: string;
   musicAudioUrl?: string;
+  /** Badge color assigned by AI (one of 7 rainbow colors) */
+  badgeColor?: 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'indigo' | 'violet';
+  /** Door number assigned by AI (1-14) */
+  badgeDoor?: number;
 }
 
 // ============================================
@@ -45,6 +49,8 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
       music_track_name: testimonyData.musicTrackName,
       music_artist: testimonyData.musicArtist,
       music_audio_url: testimonyData.musicAudioUrl,
+      badge_color: testimonyData.badgeColor,
+      badge_door: testimonyData.badgeDoor,
       updated_at: new Date().toISOString()
     } as any, { onConflict: 'user_id' })
     .select()
@@ -522,6 +528,8 @@ const TESTIMONY_SELECT_WITH_USER = `
   view_count,
   like_count,
   visibility,
+  badge_color,
+  badge_door,
   created_at,
   updated_at,
   users:user_id (

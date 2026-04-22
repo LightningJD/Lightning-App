@@ -209,6 +209,123 @@ async function logGeneration(
   }
 }
 
+// ============================================
+// BADGE CLASSIFICATION — 7 Colors, 14 Doors
+// ============================================
+
+const BADGE_CLASSIFICATION_PROMPT = `You are a testimony classifier for a Christian app called Lightning. You read a testimony and assign it ONE of 14 doors under 7 colors based on the person's origin story — how they came to faith.
+
+THE 7 COLORS AND 14 DOORS:
+
+RED (doors 1-2) — The Blood Doorway (Isaiah 1:18 / Exodus 12)
+Door 1: Life fell apart. Addiction, abuse, failure, collapse. Something shattered.
+Door 2: Hit rock bottom. Last chance. God showed up at the final moment and pulled them out.
+Signals: addiction, rock bottom, last chance, almost died, couldn't stop, lost everything, intervention, rehab, overdose, suicide attempt
+
+ORANGE (doors 3-4) — The Fire Doorway (Malachi 3:2-3 / Isaiah 48:10)
+Door 3: Chronic illness, abuse, trauma, mental health battles, prolonged hardship. Pain was the door.
+Door 4: Public failure, secret sin revealed, scandal, guilt that became unbearable. The fire of exposure.
+Signals: chronic pain, illness, diagnosis, abuse, trauma, depression, anxiety, shame, secret exposed, scandal, guilt, caught, publicly humiliated
+
+YELLOW (doors 5-6) — The Light Doorway (John 8:12 / Psalm 18:28)
+Door 5: Life looked fine on paper but felt hollow. Material success without purpose. Something was missing.
+Door 6: Saw someone else live out faith genuinely and wanted what they had. Saw light in another person.
+Signals: had everything, successful, empty, hollow, meaningless, going through motions, saw someone's joy, watched a friend's faith, envied their peace, wanted what they had
+
+GREEN (doors 7-8) — The Life Doorway (Psalm 23:2 / Ezekiel 47)
+Door 7: Death, divorce, abandonment. Loss drove them to God because nothing else could carry it.
+Door 8: Exposed to faith as a kid. May have walked away. Those seeds came back to life later.
+Signals: death of loved one, funeral, divorce, lost my mom/dad/child, grandma used to pray, grew up going to church, remembered what parents taught, seeds planted, came back to what I knew
+
+BLUE (doors 9-10) — The Deep Doorway (Psalm 42:7 / Psalm 63:1)
+Door 9: Intellectual and spiritual hunger. Tried other beliefs, philosophy, religions. Kept seeking.
+Door 10: Felt conditionally loved. The message of grace broke through. Longing for unconditional love.
+Signals: searching, studying, reading, exploring religions, questions, philosophy, longing, thirst, unconditional love, grace, acceptance, never felt loved, conditional, wanted real love
+
+INDIGO (doors 11-12) — The Night Doorway (Psalm 30:5 / Genesis 32:24)
+Door 11: Identity collapsed — prison, major life transition, lost everything that defined them. Old self died.
+Door 12: Didn't want it. Pushed back against God, church, Christians. Hostile, skeptical, burned by religion. Something broke through anyway.
+Signals: identity crisis, didn't know who I was, prison, lost everything that defined me, atheist, fought against God, hated church, burned by religion, skeptic, argued, resistant, hostile
+
+VIOLET (doors 13-14) — The Crown Doorway (Revelation 3:11 / 2 Timothy 4:8)
+Door 13: Raised in faith. Knew the culture. At some point it shifted from inherited to personal.
+Door 14: Persistent invitation from a trusted person. A friend kept inviting, a family member kept praying. Drawn in through people.
+Signals: raised in church, PK, worship team, always went, parents' faith, inherited, never questioned until, friend kept inviting, wouldn't stop asking, community, belonging, felt like home, finally walked in
+
+RULES:
+- Assign the ONE door that most closely matches the person's origin story
+- If the testimony clearly walks through two doors, pick the primary (strongest) one
+- Respond with ONLY valid JSON: {"color":"<color>","door":<number>}
+- No explanation. No extra text. Just the JSON.`;
+
+/**
+ * Classify a testimony into one of 7 colors / 14 doors.
+ * Returns { color, door } or null if classification fails.
+ * This is a best-effort call — testimony is still saved if classification fails.
+ */
+async function classifyTestimonyBadge(
+  apiKey: string,
+  testimony: string,
+): Promise<{ color: string; door: number } | null> {
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: TESTIMONY_MODEL,
+        max_tokens: 50,
+        temperature: 0,
+        system: BADGE_CLASSIFICATION_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content: `Classify this testimony:\n\n${testimony}`,
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn("Badge classification API error:", response.status);
+      return null;
+    }
+
+    const data = (await response.json()) as any;
+    const raw = data.content?.[0]?.type === "text" ? data.content[0].text : "";
+
+    // Parse the JSON response
+    const parsed = JSON.parse(raw.trim());
+    const validColors = [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "blue",
+      "indigo",
+      "violet",
+    ];
+
+    if (
+      validColors.includes(parsed.color) &&
+      Number.isInteger(parsed.door) &&
+      parsed.door >= 1 &&
+      parsed.door <= 14
+    ) {
+      return { color: parsed.color, door: parsed.door };
+    }
+
+    console.warn("Badge classification returned invalid data:", raw);
+    return null;
+  } catch (e) {
+    console.warn("Badge classification failed:", e);
+    return null;
+  }
+}
+
 // The testimony generation prompt (same as claude.ts — 3-Act structure with God Moment emphasis)
 const TESTIMONY_PROMPT = `You are a ghostwriter who transforms a person's raw answers into a polished first-person Christian testimony. Your job is to restructure and rephrase their words into flowing narrative prose — NOT to invent their story for them.
 
@@ -544,6 +661,9 @@ Remember: rephrase their words into polished prose, but never add experiences or
     const testimony = sanitizeOutput(rawTestimony);
     const wordCount = testimony.trim().split(/\s+/).length;
 
+    // Classify testimony into a badge color/door (best-effort, non-blocking)
+    const badge = await classifyTestimonyBadge(env.CLAUDE_API_KEY, testimony);
+
     // Log successful generation
     if (env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
       await logGeneration(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
@@ -558,7 +678,13 @@ Remember: rephrase their words into polished prose, but never add experiences or
     }
 
     return Response.json(
-      { success: true, testimony, wordCount },
+      {
+        success: true,
+        testimony,
+        wordCount,
+        badgeColor: badge?.color ?? null,
+        badgeDoor: badge?.door ?? null,
+      },
       { status: 200, headers: CORS_HEADERS },
     );
   } catch (error) {

@@ -59,6 +59,10 @@ export interface Testimony {
   view_count: number;
   like_count: number;
   comment_count: number;
+  /** Badge color assigned by AI — one of 7 rainbow colors */
+  badge_color?: 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'indigo' | 'violet';
+  /** Door number assigned by AI (1-14) */
+  badge_door?: number;
   created_at: string;
   updated_at: string;
 }

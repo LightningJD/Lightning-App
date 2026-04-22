@@ -40,6 +40,10 @@ export interface TestimonyGenerationResult {
     testimony?: string;
     error?: string;
     wordCount?: number;
+    /** Badge color assigned by AI (one of 7 rainbow colors) */
+    badgeColor?: 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'indigo' | 'violet' | null;
+    /** Door number assigned by AI (1-14) */
+    badgeDoor?: number | null;
 }
 
 /**
@@ -157,6 +161,8 @@ async function generateViaProxy(
             success: data.success,
             testimony: data.testimony,
             wordCount: data.wordCount,
+            badgeColor: data.badgeColor ?? null,
+            badgeDoor: data.badgeDoor ?? null,
             error: data.error,
         };
     } catch (error) {

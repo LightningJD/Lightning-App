@@ -319,6 +319,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     answers: TestimonyAnswers;
     visibility?: "my_church" | "all_churches" | "shareable";
     pullQuote?: string;
+    badgeColor?: string | null;
+    badgeDoor?: number | null;
   } | null>(null);
   const [isOnboardingFlow, setIsOnboardingFlow] = useState(false);
   const [showTestimonyQuestionnaire, setShowTestimonyQuestionnaire] =
@@ -910,6 +912,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
                 question3: pendingTestimony.answers.question3,
                 question4: pendingTestimony.answers.question4,
                 pull_quote: pendingTestimony.pullQuote,
+                badgeColor: pendingTestimony.badgeColor as any,
+                badgeDoor: pendingTestimony.badgeDoor ?? undefined,
                 isPublic: true,
                 visibility: 'all_churches',
               });
@@ -1179,6 +1183,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     answers: TestimonyAnswers;
     visibility?: "my_church" | "all_churches" | "shareable";
     pullQuote?: string;
+    badgeColor?: string | null;
+    badgeDoor?: number | null;
   }): Promise<void> => {
     setShowTestimonyQuestionnaire(false);
 
@@ -1190,6 +1196,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         answers: testimonyContent.answers,
         visibility: testimonyContent.visibility,
         pullQuote: testimonyContent.pullQuote,
+        badgeColor: testimonyContent.badgeColor,
+        badgeDoor: testimonyContent.badgeDoor,
       });
       setTimeout(() => {
         setShowProfileWizard(true);
@@ -1252,6 +1260,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           question3: testimonyContent.answers.question3,
           question4: testimonyContent.answers.question4,
           pull_quote: testimonyContent.pullQuote,
+          badgeColor: testimonyContent.badgeColor as any,
+          badgeDoor: testimonyContent.badgeDoor ?? undefined,
           isPublic: true,
           visibility: testimonyContent.visibility || "my_church",
         });
