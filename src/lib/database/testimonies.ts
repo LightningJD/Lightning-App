@@ -79,6 +79,43 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
 };
 
 /**
+ * Get a single testimony by its own ID (for public sharing links)
+ */
+export const getTestimonyById = async (id: string): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await (supabase as any)
+    .from('testimonies')
+    .select(`
+      id,
+      user_id,
+      title,
+      content,
+      pull_quote,
+      badge_color,
+      badge_door,
+      visibility,
+      is_public,
+      created_at,
+      users:user_id (
+        id,
+        username,
+        display_name,
+        church_id
+      )
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    if (error.code !== 'PGRST116') console.error('Error fetching testimony by id:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
  * Get testimony by user ID
  */
 export const getTestimonyByUserId = async (userId: string): Promise<any> => {

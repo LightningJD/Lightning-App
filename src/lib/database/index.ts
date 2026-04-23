@@ -21,6 +21,7 @@ export {
 // Testimony Management
 export {
   createTestimony,
+  getTestimonyById,
   getTestimonyByUserId,
   updateTestimony,
   deleteTestimony,

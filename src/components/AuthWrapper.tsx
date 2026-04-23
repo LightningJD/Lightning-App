@@ -8,6 +8,7 @@ import FullScreenLayout from './layout/FullScreenLayout';
 import App from '../App';
 import ChannelChatPage from '../pages/ChannelChatPage';
 import UserProfilePage from '../pages/UserProfilePage';
+import PublicTestimonyPage from '../pages/PublicTestimonyPage';
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
@@ -64,6 +65,9 @@ const AuthWrapper: React.FC = () => {
               </>
             }
           />
+
+          {/* Public testimony landing page — no auth required */}
+          <Route path="/testimony/:id" element={<PublicTestimonyPage />} />
 
           {/* Protected routes — all require authentication */}
           <Route element={<AuthGuard />}>
