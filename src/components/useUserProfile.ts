@@ -257,6 +257,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
       content: testimony.content,
       pull_quote: testimony.pull_quote || null,
       lesson: testimony.lesson,
+      badge_color: testimony.badge_color || null,
       viewCount: testimony.view_count || 0,
       likeCount: testimony.like_count || 0
     } : {
@@ -265,6 +266,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
       content: null,
       pull_quote: null,
       lesson: null,
+      badge_color: null,
       viewCount: 0,
       likeCount: 0
     }
