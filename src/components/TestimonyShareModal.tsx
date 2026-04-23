@@ -1,5 +1,8 @@
-import React, { useState } from "react";
-import { X, Copy, Check, Link2, MessageCircle } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { X, Copy, Check, Link2, MessageCircle, Download } from "lucide-react";
+import html2canvas from "html2canvas";
+import TestimonyCard from "./TestimonyCard";
+import { isValidBadgeColor, type BadgeColor } from "../config/badgeConfig";
 
 interface TestimonyShareModalProps {
   nightMode: boolean;
@@ -8,6 +11,10 @@ interface TestimonyShareModalProps {
   testimonyId: string;
   testimonyText: string;
   profileName: string;
+  badgeColor?: string;
+  pullQuote?: string;
+  authorName?: string;
+  churchName?: string;
 }
 
 const TestimonyShareModal: React.FC<TestimonyShareModalProps> = ({
@@ -17,9 +24,15 @@ const TestimonyShareModal: React.FC<TestimonyShareModalProps> = ({
   testimonyId,
   testimonyText,
   profileName,
+  badgeColor,
+  pullQuote,
+  authorName,
+  churchName,
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   if (!isOpen) return null;
 
@@ -62,7 +75,28 @@ const TestimonyShareModal: React.FC<TestimonyShareModalProps> = ({
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const handleSaveCard = async () => {
+    if (!cardRef.current) return;
+    setSaving(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+      });
+      const link = document.createElement("a");
+      link.download = "testimony-card.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch {
+      /* Silent fail — image capture is non-critical */
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const nm = nightMode;
+  const showCard =
+    !!badgeColor && !!pullQuote && isValidBadgeColor(badgeColor);
 
   return (
     <div
@@ -122,6 +156,67 @@ const TestimonyShareModal: React.FC<TestimonyShareModalProps> = ({
         </div>
 
         <div className="p-5 space-y-4">
+          {/* Testimony Card Preview */}
+          {showCard && (
+            <div>
+              <div
+                className="-mx-5 overflow-hidden"
+                style={{
+                  background: nm
+                    ? "rgba(255,255,255,0.03)"
+                    : "rgba(0,0,0,0.02)",
+                }}
+              >
+                <div className="flex justify-center py-4">
+                  <div ref={cardRef}>
+                    <TestimonyCard
+                      badgeColor={badgeColor as BadgeColor}
+                      pullQuote={pullQuote!}
+                      authorName={authorName ?? profileName}
+                      churchName={churchName}
+                      testimonyId={testimonyId}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSaveCard}
+                disabled={saving}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all active:scale-95 ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
+                style={{
+                  background: nm
+                    ? "rgba(255,255,255,0.04)"
+                    : "rgba(255,255,255,0.5)",
+                  border: `1px solid ${nm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
+                }}
+              >
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)",
+                    boxShadow: "0 2px 8px rgba(59,130,246,0.25)",
+                  }}
+                >
+                  <Download className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p
+                    className={`text-sm font-semibold ${nm ? "text-white" : "text-black"}`}
+                  >
+                    {saving ? "Saving..." : "Save as Image"}
+                  </p>
+                  <p
+                    className={`text-xs ${nm ? "text-white/40" : "text-black/40"}`}
+                  >
+                    Download your testimony card as PNG
+                  </p>
+                </div>
+              </button>
+            </div>
+          )}
+
           {/* Copy Link */}
           <button
             onClick={handleCopyLink}
