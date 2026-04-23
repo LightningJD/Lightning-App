@@ -804,25 +804,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
           }}
           isOwnProfile={!isViewingOther}
           onRewriteTestimony={onEditTestimony}
-          onShareTestimony={() => {
-            try {
-              const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
-              const shareData = {
-                title: `${profile?.name || profile?.displayName || "Someone"}'s Testimony on Lightning`,
-                text: "Be encouraged by this testimony on Lightning",
-                url: testimonyUrl,
-              };
-              // @ts-ignore
-              if (navigator?.share && typeof navigator.share === "function") {
-                // @ts-ignore
-                navigator.share(shareData);
-              } else {
-                setShowShareModal(true);
-              }
-            } catch {
-              setShowShareModal(true);
-            }
-          }}
+          onShareTestimony={() => setShowShareModal(true)}
         >
           {profile?.story?.id ? (
             <>
@@ -948,24 +930,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                     💬 {comments.length}
                   </span>
                   <button
-                    onClick={() => {
-                      try {
-                        const testimonyUrl = `https://lightningsocial.io/testimony/${profile?.story?.id}`;
-                        // @ts-ignore
-                        if (navigator?.share && typeof navigator.share === "function") {
-                          // @ts-ignore
-                          navigator.share({
-                            title: `${profile?.name || profile?.displayName || "Someone"}'s Testimony`,
-                            text: "Be encouraged by this testimony on Lightning",
-                            url: testimonyUrl,
-                          });
-                        } else {
-                          setShowShareModal(true);
-                        }
-                      } catch {
-                        setShowShareModal(true);
-                      }
-                    }}
+                    onClick={() => setShowShareModal(true)}
                     className="flex items-center gap-1 transition-colors hover:opacity-80"
                   >
                     ↗ Share
