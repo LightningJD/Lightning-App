@@ -162,6 +162,8 @@ export interface AppContextType {
     answers: TestimonyAnswers;
     visibility?: "my_church" | "all_churches" | "shareable";
     pullQuote?: string;
+    badgeColor?: string | null;
+    badgeDoor?: number | null;
   }) => Promise<void>;
   handleEditTestimony: () => Promise<void>;
   handleTestimonySave: (data: {
