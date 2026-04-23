@@ -828,12 +828,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           const crossing = await findChurchByName('The Crossing');
           if (crossing) {
             await updateUserProfile(userProfile.supabaseId, { church_id: crossing.id } as any);
-            await (supabase as any).rpc('increment_member_count', { church_id_input: crossing.id }).catch(() => {
-              (supabase as any)
+            try {
+              await (supabase as any).rpc('increment_member_count', { church_id_input: crossing.id });
+            } catch {
+              await (supabase as any)
                 .from('churches')
                 .update({ member_count: (crossing.member_count || 0) + 1 })
                 .eq('id', crossing.id);
-            });
+            }
           } else {
             await createChurch('The Crossing', userProfile.supabaseId);
           }

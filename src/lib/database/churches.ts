@@ -101,13 +101,14 @@ export const joinChurchByCode = async (code: string, userId: string): Promise<{ 
   }
 
   // Increment member count using RPC or raw update to avoid race conditions
-  await (supabase as any).rpc('increment_member_count', { church_id_input: church.id }).catch(() => {
-    // Fallback: non-atomic increment if RPC doesn't exist
-    (supabase as any)
+  try {
+    await (supabase as any).rpc('increment_member_count', { church_id_input: church.id });
+  } catch {
+    await (supabase as any)
       .from('churches')
       .update({ member_count: (church.member_count || 0) + 1 })
       .eq('id', church.id);
-  });
+  }
 
   return { success: true, church };
 };
@@ -197,8 +198,9 @@ export const leaveChurch = async (userId: string): Promise<boolean> => {
   }
 
   // Decrement member count using RPC or raw update to avoid race conditions
-  await (supabase as any).rpc('decrement_member_count', { church_id_input: churchId }).catch(async () => {
-    // Fallback: non-atomic decrement if RPC doesn't exist
+  try {
+    await (supabase as any).rpc('decrement_member_count', { church_id_input: churchId });
+  } catch {
     const { data: church } = await (supabase as any)
       .from('churches')
       .select('member_count')
@@ -211,7 +213,7 @@ export const leaveChurch = async (userId: string): Promise<boolean> => {
         .update({ member_count: Math.max(0, (church.member_count || 1) - 1) })
         .eq('id', churchId);
     }
-  });
+  }
 
   return true;
 };
