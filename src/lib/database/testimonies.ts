@@ -79,6 +79,45 @@ export const createTestimony = async (userId: string, testimonyData: TestimonyDa
 };
 
 /**
+ * Get a single testimony by its UUID — used by the public landing page.
+ * Includes the author's user record so the caller has display_name / username.
+ */
+export const getTestimonyById = async (testimonyId: string): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await (supabase as any)
+    .from('testimonies')
+    .select(`
+      id,
+      user_id,
+      title,
+      content,
+      pull_quote,
+      visibility,
+      badge_color,
+      badge_door,
+      created_at,
+      is_public,
+      users:user_id (
+        id,
+        username,
+        display_name,
+        avatar_emoji,
+        avatar_url
+      )
+    `)
+    .eq('id', testimonyId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching testimony by ID:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
  * Get testimony by user ID
  */
 export const getTestimonyByUserId = async (userId: string): Promise<any> => {
