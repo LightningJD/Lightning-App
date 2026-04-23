@@ -101,6 +101,46 @@ export const getTestimonyByUserId = async (userId: string): Promise<any> => {
 };
 
 /**
+ * Get testimony by ID — works for anonymous (unauthenticated) callers.
+ * Includes the author's user row for display name, and church_id for
+ * an optional follow-up church lookup.
+ */
+export const getTestimonyById = async (testimonyId: string): Promise<any> => {
+  if (!supabase) return null;
+
+  const { data, error } = await (supabase as any)
+    .from('testimonies')
+    .select(`
+      id,
+      user_id,
+      title,
+      content,
+      pull_quote,
+      badge_color,
+      badge_door,
+      visibility,
+      created_at,
+      users:user_id (
+        id,
+        username,
+        display_name,
+        avatar_emoji,
+        avatar_url,
+        church_id
+      )
+    `)
+    .eq('id', testimonyId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching testimony by id:', error);
+    return null;
+  }
+
+  return data;
+};
+
+/**
  * Update testimony
  * @param testimonyId - ID of testimony to update
  * @param userId - ID of user making the update (for authorization)
