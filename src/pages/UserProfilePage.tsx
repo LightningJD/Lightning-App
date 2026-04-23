@@ -133,6 +133,7 @@ const UserProfilePage: React.FC = () => {
       content: testimony.content,
       lesson: testimony.lesson,
       pull_quote: testimony.pull_quote,
+      badge_color: testimony.badge_color || null,
       viewCount: testimony.view_count || 0,
       likeCount: testimony.like_count || 0,
     } : undefined,

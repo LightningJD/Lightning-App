@@ -1074,6 +1074,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
         testimonyId={profile?.story?.id || ""}
         testimonyText={profile?.story?.content || profile?.story?.text || ""}
         profileName={profile?.name || profile?.displayName || "Someone"}
+        badgeColor={profile?.story?.badge_color ?? undefined}
+        pullQuote={profile?.story?.pull_quote ?? undefined}
+        authorName={profile?.name || profile?.displayName || "Someone"}
+        churchName={profile?.churchName ?? undefined}
       />
 
 

@@ -140,6 +140,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         content: testimony.content,
         lesson: testimony.lesson,
         pull_quote: testimony.pull_quote,
+        badge_color: testimony.badge_color || null,
         viewCount: testimony.view_count || 0,
         likeCount: testimony.like_count || 0,
         // BUG-H: surface the testimony's visibility so ProfileTab can render
@@ -154,6 +155,7 @@ const OtherUserProfileDialog: React.FC<OtherUserProfileDialogProps> = ({
         content: user.story.content,
         lesson: user.story.lesson,
         pull_quote: user.story.pull_quote,
+        badge_color: user.story.badge_color || null,
         viewCount: 0,
         likeCount: user.story.likeCount || 0,
         visibility: user.story.visibility,

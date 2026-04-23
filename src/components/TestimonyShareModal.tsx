@@ -1,5 +1,8 @@
-import React, { useState } from "react";
-import { X, Copy, Check, Link2, MessageCircle } from "lucide-react";
+import React, { useState, useRef } from "react";
+import html2canvas from "html2canvas";
+import { X, Copy, Check, Link2, MessageCircle, Download } from "lucide-react";
+import TestimonyCard from "./TestimonyCard";
+import { isValidBadgeColor, type BadgeColor } from "../config/badgeConfig";
 
 interface TestimonyShareModalProps {
   nightMode: boolean;
@@ -8,6 +11,10 @@ interface TestimonyShareModalProps {
   testimonyId: string;
   testimonyText: string;
   profileName: string;
+  badgeColor?: string;
+  pullQuote?: string;
+  authorName?: string;
+  churchName?: string;
 }
 
 const TestimonyShareModal: React.FC<TestimonyShareModalProps> = ({
@@ -17,14 +24,22 @@ const TestimonyShareModal: React.FC<TestimonyShareModalProps> = ({
   testimonyId,
   testimonyText,
   profileName,
+  badgeColor,
+  pullQuote,
+  authorName,
+  churchName,
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   if (!isOpen) return null;
 
   const shareUrl = `https://lightningsocial.io/testimony/${testimonyId}`;
   const shareText = `Be encouraged by ${profileName}'s testimony on Lightning ✨`;
+  const displayName = authorName ?? profileName;
+  const validBadgeColor = badgeColor && isValidBadgeColor(badgeColor) ? badgeColor as BadgeColor : null;
 
   const handleCopyLink = async () => {
     try {
@@ -60,6 +75,27 @@ const TestimonyShareModal: React.FC<TestimonyShareModalProps> = ({
   const handleShareWhatsApp = () => {
     const url = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${shareUrl}`)}`;
     window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleSaveCard = async () => {
+    if (!cardRef.current || saving) return;
+    setSaving(true);
+    try {
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false,
+      });
+      const link = document.createElement("a");
+      link.download = `testimony-card.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch {
+      /* Download failed silently */
+    } finally {
+      setSaving(false);
+    }
   };
 
   const nm = nightMode;
@@ -121,7 +157,72 @@ const TestimonyShareModal: React.FC<TestimonyShareModalProps> = ({
           </div>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+          {/* TestimonyCard Preview — only shown when badge color + pull quote are available */}
+          {validBadgeColor && pullQuote && (
+            <div>
+              <label
+                className={`block text-xs font-semibold mb-2.5 ${nm ? "text-white/40" : "text-black/40"}`}
+              >
+                Share Card
+              </label>
+              {/* Negative margins to use full modal width (offsets the p-5 padding) */}
+              <div
+                style={{
+                  margin: "0 -20px",
+                  display: "flex",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                  marginBottom: 12,
+                }}
+              >
+                <div ref={cardRef} style={{ width: 360 }}>
+                  <TestimonyCard
+                    badgeColor={validBadgeColor}
+                    pullQuote={pullQuote}
+                    authorName={displayName}
+                    churchName={churchName}
+                    testimonyId={testimonyId}
+                  />
+                </div>
+              </div>
+              <button
+                onClick={handleSaveCard}
+                disabled={saving}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all active:scale-95 ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
+                style={{
+                  background: nm
+                    ? "rgba(255,255,255,0.04)"
+                    : "rgba(255,255,255,0.5)",
+                  border: `1px solid ${nm ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
+                }}
+              >
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #4F96FF 0%, #2563eb 100%)",
+                    boxShadow: "0 2px 8px rgba(59,130,246,0.25)",
+                  }}
+                >
+                  <Download className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p
+                    className={`text-sm font-semibold ${nm ? "text-white" : "text-black"}`}
+                  >
+                    {saving ? "Saving..." : "Save as Image"}
+                  </p>
+                  <p
+                    className={`text-xs ${nm ? "text-white/40" : "text-black/40"}`}
+                  >
+                    Download your testimony card as a PNG
+                  </p>
+                </div>
+              </button>
+            </div>
+          )}
+
           {/* Copy Link */}
           <button
             onClick={handleCopyLink}
