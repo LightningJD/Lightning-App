@@ -9,7 +9,6 @@ export interface TestimonyQuestion {
     id: string;
     question: string;
     placeholder: string;
-    hint: string;
     minLength: number; // Minimum character count
     suggestedLength: number; // Suggested character count for a strong testimony
 }
@@ -17,33 +16,29 @@ export interface TestimonyQuestion {
 export const TESTIMONY_QUESTIONS: TestimonyQuestion[] = [
     {
         id: 'question1',
-        question: 'How was your life like before you were saved?',
-        placeholder: 'Describe your life before salvation — what you were going through, your background, what a normal day looked like...',
-        hint: 'What were you going through? Were you raised in a Christian home? What was your background like?',
+        question: 'How was your life before you were saved?',
+        placeholder: 'What were you going through? Were you raised in a Christian home? What was your background like?',
         minLength: 70,
         suggestedLength: 200
     },
     {
         id: 'question2',
         question: 'What led you to salvation or your own personal relationship with God?',
-        placeholder: 'Share what led you to God — a person, event, moment of realization...',
-        hint: 'Was there a person, event, realization, or a series of circumstances that started it?',
+        placeholder: 'Was there a person, event, realization, or a series of circumstances that started it?',
         minLength: 70,
         suggestedLength: 200
     },
     {
         id: 'question3',
         question: 'Was there a specific moment that was the turning point in your relationship with God? Or did you have a specific experience with God in some way?',
-        placeholder: 'Describe the turning point or specific experience — take us to that moment in detail...',
-        hint: 'Describe in detail this moment or experience for others.',
+        placeholder: 'Describe in detail this moment or experience for others. Be specific.',
         minLength: 70,
         suggestedLength: 200
     },
     {
         id: 'question4',
         question: 'What do you believe God is calling you to do now? What are you being led to? How is your walk with Him today?',
-        placeholder: 'Share what you feel God is calling you toward — your current walk with Him, what He\'s leading you into...',
-        hint: 'What do you sense God calling you to? What are you being led toward? How is your relationship with Him right now?',
+        placeholder: 'What do you sense God calling you to? What are you being led toward? How is your relationship with Him right now?',
         minLength: 70,
         suggestedLength: 200
     }
