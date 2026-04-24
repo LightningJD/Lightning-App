@@ -23,7 +23,6 @@ import {
   findChurchByName,
   resolveReferralCode,
   createPendingReferral,
-  checkAndRunBpReset,
   recordDeviceFingerprint,
   updateOnlineStatus,
   supabase,
@@ -594,9 +593,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (err) {
       console.error("Device fingerprint error:", err);
     }
-    checkAndRunBpReset().catch((err) => {
-      console.error("BP reset check error:", err);
-    });
   }, [isAuthenticated, userProfile?.supabaseId]);
 
   // Auto-save guest testimony

@@ -420,8 +420,6 @@ export const isAdmin = async (userId: string): Promise<boolean> => {
       .single();
 
     if (error) {
-      // If role column doesn't exist yet, fail gracefully
-      console.error('Error checking admin status:', error);
       return false;
     }
 
