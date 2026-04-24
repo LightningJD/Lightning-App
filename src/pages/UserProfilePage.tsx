@@ -133,6 +133,8 @@ const UserProfilePage: React.FC = () => {
       content: testimony.content,
       lesson: testimony.lesson,
       pull_quote: testimony.pull_quote,
+      badge_color: testimony.badge_color,
+      visibility: testimony.visibility || 'my_church',
       viewCount: testimony.view_count || 0,
       likeCount: testimony.like_count || 0,
     } : undefined,
