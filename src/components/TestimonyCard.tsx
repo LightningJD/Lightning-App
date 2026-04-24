@@ -22,48 +22,54 @@ export interface TestimonyCardProps {
 }
 
 // ============================================
-// COLOR HELPERS
+// COLOR PALETTE — matches the new design mockup
 // ============================================
 
-/**
- * Lighten a hex color by a factor (0 = no change, 1 = white).
- * Used to create the pastel gradient backgrounds.
- */
-function lightenHex(hex: string, factor: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  const lr = Math.min(255, Math.round(r + (255 - r) * factor));
-  const lg = Math.min(255, Math.round(g + (255 - g) * factor));
-  const lb = Math.min(255, Math.round(b + (255 - b) * factor));
-  return `rgb(${lr}, ${lg}, ${lb})`;
+interface CardPalette {
+  base: string;
+  c1: string;
+  c2: string;
+  c3: string;
+  glow: string;
+  doorLabel: string;
 }
 
-/**
- * Darken a hex color by a factor (0 = black, 1 = no change).
- * Used for text colors that match the badge ramp.
- */
-function darkenHex(hex: string, factor: number): string {
-  const r = Math.round(parseInt(hex.slice(1, 3), 16) * factor);
-  const g = Math.round(parseInt(hex.slice(3, 5), 16) * factor);
-  const b = Math.round(parseInt(hex.slice(5, 7), 16) * factor);
-  return `rgb(${r}, ${g}, ${b})`;
-}
+const CARD_PALETTES: Record<BadgeColor, CardPalette> = {
+  red: {
+    base: '#FFE8EA', c1: '#FFCCD1', c2: '#FFB8C2', c3: '#FFDCE0', glow: '#FF7A85',
+    doorLabel: 'He saved me in the brokenness',
+  },
+  orange: {
+    base: '#FFE8D4', c1: '#FFD4B0', c2: '#FFC89A', c3: '#FFDDBE', glow: '#FF9A4F',
+    doorLabel: 'He saved me in the suffering',
+  },
+  yellow: {
+    base: '#FFF5D6', c1: '#FFEAA8', c2: '#FFE190', c3: '#FFF0BC', glow: '#F4C542',
+    doorLabel: 'He saved me in the emptiness',
+  },
+  green: {
+    base: '#DFF0E1', c1: '#C5E4C9', c2: '#B0DAB5', c3: '#D2E8D5', glow: '#5FBF6C',
+    doorLabel: 'He saved me in the loss',
+  },
+  blue: {
+    base: '#DDE7F5', c1: '#BED1EE', c2: '#A8C0E5', c3: '#CDD9EF', glow: '#4A7FD1',
+    doorLabel: 'He saved me in the searching',
+  },
+  indigo: {
+    base: '#E2DAF0', c1: '#CFC2E8', c2: '#BEAEE0', c3: '#D6CAED', glow: '#7859C4',
+    doorLabel: 'He saved me in the surrender',
+  },
+  violet: {
+    base: '#ECD4EE', c1: '#E0BEE2', c2: '#D6ACDA', c3: '#E6C8E9', glow: '#B05FC4',
+    doorLabel: 'He saved me in the inheritance',
+  },
+};
 
-/**
- * Mid-tone color for the pill label — darker than the pastel hex
- * but lighter than the dark text color.
- */
-function midToneHex(hex: string): string {
-  return darkenHex(hex, 0.65);
-}
+// Noise texture SVG (inline, no external dependency)
+const NOISE_SVG = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.25 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>")`;
 
-/**
- * Dark text color derived from the badge hex.
- */
-function darkTextHex(hex: string): string {
-  return darkenHex(hex, 0.3);
-}
+const TEXT_COLOR = '#1A1A2E';
+const TEXT_MUTED = 'rgba(26, 26, 46, 0.55)';
 
 // ============================================
 // COMPONENT
@@ -73,19 +79,12 @@ const TestimonyCard: React.FC<TestimonyCardProps> = ({
   badgeColor,
   pullQuote,
   authorName,
-  churchName,
   testimonyId,
 }) => {
   const config = BADGE_COLORS[badgeColor];
-  const hex = config.hex;
+  const palette = CARD_PALETTES[badgeColor];
   const colorName = badgeColor.charAt(0).toUpperCase() + badgeColor.slice(1);
-
-  // Derived colors
-  const bgGradientStart = lightenHex(hex, 0.35);
-  const bgGradientEnd = lightenHex(hex, 0.55);
-  const textColor = darkTextHex(hex);
-  const midColor = midToneHex(hex);
-  const patternColor = hex;
+  const doorType = config.label; // e.g. "Freedom", "Deep", etc.
 
   // QR code destination
   const shareUrl = `https://lightningsocial.io/testimony/${testimonyId}`;
@@ -93,165 +92,264 @@ const TestimonyCard: React.FC<TestimonyCardProps> = ({
   // Truncate pull quote if too long for the card
   const maxQuoteLength = 200;
   const displayQuote = pullQuote.length > maxQuoteLength
-    ? pullQuote.substring(0, maxQuoteLength).trim() + '…'
+    ? pullQuote.substring(0, maxQuoteLength).trim() + '\u2026'
     : pullQuote;
 
   return (
     <div
       style={{
-        width: 360,
-        minHeight: 480,
+        width: 320,
+        aspectRatio: '4 / 5',
         borderRadius: 20,
-        overflow: 'hidden',
         position: 'relative',
-        background: `linear-gradient(160deg, ${bgGradientStart}, ${bgGradientEnd})`,
-        fontFamily: "'Inter', 'DM Sans', system-ui, sans-serif",
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '22px 20px',
+        color: TEXT_COLOR,
+        boxShadow: `0 24px 48px -16px rgba(0,0,0,0.4), 0 0 60px -24px ${palette.glow}`,
+        fontFamily: "'Outfit', sans-serif",
       }}
     >
-      {/* Dot pattern overlay */}
+      {/* Animated gradient background */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: '-20%',
+          background: [
+            `radial-gradient(circle at 20% 20%, ${palette.c1} 0%, transparent 55%)`,
+            `radial-gradient(circle at 80% 30%, ${palette.c2} 0%, transparent 60%)`,
+            `radial-gradient(circle at 50% 85%, ${palette.c3} 0%, transparent 65%)`,
+            palette.base,
+          ].join(', '),
+          zIndex: 0,
+        }}
+      />
+
+      {/* Noise texture overlay */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          opacity: 0.12,
-          backgroundImage: `radial-gradient(circle at 2px 2px, ${patternColor} 0.8px, transparent 0.8px)`,
-          backgroundSize: '14px 14px',
+          backgroundImage: NOISE_SVG,
+          opacity: 0.3,
+          mixBlendMode: 'overlay' as const,
+          pointerEvents: 'none' as const,
+          zIndex: 1,
         }}
       />
 
-      {/* Card content */}
+      {/* === Card content (z-index: 2) === */}
+
+      {/* Brand mark */}
+      <div style={{ position: 'relative', zIndex: 2 }}>
+        <span
+          style={{
+            fontFamily: "'Outfit', sans-serif",
+            fontWeight: 500,
+            fontSize: 12,
+            letterSpacing: '0.22em',
+            color: TEXT_COLOR,
+            textTransform: 'uppercase' as const,
+            lineHeight: 1,
+          }}
+        >
+          Lightning
+        </span>
+      </div>
+
+      {/* Subhead */}
       <div
         style={{
           position: 'relative',
-          zIndex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          height: '100%',
-          minHeight: 480,
-          padding: '32px 28px',
-          color: textColor,
+          zIndex: 2,
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 8,
+          letterSpacing: '0.25em',
+          textTransform: 'uppercase' as const,
+          color: TEXT_MUTED,
+          marginTop: 20,
+          textAlign: 'center' as const,
         }}
       >
-        {/* Top row: LIGHTNING wordmark + color pill */}
-        <div
+        There&apos;s power in every testimony.
+      </div>
+
+      {/* Pull quote */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          marginTop: 14,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          padding: '4px 0',
+        }}
+      >
+        <p
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
+            fontFamily: "'Instrument Serif', serif",
+            fontStyle: 'italic',
+            color: TEXT_COLOR,
+            letterSpacing: '-0.01em',
+            fontSize: 14,
+            lineHeight: 1.3,
+            textAlign: 'center' as const,
+            margin: 0,
           }}
         >
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: 13,
-              letterSpacing: 4,
-              textTransform: 'uppercase' as const,
-              color: '#ffffff',
-            }}
-          >
-            Lightning
-          </span>
+          &ldquo;{displayQuote}&rdquo;
+        </p>
+      </div>
 
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: 1.5,
-              textTransform: 'uppercase' as const,
-              padding: '4px 14px',
-              borderRadius: 20,
-              color: midColor,
-              border: `1.5px solid ${midColor}`,
-              background: 'transparent',
-            }}
-          >
-            {colorName}
-          </span>
-        </div>
-
-        {/* Center: pull quote + author */}
-        <div style={{ textAlign: 'center', padding: '24px 0' }}>
-          <p
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 22,
-              lineHeight: 1.5,
-              marginBottom: 20,
-              margin: '0 0 20px 0',
-            }}
-          >
-            &ldquo;{displayQuote}&rdquo;
-          </p>
-
-          <p
-            style={{
-              fontWeight: 700,
-              fontSize: 16,
-              margin: 0,
-            }}
-          >
-            {authorName}
-          </p>
-
-          {churchName && (
-            <p
-              style={{
-                fontSize: 11,
-                opacity: 0.5,
-                marginTop: 4,
-              }}
-            >
-              {churchName}
-            </p>
-          )}
-        </div>
-
-        {/* Bottom row: scan CTA + QR code */}
+      {/* Hero color name */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          marginTop: 14,
+          textAlign: 'center' as const,
+          padding: '2px 0 6px',
+        }}
+      >
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            gap: 14,
+            fontFamily: "'Outfit', sans-serif",
+            fontWeight: 700,
+            fontSize: 42,
+            lineHeight: 0.95,
+            letterSpacing: '-0.035em',
+            color: TEXT_COLOR,
+            textTransform: 'uppercase' as const,
           }}
         >
-          <span
-            style={{
-              fontSize: 10,
-              letterSpacing: 1.5,
-              textTransform: 'uppercase' as const,
-              opacity: 0.55,
-              fontWeight: 500,
-              textAlign: 'right' as const,
-              lineHeight: 1.4,
-            }}
-          >
-            Scan
-            <br />
-            to read
-          </span>
+          {colorName}
+        </div>
+        <div
+          style={{
+            fontFamily: "'Outfit', sans-serif",
+            fontWeight: 400,
+            fontStyle: 'italic',
+            fontSize: 11,
+            marginTop: 3,
+            color: 'rgba(26, 26, 46, 0.85)',
+          }}
+        >
+          {palette.doorLabel}
+        </div>
+      </div>
 
+      {/* Spec row */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          marginTop: 14,
+          padding: '10px 0',
+          borderTop: '1px solid rgba(26, 26, 46, 0.18)',
+          borderBottom: '1px solid rgba(26, 26, 46, 0.18)',
+          display: 'grid',
+          gridTemplateColumns: '1.3fr 1fr 1fr',
+          gap: 8,
+          alignItems: 'center',
+        }}
+      >
+        {/* Index */}
+        <div style={{ textAlign: 'center' as const, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 42 }}>
           <div
             style={{
-              width: 72,
-              height: 72,
-              background: 'rgba(255, 255, 255, 0.85)',
-              borderRadius: 10,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 6.5,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase' as const,
+              color: TEXT_COLOR,
+              lineHeight: 1.7,
+              fontWeight: 500,
+            }}
+          >
+            <span style={{ display: 'block' }}>14 Doors</span>
+            <span style={{ display: 'block' }}>7 Colors</span>
+            <span style={{ display: 'block' }}>1 Salvation Story</span>
+          </div>
+        </div>
+
+        {/* Color */}
+        <div style={{ textAlign: 'center' as const, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 42, borderLeft: '1px solid rgba(26, 26, 46, 0.15)' }}>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: TEXT_MUTED }}>Color</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 12, color: TEXT_COLOR, marginTop: 3, letterSpacing: '-0.005em' }}>{colorName}</div>
+        </div>
+
+        {/* Door */}
+        <div style={{ textAlign: 'center' as const, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 42, borderLeft: '1px solid rgba(26, 26, 46, 0.15)' }}>
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: TEXT_MUTED }}>Door</div>
+          <div style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: 12, color: TEXT_COLOR, marginTop: 3, letterSpacing: '-0.005em' }}>{doorType}</div>
+        </div>
+      </div>
+
+      {/* Footer row */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          marginTop: 'auto',
+          paddingTop: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 10,
+        }}
+      >
+        {/* QR block */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              background: '#fff',
+              borderRadius: 5,
+              padding: 3,
+              flexShrink: 0,
+              boxShadow: '0 3px 10px rgba(0,0,0,0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1px solid rgba(0, 0, 0, 0.06)',
             }}
           >
             <QRCodeSVG
               value={shareUrl}
-              size={60}
-              level="M"
+              size={38}
+              level="H"
               bgColor="transparent"
-              fgColor={textColor}
+              fgColor={TEXT_COLOR}
             />
           </div>
+          <div
+            style={{
+              fontFamily: "'Outfit', sans-serif",
+              fontSize: 9,
+              color: 'rgba(26, 26, 46, 0.7)',
+              lineHeight: 1.3,
+            }}
+          >
+            <strong style={{ color: TEXT_COLOR, fontWeight: 600, fontStyle: 'italic' }}>
+              {authorName}
+            </strong>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div
+          style={{
+            fontFamily: "'Outfit', sans-serif",
+            fontWeight: 600,
+            fontSize: 11.5,
+            color: TEXT_COLOR,
+            letterSpacing: '-0.01em',
+            whiteSpace: 'nowrap' as const,
+          }}
+        >
+          Try it for yourself
         </div>
       </div>
     </div>
