@@ -290,12 +290,14 @@ async function classifyTestimonyBadge(
     });
 
     if (!response.ok) {
-      console.warn("Badge classification API error:", response.status);
+      const errBody = await response.text().catch(() => "(unreadable)");
+      console.error("Badge classification API error:", response.status, errBody);
       return null;
     }
 
     const data = (await response.json()) as any;
     const raw = data.content?.[0]?.type === "text" ? data.content[0].text : "";
+    console.log("Badge classification raw response:", JSON.stringify(raw));
 
     // Parse the JSON response
     const parsed = JSON.parse(raw.trim());
@@ -321,7 +323,7 @@ async function classifyTestimonyBadge(
     console.warn("Badge classification returned invalid data:", raw);
     return null;
   } catch (e) {
-    console.warn("Badge classification failed:", e);
+    console.error("Badge classification failed (full error):", e instanceof Error ? `${e.name}: ${e.message}` : e);
     return null;
   }
 }
