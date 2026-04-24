@@ -402,6 +402,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         ) {
           return { ...prev, ...userProfile };
         }
+        // Propagate story fields that can be added after initial cache (e.g. badge_color
+        // classified in the background after testimony was created and cached).
+        if (
+          prev.story &&
+          userProfile.story &&
+          prev.story.badge_color !== userProfile.story.badge_color
+        ) {
+          return { ...prev, story: { ...prev.story, badge_color: userProfile.story.badge_color } };
+        }
         const hasChanges = Object.keys(userProfile).some(
           (key: string) =>
             (userProfile as any)[key] !== (prev as any)[key] &&
@@ -422,6 +431,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     userProfile?.avatarImage,
     userProfile?.hasTestimony,
     userProfile?.story?.id,
+    userProfile?.story?.badge_color,
   ]);
 
   React.useEffect(() => {
