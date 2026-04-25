@@ -1,4 +1,4 @@
-# Voice Recording for Testimony Questionnaire — Spec
+# Voice Recording & Audio Conversation Mode for Testimony Questionnaire — Spec
 
 **Status:** Proposal / not yet implemented
 **Author:** Spec generated 2026-04-25
@@ -8,6 +8,24 @@
 - `src/contexts/AppContext.tsx` (`handleTestimonyQuestionnaireComplete`)
 - `functions/api/generate-testimony.ts`
 - `src/config/testimonyQuestions.ts`
+
+---
+
+## Spec at a glance — two phases
+
+This spec covers two related but distinct features. They share infrastructure (recording, STT, the `/api/transcribe` endpoint) but differ sharply in UX and scope. Implementing them as separate phases lets us ship value early and de-risk the bigger one.
+
+| | **Phase 1 — Voice Input** | **Phase 2 — Audio Conversation Mode** |
+|---|---|---|
+| **What** | Per-question toggle: type or speak your answer. Transcript appears for editing. | Hands-free podcast-style flow: app reads each question aloud, user responds verbally, app moves to next. |
+| **User mode toggle** | Per-question (Type / Speak) | Top-level mode (Type / Talk) chosen at the start |
+| **Inputs** | User's microphone | Microphone + speakers |
+| **New tech** | `MediaRecorder`, STT API | + Pre-generated TTS audio files, audio player, voice activity heuristics |
+| **Editing** | Always editable transcript | Transcript saved silently; review at the end before generation |
+| **Risk** | Low — input-layer only | Medium — new flow state machine, accessibility complexity |
+| **Estimated effort** | ~2–2.5 weeks | +1.5–2 weeks on top of Phase 1 |
+
+Sections 1–9 cover Phase 1. Section 10 covers Phase 2. Sections 11–13 cover shared concerns, open questions, and acceptance criteria.
 
 ---
 
@@ -32,7 +50,7 @@ Voice is therefore an **input-layer-only** feature. The Claude prompt, badge cla
 
 ---
 
-## 1. UX Flow
+## 1. UX Flow (Phase 1 — Voice Input)
 
 ### 1.1 Toggle placement
 
@@ -78,7 +96,11 @@ The recorder pane has five visual states:
 
 ### 1.4 First-time onboarding
 
-The first time a user opens the recorder in voice mode, show a 1-line tooltip: "Speak naturally — you can edit the text after." This appears once per user (localStorage flag, e.g. `lightning_voice_intro_seen`).
+The first time a user opens the recorder in voice mode, show a 1-line tooltip emphasizing the "no pressure" philosophy (see section 11.4 for the full messaging principle):
+
+> "Just talk naturally — Lightning's AI will shape your words into your testimony. Stumbles, pauses, even 'um' all get cleaned up."
+
+Show once per user (localStorage flag, e.g. `lightning_voice_intro_seen`).
 
 ---
 
@@ -541,18 +563,388 @@ CLAUDE.md security rule #8: never leak vendor errors. If Deepgram returns an err
 
 ---
 
-## 10. Open Questions / Decisions Needed Before Implementation
+## 10. Phase 2 — Audio Conversation Mode
 
-1. **STT vendor selection** — recommendation is Deepgram, requires sign-off.
-2. **Should voice be available for all 4 questions or only Q2/Q3?** Recommendation: all 4.
-3. **Multilingual?** If yes, this changes the vendor recommendation toward Whisper or Google.
-4. **Auth hardening** — should `/api/transcribe` (and `/api/generate-testimony`) start verifying Clerk JWTs in the body? This is the right move long-term but is out of scope for this feature.
-5. **Capacitor timing** — the spec covers it, but actual native testing waits until Capacitor is wired up in the project (today there are no Capacitor deps in `package.json`).
-6. **Cost ceiling** — at what monthly STT spend should we re-evaluate or add user quota? Recommend setting a billing alert at $300/mo on the chosen vendor.
+A hands-free, podcast-interview experience. The user picks "Talk" at the questionnaire intro, then never types or even reads the questions on screen — Lightning reads each question aloud, the user responds verbally, and the flow moves forward automatically. The product feel target is: **like being interviewed by a thoughtful friend on a podcast, not filling out a form.**
+
+This phase builds **on top of** Phase 1 — it reuses `useAudioRecorder`, `AudioRecorder`, `AudioWaveform`, `/api/transcribe`, and the entire STT path. The new pieces are TTS playback, a flow state machine, and a podcast-styled UI.
+
+### 10.1 Mode selection
+
+The intro screen ("Your Story Matters", lines 346–457 in `TestimonyQuestionnaire.tsx`) gains a third primary button OR a mode picker before the first question:
+
+```
+┌─────────────────────────────────────────┐
+│  How would you like to share?           │
+│                                         │
+│  ┌───────────────┐ ┌───────────────┐    │
+│  │ ⌨️  Type       │ │ 🎙️  Talk       │    │
+│  │  Write at     │ │  Just speak — │    │
+│  │  your pace    │ │  AI shapes it │    │
+│  └───────────────┘ └───────────────┘    │
+│                                         │
+│  Either way, Lightning's AI shapes      │
+│  your words into your testimony. You    │
+│  don't need to be perfect.              │
+│                                         │
+│            [I'm Ready →]                │
+└─────────────────────────────────────────┘
+```
+
+The reassurance copy under the picker is mandatory, not optional — the most common reason users abandon a voice flow is the worry that they'll mess it up on tape. See section 11.4 for the full messaging principle.
+
+Mode is chosen once and applies to all 4 questions. Inside Talk mode, the per-question Type/Speak toggle from Phase 1 is **hidden** — Talk is its own self-contained flow. The user can exit to Type mode at any time via a "Switch to typing" link in the corner (preserves answers gathered so far).
+
+### 10.2 The flow state machine
+
+Each question cycles through a finite set of states. The whole flow is one sequential state machine spanning all 4 questions:
+
+```
+[Intro tap]
+   ↓
+Q1 ─┬─→ playing-question      (TTS audio plays, waveform animates)
+    │      ↓ on audio end
+    ├─→ awaiting-response     (Respond button appears, idle)
+    │      ↓ tap Respond
+    ├─→ recording             (live timer, waveform, Stop button)
+    │      ↓ tap Stop
+    ├─→ transcribing          (spinner, "got it…")
+    │      ↓ on transcript ready
+    └─→ confirming            (1–2s pause, "Moving to question 2…")
+           ↓
+Q2 → playing-question → … (repeats)
+   …
+After Q4 confirming →
+[review-screen]              (all 4 transcripts shown, editable, then Generate)
+```
+
+**State-by-state visual treatment:**
+
+| State | UI |
+|---|---|
+| `playing-question` | Centered orb / waveform animation pulsing in time with TTS audio. Question text appears in subtitle below ("So you can read along if you'd like"). Mute / restart-question icons in corner. |
+| `awaiting-response` | Animation calms to a gentle idle pulse. Big circular **Respond** button center-screen. Subtle "Take your time" helper text. |
+| `recording` | Same orb shifts to red pulse. Timer mm:ss above. **Stop** button replaces Respond. Audio level meter feeds the orb size. |
+| `transcribing` | Soft shimmer animation. "Got it — one moment…" |
+| `confirming` | Brief affirmation: "Thanks. Question 3 coming up…" then auto-advance after ~1.5s. |
+
+The screen is intentionally minimal — most users won't read text. Background uses the existing `popOut` modal styling.
+
+### 10.3 The "podcast interview" feel
+
+Concrete design rules to hit the conversational target:
+
+1. **No question numbers, no progress bars during a turn.** Phase 1 shows `Question 2 of 4` and progress dots — those create form-anxiety. In Talk mode, hide them during play/record and only show a subtle 4-dot indicator on the confirmation transition.
+2. **Voice persona is consistent.** Same TTS voice across all 4 questions. Warm, unhurried, pastoral — not corporate / news-anchor / hyper-energetic. (Voice recommendations in 10.5.)
+3. **Conversational connectives.** The TTS recordings are NOT the exact textarea-style question strings. Re-author each question for spoken delivery — drop hints/placeholders, add gentle transitions:
+   - Written Q2: *"What led you to salvation or your own personal relationship with God?"*
+   - Spoken Q2: *"Take a moment and think about what led you to Him. Was it a person? An event? A series of moments? Tell me about it."*
+4. **Natural pauses.** Insert 0.5–1s of silence at the end of each TTS clip so the moment lands before the Respond button appears. SSML `<break time="800ms"/>` tags give precise control if the vendor supports SSML.
+5. **Affirmations between turns.** Pre-generate 3–4 short transition phrases ("Thanks for sharing.", "I appreciate that.", "Beautiful.") and randomly play one between questions. Users notice when something is identical every loop — variety sells the "interview" feel.
+6. **Encourage open answers.** No min-length validation visible during Talk mode. Backend still enforces minLength on the transcript — if a user answers in 4 seconds, the flow gently re-prompts: *"Could you tell me a little more about that?"* — also a pre-generated TTS clip.
+7. **"No pressure" framing throughout.** This is critical to Talk mode working at all — see section 11.4. The voice persona, the intro, the captions, and the silences all need to communicate that the user can ramble, restart, fumble, and trail off without hurting the result.
+
+### 10.4 TTS strategy — pre-generate, don't stream
+
+Per-user TTS API calls are unnecessary and expensive. The 4 questions, the transition affirmations, and the re-prompts are **fixed strings**. Generate them once, store the resulting MP3/OGG files as static assets, ship in the `public/audio/` bundle.
+
+**Why pre-generation wins here:**
+- Zero per-user TTS cost. Phase 2 adds zero ongoing TTS spend at any scale.
+- Zero playback latency. Files are CDN-cached by Cloudflare Pages alongside the rest of the static assets.
+- Reproducible voice. No vendor outage takes the feature down — once the files are in `public/`, they're permanent.
+- Easy A/B testing. Swap the audio bundle to test a different voice without code changes.
+
+**File layout:**
+
+```
+public/audio/talk-mode/
+├── question-1.mp3        ~15s
+├── question-1.ogg
+├── question-2.mp3
+├── question-2.ogg
+├── question-3.mp3
+├── question-3.ogg
+├── question-4.mp3
+├── question-4.ogg
+├── intro.mp3             ~10s — "Take your time. There are no wrong answers."
+├── reprompt-short.mp3    ~5s — for under-min answers
+├── transition-1.mp3      ~2s — "Thanks for sharing."
+├── transition-2.mp3      ~2s
+├── transition-3.mp3      ~2s
+├── transition-4.mp3      ~2s
+├── outro.mp3             ~10s — "Beautiful. Generating your testimony now…"
+└── manifest.json         { question1: "question-1.mp3", ... } — cache-busting hashes
+```
+
+Total budget: ~14 files, ~2–3 MB altogether. Trivial vs. the rest of the bundle.
+
+Provide both **MP3** (universal) and **OGG/Opus** (smaller, preferred where supported). Use an `<audio>` element with `<source>` fallback — the browser picks automatically.
+
+### 10.5 TTS vendor and voice selection
+
+Two strong vendors for one-time generation. Pick by listening to samples — voice quality is subjective and matters here more than infrastructure cost (since this is a one-time bake).
+
+**Recommendation: ElevenLabs.**
+
+| Vendor | Cost (one-time bake) | Voice quality | Notes |
+|---|---|---|---|
+| **ElevenLabs** | ~$0.15 per 1,000 chars on Multilingual v2 / Eleven Turbo. The full bundle is ~600 chars × 14 clips ≈ 8,400 chars ≈ **$1.30 to generate the whole pack once.** | Best-in-class for warm, expressive English. Wide voice library. SSML supported. | Use **Voice Design** or pick a stock voice. Recommended stock voices to audition: *Rachel* (warm, pastoral), *Adam* (deep, calm male), *Charlotte* (gentle female), *Daniel* (British, thoughtful). For a faith-oriented product, audition both a male and female option and let stakeholders pick. |
+| **OpenAI TTS** (`tts-1` / `tts-1-hd`) | $15 / 1M chars on `tts-1`, $30 / 1M on `tts-1-hd`. Bundle costs ~$0.13 / $0.25 once. | Solid; less expressive than ElevenLabs but very natural. 6 stock voices: alloy, echo, fable, onyx, nova, shimmer. | Recommended audition voices: *nova* (warm female), *fable* (British male, narrator quality), *onyx* (deep, calming male). HD model is worth the 2× cost for a one-time bake. |
+| **Google Cloud TTS** | ~$16 / 1M chars (Studio voices) | Decent; less character. WaveNet/Neural2 voices are closer to ElevenLabs. | Skip unless already on GCP. |
+
+**Voice selection criteria** (use during stakeholder audition):
+1. Warmth — does it sound like someone who cares about the listener?
+2. Pace — slow enough to give weight to the questions; not sluggish.
+3. Faith-context appropriateness — neither overly religious-broadcaster nor secular-corporate.
+4. Accent neutrality — broadly accessible to a US audience as the primary market; consider second voice for non-US later.
+5. Recordability across all 4 questions — some voices are great for short utterances but feel uneven across longer scripts. Audition with the actual question text, not a generic test sentence.
+
+Bake script (run once, manually, by a developer with the API key):
+
+```
+scripts/generate-talk-audio.ts   (one-off, NOT shipped to client)
+  - Reads scripts from src/config/talkModeScripts.ts
+  - Calls ElevenLabs API with chosen voice ID
+  - Writes MP3 + OGG into public/audio/talk-mode/
+  - Generates manifest.json with content hashes
+```
+
+The API key for the bake lives in a developer's local `.env` — never in CI, never in the client. Re-run the script only when scripts change or voice is replaced.
+
+### 10.6 Audio player component
+
+**`src/components/QuestionAudioPlayer.tsx`** (new)
+
+```ts
+interface QuestionAudioPlayerProps {
+  src: string;                          // /audio/talk-mode/question-2.mp3
+  autoPlay?: boolean;                   // true in Talk flow
+  onEnded: () => void;                  // advance state machine
+  onError: (err: Error) => void;        // fall back to text rendering
+  showCaption?: boolean;                // accessibility caption underneath
+  caption?: string;                     // the actual question text
+}
+```
+
+Renders:
+- Centered audio waveform (reuses `AudioWaveform` from Phase 1, fed from a `MediaElementAudioSourceNode` instead of a mic stream)
+- Optional caption (always show in Talk mode for accessibility — see 13.3)
+- Mute and replay icons (smaller, secondary)
+
+Implementation note: chain the `<audio>` element through Web Audio API to feed the existing `AudioWaveform` analyser. Same visual component, different source — keeps the design consistent across question playback and user recording.
+
+**`src/hooks/useTalkFlow.ts`** (new — orchestrates the state machine)
+
+```ts
+function useTalkFlow(opts: {
+  questions: TestimonyQuestion[];
+  onAllAnswersComplete: (answers: TestimonyAnswers) => void;
+}) {
+  return {
+    state: 'idle' | 'intro' | 'playing-question' | 'awaiting-response'
+         | 'recording' | 'transcribing' | 'confirming' | 'reviewing',
+    currentQuestionIndex: number,
+    answers: Partial<TestimonyAnswers>,
+    currentQuestionAudioSrc: string,
+    transitionAudioSrc: string | null,   // played between turns
+    startTalkFlow(): void,
+    onQuestionAudioEnded(): void,
+    startRecording(): Promise<void>,
+    stopRecording(): Promise<void>,
+    skipToTextMode(): void,               // graceful exit
+  };
+}
+```
+
+This hook owns the entire conversation flow. It composes `useAudioRecorder` (mic) and a small playback hook (TTS) — neither should know about the other.
+
+### 10.7 Review screen at the end
+
+After Q4's transcription completes, **always** show a review screen before generation:
+
+- All 4 transcripts displayed in cards, each editable
+- A "Read it back to me" toggle that plays back the user's own recordings (we kept them in browser memory; they're never uploaded to storage — see 13.2)
+- A primary "Generate my testimony" button that hands the answers to the existing `handleGenerateTestimony` flow
+
+This is the only point in Talk mode where the user reads their own words. STT errors must have a chance to be caught — silently sending unedited STT to Claude in a fully-audio flow would compound errors badly.
+
+### 10.8 Required files — Phase 2
+
+| File | Purpose |
+|---|---|
+| `src/components/TalkMode.tsx` | Top-level Talk mode flow component — shown when user picks Talk |
+| `src/components/QuestionAudioPlayer.tsx` | TTS playback + waveform |
+| `src/components/TalkModeReviewScreen.tsx` | End-of-flow review/edit |
+| `src/hooks/useTalkFlow.ts` | State machine |
+| `src/hooks/useAudioPlayback.ts` | Audio element + Web Audio API analyser hook |
+| `src/config/talkModeScripts.ts` | The 14 spoken-text strings (input to bake script) |
+| `scripts/generate-talk-audio.ts` | **Dev-only** TTS bake script — not shipped |
+| `public/audio/talk-mode/*` | The 14 generated MP3/OGG files + manifest |
+
+Changes to `TestimonyQuestionnaire.tsx`: add the mode picker on the intro screen, branch to `<TalkMode />` when "Talk" is chosen. Existing typed flow is untouched.
+
+### 10.9 Mobile considerations (Phase 2)
+
+**Audio playback on mobile is constrained by browser autoplay policies.** Both iOS Safari and Android Chrome require a user gesture before any audio plays. Practical implications:
+
+1. The "I'm Ready" / "Start" button **must directly trigger** the first `audio.play()` — don't put async work between the tap and the play call.
+2. Subsequent audio (transitions, next question) is allowed to autoplay because the audio context was already unlocked by step 1.
+3. If iOS Safari is in **silent mode**, HTML `<audio>` plays via the ringer-respecting category by default — meaning audio will be muted. Use the Web Audio API path (which uses the media category and ignores the silent switch) to ensure playback works regardless of the silent switch. This is a critical iOS gotcha.
+
+**Capacitor specifics:**
+- Use `@capacitor/filesystem` only if loading audio from native storage; for bundled `public/audio/` files, the WebView fetches them like any other static asset.
+- iOS audio session category should be `playAndRecord` while in Talk mode (allows simultaneous mic + speaker). Set via `@capacitor-community/native-audio` or a small plugin if the WebView default doesn't suffice.
+- Test with Bluetooth headsets — recording-while-playing flows often expose Bluetooth quirks (echo, dropped frames). Verify on at least one AirPods session and one Android Bluetooth set during QA.
+- Speakerphone vs earpiece routing: iOS may default to the earpiece (small top speaker) when `playAndRecord` is active. Force speaker output explicitly so testimonies aren't whispered out the earpiece.
+- The orange (mic) and green (mic+camera) iOS status indicators will flicker as the mode swaps between recording and playback. This is expected — but verify the mic indicator goes away during pure playback states. If it persists, we're holding the mic stream too long.
+
+**Permissions copy** (extends Phase 1's Info.plist string): no change needed — same `NSMicrophoneUsageDescription` covers Talk mode. Audio playback requires no permission.
+
+### 10.10 Phase 2 telemetry
+
+Add events to the `transcription_attempts` table or a new `talk_flow_events` table:
+
+- Mode chosen (typed | voice-input | talk)
+- Talk-mode completion rate per question (drop-off curve)
+- Re-prompt trigger rate (how often answers were too short)
+- Switch-to-typing rate (how often users bail mid-flow)
+- Average transcript length in Talk mode vs Voice Input vs Typed
+
+Talk mode either dramatically increases testimony completion (the bet) or it confuses users — these metrics tell us which.
+
+### 10.11 Phase 2 timeline
+
+On top of Phase 1's ~2–2.5 weeks:
+
+| # | Task | Est. | Dependencies |
+|---|---|---|---|
+| P2-1 | Author the 14 talk scripts — questions, intro, transitions, re-prompt, outro | 0.5d | — |
+| P2-2 | Audition 4–6 voices across ElevenLabs + OpenAI; stakeholder pick | 0.5d | P2-1 |
+| P2-3 | Write `scripts/generate-talk-audio.ts` bake script; produce final files | 0.5d | P2-2 |
+| P2-4 | Build `useAudioPlayback` hook + `QuestionAudioPlayer` component | 1d | P2-3 |
+| P2-5 | Build `useTalkFlow` state machine | 1.5d | P2-4 + Phase 1 done |
+| P2-6 | Build `TalkMode` orchestrator component (intro / per-question / between-states) | 1.5d | P2-5 |
+| P2-7 | Build `TalkModeReviewScreen` (review/edit before generation) | 1d | P2-5 |
+| P2-8 | Mode picker on `TestimonyQuestionnaire` intro screen + handoff plumbing | 0.5d | P2-6 |
+| P2-9 | Mobile QA: iOS Safari (incl. silent switch), Android Chrome, Bluetooth headset | 1d | P2-8 |
+| P2-10 | Capacitor QA on real device(s) — only if/when Capacitor wired up | 0.5d | P2-9 |
+| P2-11 | Accessibility QA: captions, screen reader interaction, keyboard escape | 0.5d | P2-8 |
+| P2-12 | Telemetry wiring + dashboard | 0.5d | P2-8 |
+
+**Phase 2 total: ~8–9 days on top of Phase 1, realistic shipping ~1.5–2 weeks** with buffer.
+
+**Combined Phase 1 + Phase 2 shipping window: ~4–4.5 weeks of focused work.**
+
+### 10.12 Phase 2 acceptance criteria
+
+- [ ] Mode picker renders on the questionnaire intro and persists user's pick across the flow.
+- [ ] First question audio plays within 500ms of tapping "I'm Ready" on iOS Safari (silent switch on AND off).
+- [ ] State machine progresses without user input from `playing-question` → `awaiting-response` automatically.
+- [ ] Tapping Respond starts recording immediately; tapping Stop ends it cleanly.
+- [ ] After Stop, transcription completes and the next question's audio starts within 3s on a typical connection.
+- [ ] Under-minimum answers trigger the re-prompt clip exactly once before allowing advance.
+- [ ] User can switch to typing mid-flow without losing previously gathered transcripts.
+- [ ] Review screen displays all 4 transcripts editable, with optional playback of own recordings.
+- [ ] On Capacitor iOS, audio plays through the speaker (not earpiece) and the orange mic indicator clears between turns.
+- [ ] No TTS API calls made at runtime — all audio served from `public/audio/talk-mode/` (verify in network tab).
+- [ ] Accessibility: spoken question text is also rendered as a caption; "Switch to typing" is keyboard-reachable; ESC exits to typed mode.
+- [ ] **"No pressure" messaging visible in all required surfaces** (per section 11.3): mode picker subtext, intro audio, Respond helper text, re-prompt audio, review screen header. Removing any of these is a regression.
+- [ ] Intro audio explicitly references that the AI shapes the user's words — not just generic encouragement.
 
 ---
 
-## 11. Acceptance Criteria
+## 11. Shared Concerns Across Both Phases
+
+### 11.1 Captioning and accessibility
+
+Talk mode is voice-first, but it must remain usable by deaf and hard-of-hearing users. **Always render the question text as a visible caption** under the audio waveform — even when the audio is playing. The caption is also a fallback if audio fails to load.
+
+For users who rely on screen readers: the mode picker on the intro screen must be properly labeled (`aria-label="Talk mode — hands-free, audio-guided"`). When in Talk mode, announce state transitions via `aria-live="polite"` regions.
+
+### 11.2 Audio retention — recap and clarification
+
+Phase 1 policy (section 9.2) extends to Phase 2 with one addition: in Talk mode the user's own recordings are held **in-browser memory only** for the optional "Read it back to me" toggle on the review screen. They are:
+- Never uploaded to any storage layer
+- Never persisted across page reload
+- Released as soon as the user finishes generation OR navigates away
+
+Pre-generated TTS files (the questions, transitions, etc.) are static assets — public, cacheable, no privacy concern.
+
+### 11.3 Messaging philosophy — "you don't have to be perfect"
+
+This is the single most important UX principle for both phases. Voice flows fail when users freeze up because they're worried about sounding articulate, fumbling, or "doing it wrong." The TestimonyQuestionnaire is asking people to speak about deeply personal moments — the bar for being "polished on the first take" is impossibly high.
+
+**The core promise to the user:** *Just talk naturally. Lightning's AI shapes your words into your testimony. Stumbles, pauses, restarts — it all gets cleaned up.*
+
+This is not marketing fluff — it's true. The existing `TESTIMONY_PROMPT` in `functions/api/generate-testimony.ts` (lines 332+) explicitly instructs Claude to "Rephrase their words into polished, flowing first-person prose," "Fix grammar, spelling, and awkward phrasing," and "Use varied sentence structure." The polishing is already happening for typed answers. Voice answers go through the exact same pipeline. The user's raw transcript IS the input the AI is designed to clean up.
+
+**Where this messaging must appear (and not just once):**
+
+| Surface | Copy direction |
+|---|---|
+| Phase 1 voice toggle first-tap tooltip | "Just talk naturally — Lightning's AI will shape your words into your testimony. Stumbles, pauses, even 'um' all get cleaned up." (already specified in 1.4) |
+| Phase 2 mode picker subtext | "Either way, Lightning's AI shapes your words into your testimony. You don't need to be perfect." (already specified in 10.1) |
+| Phase 2 intro audio (`intro.mp3`) | Spoken script: *"Take your time. There are no wrong answers here. Just talk like you're telling a friend — Lightning will shape it into your testimony."* |
+| Phase 2 Respond button helper text | "Take your time. Pause, restart, ramble — it all comes out polished." |
+| Phase 2 first-recording tooltip (one-time) | Same as Phase 1 tooltip, adapted for context. |
+| Re-prompt clip (`reprompt-short.mp3`) | Spoken script: *"That's a great start. Tell me a little more — don't worry about it sounding perfect, just keep going."* |
+| Review screen header (Phase 2) | "Here's what you said. The AI will polish this into your testimony — feel free to edit if anything's off." |
+
+**Tone rules for all of this copy:**
+
+1. **Casual, not clinical.** Avoid "do not worry about errors" — say "don't worry about messing up." Match the warm, friend-talking-to-friend register the testimony itself aims for.
+2. **Specific reassurances beat generic ones.** "Stumbles, pauses, even 'um'" lands harder than "speak however you want" — naming the exact things people are anxious about ("am I going to say 'um' too much?") tells them you've thought about it.
+3. **Show the mechanism, briefly.** "Lightning's AI shapes your words" — naming the AI as an active editor (not a passive recorder) is what makes the reassurance credible. Without that, "don't worry about being perfect" sounds like empty cheerleading.
+4. **Never apologize for the AI.** Don't say "the AI will try its best to clean it up." Confidence: "the AI shapes your words." If we're not confident the polishing works, the feature isn't ready.
+5. **Repeat in different surfaces.** Users skim. Saying it once is functionally the same as saying it never. Onboarding tooltip + intro audio + Respond helper text + review header = roughly the right repetition density.
+
+**What NOT to say:**
+- "Recording…" (technical and stiff — use "Listening…" or "Got it" or just the visual)
+- "Please speak clearly" (it implies they could fail)
+- "Maximum 3 minutes" as a banner (it implies they might run out — only show as a soft warning at 2:30)
+- Anything about the transcript being "automatically generated" — emphasize the AI shaping/polishing, not the transcription step
+
+**Why this section is at the architecture level, not just copy:**
+
+The "no pressure" promise constrains design decisions throughout the spec:
+- It's why the Respond button copy and the pre-Respond pause matter (sec 10.2 — `awaiting-response` state with "Take your time")
+- It's why we don't show a live word counter during Talk recording (would create pressure)
+- It's why the re-prompt clip is gentle, not corrective
+- It's why we play random affirmations between questions (sec 10.3 #5)
+- It's why all 4 transcripts are editable on the review screen (sec 10.7) — but framed as "feel free to edit," not "please review for errors"
+
+Every contributor should treat this section as load-bearing. If a future change to copy or UX would dilute the "you don't have to be perfect" promise, it should be pushed back on.
+
+### 11.4 Cost summary at scale
+
+Assuming 10,000 testimonies/month × 4 questions × ~1.3 attempts (Phase 1 metric):
+
+| Phase | Per-month cost driver | Estimated cost |
+|---|---|---|
+| Phase 1 STT (Deepgram) | ~52,000 minutes transcribed | **~$224/mo** |
+| Phase 2 TTS | One-time bake of 14 files | **~$1.30 once, $0/mo ongoing** |
+| Phase 2 STT | Same volume as Phase 1 (Talk mode users still transcribe) | $0 incremental — already counted above |
+
+Phase 2 adds essentially zero ongoing variable cost. The investment is engineering time + a tiny one-off TTS bake.
+
+---
+
+## 12. Open Questions / Decisions Needed Before Implementation
+
+1. **STT vendor selection** — recommendation is Deepgram, requires sign-off.
+2. **Should voice be available for all 4 questions or only Q2/Q3?** Recommendation: all 4.
+3. **Multilingual?** If yes, this changes the vendor recommendation toward Whisper or Google AND requires re-baking Phase 2 audio files for each language.
+4. **Auth hardening** — should `/api/transcribe` (and `/api/generate-testimony`) start verifying Clerk JWTs in the body? This is the right move long-term but is out of scope for this feature.
+5. **Capacitor timing** — the spec covers it, but actual native testing waits until Capacitor is wired up in the project (today there are no Capacitor deps in `package.json`).
+6. **Cost ceiling** — at what monthly STT spend should we re-evaluate or add user quota? Recommend setting a billing alert at $300/mo on the chosen vendor.
+7. **Phase 2 ship together or after Phase 1?** Recommendation: ship Phase 1 first, observe usage for 2 weeks, then ship Phase 2. Real Phase 1 data informs Phase 2 design.
+8. **TTS vendor + voice** — needs a stakeholder audition session (P2-2 in the timeline). Recommendation: ElevenLabs, but the audition is the actual decision.
+9. **Talk mode for guests?** — recommendation: yes. Same rate-limiting model as Phase 1 covers it.
+10. **Re-prompting threshold** — at what transcript length should the re-prompt fire? Recommend < 30 chars OR < 5 words. Make it configurable in code, not hardcoded.
+
+---
+
+## 13. Phase 1 Acceptance Criteria
 
 A feature reviewer should be able to verify each:
 
@@ -568,3 +960,4 @@ A feature reviewer should be able to verify each:
 - [ ] On iOS Safari, the orange mic indicator disappears immediately after Stop.
 - [ ] Privacy policy is updated and references the chosen STT vendor.
 - [ ] Telemetry dashboard shows STT success rate, average duration, retry rate.
+- [ ] First-tap voice tooltip displays the section 1.4 / 11.3 "no pressure" copy and references that the AI shapes the user's words.
