@@ -98,7 +98,7 @@ The recorder pane has five visual states:
 
 The first time a user opens the recorder in voice mode, show a 1-line tooltip emphasizing the "no pressure" philosophy (see section 11.4 for the full messaging principle):
 
-> "Just talk naturally — Lightning's AI will shape your words into your testimony. Stumbles, pauses, even 'um' all get cleaned up."
+> "Just talk, don't worry about messing up. Lightning's AI service will capture what is being said and help you write it."
 
 Show once per user (localStorage flag, e.g. `lightning_voice_intro_seen`).
 
@@ -874,7 +874,7 @@ Pre-generated TTS files (the questions, transitions, etc.) are static assets —
 
 This is the single most important UX principle for both phases. Voice flows fail when users freeze up because they're worried about sounding articulate, fumbling, or "doing it wrong." The TestimonyQuestionnaire is asking people to speak about deeply personal moments — the bar for being "polished on the first take" is impossibly high.
 
-**The core promise to the user:** *Just talk naturally. Lightning's AI shapes your words into your testimony. Stumbles, pauses, restarts — it all gets cleaned up.*
+**The core promise to the user:** *Just talk, don't worry about messing up. Lightning's AI service will capture what is being said and help you write it.*
 
 This is not marketing fluff — it's true. The existing `TESTIMONY_PROMPT` in `functions/api/generate-testimony.ts` (lines 332+) explicitly instructs Claude to "Rephrase their words into polished, flowing first-person prose," "Fix grammar, spelling, and awkward phrasing," and "Use varied sentence structure." The polishing is already happening for typed answers. Voice answers go through the exact same pipeline. The user's raw transcript IS the input the AI is designed to clean up.
 
@@ -882,7 +882,7 @@ This is not marketing fluff — it's true. The existing `TESTIMONY_PROMPT` in `f
 
 | Surface | Copy direction |
 |---|---|
-| Phase 1 voice toggle first-tap tooltip | "Just talk naturally — Lightning's AI will shape your words into your testimony. Stumbles, pauses, even 'um' all get cleaned up." (already specified in 1.4) |
+| Phase 1 voice toggle first-tap tooltip | "Just talk, don't worry about messing up. Lightning's AI service will capture what is being said and help you write it." (already specified in 1.4) |
 | Phase 2 mode picker subtext | "Either way, Lightning's AI shapes your words into your testimony. You don't need to be perfect." (already specified in 10.1) |
 | Phase 2 intro audio (`intro.mp3`) | Spoken script: *"Take your time. There are no wrong answers here. Just talk like you're telling a friend — Lightning will shape it into your testimony."* |
 | Phase 2 Respond button helper text | "Take your time. Pause, restart, ramble — it all comes out polished." |

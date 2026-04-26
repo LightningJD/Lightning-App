@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, ArrowLeft, Sparkles, Loader, BookOpen } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Sparkles, Loader, BookOpen, Mic, Pencil } from 'lucide-react';
 import { TESTIMONY_QUESTIONS, validateAnswers, getWordCount } from '../config/testimonyQuestions';
 import { generateTestimony, extractPullQuote, type TestimonyAnswers } from '../lib/api/ai-service';
 import { checkRateLimit, recordAttempt } from '../lib/rateLimiter';
 import { EXIT_WARNING_MSG, useBeforeUnloadGuard } from '../hooks/useOnboardingGuard';
+import AudioRecorder from './AudioRecorder';
 
 type TestimonyVisibility = 'my_church' | 'all_churches' | 'shareable';
 
@@ -41,6 +42,7 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
     const [extractedLesson, setExtractedLesson] = useState<string | null>(null);
     const [badgeColor, setBadgeColor] = useState<string | null>(null);
     const [badgeDoor, setBadgeDoor] = useState<number | null>(null);
+    const [inputMode, setInputMode] = useState<Record<string, 'text' | 'voice'>>({});
 
     const currentQuestion = TESTIMONY_QUESTIONS[currentStep];
     const isLastQuestion = currentStep === TESTIMONY_QUESTIONS.length - 1;
@@ -544,26 +546,85 @@ const TestimonyQuestionnaire: React.FC<TestimonyQuestionnaireProps> = ({
                                 {currentQuestion.hint}
                             </p>
 
-                            {/* Textarea */}
-                            <textarea
-                                value={currentAnswer}
-                                onChange={(e) => handleAnswerChange(e.target.value)}
-                                placeholder={currentQuestion.placeholder}
-                                rows={6}
-                                className="w-full px-4 py-3 rounded-xl focus:outline-none resize-none"
-                                style={{
-                                    minHeight: '140px',
-                                    background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
-                                    border: `1px solid ${nightMode
-                                        ? (errors[currentQuestion.id] ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.06)')
-                                        : (errors[currentQuestion.id] ? 'rgba(239,68,68,0.5)' : 'rgba(150,165,225,0.15)')}`,
-                                    color: nightMode ? '#e8e5f2' : '#1e2b4a',
-                                    fontFamily: "'General Sans', system-ui, sans-serif",
-                                    fontSize: '14px',
-                                    lineHeight: '1.6',
-                                    ...(nightMode ? {} : { backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }),
-                                }}
-                            />
+                            {/* Type / Speak toggle */}
+                            {(() => {
+                                const mode = inputMode[currentQuestion.id] ?? 'text';
+                                return (
+                                    <>
+                                        <div className="flex gap-1 p-1 rounded-lg" style={{ background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setInputMode(m => ({ ...m, [currentQuestion.id]: 'text' }))}
+                                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all"
+                                                style={{
+                                                    background: mode === 'text'
+                                                        ? (nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.12)')
+                                                        : 'transparent',
+                                                    color: mode === 'text'
+                                                        ? (nightMode ? '#7b76e0' : '#2b6cb0')
+                                                        : (nightMode ? '#5d5877' : '#8e9ec0'),
+                                                    border: mode === 'text'
+                                                        ? `1px solid ${nightMode ? 'rgba(123,118,224,0.2)' : 'rgba(79,172,254,0.2)'}`
+                                                        : '1px solid transparent',
+                                                }}
+                                            >
+                                                <Pencil className="w-3.5 h-3.5" />
+                                                Type
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setInputMode(m => ({ ...m, [currentQuestion.id]: 'voice' }))}
+                                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all"
+                                                style={{
+                                                    background: mode === 'voice'
+                                                        ? (nightMode ? 'rgba(123,118,224,0.15)' : 'rgba(79,172,254,0.12)')
+                                                        : 'transparent',
+                                                    color: mode === 'voice'
+                                                        ? (nightMode ? '#7b76e0' : '#2b6cb0')
+                                                        : (nightMode ? '#5d5877' : '#8e9ec0'),
+                                                    border: mode === 'voice'
+                                                        ? `1px solid ${nightMode ? 'rgba(123,118,224,0.2)' : 'rgba(79,172,254,0.2)'}`
+                                                        : '1px solid transparent',
+                                                }}
+                                            >
+                                                <Mic className="w-3.5 h-3.5" />
+                                                Speak
+                                            </button>
+                                        </div>
+
+                                        {/* Textarea (text mode) or AudioRecorder (voice mode) */}
+                                        {mode === 'text' ? (
+                                            <textarea
+                                                value={currentAnswer}
+                                                onChange={(e) => handleAnswerChange(e.target.value)}
+                                                placeholder={currentQuestion.placeholder}
+                                                rows={6}
+                                                className="w-full px-4 py-3 rounded-xl focus:outline-none resize-none"
+                                                style={{
+                                                    minHeight: '140px',
+                                                    background: nightMode ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.5)',
+                                                    border: `1px solid ${nightMode
+                                                        ? (errors[currentQuestion.id] ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.06)')
+                                                        : (errors[currentQuestion.id] ? 'rgba(239,68,68,0.5)' : 'rgba(150,165,225,0.15)')}`,
+                                                    color: nightMode ? '#e8e5f2' : '#1e2b4a',
+                                                    fontFamily: "'General Sans', system-ui, sans-serif",
+                                                    fontSize: '14px',
+                                                    lineHeight: '1.6',
+                                                    ...(nightMode ? {} : { backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }),
+                                                }}
+                                            />
+                                        ) : (
+                                            <AudioRecorder
+                                                nightMode={nightMode}
+                                                questionId={currentQuestion.id}
+                                                initialTranscript={currentAnswer}
+                                                onTranscriptReady={(text) => handleAnswerChange(text)}
+                                                onCancel={() => setInputMode(m => ({ ...m, [currentQuestion.id]: 'text' }))}
+                                            />
+                                        )}
+                                    </>
+                                );
+                            })()}
 
                             {errors[currentQuestion.id] && (
                                 <p className="text-sm" style={{ color: '#ef4444' }}>{errors[currentQuestion.id]}</p>
